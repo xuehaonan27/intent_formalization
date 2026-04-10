@@ -1,0 +1,401 @@
+[
+  {
+    "phi": "\u03c61: phi_neg_6_disjointness",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The \u03c6 assumes `post.inv()` AND overlap between allocated_addrs and free_addrs. Since inv() enforces disjointness (as stated), these are contradictory\u2014the \"bad scenario\" is unsatisfiable. The spec already prevents this."
+  },
+  {
+    "phi": "\u03c62: phi_neg_6_disjointness_fresh_slab",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same contradiction as \u03c61. Starting from empty allocated_addrs doesn't help\u2014after the insert/remove, post.inv() still enforces disjointness. The assumed overlap contradicts post.inv()."
+  },
+  {
+    "phi": "\u03c63: phi_neg_6_disjointness_after_cycle",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same as \u03c61. Alloc-dealloc cycling doesn't change the fundamental contradiction: post.inv() enforces disjointness, making the assumed overlap unsatisfiable."
+  },
+  {
+    "phi": "\u03c64: phi_neg_6_disjointness_interleaved",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same contradiction. Heavy interleaving doesn't affect the logical conflict between post.inv() (disjointness enforced) and the assumed overlap."
+  },
+  {
+    "phi": "\u03c65: phi_neg_7_unaligned_dealloc",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes `pre@.allocated_addrs.contains(addr)` AND `addr % block_size != 0`. But `pre.inv()` (in requires) guarantees all allocated_addrs members are block-aligned. Direct contradiction\u2014unaligned addresses cannot be in allocated_addrs."
+  },
+  {
+    "phi": "\u03c66: phi_neg_7_unaligned_dealloc_normal",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Explicitly assumes all allocated addresses are aligned AND the specific pointer is unaligned, while also assuming the pointer is in allocated_addrs. This is a direct self-contradiction independent of inv()."
+  },
+  {
+    "phi": "\u03c67: phi_neg_7_unaligned_dealloc_weak_inv",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes addr is in allocated_addrs and addr % block_size == 1. pre.inv() requires allocated_addrs members to be block-aligned. Contradiction\u2014inv() does enforce alignment of allocated addresses."
+  },
+  {
+    "phi": "\u03c68: phi_neg_8_double_free_err_code",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The deallocate spec uses `Err(_)` wildcard, leaving the error code completely unconstrained. Callers cannot determine whether failure was due to double-free, out-of-bounds, or something else. The body uses specific error codes that the spec discards."
+  },
+  {
+    "phi": "\u03c69: phi_neg_8_double_free_err_code_just_freed",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same fundamental gap as \u03c68. Even in the specific case of attempting to free an already-freed pointer, the spec's Err(_) wildcard hides the error code. The caller cannot distinguish this from other failure modes."
+  },
+  {
+    "phi": "\u03c610: phi_neg_8_double_free_err_code_never_allocated",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap. Deallocating a never-allocated pointer yields an unconstrained error code due to Err(_) wildcard. The spec doesn't distinguish this case from other errors."
+  },
+  {
+    "phi": "\u03c611: phi_neg_8_double_free_err_code_null",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap. Deallocating a null pointer yields an unconstrained error code. The Err(_) wildcard pattern in the spec prevents callers from reasoning about the specific error type."
+  },
+  {
+    "phi": "\u03c612: phi_neg_9_free_count_unconstrained",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The from_raw_parts spec says nothing about free_addrs. A region fitting 10 blocks could have free_addrs with only 1 block according to the spec. Callers cannot reason about how many blocks are available after initialization."
+  },
+  {
+    "phi": "\u03c613: phi_neg_9_free_count_single_block",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "none",
+    "reasoning": "The spec doesn't constrain free_addrs, so from the caller's perspective (only seeing SlabView::inv()), free_addrs could have more members than physically fit. If free_addrs has no visible range constraint, > 1 element with len == block_size is not provably impossible by the caller."
+  },
+  {
+    "phi": "\u03c614: phi_neg_9_free_count_large_region",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap as \u03c612. The spec imposes no upper bound on free_addrs count relative to the region size. More free blocks than physically fit is not excluded by the visible spec."
+  },
+  {
+    "phi": "\u03c615: phi_neg_9_free_count_non_multiple",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap. With non-multiple len, the spec doesn't constrain whether partial blocks are counted. free_addrs.len() == len/block_size + 1 is allowed since free_addrs is completely unconstrained."
+  },
+  {
+    "phi": "\u03c616: phi_neg_10_always_same_addr",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "none",
+    "reasoning": "The allocate spec only requires the returned address to be some member of free_addrs\u2014it doesn't specify which one. The body uses first-fit, but the spec allows always returning the same favored address. Callers cannot reason about allocation order."
+  },
+  {
+    "phi": "\u03c617: phi_neg_10_always_same_addr_single",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "With exactly one free block, there is only one possible return value. \"Always returning the same address\" is the only correct behavior. No gap is exposed\u2014there's no choice to make."
+  },
+  {
+    "phi": "\u03c618: phi_neg_10_always_same_addr_multiple",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "none",
+    "reasoning": "With multiple free blocks, the spec allows always picking start_addr while ignoring the next aligned block. The body implements first-fit, but the spec is nondeterministic about which free block is chosen."
+  },
+  {
+    "phi": "\u03c619: phi_neg_10_always_same_addr_recycled",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "none",
+    "reasoning": "After alloc/dealloc cycling, the recycled address could always be picked again. The spec's nondeterminism in block selection means callers cannot prove that different blocks will ever be returned."
+  },
+  {
+    "phi": "\u03c620: phi_neg_1_always_err",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The from_raw_parts spec has no requires clause and the ensures allows both Ok and Err for any input. A caller cannot prove that ANY combination of inputs guarantees success. The spec is consistent with always returning Err."
+  },
+  {
+    "phi": "\u03c621: phi_neg_1_always_err_valid_inputs",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Even with len > 0, block_size > 0, len >= block_size\u2014inputs the body would accept\u2014the spec still allows Err. No input condition is sufficient to guarantee Ok in the spec."
+  },
+  {
+    "phi": "\u03c622: phi_neg_1_always_err_aligned_addr",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Even with non-null, properly aligned addr, adequate len, and valid block_size, the spec permits Err. The spec completely fails to specify when success is guaranteed."
+  },
+  {
+    "phi": "\u03c623: phi_neg_2_zero_block_size",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes slab.inv() AND slab@.block_size == 0. But inv() requires block_size > 0. Direct contradiction\u2014the assumptions are unsatisfiable. The spec already prevents zero block_size on success."
+  },
+  {
+    "phi": "\u03c624: phi_neg_2_zero_block_size_zero_len",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same contradiction as \u03c623. slab.inv() requires block_size > 0, which conflicts with the assumed block_size == 0."
+  },
+  {
+    "phi": "\u03c625: phi_neg_3_empty_free_addrs",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The from_raw_parts spec ensures allocated_addrs == empty but says nothing about free_addrs. A caller cannot prove any blocks are available after initialization, even when len >= block_size. This is a genuine gap\u2014the spec allows a useless slab with no allocatable blocks."
+  },
+  {
+    "phi": "\u03c626: phi_neg_3_empty_free_addrs_small_len",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "With len < block_size, inv() requires end_addr > start_addr (difference >= block_size since both are block-aligned), but end_addr <= addr + len < addr + block_size and start_addr >= addr. This makes end_addr - start_addr < block_size, contradicting the minimum gap. The assumptions are unsatisfiable."
+  },
+  {
+    "phi": "\u03c627: phi_neg_3_empty_free_addrs_zero_region",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes slab.inv() AND start_addr == end_addr. inv() requires end_addr > start_addr. Direct contradiction."
+  },
+  {
+    "phi": "\u03c628: phi_neg_4_zero_capacity_slab",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "len == 0 means end_addr <= addr and start_addr >= addr, so end_addr <= start_addr. But inv() requires end_addr > start_addr. Contradiction\u2014a zero-length region cannot produce a valid slab."
+  },
+  {
+    "phi": "\u03c629: phi_neg_4_zero_capacity_alignment_waste",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes slab.inv() AND start_addr == end_addr. inv() requires end_addr > start_addr. Direct contradiction regardless of len > 0."
+  },
+  {
+    "phi": "\u03c630: phi_neg_4_zero_capacity_block_too_large",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes slab.inv() AND start_addr == end_addr. Same contradiction with inv()'s end_addr > start_addr requirement. Additionally, block_size > len creates the same impossibility as \u03c626."
+  },
+  {
+    "phi": "\u03c631: phi_neg_5_addr_outside_range",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The allocate postcondition inserts addr into post@.allocated_addrs. post.inv() requires all allocated_addrs members to be in [start_addr, end_addr). Assuming addr outside this range contradicts post.inv()."
+  },
+  {
+    "phi": "\u03c632: phi_neg_5_addr_outside_range_fresh_slab",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same as \u03c631. Regardless of fresh slab state, addr is inserted into post@.allocated_addrs, and post.inv() requires it to be in [start_addr, end_addr). Out-of-range addr contradicts post.inv()."
+  },
+  {
+    "phi": "\u03c633: phi_gap_1_free_addrs_complete",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Identical gap to \u03c625. The from_raw_parts spec says nothing about free_addrs on success. A caller cannot know any blocks are available for allocation. This is a real and significant spec gap."
+  },
+  {
+    "phi": "\u03c634: phi_gap_1_free_addrs_complete_min_slab",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap as \u03c633. Even for a minimum-size slab with room for 2+ blocks, the spec allows free_addrs to be empty. Callers cannot reason about block availability."
+  },
+  {
+    "phi": "\u03c635: phi_gap_1_free_addrs_complete_large",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap. A large slab (100+ blocks) could have only 1 free block per the spec. The lack of any free_addrs constraint in from_raw_parts is a genuine, significant spec gap."
+  },
+  {
+    "phi": "\u03c636: phi_gap_2_loose_addr_bounds",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The spec gives only loose bounds (start_addr >= addr, end_addr <= addr + len). With len >= 4*block_size, the spec allows start_addr to be pushed nearly to the end, leaving only 1 block of usable space. Callers cannot determine the actual usable region."
+  },
+  {
+    "phi": "\u03c637: phi_gap_2_loose_addr_bounds_non_multiple",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes end_addr == addr as usize. With start_addr >= addr and inv()'s end_addr > start_addr, we get addr > start_addr >= addr, a contradiction. The assumed degenerate case is impossible."
+  },
+  {
+    "phi": "\u03c638: phi_gap_2_loose_addr_bounds_large_block",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes start_addr == end_addr == addr + len. inv() requires end_addr > start_addr. start_addr == end_addr is a direct contradiction."
+  },
+  {
+    "phi": "\u03c639: phi_gap_3_valid_inputs_no_success_guarantee",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Despite perfectly valid inputs (non-null, aligned, adequate size), the spec cannot exclude Err. The ensures is a match on result with both branches valid. A caller providing correct inputs cannot prove from_raw_parts succeeds. This is a significant spec gap."
+  },
+  {
+    "phi": "\u03c640: phi_gap_3_valid_inputs_no_success_guarantee_null_addr",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Conversely, the spec allows Ok for null addr. The body rejects null, but the spec doesn't encode this check. The spec fails to constrain which inputs cause Err vs Ok in either direction."
+  },
+  {
+    "phi": "\u03c641: phi_gap_3_valid_inputs_no_success_guarantee_blocksize_gt_len",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "With block_size > len, inv()'s alignment requirements make end_addr > start_addr impossible (both block-aligned, difference < block_size). The Ok + slab.inv() assumptions are unsatisfiable when block_size > len."
+  },
+  {
+    "phi": "\u03c642: phi_gap_4_lowest_addr_not_guaranteed",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The body implements first-fit (returns lowest free block), but the spec only requires the returned address to be some member of free_addrs. A lower address exists but wasn't chosen\u2014this is permitted by the spec. Callers cannot rely on allocation order."
+  },
+  {
+    "phi": "\u03c643: phi_gap_4_lowest_addr_not_guaranteed_singleton",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes free_addrs.len() == 1, addr in free_addrs, AND exists other < addr in free_addrs. With exactly one element, no other element can exist. The existential contradicts the cardinality constraint."
+  },
+  {
+    "phi": "\u03c644: phi_gap_4_lowest_addr_not_guaranteed_fresh_slab",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "On a fresh slab with multiple free blocks, the body returns start_addr, but the spec allows addr != start_addr. The spec's nondeterminism about which free block is returned is a real gap for callers relying on deterministic allocation."
+  },
+  {
+    "phi": "\u03c645: phi_gap_5_error_code_unconstrained",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The allocate spec uses Err(_) wildcard, leaving the error code unconstrained. Callers cannot distinguish \"slab full\" from other potential failures. The body returns a specific error code that the spec discards."
+  },
+  {
+    "phi": "\u03c646: phi_gap_5_error_code_unconstrained_full_slab",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap as \u03c645. Even in the specific \"slab full\" scenario, the spec allows any error code including nonsensical ones like BadAddress. The Err(_) wildcard is a genuine under-specification."
+  },
+  {
+    "phi": "\u03c647: phi_gap_6_err_code_unconstrained",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Deallocate's Err(_) wildcard leaves the error code unconstrained. The body always returns BadAddress, but the spec permits any code. Callers cannot reason about the error type."
+  },
+  {
+    "phi": "\u03c648: phi_gap_6_err_code_unconstrained_oob",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap for the out-of-bounds case specifically. The body returns BadAddress, but the spec's Err(_) allows InvalidArgument or any other code."
+  },
+  {
+    "phi": "\u03c649: phi_gap_6_err_code_unconstrained_unaligned",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap for unaligned pointer rejection. The specific error code from the body is lost in the spec's Err(_) wildcard."
+  },
+  {
+    "phi": "\u03c650: phi_gap_6_err_code_unconstrained_double_free",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Same gap for double-free detection. A caller receiving an error cannot determine if it was a double-free, out-of-bounds, or alignment issue due to the wildcard."
+  },
+  {
+    "phi": "\u03c651: phi_gap_7_totality_missing",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "SlabView::inv() does not require that every block-aligned address in [start_addr, end_addr) is in either allocated_addrs or free_addrs. A valid block address could be in neither set\u2014\"lost blocks.\" The spec allows this totality violation."
+  },
+  {
+    "phi": "\u03c652: phi_gap_7_totality_missing_empty_alloc",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Both allocated_addrs and free_addrs empty with a non-empty address range is allowed by the visible spec. All blocks are \"lost.\" inv() only constrains members of these sets, not their completeness."
+  },
+  {
+    "phi": "\u03c653: phi_gap_7_totality_missing_after_ops",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "After operations, a valid block address not in allocated_addrs (and free_addrs empty) represents a \"lost block.\" The spec's lack of totality means blocks can disappear from tracking without detection."
+  },
+  {
+    "phi": "\u03c654: phi_gap_8_invalid_ptr_accepted",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "The disjunction of bad conditions each contradicts pre.inv(): out-of-range contradicts allocated_addrs range constraint, unaligned contradicts alignment constraint, already-free contradicts disjointness. Since pre.inv() is required, no branch of the disjunction is satisfiable."
+  },
+  {
+    "phi": "\u03c655: phi_gap_8_invalid_ptr_accepted_oob",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes allocated_addrs.contains(ptr) AND ptr out of [start_addr, end_addr). inv() requires all allocated_addrs members to be in range. Direct contradiction with pre.inv()."
+  },
+  {
+    "phi": "\u03c656: phi_gap_8_invalid_ptr_accepted_unaligned",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes allocated_addrs.contains(ptr) AND ptr % block_size != 0. inv() requires all allocated_addrs members to be block-aligned. Direct contradiction with pre.inv()."
+  },
+  {
+    "phi": "\u03c657: phi_gap_8_invalid_ptr_accepted_double_free",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "none",
+    "reasoning": "Assumes ptr in both allocated_addrs and free_addrs simultaneously. inv() enforces disjointness of these sets. Direct contradiction with pre.inv()."
+  }
+]

@@ -1,0 +1,1090 @@
+=== BATCH 1 (attempt 3) ===
+The source file is restricted by content exclusion policy. However, I have sufficient information from the function declarations and property descriptions to generate the proof bodies. The key types are: `Slab`/`SlabView` (with fields `block_size`, `start_addr`, `end_addr`, `allocated_addrs`, `free_addrs`), `Error`/`ErrorCode`, and `Set::<usize>`.
+
+Here are the formalized properties:
+
+---
+
+===PHI_START===
+NAME: neg_1_always_err
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: from_raw_parts always returns Err(InvalidArgument) regardless of input validity
+PARAMS: result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+// (none — universal, any addr/len/block_size)
+
+// --- Bad scenario ---
+assume(result is Err);
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: A trivially failing implementation satisfies the spec vacuously on the Ok branch; valid inputs should succeed
+===PHI_END===
+
+===PHI_START===
+NAME: neg_1_always_err_valid_inputs
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: from_raw_parts always returns Err(InvalidArgument) regardless of input validity — when len > 0, block_size > 0, len >= block_size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(len > 0);
+assume(block_size > 0);
+assume(len >= block_size);
+
+// --- Bad scenario ---
+assume(result is Err);
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: With seemingly valid size parameters the spec still permits unconditional Err, blocking all slab creation
+===PHI_END===
+
+===PHI_START===
+NAME: neg_1_always_err_aligned_addr
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: from_raw_parts always returns Err(InvalidArgument) regardless of input validity — when addr is non-null and properly aligned
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(addr as usize > 0);
+assume(block_size > 0);
+assume(len >= block_size);
+assume((addr as usize) % block_size == 0);
+
+// --- Bad scenario ---
+assume(result is Err);
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: Even with a non-null, properly aligned address and valid sizes, the spec still permits unconditional failure
+===PHI_END===
+
+===PHI_START===
+NAME: neg_2_zero_block_size
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds with block_size == 0
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size == 0);
+assume(len > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.block_size == 0);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+```
+REASON: A slab with block_size 0 makes alignment checks (addr % block_size) undefined; the spec should reject this
+===PHI_END===
+
+===PHI_START===
+NAME: neg_2_zero_block_size_zero_len
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds with block_size == 0 and len == 0
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size == 0);
+assume(len == 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.block_size == 0);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+```
+REASON: A degenerate slab with zero block_size and zero length is meaningless; spec should require block_size > 0
+===PHI_END===
+
+===PHI_START===
+NAME: neg_3_empty_free_addrs
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds but produces a slab with free_addrs == empty set
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size > 0);
+assume(len >= block_size);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.free_addrs == Set::<usize>::empty());
+```
+REASON: A slab with capacity (len >= block_size) but no free addresses is useless; every allocate call would fail
+===PHI_END===
+
+===PHI_START===
+NAME: neg_3_empty_free_addrs_small_len
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds but produces a slab with free_addrs == empty when len < block_size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size > 0);
+assume(len < block_size);
+assume(len > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.free_addrs == Set::<usize>::empty());
+```
+REASON: Returning Ok for a region too small to hold one block is misleading; should return Err instead
+===PHI_END===
+
+===PHI_START===
+NAME: neg_3_empty_free_addrs_zero_region
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds but produces a slab where start_addr == end_addr (zero-sized region)
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.start_addr == slab@.end_addr);
+assume(slab@.free_addrs == Set::<usize>::empty());
+```
+REASON: A zero-sized region guarantees no usable blocks; spec should not report Ok for an empty slab
+===PHI_END===
+
+===PHI_START===
+NAME: neg_4_zero_capacity_slab
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds with start_addr == end_addr (zero-capacity slab)
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(len == 0);
+assume(block_size > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.start_addr == slab@.end_addr);
+```
+REASON: len == 0 trivially satisfies start_addr >= addr and end_addr <= addr + 0; a zero-capacity slab is useless
+===PHI_END===
+
+===PHI_START===
+NAME: neg_4_zero_capacity_alignment_waste
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds with start_addr == end_addr due to alignment waste when len > 0
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(len > 0);
+assume(block_size > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.start_addr == slab@.end_addr);
+```
+REASON: Non-zero len but start == end means all space was wasted; spec allows Ok for a slab with no usable region
+===PHI_END===
+
+===PHI_START===
+NAME: neg_4_zero_capacity_block_too_large
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: from_raw_parts succeeds with start_addr == end_addr when block_size > len
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(block_size > len);
+assume(block_size > 0);
+assume(len > 0);
+
+// --- Bad scenario ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(slab@.start_addr == slab@.end_addr);
+```
+REASON: block_size exceeds available memory; no blocks can be carved out yet spec permits Ok with empty region
+===PHI_END===
+
+===PHI_START===
+NAME: neg_5_addr_outside_range
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate returns a pointer that is outside the slab's [start_addr, end_addr) range
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(pre@.free_addrs != Set::<usize>::empty());
+
+// --- Bad scenario ---
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+});
+// The bad part: returned address is outside valid range
+assume(addr < pre@.start_addr || addr >= pre@.end_addr);
+```
+REASON: Returning an address outside [start_addr, end_addr) means writing to memory the slab does not own — a soundness hole
+===PHI_END===
+
+===PHI_START===
+NAME: neg_5_addr_outside_range_fresh_slab
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate returns a pointer outside the slab's range on a freshly created slab
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(pre@.allocated_addrs == Set::<usize>::empty());
+assume(pre@.free_addrs != Set::<usize>::empty());
+
+// --- Bad scenario ---
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+});
+// The bad part: returned address is outside the slab's memory region
+assume(addr < pre@.start_addr || addr >= pre@.end_addr);
+```
+REASON: On a fresh slab (no prior allocations), free_addrs is unconstrained by from_raw_parts, so out-of-range addresses may be returned
+===PHI_END===
+
+=== BATCH 3 (attempt 1) ===
+Let me look at more context to find the SlabView struct and related types:
+
+Now let me look for the exact SlabView struct definition and spec functions to get the type info right:
+
+Now let me see some existing well-formed proof bodies to understand the exact patterns used:
+
+Now I have enough context about the types and patterns. Let me generate the proof bodies.
+
+===PHI_START===
+NAME: gap_1_free_addrs_complete
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: On success, free_addrs equals the complete set of all block-aligned addresses in [start_addr, end_addr). The spec only says allocated_addrs == Set::empty() — it says nothing about free_addrs, so a caller cannot know any blocks are available to allocate.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+
+// --- Bad scenario ---
+// free_addrs is empty despite allocated_addrs being empty — no blocks available to allocate
+assume(slab@.free_addrs == Set::<usize>::empty());
+```
+REASON: A freshly-created slab with empty allocated_addrs but also empty free_addrs has zero usable capacity, making subsequent allocate() always fail
+===PHI_END===
+
+===PHI_START===
+NAME: gap_1_free_addrs_complete_min_slab
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: On success, free_addrs equals the complete set of all block-aligned addresses in [start_addr, end_addr). The spec only says allocated_addrs == Set::empty() — it says nothing about free_addrs, so a caller cannot know any blocks are available to allocate.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// Minimum valid slab: len is just barely above block_size * 2
+assume(block_size > 0);
+assume(len > block_size * 2);
+assume(len <= block_size * 3);
+
+// --- Bad scenario ---
+// Even for a minimum-size slab, spec allows free_addrs to be empty
+assume(slab@.free_addrs == Set::<usize>::empty());
+```
+REASON: With len just above 2*block_size, the body guarantees at least 1 data block is free, but the spec cannot prove it
+===PHI_END===
+
+===PHI_START===
+NAME: gap_1_free_addrs_complete_large
+TARGET_FN: from_raw_parts
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: On success, free_addrs equals the complete set of all block-aligned addresses in [start_addr, end_addr). The spec only says allocated_addrs == Set::empty() — it says nothing about free_addrs, so a caller cannot know any blocks are available to allocate.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// Large slab: many data blocks expected
+assume(block_size > 0);
+assume(len >= block_size * 100);
+
+// --- Bad scenario ---
+// Spec allows free_addrs to contain only 1 block despite region holding ~100
+assume(slab@.free_addrs.finite());
+assume(slab@.free_addrs.len() == 1);
+```
+REASON: A slab over a region large enough for ~100 blocks reporting only 1 free block wastes nearly all provided memory
+===PHI_END===
+
+===PHI_START===
+NAME: gap_2_loose_addr_bounds
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: The spec gives only a loose bound on start_addr (>= addr) and end_addr (<= addr + len). The body computes exact values. A caller cannot determine the usable address range or number of allocatable blocks.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+assume(block_size > 0);
+assume(len >= block_size * 4);
+
+// --- Bad scenario ---
+// start_addr is pushed far into the region, and end_addr is pulled back,
+// leaving almost no usable space — the loose bounds allow this
+assume(slab@.start_addr >= addr as usize + len - block_size);
+assume(slab@.end_addr <= slab@.start_addr + block_size);
+```
+REASON: The loose bounds allow start_addr and end_addr to collapse the usable region to almost nothing despite ample input memory
+===PHI_END===
+
+===PHI_START===
+NAME: gap_2_loose_addr_bounds_non_multiple
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: The spec gives only a loose bound on start_addr (>= addr) and end_addr (<= addr + len). The body computes exact values. A caller cannot determine the usable address range or number of allocatable blocks.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// len is not a multiple of block_size — truncation expected
+assume(block_size > 0);
+assume(len >= block_size * 10);
+assume(len % block_size != 0);
+
+// --- Bad scenario ---
+// end_addr is set to addr (no data region at all) — the <= bound allows it
+assume(slab@.end_addr == addr as usize);
+```
+REASON: When len is not a multiple of block_size, end_addr should be addr+(len/block_size)*block_size, but the spec allows end_addr to collapse to addr
+===PHI_END===
+
+===PHI_START===
+NAME: gap_2_loose_addr_bounds_large_block
+TARGET_FN: from_raw_parts
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: The spec gives only a loose bound on start_addr (>= addr) and end_addr (<= addr + len). The body computes exact values. A caller cannot determine the usable address range or number of allocatable blocks.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// block_size is large relative to len — index overhead is relatively large
+assume(block_size > 0);
+assume(len >= block_size * 2);
+assume(len < block_size * 4);
+
+// --- Bad scenario ---
+// With large block_size, index takes ~1 block, so start_addr should be addr+block_size
+// But spec allows start_addr == addr + len (consuming everything as index overhead)
+assume(slab@.start_addr == addr as usize + len);
+assume(slab@.end_addr == addr as usize + len);
+```
+REASON: When block_size is large relative to len, the exact index overhead matters, but the spec allows all space consumed by index
+===PHI_END===
+
+===PHI_START===
+NAME: gap_3_valid_inputs_no_success_guarantee
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The spec's Err case only guarantees e.code == ErrorCode::InvalidArgument. It does not specify which input conditions cause failure, so a caller providing valid inputs cannot prove the call succeeds.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+// All inputs are well-formed (would pass all body validation checks)
+assume(addr as usize != 0);  // non-null
+assume(len > 0);
+assume((len as i64) < (i32::MAX as i64));
+assume((addr as usize) + len <= usize::MAX);
+assume(block_size > 0);
+assume((block_size as i64) < (i32::MAX as i64));
+assume(len >= block_size * 2);
+assume((addr as usize) % block_size == 0);
+
+// --- Bad scenario ---
+// Despite all inputs being valid, the result is Err — spec cannot exclude this
+assume(result is Err);
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: A caller with valid inputs cannot prove Ok is returned, making it impossible to prove downstream allocations are reachable
+===PHI_END===
+
+===PHI_START===
+NAME: gap_3_valid_inputs_no_success_guarantee_null_addr
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The spec's Err case only guarantees e.code == ErrorCode::InvalidArgument. It does not specify which input conditions cause failure, so a caller providing valid inputs cannot prove the call succeeds.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+// addr is null — body explicitly checks this and returns Err
+assume(addr as usize == 0);
+assume(len > 0);
+assume(block_size > 0);
+assume(len >= block_size * 2);
+
+// --- Bad scenario ---
+// With null addr, the body guarantees Err, but the spec also allows Ok
+// The spec cannot prove this specifically yields Err
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+```
+REASON: The spec allows Ok even for null addr because it has no requires clause linking input validity to the Ok branch
+===PHI_END===
+
+===PHI_START===
+NAME: gap_3_valid_inputs_no_success_guarantee_blocksize_gt_len
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The spec's Err case only guarantees e.code == ErrorCode::InvalidArgument. It does not specify which input conditions cause failure, so a caller providing valid inputs cannot prove the call succeeds.
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+// block_size > len — body returns Err because no blocks fit
+assume(addr as usize != 0);
+assume(len > 0);
+assume(block_size > len);
+assume((addr as usize) % block_size == 0);
+
+// --- Bad scenario ---
+// With block_size > len, body guarantees Err, but spec also allows Ok
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+```
+REASON: The spec allows Ok even when block_size > len because it has no requires/ensures linking this condition to the Err branch
+===PHI_END===
+
+===PHI_START===
+NAME: gap_4_lowest_addr_not_guaranteed
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: The body always returns the lowest-indexed free block (first-fit). The spec only says the returned address is some member of free_addrs — it does not specify which element is chosen.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// Multiple non-contiguous free blocks exist
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() > 1);
+
+// --- Bad scenario ---
+// A smaller (lower) address exists in free_addrs but was not chosen
+assume(exists|other: usize|
+    pre@.free_addrs.contains(other) && other < addr
+);
+```
+REASON: The body guarantees first-fit (lowest address), but the spec allows any free address, so callers cannot rely on deterministic allocation order
+===PHI_END===
+
+===PHI_START===
+NAME: gap_4_lowest_addr_not_guaranteed_singleton
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: The body always returns the lowest-indexed free block (first-fit). The spec only says the returned address is some member of free_addrs — it does not specify which element is chosen.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// Singleton free_addrs — only one choice
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() == 1);
+
+// --- Bad scenario ---
+// With only one free block, the returned addr should be that block
+// but the spec still doesn't guarantee it equals the minimum
+// (trivially satisfied — no other element exists to be smaller)
+assume(exists|other: usize|
+    pre@.free_addrs.contains(other) && other < addr
+);
+```
+REASON: With a singleton free set, first-fit is trivially satisfied; this scenario should be rejected (no smaller element exists)
+===PHI_END===
+
+===PHI_START===
+NAME: gap_4_lowest_addr_not_guaranteed_fresh_slab
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: body_aware
+PROPERTY: The body always returns the lowest-indexed free block (first-fit). The spec only says the returned address is some member of free_addrs — it does not specify which element is chosen.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// Fresh slab — all blocks free, allocated_addrs empty
+assume(pre@.allocated_addrs == Set::<usize>::empty());
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() > 1);
+
+// --- Bad scenario ---
+// On a fresh slab, body returns start_addr (lowest), but spec allows any
+// The returned address is not the start_addr (i.e., not the minimum)
+assume(addr != pre@.start_addr);
+```
+REASON: First allocation on a fresh slab should return start_addr (lowest block), but the spec allows any free address
+===PHI_END===
+
+===PHI_START===
+NAME: gap_5_error_code_unconstrained
+TARGET_FN: allocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the spec says Err(_) without constraining the error code or message. Callers cannot pattern-match on the error to distinguish 'slab full' from other failures.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(result is Err);
+assume(pre@.free_addrs == Set::<usize>::empty());
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// The error could be any code — spec uses wildcard Err(_)
+// Caller expects a specific code (e.g., ResourceBusy) but gets something else
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: A caller handling 'slab full' distinctly from other errors cannot rely on any specific error code from the spec
+===PHI_END===
+
+===PHI_START===
+NAME: gap_5_error_code_unconstrained_full_slab
+TARGET_FN: allocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the spec says Err(_) without constraining the error code or message. Callers cannot pattern-match on the error to distinguish 'slab full' from other failures.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(pre.inv());
+assume(post.inv());
+assume(result is Err);
+// free_addrs is empty — this is the only error case per the spec
+assume(pre@.free_addrs == Set::<usize>::empty());
+assume(pre@.allocated_addrs.finite());
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// The body propagates from Bitmap::alloc which has a specific error code,
+// but the spec's Err(_) wildcard allows any code, even a nonsensical one
+assume(result.unwrap_err().code == ErrorCode::BadAddress);
+```
+REASON: When the slab is full, the body returns a specific error from Bitmap::alloc, but the spec allows any error code including unrelated ones
+===PHI_END===
+
+=== BATCH 4 (attempt 1) ===
+Now let me search for the actual `SlabView` struct definition and `inv()` from the session store:
+
+Now let me search for the SlabView struct definition and `inv()` method:
+
+Now I have sufficient context from the session history about the `SlabView` type and the Slab API. Let me generate the formalized proof bodies for all three properties.
+
+===PHI_START===
+NAME: gap_6_err_code_unconstrained
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the body returns ErrorCode::BadAddress for all three failure modes (out-of-bounds, unaligned, already-free). The spec only says Err(_) and !allocated_addrs.contains(ptr), hiding the specific error code entirely.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(!pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// Spec uses Err(_) wildcard, so error code is completely unconstrained.
+// A non-BadAddress error code satisfies the spec.
+assume(result.get_Err_0().code == ErrorCode::InvalidArgument);
+```
+REASON: Callers cannot rely on the error code being BadAddress since the spec uses Err(_) wildcard, hiding all three failure modes behind an unconstrained error
+===PHI_END===
+
+===PHI_START===
+NAME: gap_6_err_code_unconstrained_oob
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the body returns ErrorCode::BadAddress for all three failure modes (out-of-bounds, unaligned, already-free). The spec only says Err(_) and !allocated_addrs.contains(ptr), hiding the specific error code entirely.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(!pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == pre@);
+// ptr is out of bounds
+assume(ptr as usize < pre@.start_addr || ptr as usize >= pre@.end_addr);
+
+// --- Bad scenario ---
+// Out-of-bounds rejection uses BadAddress in the body, but spec permits any code
+assume(result.get_Err_0().code == ErrorCode::InvalidArgument);
+```
+REASON: When ptr is out of bounds, the body returns BadAddress but the spec allows any error code, so callers cannot distinguish out-of-bounds from other failures
+===PHI_END===
+
+===PHI_START===
+NAME: gap_6_err_code_unconstrained_unaligned
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the body returns ErrorCode::BadAddress for all three failure modes (out-of-bounds, unaligned, already-free). The spec only says Err(_) and !allocated_addrs.contains(ptr), hiding the specific error code entirely.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(!pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == pre@);
+// ptr is in range but not block-aligned
+assume(ptr as usize >= pre@.start_addr);
+assume(ptr as usize < pre@.end_addr);
+assume(pre@.block_size > 0);
+assume((ptr as usize) % pre@.block_size != 0);
+
+// --- Bad scenario ---
+// Unaligned rejection uses BadAddress in the body, but spec permits any code
+assume(result.get_Err_0().code == ErrorCode::InvalidArgument);
+```
+REASON: When ptr is unaligned, the body returns BadAddress but the spec allows any error code, preventing callers from diagnosing alignment issues
+===PHI_END===
+
+===PHI_START===
+NAME: gap_6_err_code_unconstrained_double_free
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: body_aware
+PROPERTY: On error, the body returns ErrorCode::BadAddress for all three failure modes (out-of-bounds, unaligned, already-free). The spec only says Err(_) and !allocated_addrs.contains(ptr), hiding the specific error code entirely.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(!pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == pre@);
+// ptr is a valid block address but already in free_addrs (double free)
+assume(ptr as usize >= pre@.start_addr);
+assume(ptr as usize < pre@.end_addr);
+assume(pre@.block_size > 0);
+assume((ptr as usize) % pre@.block_size == 0);
+assume(pre@.free_addrs.contains(ptr as usize));
+
+// --- Bad scenario ---
+// Double-free rejection uses BadAddress in the body, but spec permits any code
+assume(result.get_Err_0().code == ErrorCode::InvalidArgument);
+```
+REASON: When ptr is a double-free, the body returns BadAddress but the spec allows any error code, preventing callers from detecting double-free bugs
+===PHI_END===
+
+===PHI_START===
+NAME: gap_7_totality_missing
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The union of allocated_addrs and free_addrs always equals the complete set of block-aligned addresses in [start_addr, end_addr). This totality invariant is maintained by the View implementation but SlabView::inv() only requires disjointness, not coverage.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(pre@.free_addrs == Set::<usize>::empty());
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// free_addrs is empty (allocate fails) but some valid block address
+// is not in allocated_addrs either — it's "lost" (totality violated)
+assume(pre@.block_size > 0);
+assume(pre@.end_addr > pre@.start_addr);
+assume(exists|a: usize|
+    a >= pre@.start_addr
+    && a < pre@.end_addr
+    && a % pre@.block_size == 0
+    && !pre@.allocated_addrs.contains(a)
+    && !pre@.free_addrs.contains(a)
+);
+```
+REASON: Without totality, free_addrs == empty does not imply all blocks are allocated, so a caller cannot conclude the slab is truly full when allocate returns Err
+===PHI_END===
+
+===PHI_START===
+NAME: gap_7_totality_missing_empty_alloc
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The union of allocated_addrs and free_addrs always equals the complete set of block-aligned addresses in [start_addr, end_addr). This totality invariant is maintained by the View implementation but SlabView::inv() only requires disjointness, not coverage.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(pre@.free_addrs == Set::<usize>::empty());
+assume(post@ == pre@);
+// allocated_addrs is also empty — no blocks tracked at all
+assume(pre@.allocated_addrs == Set::<usize>::empty());
+
+// --- Bad scenario ---
+// Both sets are empty, yet the slab has a non-empty address range.
+// Totality says free_addrs should equal all block addresses, but spec allows both empty.
+assume(pre@.block_size > 0);
+assume(pre@.end_addr > pre@.start_addr);
+assume(pre@.start_addr % pre@.block_size == 0);
+```
+REASON: With both sets empty in a non-trivial slab, all block addresses are untracked — the spec should guarantee free_addrs covers all blocks when allocated_addrs is empty
+===PHI_END===
+
+===PHI_START===
+NAME: gap_7_totality_missing_after_ops
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The union of allocated_addrs and free_addrs always equals the complete set of block-aligned addresses in [start_addr, end_addr). This totality invariant is maintained by the View implementation but SlabView::inv() only requires disjointness, not coverage.
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+assume(pre@.free_addrs == Set::<usize>::empty());
+assume(post@ == pre@);
+// State reflects prior alloc/dealloc activity: some blocks are allocated
+assume(pre@.allocated_addrs.finite());
+assume(pre@.allocated_addrs.len() > 0);
+
+// --- Bad scenario ---
+// Despite prior activity, a valid block address is in neither set
+// (totality should be preserved across operations but spec doesn't guarantee it)
+assume(pre@.block_size > 0);
+assume(pre@.end_addr > pre@.start_addr);
+assume(exists|a: usize|
+    a >= pre@.start_addr
+    && a < pre@.end_addr
+    && a % pre@.block_size == 0
+    && !pre@.allocated_addrs.contains(a)
+);
+```
+REASON: After alloc/dealloc cycles, free_addrs empty plus untracked block addresses means the slab lost capacity — callers expect allocate Err to mean all blocks are in allocated_addrs
+===PHI_END===
+
+===PHI_START===
+NAME: gap_8_invalid_ptr_accepted
+TARGET_FN: deallocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The body validates three distinct preconditions sequentially (bounds, alignment, already-free) before modifying state. Deallocate is safe to call with ANY pointer. The spec's Err branch preserves state, but doesn't guarantee that out-of-range or unaligned pointers are always rejected via Err.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+assume(pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(ptr as usize),
+    free_addrs: pre@.free_addrs.insert(ptr as usize),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// An invalid pointer (out-of-range, unaligned, or already-free) returns Ok
+// If inv() doesn't constrain allocated_addrs contents, this could be entailed
+assume(
+    ptr as usize < pre@.start_addr
+    || ptr as usize >= pre@.end_addr
+    || (pre@.block_size > 0 && (ptr as usize) % pre@.block_size != 0)
+    || pre@.free_addrs.contains(ptr as usize)
+);
+```
+REASON: If the spec allows Ok for an invalid pointer, deallocate could corrupt state by moving a bogus address into free_addrs
+===PHI_END===
+
+===PHI_START===
+NAME: gap_8_invalid_ptr_accepted_oob
+TARGET_FN: deallocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The body validates three distinct preconditions sequentially (bounds, alignment, already-free) before modifying state. Deallocate is safe to call with ANY pointer. The spec's Err branch preserves state, but doesn't guarantee that out-of-range or unaligned pointers are always rejected via Err.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+assume(pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(ptr as usize),
+    free_addrs: pre@.free_addrs.insert(ptr as usize),
+    ..pre@
+}));
+// ptr is completely outside the slab's address range
+assume(ptr as usize < pre@.start_addr || ptr as usize >= pre@.end_addr);
+
+// --- Bad scenario ---
+// An out-of-range pointer returns Ok — this is possible only if
+// allocated_addrs can contain out-of-range addresses (inv() gap)
+```
+REASON: If allocated_addrs can contain out-of-range addresses, deallocate would "succeed" for wild pointers, corrupting free_addrs with invalid addresses
+===PHI_END===
+
+===PHI_START===
+NAME: gap_8_invalid_ptr_accepted_unaligned
+TARGET_FN: deallocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The body validates three distinct preconditions sequentially (bounds, alignment, already-free) before modifying state. Deallocate is safe to call with ANY pointer. The spec's Err branch preserves state, but doesn't guarantee that out-of-range or unaligned pointers are always rejected via Err.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+assume(pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(ptr as usize),
+    free_addrs: pre@.free_addrs.insert(ptr as usize),
+    ..pre@
+}));
+// ptr is within range but not block-aligned
+assume(ptr as usize >= pre@.start_addr);
+assume(ptr as usize < pre@.end_addr);
+assume(pre@.block_size > 0);
+assume((ptr as usize) % pre@.block_size != 0);
+
+// --- Bad scenario ---
+// An unaligned pointer returns Ok — only possible if
+// allocated_addrs can contain unaligned addresses (inv() gap)
+```
+REASON: If allocated_addrs can contain unaligned addresses, deallocate would insert an unaligned address into free_addrs, breaking the allocator's alignment guarantees
+===PHI_END===
+
+===PHI_START===
+NAME: gap_8_invalid_ptr_accepted_double_free
+TARGET_FN: deallocate
+TYPE: logical
+SOURCE: body_aware
+PROPERTY: The body validates three distinct preconditions sequentially (bounds, alignment, already-free) before modifying state. Deallocate is safe to call with ANY pointer. The spec's Err branch preserves state, but doesn't guarantee that out-of-range or unaligned pointers are always rejected via Err.
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+assume(pre@.allocated_addrs.contains(ptr as usize));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(ptr as usize),
+    free_addrs: pre@.free_addrs.insert(ptr as usize),
+    ..pre@
+}));
+// ptr is a valid block address but already in free_addrs (double free)
+assume(ptr as usize >= pre@.start_addr);
+assume(ptr as usize < pre@.end_addr);
+assume(pre@.block_size > 0);
+assume((ptr as usize) % pre@.block_size == 0);
+assume(pre@.free_addrs.contains(ptr as usize));
+
+// --- Bad scenario ---
+// ptr is in BOTH allocated_addrs and free_addrs simultaneously.
+// Ok is returned, meaning disjointness was already violated in pre-state.
+// If inv() doesn't enforce disjointness, this double-free goes undetected.
+```
+REASON: If allocated_addrs and free_addrs can overlap, a double-free returns Ok instead of Err, silently corrupting the allocator's bookkeeping
+===PHI_END===

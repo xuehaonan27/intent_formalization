@@ -33,52 +33,76 @@ FORMALIZE_PROMPT = """You are a Verus (Rust verification) code generator.
 
 You are given:
 1. A Verus source file with type definitions, spec functions, and executable functions
-2. A list of negative properties described in natural language
+2. A list of negative properties (potential spec gaps) described in natural language
 3. For each target function, its EXACT declaration (signature + requires + ensures with empty body)
 
 Your job: for EACH property, write ONLY the body (assume statements) for a Verus `proof fn`
-that formalizes it as an ENTAILMENT CHECK for spec completeness.
+that tests whether the spec is INCOMPLETE.
 
 ## How it works
 
-You will receive a function declaration like:
+The proof fn has the function's spec as its `ensures` clause. Verus will check whether
+the body can establish the ensures. Your job is to construct a CONCRETE BAD (input, output)
+instance using assume statements — an instance where the output has some undesirable property
+that the spec SHOULD reject but might not.
+
+Example: testing whether an allocator spec allows returning an empty free set:
 ```rust
 #[verus_spec(result =>
-    requires
-        old(self).inv(),
     ensures
-        self.inv(),
-        match result { Ok(v) => { ... }, Err(_) => { ... } },
+        match result {
+            Ok(slab) => { &&& slab.inv() &&& slab@.allocated_addrs == Set::empty() },
+            Err(e) => e.code == ErrorCode::InvalidArgument,
+        },
 )]
-pub fn alloc(&mut self) -> Result<usize, Error> { }
+proof fn phi_empty_free(addr: *mut u8, len: usize, block_size: usize) {
+    // Construct a COMPLETE concrete (input, output) instance
+    assume(block_size == 64);
+    assume(len == 4096);
+    assume(result is Ok);
+    let slab = result.unwrap();
+    // All output fields must have concrete values
+    assume(slab@.block_size == 64);
+    assume(slab@.start_addr == 0x1040);
+    assume(slab@.end_addr == 0x2000);
+    assume(slab@.allocated_addrs == Set::<usize>::empty());
+    // Bad property embedded in the output:
+    assume(slab@.free_addrs == Set::<usize>::empty());
+}
 ```
 
-The declaration already has the EXACT spec. You do NOT copy or modify the spec.
-You ONLY provide the body contents (assume statements).
-
 ## Interpretation
-- If Verus VERIFIES the proof fn: the spec allows the bad behavior → spec is INCOMPLETE
-- If Verus REJECTS it: the spec excludes the bad behavior → spec is complete
+- If Verus VERIFIES: the assumed (input, output) satisfies the spec → spec accepts the bad output → **INCOMPLETE**
+- If Verus REJECTS: the assumed (input, output) violates the spec → spec rejects it → **complete for this property**
 
 ## CRITICAL RULES
+
 1. You do NOT write requires or ensures. They are mechanically extracted from the AST.
 2. You ONLY write assume() statements for the body.
-3. Use FREE VARIABLES for the exec function's state and return value:
+3. **DO NOT assume the postcondition.** The postcondition is in the `ensures` — Verus checks it
+   automatically. If you assume the postcondition, the check becomes trivially true and useless.
+   - ❌ WRONG: `assume(slab.inv());` — this is part of the postcondition
+   - ❌ WRONG: `assume(slab@.block_size == block_size);` — this is part of the postcondition
+   - ✅ RIGHT: `assume(slab@.block_size == 64);` — this is a concrete value for an output field
+4. **Construct COMPLETE output instances.** Every field of the output struct must have a concrete
+   value. The bad property is encoded as one or more field values. Incomplete outputs cause false
+   negatives (Verus fails due to missing info, not because the spec rejects the bad property).
+5. Use FREE VARIABLES for the exec function's state and return value:
    - `pre` for `old(self)`, `post` for `self`, `result` for the return value
    - You may call spec fns and ghost methods on these (e.g., `pre@.is_full()`)
-4. Common bad scenarios to encode as assume():
-   - Liveness: `assume(result is Err)` — valid input but Err
-   - Frame condition: `assume(post@.is_bit_set(j) != pre@.is_bit_set(j))` — unrelated state changed
-   - Fairness: `assume(result == Ok(0))` — degenerate output
-   - Precision: `assume(result is Ok)` + output violates expected property
-5. Use comments to clearly separate STATE ASSUMPTIONS from BAD SCENARIO:
+6. Use comments to separate input construction from the bad property:
    ```rust
-   // --- State assumptions ---
-   assume(pre@.num_bits > 1);
-   assume(!pre@.is_bit_set(0));
+   // --- Concrete input ---
+   assume(pre@.block_size == 64);
+   assume(pre@.free_addrs.len() == 3);
+   // ... all pre fields with concrete values ...
 
-   // --- Bad scenario ---
-   assume(result is Err);
+   // --- Concrete output (with bad property) ---
+   assume(result is Ok);
+   assume(post@.block_size == 64);
+   // ... all post fields with concrete values ...
+   // Bad property: some block disappeared
+   assume(post@.free_addrs.len() + post@.allocated_addrs.len() < pre@.free_addrs.len() + pre@.allocated_addrs.len());
    ```
 
 ## State scenarios
@@ -99,21 +123,26 @@ PROPERTY: <the natural language property being formalized>
 PARAMS: <free variable list, e.g.: pre: Bitmap, post: Bitmap, result: Result<usize, Error>>
 BODY:
 ```rust
-// --- State assumptions ---
-assume(post.inv());
-assume(pre@.num_bits > 1);
+// --- Concrete input ---
+assume(pre@.num_bits == 16);
+assume(pre@.free_count() == 5);
+// ... complete pre state ...
 
-// --- Bad scenario ---
+// --- Concrete output (with bad property) ---
 assume(result is Err);
+// ... complete post state ...
 ```
-REASON: <one line why this would be undesirable if entailed>
+REASON: <one line why this would be undesirable if the spec accepts it>
 ===PHI_END===
 
 RULES:
 - If the property has `state_scenarios`, generate ONE entry per scenario (universal + each specific state)
 - Otherwise, generate ONE entry per property
 - Do NOT write requires/ensures — they come from the AST
-- Only output assume() statements for the body
+- Do NOT assume the postcondition — it is checked automatically via ensures
+- Only output assume() statements constructing concrete (input, output) instances
+- The bad property must be embedded in the output field values, not as a separate assertion
+- All output struct fields must have concrete values to avoid false negatives
 - Use types/functions/traits from the source file
 - If a property is too vague to formalize, do your best and note it in REASON
 """

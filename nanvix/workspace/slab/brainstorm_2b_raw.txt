@@ -1,0 +1,114 @@
+Now let me also get the spec file to understand `SlabView` and `inv()`:
+
+Now I have the full picture — the implementation, the spec, and the `SlabView` / `inv()` definitions. Let me analyze all three functions for spec gaps.
+
+```json
+[
+  {
+    "id": "gap_1",
+    "target_fn": "from_raw_parts",
+    "category": "behavioral",
+    "property": "On success, free_addrs is non-empty (at least one block is available for allocation). The body guarantees num_data_blocks >= 1, so all data blocks start free, yielding at least one free address. The spec only states allocated_addrs == Set::empty() but says nothing about free_addrs being non-empty.",
+    "body_evidence": "The body checks `num_index_blocks >= total_num_blocks` and returns Err if true. On success, `num_data_blocks = total_num_blocks - num_index_blocks >= 1`. The for-loop only marks sentinel bits (>= num_data_blocks) as set; bits 0..num_data_blocks remain unset, meaning all data block addresses enter free_addrs via the View mapping (free_bits = Set::new(|i| 0 <= i < num_data_blocks && !bitmap.is_bit_set(i))).",
+    "reasoning": "A caller constructing a Slab expects to be able to allocate at least once. Without free_addrs != empty() in the postcondition, the spec permits a vacuous success where the slab has zero allocatable blocks. This makes it impossible for a caller to prove that a subsequent allocate() call will succeed, even immediately after construction.",
+    "state_scenarios": [
+      "no constraints (universal for all successful constructions)",
+      "when len is minimally valid (len == block_size * 2), only one data block exists — free_addrs has exactly one element",
+      "when len is large relative to block_size, many data blocks exist — free_addrs has many elements"
+    ]
+  },
+  {
+    "id": "gap_2",
+    "target_fn": "from_raw_parts",
+    "category": "logical",
+    "property": "Completeness of address partitioning: every block-aligned address in [start_addr, end_addr) belongs to either allocated_addrs or free_addrs. The SlabView.inv() only states that both sets are subsets of the valid range and are disjoint — it does not state they cover the entire range. There may be block-aligned in-range addresses in neither set, from the spec's perspective.",
+    "body_evidence": "The View implementation (lib.proof.rs) defines allocated_addrs via set_bits mapping over indices [0, num_data_blocks) with is_bit_set, and free_addrs via the complement (!is_bit_set). Since every integer i in [0, num_data_blocks) either has bit set or not, the two sets exactly partition all data block addresses. But view() is a `closed spec fn`, invisible to callers.",
+    "reasoning": "Without a totality guarantee (allocated_addrs ∪ free_addrs == all valid block addresses), a caller cannot reason about the total number of blocks, cannot prove that 'no free blocks' implies 'all blocks allocated', and cannot establish conservation-of-blocks properties across allocate/deallocate cycles. This is a fundamental invariant gap that undermines any capacity reasoning.",
+    "state_scenarios": [
+      "no constraints (universal — applies at construction and after any sequence of allocate/deallocate)",
+      "after construction when allocated_addrs == empty(), the gap prevents proving free_addrs == all valid addresses",
+      "after multiple allocate() calls, the gap prevents proving the number of remaining free blocks equals (total - allocated)"
+    ]
+  },
+  {
+    "id": "gap_3",
+    "target_fn": "from_raw_parts",
+    "category": "boundary",
+    "property": "start_addr is strictly greater than addr (not merely >=). The body reserves at least one index block, so data_addr = addr + num_index_blocks * block_size where num_index_blocks >= 1, meaning start_addr >= addr + block_size > addr. The spec only says start_addr >= addr as usize.",
+    "body_evidence": "The computation: total_num_blocks = len / block_size (>= 2 on success since len >= block_size * 2). divisor = block_size * u8_bits + 1 (>= 9). num_index_blocks = ceil(total_num_blocks / divisor) >= 1 (since total_num_blocks >= 2 > 0). The check `num_index_blocks >= total_num_blocks` returns Err, so num_index_blocks >= 1 always holds on success. Then data_addr = addr.add(num_index_blocks * block_size) = addr + (>= 1) * block_size.",
+    "reasoning": "The weaker bound (>=) allows callers to believe start_addr could equal addr, but the body always reserves space for the bitmap index. A caller that needs to know the first block address is offset from the raw region's start cannot rely on the spec. This matters for memory layout calculations and ensuring the index region is never allocated as a data block.",
+    "state_scenarios": [
+      "no constraints (universal for all successful constructions)",
+      "when block_size is very large relative to len (just barely fitting 2 blocks), num_index_blocks == 1 so start_addr == addr + block_size",
+      "when block_size is small relative to len, num_index_blocks could be > 1, making start_addr even further from addr"
+    ]
+  },
+  {
+    "id": "gap_4",
+    "target_fn": "from_raw_parts",
+    "category": "behavioral",
+    "property": "On success, free_addrs contains ALL block-aligned addresses in [start_addr, end_addr) — not just 'some' of them. Since allocated_addrs is empty, every data block address is free. The spec states allocated_addrs == empty() but does not characterize the contents of free_addrs.",
+    "body_evidence": "After constructing the bitmap, bits [0, num_data_blocks) are all unset (the loop only sets bits >= num_data_blocks as sentinels). The View maps each unset bit i to data_addr + i * block_size in free_addrs. So free_addrs = { data_addr + i * block_size | 0 <= i < num_data_blocks }, which is exactly all block-aligned addresses in [data_addr, end_addr).",
+    "reasoning": "Without knowing free_addrs's exact contents at construction, a caller cannot determine the slab's capacity (number of allocatable blocks), cannot prove that a specific address will be allocatable, and cannot reason about the maximum number of allocate() calls possible before exhaustion. Combined with gap_2, the caller has almost no quantitative understanding of the slab.",
+    "state_scenarios": [
+      "no constraints (universal at construction time)",
+      "when len is minimal (2 * block_size), free_addrs should have exactly 1 element",
+      "when len allows many data blocks, free_addrs should contain all of them"
+    ]
+  },
+  {
+    "id": "gap_5",
+    "target_fn": "deallocate",
+    "category": "behavioral",
+    "property": "On error, the error code is specifically ErrorCode::BadAddress. The body returns ErrorCode::BadAddress for all three failure paths (out-of-bounds, unaligned, already-free). The spec uses Err(_) with a wildcard, discarding the error code entirely.",
+    "body_evidence": "Three explicit error returns in the body: (1) `Err(Error::new(ErrorCode::BadAddress, \"pointer out of bounds\"))` when ptr < data_addr || ptr >= end_addr, (2) `Err(Error::new(ErrorCode::BadAddress, \"pointer unaligned\"))` when !ptr.is_multiple_of(block_size), (3) `Err(Error::new(ErrorCode::BadAddress, \"block is already free\"))` when !self.index.test(index)?.",
+    "reasoning": "Callers that need to distinguish deallocation failures (e.g., for error reporting or recovery logic) cannot rely on the error code. The spec guarantees nothing about the Err variant's contents, so a caller using pattern matching on the error code has no formal justification. This also prevents callers from distinguishing 'invalid pointer' from 'double free'.",
+    "state_scenarios": [
+      "when ptr is below start_addr (out of range — ErrorCode::BadAddress 'out of bounds')",
+      "when ptr is above end_addr (out of range — ErrorCode::BadAddress 'out of bounds')",
+      "when ptr is in range but not block-aligned (ErrorCode::BadAddress 'unaligned')",
+      "when ptr is valid but the block is already free / never allocated (ErrorCode::BadAddress 'already free')"
+    ]
+  },
+  {
+    "id": "gap_6",
+    "target_fn": "allocate",
+    "category": "behavioral",
+    "property": "The returned pointer lies within the address range [start_addr, end_addr). While this is derivable from the ensures clause (free_addrs.contains(addr) + inv()), the spec does not state the range bound directly. More importantly, the spec does not specify any error code for the allocation-failure case.",
+    "body_evidence": "The body delegates to self.index.alloc() which returns a block index < num_data_blocks, then computes block_addr = data_addr + block * block_size. The lemma_allocate_add_is_safe proves block_addr < end_addr. On failure (no free bit), self.index.alloc() returns an error whose code is not captured by the Err(_) wildcard in the spec.",
+    "reasoning": "The missing error code means callers cannot programmatically distinguish 'slab exhausted' from other potential errors. In a kernel allocator context, distinguishing OutOfMemory from other failures is critical for fallback allocation strategies. The address-range bound being only indirectly derivable (requiring chaining through inv() and free_addrs membership) also makes the spec harder to use as documentation.",
+    "state_scenarios": [
+      "when free_addrs is non-empty (Ok path — returned address is in [start_addr, end_addr))",
+      "when free_addrs is empty (Err path — error code is unspecified by spec)",
+      "when exactly one free block remains (boundary — last allocation succeeds, next fails)"
+    ]
+  },
+  {
+    "id": "gap_7",
+    "target_fn": "from_raw_parts",
+    "category": "boundary",
+    "property": "end_addr == addr + (len / block_size) * block_size, i.e., end_addr rounds down to the nearest block boundary from addr + len. The spec only says end_addr <= addr + len, losing the exact relationship. The wasted space at the end is at most block_size - 1 bytes.",
+    "body_evidence": "The body computes total_num_blocks = len / block_size (integer division, truncating), then end_addr = addr.add(total_num_blocks * block_size). So end_addr = addr + floor(len / block_size) * block_size, which equals addr + len - (len % block_size). This is deterministic and maximal — the body uses as many complete blocks as possible.",
+    "reasoning": "The weak bound (<=) allows a spec-only caller to believe the slab might waste arbitrarily many bytes. The exact formula matters for reasoning about memory utilization, proving that the slab wastes less than block_size bytes, and for callers who need to compute how much of their memory region the slab actually covers.",
+    "state_scenarios": [
+      "when len is an exact multiple of block_size, end_addr == addr + len (no waste)",
+      "when len % block_size != 0, end_addr == addr + len - (len % block_size), wasting the remainder",
+      "when block_size is large relative to len, the gap between end_addr and addr + len can be nearly block_size bytes"
+    ]
+  }
+]
+```
+
+**Summary of the 7 spec gaps found:**
+
+| # | Function | Gap |
+|---|----------|-----|
+| 1 | `from_raw_parts` | `free_addrs` is non-empty on success |
+| 2 | `from_raw_parts` | Address partitioning is complete (no "lost" blocks) |
+| 3 | `from_raw_parts` | `start_addr > addr` (strict), not just `>=` |
+| 4 | `from_raw_parts` | `free_addrs` = ALL valid block addresses at construction |
+| 5 | `deallocate` | Error code is always `BadAddress` (3 distinct reasons) |
+| 6 | `allocate` | Error code unspecified; range bound only indirect |
+| 7 | `from_raw_parts` | `end_addr` has exact formula, not just `<= addr+len` |
+
+The most impactful gaps are **#2** (completeness) and **#4** (initial free set characterization) — without these, callers cannot reason about slab capacity or conservation of blocks across allocate/deallocate cycles.

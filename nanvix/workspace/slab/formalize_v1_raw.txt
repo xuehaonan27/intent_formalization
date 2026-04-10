@@ -1,0 +1,591 @@
+=== BATCH 1 ===
+ERROR: Copilot stalled for 360s (no output). Got 0 chars so far. Total elapsed: 360s
+
+=== BATCH 2 ===
+Now I have good context from the session store. Let me search for the exact SlabView type definition to be precise.
+
+Now I have sufficient context from the session store about the `SlabView` type and specs. Let me generate the formalized proof bodies.
+
+===PHI_START===
+NAME: neg_6_disjointness
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: allocated_addrs and free_addrs are not necessarily disjoint
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// Some address exists in both allocated_addrs and free_addrs simultaneously
+assume(exists|x: usize| post@.allocated_addrs.contains(x) && post@.free_addrs.contains(x));
+```
+REASON: An address in both sets means it is treated as both allocated and free — a use-after-free vulnerability
+===PHI_END===
+
+===PHI_START===
+NAME: neg_6_disjointness_fresh_slab
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: allocated_addrs and free_addrs are not necessarily disjoint
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+// After from_raw_parts: allocated_addrs is empty, so trivially disjoint initially
+assume(pre@.allocated_addrs == Set::<usize>::empty());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// Even starting from empty allocated_addrs, overlap appears after one allocate
+assume(exists|x: usize| post@.allocated_addrs.contains(x) && post@.free_addrs.contains(x));
+```
+REASON: If disjointness is not preserved even from a trivially-disjoint initial state, the invariant is fundamentally broken
+===PHI_END===
+
+===PHI_START===
+NAME: neg_6_disjointness_after_cycle
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: allocated_addrs and free_addrs are not necessarily disjoint
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+// After one allocate + one deallocate cycle: address re-entered free_addrs
+// allocated_addrs is non-empty (other allocations) and free_addrs is non-empty
+assume(pre@.free_addrs.finite());
+assume(pre@.allocated_addrs.finite());
+assume(pre@.allocated_addrs.len() > 0);
+assume(pre@.free_addrs.len() > 1);
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// After alloc-dealloc cycling, overlap manifests
+assume(exists|x: usize| post@.allocated_addrs.contains(x) && post@.free_addrs.contains(x));
+```
+REASON: Alloc-dealloc cycling could introduce an address into both sets if the invariant does not enforce disjointness
+===PHI_END===
+
+===PHI_START===
+NAME: neg_6_disjointness_interleaved
+TARGET_FN: allocate
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: allocated_addrs and free_addrs are not necessarily disjoint
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+// After multiple allocate/deallocate interleaving: both sets substantially populated
+assume(pre@.free_addrs.finite());
+assume(pre@.allocated_addrs.finite());
+assume(pre@.allocated_addrs.len() > 2);
+assume(pre@.free_addrs.len() > 2);
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// With heavy interleaving, overlap is most likely to appear
+assume(exists|x: usize| post@.allocated_addrs.contains(x) && post@.free_addrs.contains(x));
+```
+REASON: Multiple interleaved alloc/dealloc operations are the most likely scenario to expose set overlap if inv() is weak
+===PHI_END===
+
+===PHI_START===
+NAME: neg_7_unaligned_dealloc
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: deallocate succeeds for a pointer that is not aligned to block_size
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let addr = ptr as usize;
+assume(pre@.allocated_addrs.contains(addr));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(addr),
+    free_addrs: pre@.free_addrs.insert(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// The pointer is not aligned to block_size, yet deallocate succeeds
+assume(pre@.block_size > 0);
+assume(addr % pre@.block_size != 0);
+```
+REASON: An unaligned pointer entering free_addrs corrupts the allocator's alignment invariant for future allocations
+===PHI_END===
+
+===PHI_START===
+NAME: neg_7_unaligned_dealloc_normal
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: deallocate succeeds for a pointer that is not aligned to block_size
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let addr = ptr as usize;
+assume(pre@.allocated_addrs.contains(addr));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(addr),
+    free_addrs: pre@.free_addrs.insert(addr),
+    ..pre@
+}));
+// Normal case: all addresses in allocated_addrs are properly aligned
+assume(forall|a: usize| pre@.allocated_addrs.contains(a) ==> a % pre@.block_size == 0);
+assume(pre@.block_size > 0);
+
+// --- Bad scenario ---
+// Despite the alignment of all allocated addresses, the pointer being deallocated is unaligned
+assume(addr % pre@.block_size != 0);
+```
+REASON: If allocated_addrs only contains aligned addresses AND ptr is in allocated_addrs, unalignment should be contradictory
+===PHI_END===
+
+===PHI_START===
+NAME: neg_7_unaligned_dealloc_weak_inv
+TARGET_FN: deallocate
+TYPE: boundary
+SOURCE: spec_only
+PROPERTY: deallocate succeeds for a pointer that is not aligned to block_size
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let addr = ptr as usize;
+assume(pre@.allocated_addrs.contains(addr));
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.remove(addr),
+    free_addrs: pre@.free_addrs.insert(addr),
+    ..pre@
+}));
+assume(pre@.block_size > 1);
+// inv() might not enforce alignment of allocated addresses
+
+// --- Bad scenario ---
+// Unaligned address is deallocated successfully
+assume(addr % pre@.block_size == 1);
+```
+REASON: If inv() does not enforce alignment of all addresses in allocated_addrs, unaligned pointers can leak into free_addrs
+===PHI_END===
+
+===PHI_START===
+NAME: neg_8_double_free_err_code
+TARGET_FN: deallocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: double-free is not prevented if the same pointer is somehow in allocated_addrs twice (set semantics should prevent this, but the error path allows silent no-ops)
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+let addr = ptr as usize;
+assume(!pre@.allocated_addrs.contains(addr));
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// The error code is unconstrained — spec uses Err(_) wildcard
+// Callers cannot distinguish double-free from other error conditions
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: An unconstrained error code on the Err path means callers cannot programmatically detect or handle double-free attempts
+===PHI_END===
+
+===PHI_START===
+NAME: neg_8_double_free_err_code_just_freed
+TARGET_FN: deallocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: double-free is not prevented if the same pointer is somehow in allocated_addrs twice (set semantics should prevent this, but the error path allows silent no-ops)
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+let addr = ptr as usize;
+// ptr was just deallocated: it's in free_addrs but not in allocated_addrs
+assume(pre@.free_addrs.contains(addr));
+assume(!pre@.allocated_addrs.contains(addr));
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// Attempting to free an already-freed pointer yields an arbitrary error code
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: After deallocation, re-freeing the same pointer should produce a specific diagnosable error, not an arbitrary one
+===PHI_END===
+
+===PHI_START===
+NAME: neg_8_double_free_err_code_never_allocated
+TARGET_FN: deallocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: double-free is not prevented if the same pointer is somehow in allocated_addrs twice (set semantics should prevent this, but the error path allows silent no-ops)
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+let addr = ptr as usize;
+// ptr was never allocated — not in either set
+assume(!pre@.allocated_addrs.contains(addr));
+assume(!pre@.free_addrs.contains(addr));
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// Deallocating a never-allocated pointer yields an unconstrained error code
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: Freeing a never-allocated pointer is a severe bug that should produce a distinguishable error code
+===PHI_END===
+
+===PHI_START===
+NAME: neg_8_double_free_err_code_null
+TARGET_FN: deallocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: double-free is not prevented if the same pointer is somehow in allocated_addrs twice (set semantics should prevent this, but the error path allows silent no-ops)
+PARAMS: pre: Slab, post: Slab, ptr: *const u8, result: Result<(), Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Err);
+// ptr is null
+assume(ptr as usize == 0);
+assume(!pre@.allocated_addrs.contains(0usize));
+assume(post@ == pre@);
+
+// --- Bad scenario ---
+// Deallocating a null pointer yields an unconstrained error code
+assume(result.unwrap_err().code == ErrorCode::InvalidArgument);
+```
+REASON: Freeing a null pointer should produce a specific, documented error code to aid debugging
+===PHI_END===
+
+===PHI_START===
+NAME: neg_9_free_count_unconstrained
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts does not constrain the total number of free blocks relative to the memory region size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+
+// --- Bad scenario ---
+// The spec imposes no quantitative relationship between region size and free block count
+// free_addrs could have far fewer blocks than the region can physically hold
+assume(block_size > 0);
+assume(len >= block_size * 10);
+assume(slab@.free_addrs.finite());
+assume(slab@.free_addrs.len() == 1);
+```
+REASON: A slab reporting 1 free block in a region large enough for 10+ wastes most of the memory region
+===PHI_END===
+
+===PHI_START===
+NAME: neg_9_free_count_single_block
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts does not constrain the total number of free blocks relative to the memory region size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// len is exactly block_size — should have at most 1 block
+assume(block_size > 0);
+assume(len == block_size);
+
+// --- Bad scenario ---
+// Spec allows claiming many free blocks even when region fits only 1
+assume(slab@.free_addrs.finite());
+assume(slab@.free_addrs.len() > 1);
+```
+REASON: When len equals block_size, at most one block fits, but the spec does not bound free_addrs cardinality
+===PHI_END===
+
+===PHI_START===
+NAME: neg_9_free_count_large_region
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts does not constrain the total number of free blocks relative to the memory region size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// Large region: len is a large multiple of block_size
+assume(block_size > 0);
+assume(len >= block_size * 100);
+
+// --- Bad scenario ---
+// Spec allows far more free blocks than physically fit in the region
+assume(slab@.free_addrs.finite());
+assume(slab@.free_addrs.len() as usize > len / block_size);
+```
+REASON: Claiming more free blocks than physically fit in the memory region is a logical impossibility the spec should exclude
+===PHI_END===
+
+===PHI_START===
+NAME: neg_9_free_count_non_multiple
+TARGET_FN: from_raw_parts
+TYPE: logical
+SOURCE: spec_only
+PROPERTY: from_raw_parts does not constrain the total number of free blocks relative to the memory region size
+PARAMS: addr: *mut u8, len: usize, block_size: usize, result: Result<Slab, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(result is Ok);
+let slab = result.unwrap();
+assume(slab.inv());
+assume(slab@.block_size == block_size);
+assume(slab@.start_addr >= addr as usize);
+assume(slab@.end_addr <= addr as usize + len);
+assume(slab@.allocated_addrs == Set::<usize>::empty());
+// len is not a multiple of block_size — partial last block
+assume(block_size > 0);
+assume(len > block_size * 5);
+assume(len % block_size != 0);
+
+// --- Bad scenario ---
+// Spec does not say whether partial blocks are counted; could claim full len/block_size blocks
+assume(slab@.free_addrs.finite());
+assume(slab@.free_addrs.len() as usize == len / block_size + 1);
+```
+REASON: Counting a partial trailing block as a full free block would allow allocation of memory beyond the region boundary
+===PHI_END===
+
+===PHI_START===
+NAME: neg_10_always_same_addr
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate could always pick the same address from free_addrs even when multiple are available
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+
+// --- Bad scenario ---
+// Multiple free blocks exist, but allocate always returns the same degenerate address
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() > 1);
+assume(addr == pre@.start_addr);
+// A different free block exists but is never chosen
+assume(exists|other: usize|
+    other != addr
+    && pre@.free_addrs.contains(other)
+    && other % pre@.block_size == 0
+);
+```
+REASON: Always returning the same address starves all other free blocks and wastes allocator capacity
+===PHI_END===
+
+===PHI_START===
+NAME: neg_10_always_same_addr_single
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate could always pick the same address from free_addrs even when multiple are available
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// Only one free block — no choice, trivially correct
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() == 1);
+
+// --- Bad scenario ---
+// With exactly 1 free block, always returning it is the only option (not really bad)
+assume(addr == pre@.start_addr);
+```
+REASON: With a single free block there is no choice — this scenario should trivially verify as a baseline
+===PHI_END===
+
+===PHI_START===
+NAME: neg_10_always_same_addr_multiple
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate could always pick the same address from free_addrs even when multiple are available
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// Multiple free blocks available
+assume(pre@.free_addrs.finite());
+assume(pre@.free_addrs.len() > 1);
+assume(pre@.block_size > 0);
+
+// --- Bad scenario ---
+// Spec allows always picking the same favored address, ignoring all others
+// The second-lowest address is free and aligned but never returned
+let other_addr = pre@.start_addr + pre@.block_size;
+assume(pre@.free_addrs.contains(other_addr));
+assume(other_addr % pre@.block_size == 0);
+assume(addr == pre@.start_addr);
+```
+REASON: When multiple blocks are available, always returning start_addr means subsequent blocks are never used
+===PHI_END===
+
+===PHI_START===
+NAME: neg_10_always_same_addr_recycled
+TARGET_FN: allocate
+TYPE: behavioral
+SOURCE: spec_only
+PROPERTY: allocate could always pick the same address from free_addrs even when multiple are available
+PARAMS: pre: Slab, post: Slab, result: Result<*mut u8, Error>
+BODY:
+```rust
+// --- State assumptions ---
+assume(post.inv());
+assume(result is Ok);
+let ptr = result.unwrap();
+let addr = ptr as usize;
+assume(pre@.free_addrs.contains(addr));
+assume(addr % post@.block_size == 0);
+assume(post@ == (SlabView {
+    allocated_addrs: pre@.allocated_addrs.insert(addr),
+    free_addrs: pre@.free_addrs.remove(addr),
+    ..pre@
+}));
+// After repeated alloc/dealloc on the same block: the recycled address is back in free_addrs
+// along with many other free addresses
+assume(pre@.free_addrs.finite());
+assume(pre@.allocated_addrs.finite());
+assume(pre@.free_addrs.len() > 3);
+assume(pre@.allocated_addrs.len() > 0);
+assume(pre@.block_size > 0);
+
+// --- Bad scenario ---
+// The same previously-recycled address is picked again, ignoring all others
+assume(addr == pre@.start_addr);
+assume(exists|other: usize|
+    other != addr
+    && pre@.free_addrs.contains(other)
+    && other % pre@.block_size == 0
+);
+```
+REASON: Repeated alloc-dealloc on the same block with other blocks available indicates degenerate no-progress behavior
+===PHI_END===
+
+=== BATCH 3 ===
+ERROR: Copilot timed out after 600s (total)
+
+=== BATCH 4 ===
+ERROR: Copilot timed out after 600s (total)

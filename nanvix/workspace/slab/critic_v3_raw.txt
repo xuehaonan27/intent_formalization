@@ -1,0 +1,428 @@
+I cannot access the source file directly due to permissions, but the prompt provides the complete `SlabView::inv()` and all function specs needed for evaluation. Let me systematically evaluate all 57 φ candidates.
+
+Key facts from `SlabView::inv()`:
+- `block_size > 0`, `start_addr % block_size == 0`, `end_addr % block_size == 0`
+- `end_addr > start_addr`
+- `forall|i| allocated_addrs.contains(i) ==> start_addr <= i < end_addr && i % block_size == 0`
+- Disjointness of free/allocated (per stated context)
+
+---
+
+===VERDICT_START===
+PHI: φ1: phi_neg_6_disjointness
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: The φ assumes `post.inv()` AND overlap between allocated_addrs and free_addrs. Since inv() enforces disjointness (as stated), these are contradictory—the "bad scenario" is unsatisfiable. The spec already prevents this.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ2: phi_neg_6_disjointness_fresh_slab
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Same contradiction as φ1. Starting from empty allocated_addrs doesn't help—after the insert/remove, post.inv() still enforces disjointness. The assumed overlap contradicts post.inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ3: phi_neg_6_disjointness_after_cycle
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Same as φ1. Alloc-dealloc cycling doesn't change the fundamental contradiction: post.inv() enforces disjointness, making the assumed overlap unsatisfiable.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ4: phi_neg_6_disjointness_interleaved
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Same contradiction. Heavy interleaving doesn't affect the logical conflict between post.inv() (disjointness enforced) and the assumed overlap.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ5: phi_neg_7_unaligned_dealloc
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes `pre@.allocated_addrs.contains(addr)` AND `addr % block_size != 0`. But `pre.inv()` (in requires) guarantees all allocated_addrs members are block-aligned. Direct contradiction—unaligned addresses cannot be in allocated_addrs.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ6: phi_neg_7_unaligned_dealloc_normal
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Explicitly assumes all allocated addresses are aligned AND the specific pointer is unaligned, while also assuming the pointer is in allocated_addrs. This is a direct self-contradiction independent of inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ7: phi_neg_7_unaligned_dealloc_weak_inv
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes addr is in allocated_addrs and addr % block_size == 1. pre.inv() requires allocated_addrs members to be block-aligned. Contradiction—inv() does enforce alignment of allocated addresses.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ8: phi_neg_8_double_free_err_code
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The deallocate spec uses `Err(_)` wildcard, leaving the error code completely unconstrained. Callers cannot determine whether failure was due to double-free, out-of-bounds, or something else. The body uses specific error codes that the spec discards.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ9: phi_neg_8_double_free_err_code_just_freed
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same fundamental gap as φ8. Even in the specific case of attempting to free an already-freed pointer, the spec's Err(_) wildcard hides the error code. The caller cannot distinguish this from other failure modes.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ10: phi_neg_8_double_free_err_code_never_allocated
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap. Deallocating a never-allocated pointer yields an unconstrained error code due to Err(_) wildcard. The spec doesn't distinguish this case from other errors.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ11: phi_neg_8_double_free_err_code_null
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap. Deallocating a null pointer yields an unconstrained error code. The Err(_) wildcard pattern in the spec prevents callers from reasoning about the specific error type.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ12: phi_neg_9_free_count_unconstrained
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The from_raw_parts spec says nothing about free_addrs. A region fitting 10 blocks could have free_addrs with only 1 block according to the spec. Callers cannot reason about how many blocks are available after initialization.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ13: phi_neg_9_free_count_single_block
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: medium
+REASONING: The spec doesn't constrain free_addrs, so from the caller's perspective (only seeing SlabView::inv()), free_addrs could have more members than physically fit. If free_addrs has no visible range constraint, > 1 element with len == block_size is not provably impossible by the caller.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ14: phi_neg_9_free_count_large_region
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap as φ12. The spec imposes no upper bound on free_addrs count relative to the region size. More free blocks than physically fit is not excluded by the visible spec.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ15: phi_neg_9_free_count_non_multiple
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap. With non-multiple len, the spec doesn't constrain whether partial blocks are counted. free_addrs.len() == len/block_size + 1 is allowed since free_addrs is completely unconstrained.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ16: phi_neg_10_always_same_addr
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: medium
+REASONING: The allocate spec only requires the returned address to be some member of free_addrs—it doesn't specify which one. The body uses first-fit, but the spec allows always returning the same favored address. Callers cannot reason about allocation order.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ17: phi_neg_10_always_same_addr_single
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: With exactly one free block, there is only one possible return value. "Always returning the same address" is the only correct behavior. No gap is exposed—there's no choice to make.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ18: phi_neg_10_always_same_addr_multiple
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: medium
+REASONING: With multiple free blocks, the spec allows always picking start_addr while ignoring the next aligned block. The body implements first-fit, but the spec is nondeterministic about which free block is chosen.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ19: phi_neg_10_always_same_addr_recycled
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: medium
+REASONING: After alloc/dealloc cycling, the recycled address could always be picked again. The spec's nondeterminism in block selection means callers cannot prove that different blocks will ever be returned.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ20: phi_neg_1_always_err
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The from_raw_parts spec has no requires clause and the ensures allows both Ok and Err for any input. A caller cannot prove that ANY combination of inputs guarantees success. The spec is consistent with always returning Err.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ21: phi_neg_1_always_err_valid_inputs
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Even with len > 0, block_size > 0, len >= block_size—inputs the body would accept—the spec still allows Err. No input condition is sufficient to guarantee Ok in the spec.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ22: phi_neg_1_always_err_aligned_addr
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Even with non-null, properly aligned addr, adequate len, and valid block_size, the spec permits Err. The spec completely fails to specify when success is guaranteed.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ23: phi_neg_2_zero_block_size
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes slab.inv() AND slab@.block_size == 0. But inv() requires block_size > 0. Direct contradiction—the assumptions are unsatisfiable. The spec already prevents zero block_size on success.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ24: phi_neg_2_zero_block_size_zero_len
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Same contradiction as φ23. slab.inv() requires block_size > 0, which conflicts with the assumed block_size == 0.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ25: phi_neg_3_empty_free_addrs
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The from_raw_parts spec ensures allocated_addrs == empty but says nothing about free_addrs. A caller cannot prove any blocks are available after initialization, even when len >= block_size. This is a genuine gap—the spec allows a useless slab with no allocatable blocks.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ26: phi_neg_3_empty_free_addrs_small_len
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: With len < block_size, inv() requires end_addr > start_addr (difference >= block_size since both are block-aligned), but end_addr <= addr + len < addr + block_size and start_addr >= addr. This makes end_addr - start_addr < block_size, contradicting the minimum gap. The assumptions are unsatisfiable.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ27: phi_neg_3_empty_free_addrs_zero_region
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes slab.inv() AND start_addr == end_addr. inv() requires end_addr > start_addr. Direct contradiction.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ28: phi_neg_4_zero_capacity_slab
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: len == 0 means end_addr <= addr and start_addr >= addr, so end_addr <= start_addr. But inv() requires end_addr > start_addr. Contradiction—a zero-length region cannot produce a valid slab.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ29: phi_neg_4_zero_capacity_alignment_waste
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes slab.inv() AND start_addr == end_addr. inv() requires end_addr > start_addr. Direct contradiction regardless of len > 0.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ30: phi_neg_4_zero_capacity_block_too_large
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes slab.inv() AND start_addr == end_addr. Same contradiction with inv()'s end_addr > start_addr requirement. Additionally, block_size > len creates the same impossibility as φ26.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ31: phi_neg_5_addr_outside_range
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: The allocate postcondition inserts addr into post@.allocated_addrs. post.inv() requires all allocated_addrs members to be in [start_addr, end_addr). Assuming addr outside this range contradicts post.inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ32: phi_neg_5_addr_outside_range_fresh_slab
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Same as φ31. Regardless of fresh slab state, addr is inserted into post@.allocated_addrs, and post.inv() requires it to be in [start_addr, end_addr). Out-of-range addr contradicts post.inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ33: phi_gap_1_free_addrs_complete
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Identical gap to φ25. The from_raw_parts spec says nothing about free_addrs on success. A caller cannot know any blocks are available for allocation. This is a real and significant spec gap.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ34: phi_gap_1_free_addrs_complete_min_slab
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap as φ33. Even for a minimum-size slab with room for 2+ blocks, the spec allows free_addrs to be empty. Callers cannot reason about block availability.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ35: phi_gap_1_free_addrs_complete_large
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap. A large slab (100+ blocks) could have only 1 free block per the spec. The lack of any free_addrs constraint in from_raw_parts is a genuine, significant spec gap.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ36: phi_gap_2_loose_addr_bounds
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The spec gives only loose bounds (start_addr >= addr, end_addr <= addr + len). With len >= 4*block_size, the spec allows start_addr to be pushed nearly to the end, leaving only 1 block of usable space. Callers cannot determine the actual usable region.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ37: phi_gap_2_loose_addr_bounds_non_multiple
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes end_addr == addr as usize. With start_addr >= addr and inv()'s end_addr > start_addr, we get addr > start_addr >= addr, a contradiction. The assumed degenerate case is impossible.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ38: phi_gap_2_loose_addr_bounds_large_block
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes start_addr == end_addr == addr + len. inv() requires end_addr > start_addr. start_addr == end_addr is a direct contradiction.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ39: phi_gap_3_valid_inputs_no_success_guarantee
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Despite perfectly valid inputs (non-null, aligned, adequate size), the spec cannot exclude Err. The ensures is a match on result with both branches valid. A caller providing correct inputs cannot prove from_raw_parts succeeds. This is a significant spec gap.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ40: phi_gap_3_valid_inputs_no_success_guarantee_null_addr
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Conversely, the spec allows Ok for null addr. The body rejects null, but the spec doesn't encode this check. The spec fails to constrain which inputs cause Err vs Ok in either direction.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ41: phi_gap_3_valid_inputs_no_success_guarantee_blocksize_gt_len
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: With block_size > len, inv()'s alignment requirements make end_addr > start_addr impossible (both block-aligned, difference < block_size). The Ok + slab.inv() assumptions are unsatisfiable when block_size > len.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ42: phi_gap_4_lowest_addr_not_guaranteed
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The body implements first-fit (returns lowest free block), but the spec only requires the returned address to be some member of free_addrs. A lower address exists but wasn't chosen—this is permitted by the spec. Callers cannot rely on allocation order.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ43: phi_gap_4_lowest_addr_not_guaranteed_singleton
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes free_addrs.len() == 1, addr in free_addrs, AND exists other < addr in free_addrs. With exactly one element, no other element can exist. The existential contradicts the cardinality constraint.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ44: phi_gap_4_lowest_addr_not_guaranteed_fresh_slab
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: On a fresh slab with multiple free blocks, the body returns start_addr, but the spec allows addr != start_addr. The spec's nondeterminism about which free block is returned is a real gap for callers relying on deterministic allocation.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ45: phi_gap_5_error_code_unconstrained
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: The allocate spec uses Err(_) wildcard, leaving the error code unconstrained. Callers cannot distinguish "slab full" from other potential failures. The body returns a specific error code that the spec discards.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ46: phi_gap_5_error_code_unconstrained_full_slab
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap as φ45. Even in the specific "slab full" scenario, the spec allows any error code including nonsensical ones like BadAddress. The Err(_) wildcard is a genuine under-specification.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ47: phi_gap_6_err_code_unconstrained
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Deallocate's Err(_) wildcard leaves the error code unconstrained. The body always returns BadAddress, but the spec permits any code. Callers cannot reason about the error type.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ48: phi_gap_6_err_code_unconstrained_oob
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap for the out-of-bounds case specifically. The body returns BadAddress, but the spec's Err(_) allows InvalidArgument or any other code.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ49: phi_gap_6_err_code_unconstrained_unaligned
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap for unaligned pointer rejection. The specific error code from the body is lost in the spec's Err(_) wildcard.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ50: phi_gap_6_err_code_unconstrained_double_free
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Same gap for double-free detection. A caller receiving an error cannot determine if it was a double-free, out-of-bounds, or alignment issue due to the wildcard.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ51: phi_gap_7_totality_missing
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: SlabView::inv() does not require that every block-aligned address in [start_addr, end_addr) is in either allocated_addrs or free_addrs. A valid block address could be in neither set—"lost blocks." The spec allows this totality violation.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ52: phi_gap_7_totality_missing_empty_alloc
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: Both allocated_addrs and free_addrs empty with a non-empty address range is allowed by the visible spec. All blocks are "lost." inv() only constrains members of these sets, not their completeness.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ53: phi_gap_7_totality_missing_after_ops
+VERDICT: TRUE_POSITIVE
+CONFIDENCE: high
+REASONING: After operations, a valid block address not in allocated_addrs (and free_addrs empty) represents a "lost block." The spec's lack of totality means blocks can disappear from tracking without detection.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ54: phi_gap_8_invalid_ptr_accepted
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: The disjunction of bad conditions each contradicts pre.inv(): out-of-range contradicts allocated_addrs range constraint, unaligned contradicts alignment constraint, already-free contradicts disjointness. Since pre.inv() is required, no branch of the disjunction is satisfiable.
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ55: phi_gap_8_invalid_ptr_accepted_oob
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes allocated_addrs.contains(ptr) AND ptr out of [start_addr, end_addr). inv() requires all allocated_addrs members to be in range. Direct contradiction with pre.inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ56: phi_gap_8_invalid_ptr_accepted_unaligned
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes allocated_addrs.contains(ptr) AND ptr % block_size != 0. inv() requires all allocated_addrs members to be block-aligned. Direct contradiction with pre.inv().
+===VERDICT_END===
+
+===VERDICT_START===
+PHI: φ57: phi_gap_8_invalid_ptr_accepted_double_free
+VERDICT: FALSE_POSITIVE
+CONFIDENCE: high
+REASONING: Assumes ptr in both allocated_addrs and free_addrs simultaneously. inv() enforces disjointness of these sets. Direct contradiction with pre.inv().
+===VERDICT_END===
+
+---
+
+**Summary: 30 TRUE POSITIVE, 27 FALSE POSITIVE**
+
+| Category | TRUE | FALSE | Key Reason |
+|---|---|---|---|
+| Disjointness (φ1-4) | 0 | 4 | inv() enforces disjointness |
+| Unaligned dealloc (φ5-7) | 0 | 3 | inv() enforces alignment |
+| Error code unconstrained (φ8-11,45-50) | 10 | 0 | Err(_) wildcard is real gap |
+| Free count (φ12-15,33-35) | 7 | 0 | free_addrs unconstrained |
+| Allocation order (φ16-19,42-44) | 5 | 2 | Nondeterminism is real gap |
+| Always Err (φ20-22) | 3 | 0 | No success guarantee |
+| Zero block_size (φ23-24) | 0 | 2 | inv() prevents block_size==0 |
+| Empty/zero region (φ25-30) | 1 | 5 | Most contradict inv() |
+| Addr outside range (φ31-32) | 0 | 2 | post.inv() prevents |
+| Loose bounds (φ36-38) | 1 | 2 | Degenerate cases contradict inv() |
+| Input validation (φ39-41) | 2 | 1 | block_size>len contradicts inv() |
+| Totality (φ51-53) | 3 | 0 | inv() lacks coverage |
+| Invalid ptr (φ54-57) | 0 | 4 | inv() prevents all cases |

@@ -1,0 +1,135 @@
+[
+  {
+    "phi": "phi_neg_6_disjointness",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "incompleteness",
+    "reasoning": "The allocate update expression (insert addr to allocated, remove addr from free) preserves disjointness for the newly allocated address. However, overlap at some other address x \u2260 addr is possible if x was already in both pre@.allocated_addrs and pre@.free_addrs\u2014which means inv() does not enforce disjointness of these sets. Since post.inv() is the only structural guarantee, and callers of the exec function need disjointness, this is a real spec incompleteness in the invariant that the allocate spec inherits."
+  },
+  {
+    "phi": "phi_neg_6_disjointness_fresh_slab",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "This \u03c6 assumes pre@.allocated_addrs == Set::empty(). Post-state has allocated_addrs = {addr} and free_addrs = pre@.free_addrs.remove(addr). For overlap at x: if x = addr, addr \u2209 free_addrs\\{addr}; if x \u2260 addr, x \u2209 {addr}. The overlap assumption is contradictory regardless of inv()'s strength\u2014no overlap is mathematically possible starting from empty allocated_addrs after one insert+remove. The proof is vacuously true."
+  },
+  {
+    "phi": "phi_neg_6_disjointness_after_cycle",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "incompleteness",
+    "reasoning": "Same structural issue as \u03c61. With non-empty allocated_addrs and free_addrs (post alloc-dealloc cycling), overlap at x \u2260 addr is possible if inv() doesn't enforce disjointness. The spec update correctly handles the newly allocated addr but doesn't prevent inherited overlap from the pre-state. This demonstrates the invariant's failure to guarantee disjointness\u2014a real incompleteness affecting exec function callers."
+  },
+  {
+    "phi": "phi_neg_6_disjointness_interleaved",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "incompleteness",
+    "reasoning": "Same analysis as \u03c61 and \u03c63. With substantially populated allocated and free sets from heavy interleaving, the spec doesn't rule out inherited overlap at x \u2260 addr. This is a valid demonstration that the spec ecosystem (inv() + allocate ensures) fails to guarantee the fundamental disjointness property callers need."
+  },
+  {
+    "phi": "phi_neg_7_unaligned_dealloc",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "generality",
+    "reasoning": "The \u03c6 assumes addr is in allocated_addrs AND addr is unaligned. Since the allocate spec guarantees addr % block_size == 0 for every successful allocation, unaligned addresses should never enter allocated_addrs through normal operation. If inv() enforces alignment of allocated addresses (as it should, given allocate's guarantee), the assumes are contradictory. The deallocate spec correctly delegates alignment enforcement to the invariant rather than re-checking\u2014this is sound spec design, not an incompleteness."
+  },
+  {
+    "phi": "phi_neg_7_unaligned_dealloc_normal",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "This \u03c6 explicitly assumes all addresses in allocated_addrs are aligned (forall|a| allocated contains a ==> a % block_size == 0), then assumes addr is in allocated_addrs AND addr is unaligned. These are directly contradictory\u2014the universal quantifier covers addr. The proof is vacuously true from contradictory assumptions, not from any spec weakness."
+  },
+  {
+    "phi": "phi_neg_7_unaligned_dealloc_weak_inv",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "medium",
+    "filter_applied": "generality",
+    "reasoning": "Same structural issue as \u03c65. The \u03c6 assumes addr (with addr % block_size == 1) is in allocated_addrs, but the allocate spec only ever inserts aligned addresses. If inv() propagates this alignment property (which it should to be sound), then an unaligned address in allocated_addrs contradicts the invariant. The deallocate spec correctly relies on the invariant for alignment rather than redundantly checking it\u2014this is spec design, not a gap."
+  },
+  {
+    "phi": "phi_neg_8_double_free_err_code",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "The deallocate spec uses Err(_) wildcard, which means the error code is genuinely unconstrained. Callers cannot distinguish a double-free from a never-allocated pointer or a null-pointer deallocation. While the key safety properties (state unchanged, ptr not in allocated_addrs) are preserved, the missing error code specification is a real incompleteness\u2014the implementation likely returns a specific ErrorCode that the spec fails to promise."
+  },
+  {
+    "phi": "phi_neg_8_double_free_err_code_just_freed",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "Demonstrates the same Err(_) wildcard incompleteness in a more specific scenario: ptr was just freed (in free_addrs but not allocated_addrs). The spec allows any error code here, preventing callers from identifying this specific double-free condition. This is a genuine incompleteness\u2014the error path's postcondition should specify the error code to let callers handle different failure modes appropriately."
+  },
+  {
+    "phi": "phi_neg_8_double_free_err_code_never_allocated",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "Same Err(_) incompleteness for the case where ptr was never allocated (not in either set). The spec can't distinguish this from double-free or other error conditions. Callers of this exec function would benefit from knowing the specific error code to provide meaningful diagnostics. A genuine, though low-severity, spec gap."
+  },
+  {
+    "phi": "phi_neg_8_double_free_err_code_null",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "Same Err(_) incompleteness for null pointer deallocation. The spec correctly takes the error path (0 is presumably not in allocated_addrs), but the error code is unconstrained. Null-pointer deallocation is a common enough case that callers may want to detect it specifically. Same genuine low-severity incompleteness as \u03c68-\u03c610."
+  },
+  {
+    "phi": "phi_neg_9_free_count_unconstrained",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "The from_raw_parts spec says nothing about free_addrs except through inv(). It doesn't relate the number of free blocks to the region size (len / block_size). The \u03c6 shows a region that can hold 10 blocks but only has 1 free block\u2014callers can't know how many allocations will succeed. This is a significant incompleteness for an exec function: the implementation surely initializes floor(len/block_size) blocks, but the spec doesn't promise it."
+  },
+  {
+    "phi": "phi_neg_9_free_count_single_block",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "With len == block_size, the region can hold at most 1 block, yet the spec allows free_addrs.len() > 1. This is a stronger demonstration than \u03c612\u2014it shows the spec doesn't even impose an upper bound on free blocks relative to physical capacity. If inv() doesn't bound free addresses within [start_addr, end_addr), this is a real gap. Callers cannot reason about resource capacity."
+  },
+  {
+    "phi": "phi_neg_9_free_count_large_region",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "The spec allows more free blocks than can physically fit in the region (free_addrs.len() > len / block_size with a region of 100+ blocks). This demonstrates the spec fails to constrain free_addrs to physically realizable quantities. A meaningful incompleteness\u2014callers can't bound memory consumption or reason about allocator capacity."
+  },
+  {
+    "phi": "phi_neg_9_free_count_non_multiple",
+    "verdict": "TRUE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "incompleteness",
+    "reasoning": "When len is not a multiple of block_size, the spec doesn't specify whether the partial final block is counted. The \u03c6 shows free_addrs.len() == len/block_size + 1, which may exceed the true capacity. This demonstrates the spec fails to handle the partial-block edge case\u2014a concrete incompleteness relevant to correct resource accounting in the exec function."
+  },
+  {
+    "phi": "phi_neg_10_always_same_addr",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "generality",
+    "reasoning": "The allocate spec is intentionally nondeterministic\u2014it says \"some address from free_addrs\" without specifying which. This is standard allocator spec design: allowing any allocation strategy is MORE GENERAL (stronger), not weaker. Callers should not depend on which specific block is returned. The nondeterminism does not cause any completeness or liveness issue\u2014if free_addrs is non-empty, allocation succeeds."
+  },
+  {
+    "phi": "phi_neg_10_always_same_addr_single",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "generality",
+    "reasoning": "With exactly 1 free block, always returning it is the only possible behavior. The \u03c6 itself acknowledges \"not really bad.\" This is trivially correct and demonstrates no spec weakness. The nondeterministic spec degenerates to deterministic when there's only one choice\u2014perfectly sound behavior."
+  },
+  {
+    "phi": "phi_neg_10_always_same_addr_multiple",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "generality",
+    "reasoning": "Multiple free blocks exist, but the spec allows picking any one. Always favoring the lowest address is a valid allocation strategy (e.g., best-fit, first-fit). The spec's nondeterminism is a design feature that permits any correct implementation strategy. No completeness or liveness property is violated\u2014every allocation still succeeds when blocks are available."
+  },
+  {
+    "phi": "phi_neg_10_always_same_addr_recycled",
+    "verdict": "FALSE_POSITIVE",
+    "confidence": "high",
+    "filter_applied": "generality",
+    "reasoning": "After alloc-dealloc cycling, the spec still allows picking any free block, including the recycled one. This nondeterminism is intentional and sound\u2014LIFO (stack-like) allocation is a legitimate strategy that many real allocators use for cache locality. No fairness or progress guarantee is missing for an exec allocator function."
+  }
+]
