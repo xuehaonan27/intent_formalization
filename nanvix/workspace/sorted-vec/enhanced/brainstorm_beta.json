@@ -1,0 +1,14 @@
+[
+  {"id":1,"target_fn":"insert(new)","property":"value not structurally present after insert","confidence":"high"},
+  {"id":2,"target_fn":"insert(replace)","property":"new value not stored, old remains","confidence":"high"},
+  {"id":3,"target_fn":"insert(replace)","property":"return value not pinned","confidence":"low","note":"WITHDRAWN - old@.contains pins it"},
+  {"id":4,"target_fn":"insert","property":"no reverse frame - spurious elements allowed","confidence":"high"},
+  {"id":5,"target_fn":"insert","property":"existing elements may be structurally swapped","confidence":"medium","note":"DOWNGRADED - length constrains"},
+  {"id":6,"target_fn":"insert(new)","property":"same as #1 with different witness","confidence":"high"},
+  {"id":7,"target_fn":"insert(replace)","property":"NEITHER old nor new structurally present","confidence":"high"},
+  {"id":8,"target_fn":"From<Vec>","property":"no inv() guarantee","confidence":"high"},
+  {"id":9,"target_fn":"remove","property":"reverse frame missing","confidence":"medium","note":"DOWNGRADED - len+frame pins it"},
+  {"id":10,"target_fn":"get","property":"returned ref only sv_eq, not structural match","confidence":"high","note":"CORRECT BEHAVIOR but compounds with #1/#2"},
+  {"id":11,"target_fn":"insert+get","property":"get after insert returns unknown payload","confidence":"high"},
+  {"id":12,"target_fn":"insert(replace)","property":"both old and stored differ from input","confidence":"high"}
+]

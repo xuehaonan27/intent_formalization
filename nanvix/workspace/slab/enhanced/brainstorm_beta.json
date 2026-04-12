@@ -1,0 +1,16 @@
+[
+  {"id":1,"target_fn":"from_raw_parts","property":"free_addrs empty after construction","confidence":"high"},
+  {"id":2,"target_fn":"from_raw_parts","property":"free_addrs only subset of valid blocks","confidence":"high"},
+  {"id":3,"target_fn":"allocate","property":"allocate always fails due to phantom-empty free_addrs","confidence":"high"},
+  {"id":4,"target_fn":"allocate","property":"error code unconstrained","confidence":"high"},
+  {"id":5,"target_fn":"deallocate","property":"error code unconstrained","confidence":"high"},
+  {"id":6,"target_fn":"deallocate","property":"error conflates OOB/unaligned/double-free","confidence":"medium"},
+  {"id":7,"target_fn":"from_raw_parts","property":"start_addr loose bound","confidence":"medium"},
+  {"id":8,"target_fn":"from_raw_parts","property":"end_addr loose bound","confidence":"medium"},
+  {"id":9,"target_fn":"allocate+from_raw_parts","property":"no cardinality bound on free_addrs","confidence":"high"},
+  {"id":10,"target_fn":"allocate+deallocate","property":"re-allocatability after dealloc","confidence":"low","note":"WITHDRAWN"},
+  {"id":11,"target_fn":"SlabView::inv","property":"ghost addresses in free_addrs","confidence":"medium"},
+  {"id":12,"target_fn":"from_raw_parts","property":"free_addrs outside data region","confidence":"medium"},
+  {"id":13,"target_fn":"allocate","property":"no allocation order guarantee","confidence":"low","note":"BY DESIGN"},
+  {"id":14,"target_fn":"from_raw_parts+allocate","property":"first allocation fails on fresh slab","confidence":"high"}
+]

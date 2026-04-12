@@ -1,0 +1,18 @@
+[
+  {"id":"neg_1","target_fn":"new","property":"new(8) permitted to return Err for valid input","confidence":"high"},
+  {"id":"neg_2","target_fn":"new","property":"new(16) permitted to return Err for valid input","confidence":"high"},
+  {"id":"neg_3","target_fn":"new","property":"new() error code unconstrained","confidence":"high"},
+  {"id":"neg_4","target_fn":"set","property":"set() can return Err on valid unset bit","confidence":"low","note":"SELF-CORRECTED: Err guard constrains this"},
+  {"id":"neg_5","target_fn":"set","property":"set() error code unconstrained","confidence":"high"},
+  {"id":"neg_6","target_fn":"clear","property":"clear() error code unconstrained","confidence":"high"},
+  {"id":"neg_7","target_fn":"test","property":"test() error code unconstrained","confidence":"high"},
+  {"id":"neg_8","target_fn":"alloc","property":"alloc() on non-full can return Err","confidence":"low","note":"SELF-CORRECTED: Err requires is_full()"},
+  {"id":"neg_9","target_fn":"alloc","property":"alloc() error code unconstrained","confidence":"high"},
+  {"id":"neg_10","target_fn":"alloc","property":"alloc() nondeterministic bit choice","confidence":"high"},
+  {"id":"neg_11","target_fn":"alloc_range","property":"alloc_range() error code unconstrained","confidence":"high"},
+  {"id":"neg_12","target_fn":"alloc_range","property":"alloc_range() nondeterministic range choice","confidence":"high"},
+  {"id":"neg_13","target_fn":"new","property":"new() no liveness - RawArray::new may fail","confidence":"high"},
+  {"id":"neg_14","target_fn":"set","property":"set() merges OOB and already-set in Err","confidence":"high"},
+  {"id":"neg_15","target_fn":"clear","property":"clear() merges OOB and already-clear in Err","confidence":"high"},
+  {"id":"neg_16","target_fn":"alloc","property":"next_free hint not specified","confidence":"medium"}
+]

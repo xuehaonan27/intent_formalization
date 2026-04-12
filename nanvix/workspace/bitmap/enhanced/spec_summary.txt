@@ -1,0 +1,328 @@
+   4 | #![cfg_attr(not(feature = "std"), no_std)]
+   5 | #![cfg_attr(all(test, feature = "std"), feature(random))]
+   6 | // To support attributes on statements, e.g., #[verus_spec(invariant ...)] while ...,
+   7 | // we need `proc_macro_hygiene` and `stmt_expr_attributes`.
+   8 | #![cfg_attr(verus_keep_ghost, feature(proc_macro_hygiene))]
+   9 | #![cfg_attr(verus_keep_ghost, feature(stmt_expr_attributes))]
+  10 | // Verus does not yet support compound assignment on struct fields (e.g., self.usage += 1).
+  11 | #![allow(clippy::assign_op_pattern)]
+  12 | 
+  13 | //==================================================================================================
+  14 | // Modules
+  15 | //==================================================================================================
+  16 | 
+  17 | #[cfg(all(test, feature = "std"))]
+  59 | #[verus_verify(external_derive)]
+  60 | #[derive(Debug)]
+  61 | pub struct Bitmap {
+  62 |     /// Capacity of the bitmap (in bits).
+  63 |     number_of_bits: usize,
+  64 |     /// Number of bits set in the bitmap.
+  65 |     usage: usize,
+  66 |     /// Underlying bits.
+  67 |     bits: RawArray<u8>,
+  68 |     /// Hint: first bit index that might be free. Avoids O(n) rescans.
+  75 | 
+  76 | #[verus_verify]
+  77 | impl Bitmap {
+  78 |     ///
+  79 |     /// # Description
+  80 |     ///
+  81 |     /// Creates a new bitmap with a given length. The bitmap is initialized with all bits set to zero.
+  82 |     ///
+  83 |     /// # Parameters
+  84 |     ///
+  89 |     /// Upon success, a new bitmap is returned. Upon failure, an error is returned instead.
+  90 |     ///
+  91 |     #[verus_spec(result =>
+  92 |         ensures
+  93 |             result matches Ok(bitmap) ==> {
+  94 |                 &&& bitmap.inv()
+  95 |                 &&& bitmap@.num_bits == number_of_bits as int
+  96 |                 &&& bitmap@.is_empty()
+  97 |             },
+  98 |             number_of_bits == 0 ==> result is Err,
+  99 |             number_of_bits >= u32::MAX ==> result is Err,
+ 100 |             number_of_bits % (u8::BITS as usize) != 0 ==> result is Err,
+ 101 |     )]
+ 102 |     pub fn new(number_of_bits: usize) -> Result<Self, Error> {
+ 103 |         // Check if the length is invalid.
+ 104 |         if number_of_bits == 0 || number_of_bits >= u32::MAX as usize {
+ 105 |             let reason: &str = "invalid length";
+ 106 |             return Err(Error::new(ErrorCode::InvalidArgument, reason));
+ 107 |         }
+ 108 | 
+ 109 |         // Check if the length is not a multiple of the number of the bitmap word.
+ 153 |     /// - `InvalidArgument` if the array length multiplied by 8 overflows `usize`.
+ 154 |     ///
+ 155 |     #[verus_spec(result =>
+ 156 |         requires
+ 157 |             array.inv(),
+ 158 |             array@.len() > 0,
+ 159 |             array@.len() * (u8::BITS as usize) < u32::MAX as usize,
+ 160 |             forall|i: int| 0 <= i < array@.len() ==> array@[i] == 0,
+ 161 |         ensures
+ 162 |             // Liveness: given preconditions, always succeeds.
+ 163 |             result matches Ok(bitmap) && {
+ 164 |                 &&& bitmap.inv()
+ 165 |                 &&& bitmap@.num_bits == array@.len() * (u8::BITS as int)
+ 166 |                 &&& bitmap@.is_empty()
+ 167 |                 &&& forall|i: int| 0 <= i < bitmap@.num_bits ==> !bitmap@.is_bit_set(i)
+ 168 |             },
+ 169 |     )]
+ 170 |     pub fn from_raw_array(array: RawArray<u8>) -> Result<Self, Error> {
+ 171 |         // TODO: remove this runtime check once all callers are verified.
+ 172 |         let number_of_bits: usize = match array.len().checked_mul(u8::BITS as usize) {
+ 173 |             Some(n) => n,
+ 174 |             None => {
+ 175 |                 let reason: &str = "bitmap size overflow: array too large";
+ 176 |                 return Err(Error::new(ErrorCode::InvalidArgument, reason));
+ 177 |             },
+ 203 |     /// The number of bits in the bitmap.
+ 204 |     ///
+ 205 |     #[verus_spec(result =>
+ 206 |         requires
+ 207 |             self.inv(),
+ 208 |         ensures
+ 209 |             result as int == self@.num_bits,
+ 210 |             result > 0,
+ 211 |             result < u32::MAX as usize,
+ 212 |     )]
+ 213 |     pub fn number_of_bits(&self) -> usize {
+ 214 |         self.number_of_bits
+ 215 |     }
+ 216 | 
+ 217 |     ///
+ 218 |     /// # Description
+ 219 |     ///
+ 220 |     /// Allocates a bit in the bitmap.
+ 225 |     /// instead.
+ 226 |     ///
+ 227 |     #[verus_spec(result =>
+ 228 |         requires
+ 229 |             old(self).inv(),
+ 230 |         ensures
+ 231 |             self.inv(),
+ 232 |             match result {
+ 233 |                 Ok(index) => {
+ 234 |                     &&& 0 <= index < self@.num_bits
+ 235 |                     &&& self@.num_bits == old(self)@.num_bits
+ 236 |                     &&& !old(self)@.is_bit_set(index as int)
+ 237 |                     &&& self@.is_bit_set(index as int)
+ 249 |             },
+ 250 |     )]
+ 251 |     pub fn alloc(&mut self) -> Result<usize, Error> {
+ 252 |         proof! {
+ 253 |             if old(self)@.has_free_bit() {
+ 254 |                 old(self)@.lemma_has_free_bit_implies_exists_free_range_1();
+ 255 |             }
+ 256 |         }
+ 257 |         self.alloc_range(1)
+ 258 |     }
+ 259 | 
+ 260 |     ///
+ 261 |     /// # Description
+ 272 |     /// instead.
+ 273 |     ///
+ 274 |     #[verus_spec(result =>
+ 275 |         requires
+ 276 |             old(self).inv(),
+ 277 |             size > 0,
+ 278 |             size <= old(self)@.num_bits,
+ 279 |         ensures
+ 280 |             self.inv(),
+ 281 |             match result {
+ 282 |                 Ok(start) => {
+ 283 |                     &&& 0 <= start < self@.num_bits
+ 284 |                     &&& 0 < size <= self@.num_bits
+ 285 |                     &&& start + (size as int) <= self@.num_bits
+ 286 |                     &&& self@.num_bits == old(self)@.num_bits
+ 298 |                     // Set-based frame.
+ 299 |                     &&& self@.set_bits == old(self)@.set_bits.union(
+ 300 |                         BitmapView::range_set(start as int, start + (size as int)),
+ 301 |                     )
+ 302 |                     &&& self@.usage() == old(self)@.usage() + (size as int)
+ 303 |                 },
+ 304 |                 Err(_) => {
+ 305 |                     &&& !old(self)@.exists_contiguous_free_range(size as int)
+ 306 |                     &&& self@ == old(self)@
+ 307 |                 },
+ 308 |             },
+ 309 |     )]
+ 310 |     pub fn alloc_range(&mut self, size: usize) -> Result<usize, Error> {
+ 311 |         // TODO: remove this runtime check once all callers are verified.
+ 312 |         // Check if the size is valid.
+ 313 |         if size == 0 || size > self.number_of_bits {
+ 314 |             proof! {
+ 315 |                 if size > self.number_of_bits {
+ 316 |                     self.lemma_no_free_range_when_size_exceeds(size as int);
+ 317 |                 }
+ 331 | 
+ 332 |         // Note: debug_assert_eq! is not supported by Verus, so we guard it
+ 333 |         // with cfg. The invariant self.inv() already proves this property.
+ 334 |         #[cfg(not(verus_keep_ghost))]
+ 335 |         debug_assert_eq!(
+ 336 |             self.bits.len() * u8::BITS as usize,
+ 337 |             self.number_of_bits,
+ 338 |             "bitmap length must match the number of bits"
+ 339 |         );
+ 340 | 
+ 345 | 
+ 346 |         // Traverse the bitmap, wrapping around once if needed.
+ 347 |         #[cfg_attr(verus_keep_ghost, verus_spec(
+ 348 |             invariant
+ 349 |                 self.alloc_range_first_loop_invariant(old(self), size, start, initial_start, wrapped, done),
+ 350 |             decreases
+ 351 |                 if !done { 1int } else { 0int },
+ 352 |                 if !wrapped { 1int } else { 0int },
+ 353 |                 self.number_of_bits - start,
+ 354 |         ))]
+ 355 |         while !done {
+ 356 |             // Stop condition: exceeded the last valid starting position.
+ 403 |                 let mut free: bool = true;
+ 404 | 
+ 405 |                 #[cfg_attr(verus_keep_ghost, verus_spec(
+ 406 |                     invariant
+ 407 |                         self.alloc_range_second_loop_invariant(old(self), size, start, initial_start, offset,
+ 408 |                                                                wrapped, free, checked_before, start_before_inner),
+ 409 |                     invariant_except_break
+ 410 |                         start == start_before_inner,
+ 411 |                         free,
+ 412 |                     ensures
+ 413 |                         self.alloc_range_second_loop_ensures(size, start, initial_start, wrapped,
+ 414 |                                                              free, start_before_inner),
+ 415 |                     decreases size - offset,
+ 416 |                 ))]
+ 417 |                 while offset < size {
+ 418 |                     let idx: usize = start + offset;
+ 419 |                     let (w, b): (usize, usize) = self.index_unchecked(idx);
+ 420 |                     if (self.bits[w] & (1 << b)) != 0 {
+ 437 |                     }
+ 438 | 
+ 439 |                     #[cfg_attr(verus_keep_ghost, verus_spec(
+ 440 |                         invariant
+ 441 |                             self.alloc_range_third_loop_invariant(old(self), pre_alloc_self, size, start,
+ 442 |                                                                   alloc_offset),
+ 443 |                         decreases size - alloc_offset,
+ 444 |                     ))]
+ 445 |                     for alloc_offset in 0..size {
+ 446 |                         let idx: usize = start + alloc_offset;
+ 447 |                         let (w, b): (usize, usize) = self.index_unchecked(idx);
+ 448 |                         proof_decl! {
+ 460 |                         }
+ 461 |                     }
+ 462 |                     // Verus note: compound assignment on struct fields not supported.
+ 463 |                     self.usage = self.usage + size;
+ 464 |                     self.next_free = start + size;
+ 465 | 
+ 466 |                     proof! {
+ 467 |                         self.lemma_alloc_range_establishes_inv(old(self), start, size);
+ 468 |                     }
+ 469 | 
+ 495 |     /// Upon success, `Ok(())` is returned. Upon failure, an error is returned instead.
+ 496 |     ///
+ 497 |     #[verus_spec(result =>
+ 498 |         requires
+ 499 |             old(self).inv(),
+ 500 |         ensures
+ 501 |             self.inv(),
+ 502 |             match result {
+ 503 |                 Ok(()) => {
+ 504 |                     &&& index < self@.num_bits
+ 505 |                     &&& self@.is_bit_set(index as int)
+ 506 |                     &&& !old(self)@.is_bit_set(index as int)
+ 507 |                     &&& self@.num_bits == old(self)@.num_bits
+ 522 |             },
+ 523 |     )]
+ 524 |     pub fn set(&mut self, index: usize) -> Result<(), Error> {
+ 525 |         // TODO: remove this runtime check once all callers are verified and we add a
+ 526 |         // precondition to this function requiring the bit to already be cleared.
+ 527 | 
+ 528 |         // Check if the bit is already set.
+ 529 |         if self.test(index)? {
+ 530 |             let reason: &str = "bit is already set";
+ 531 |             return Err(Error::new(ErrorCode::ResourceBusy, reason));
+ 561 |     /// Upon success, `Ok(())` is returned. Upon failure, an error is returned instead.
+ 562 |     ///
+ 563 |     #[verus_spec(result =>
+ 564 |         requires
+ 565 |             old(self).inv(),
+ 566 |         ensures
+ 567 |             self.inv(),
+ 568 |             match result {
+ 569 |                 Ok(()) => {
+ 570 |                     &&& index < self@.num_bits
+ 571 |                     &&& !self@.is_bit_set(index as int)
+ 572 |                     &&& self@.num_bits == old(self)@.num_bits
+ 573 |                     &&& forall|i: int|
+ 583 |             },
+ 584 |     )]
+ 585 |     pub fn clear(&mut self, index: usize) -> Result<(), Error> {
+ 586 |         // TODO: remove this runtime check once all callers are verified and we add a
+ 587 |         // precondition to this function requiring the bit to already be set.
+ 588 | 
+ 589 |         // Check if the bit is already cleared.
+ 590 |         if !self.test(index)? {
+ 591 |             let reason: &str = "bit is already cleared";
+ 592 |             return Err(Error::new(ErrorCode::BadAddress, reason));
+ 626 |     /// Upon failure, an error is returned instead.
+ 627 |     ///
+ 628 |     #[verus_spec(result =>
+ 629 |         requires
+ 630 |             self.inv(),
+ 631 |         ensures
+ 632 |             match result {
+ 633 |                 Ok(b) => {
+ 634 |                     &&& index < self@.num_bits
+ 635 |                     &&& b == self@.is_bit_set(index as int)
+ 636 |                 },
+ 637 |                 Err(_) => index >= self@.num_bits,
+ 638 |             },
+ 639 |     )]
+ 640 |     pub fn test(&self, index: usize) -> Result<bool, Error> {
+ 641 |         let (word, bit): (usize, usize) = self.index(index)?;
+ 642 |         Ok((self.bits[word] & (1 << bit)) != 0)
+ 643 |     }
+ 644 | 
+ 645 |     ///
+ 646 |     /// # Description
+ 647 |     ///
+ 657 |     /// failure, an error is returned instead.
+ 658 |     ///
+ 659 |     #[verus_spec(result =>
+ 660 |         requires
+ 661 |             self.inv(),
+ 662 |         ensures
+ 663 |             match result {
+ 664 |                 Ok((which_byte, which_bit)) => {
+ 665 |                     &&& index < self.number_of_bits
+ 666 |                     &&& which_byte < self.bits@.len()
+ 667 |                     &&& which_bit < u8::BITS as usize
+ 668 |                     &&& which_byte == index as int / (u8::BITS as int)
+ 669 |                     &&& which_bit == index as int % (u8::BITS as int)
+ 695 |     /// The `(word, bit)` pair of the index.
+ 696 |     ///
+ 697 |     #[verus_spec(result =>
+ 698 |         requires
+ 699 |             index < self.bits@.len() * u8::BITS as usize,
+ 700 |         ensures
+ 701 |             result.0 < self.bits@.len(),
+ 702 |             result.1 < u8::BITS as usize,
+ 703 |             result.0 as int == index as int / (u8::BITS as int),
+ 704 |             result.1 as int == index as int % (u8::BITS as int),
+ 705 |     )]
+ 706 |     fn index_unchecked(&self, index: usize) -> (usize, usize) {
+ 707 |         let word: usize = index / u8::BITS as usize;
+ 711 | }
+ 712 | 
+ 713 | // Deref implementation for test support (external to verification).
+ 714 | #[cfg(test)]
+ 715 | #[cfg_attr(verus_keep_ghost, verifier::external)]
+ 716 | impl ::core::ops::Deref for Bitmap {
+ 717 |     type Target = RawArray<u8>;
+ 718 | 
+ 719 |     fn deref(&self) -> &Self::Target {
+ 720 |         &self.bits
+ 721 |     }
+ 722 | }
+ 723 | 
