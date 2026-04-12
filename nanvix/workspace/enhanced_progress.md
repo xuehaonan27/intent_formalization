@@ -8,31 +8,25 @@
 ## Module 1: bitmap
 - [x] Alpha (Meta-Prompter) spawned — alpha-bitmap-meta
 - [ ] Alpha result received
-- [ ] Beta (Reasoner) brainstorm round 1
-- [ ] Gamma (Verifier) review
-- [ ] Beta brainstorm round 2 (if needed)
+- [x] Beta (Reasoner) brainstorm round 1
+- [x] Gamma (Verifier) review — KEY: alloc frame EXISTS (v2 Gap 3 was FP)
 - [ ] Formalize + Entailment
-- [ ] Beta (Advocate) + Gamma (Adversary) critic debate
+- [ ] Critic debate
 - [ ] Final report
 
 ## Module 2: slab  
-- [x] Alpha (Meta-Prompter) spawned — alpha-slab-meta
-- [ ] Alpha result received
-- [ ] Beta (Reasoner) brainstorm round 1
-- [ ] Gamma (Verifier) review
-- [ ] Beta brainstorm round 2 (if needed)
+- [x] Alpha → Beta → Gamma complete
+- [x] Root cause: totality missing in inv() (drives 4 gaps)
 - [ ] Formalize + Entailment
-- [ ] Beta (Advocate) + Gamma (Adversary) critic debate
+- [ ] Critic debate
 - [ ] Final report
 
 ## Module 3: sorted-vec
-- [x] Alpha (Meta-Prompter) spawned — alpha-sortedvec-meta
-- [ ] Alpha result received
-- [ ] Beta (Reasoner) brainstorm round 1
-- [ ] Gamma (Verifier) review
-- [ ] Beta brainstorm round 2 (if needed)
-- [ ] Formalize + Entailment
-- [ ] Beta (Advocate) + Gamma (Adversary) critic debate
+- [x] Alpha → Beta → Gamma complete
+- [x] Formalize + Entailment DONE
+- [x] 2 new gaps verified: remove return, neither-present
+- [x] 1 rejection confirmed: spurious element (counting argument)
+- [ ] Critic debate
 - [ ] Final report
 
 ## Active Sub-agents
