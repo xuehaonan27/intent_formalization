@@ -182,3 +182,140 @@ Delta in practice did light domain reasoning ("C5 is a coverage gap not a spec g
 | Meta-Prompter read-only | ✅ Strengthened | Explicit "no phi generation" constraint |
 | Arbitrator strict separation | ⚠️ Weakened | Delta contributed domain reasoning |
 | Post-check (answer vs steps) | ✅ Replaced by Verus | Mechanical verification eliminates drift risk |
+
+---
+
+# Part 2: lean4-autoformalization → spec-testing
+
+## Overview
+
+`lean4-autoformalization` is a domain-specific multi-agent skill for formalizing math textbooks into Lean 4. While the domain is different (theorem proving vs spec testing), the **multi-agent orchestration patterns** overlap significantly.
+
+## Key Differences in Domain
+
+| Dimension | lean4-autoformalization | spec-testing |
+|-----------|------------------------|-------------|
+| Goal | Fill `sorry` placeholders with proofs | Find spec gaps via entailment checking |
+| Verification | `lake env lean` (compile = correct) | `verus` (verified = gap exists) |
+| Success criterion | Zero sorry, zero errors | Verified phi = confirmed gap |
+| Worker task | Write one proof for one theorem | Write one phi test for one gap |
+| Failure mode | Can't prove theorem | Phi test rejected (spec is complete) |
+
+## Absorbed Patterns
+
+### 1. Dual-Agent Cycle → Alpha/Beta/Gamma Protocol
+
+**lean4-autoformalization:**
+```
+Plan Agent (strategic) ↔ Lean Agent(s) (execution)
+  Plan Agent diagnoses failures, proposes strategies
+  Lean Agent executes focused tasks in clean context
+```
+
+**spec-testing:**
+```
+Alpha/Meta-Prompter (strategic) → Beta/Reasoner (execution) → Gamma/Verifier (review)
+  Alpha proposes brainstorm strategy
+  Beta executes focused candidate generation
+  Gamma reviews adversarially
+```
+
+**How absorbed:** The separation of **strategic reasoning** from **task execution** is the same core pattern. lean4-autoformalization calls it "Plan Agent vs Lean Agent"; spec-testing calls it "Meta-Prompter vs Reasoner". The key insight — that the strategic agent should never directly solve, only guide — transferred directly.
+
+**Difference:** lean4-autoformalization has a 2-agent cycle (Plan ↔ Lean), while spec-testing has a 3-agent pipeline (Alpha → Beta → Gamma). The Verifier (Gamma) role doesn't exist in lean4-autoformalization because Lean compilation serves as the verifier. In spec-testing, Verus plays that role for entailment, but FP detection requires an LLM adversary — hence Gamma.
+
+### 2. Context Explosion Prevention → Focused Sub-agent Tasks
+
+**lean4-autoformalization:**
+> "Lean Agents get focused tasks in clean context, not a full repository of accumulated analysis and failed attempts"
+
+**spec-testing:**
+Each sub-agent (temp or Task Force) receives a focused prompt:
+- Alpha gets: source file + "analyze structure"
+- Beta gets: Alpha's strategy + source + "generate candidates"
+- Gamma gets: Beta's candidates + source + "review adversarially"
+
+**How absorbed:** The principle of **clean context per task** was absorbed directly. Each agent starts fresh without the accumulated history of other agents' work. This is why `sessions_spawn(mode=run)` was used — one-shot sessions with no prior context.
+
+### 3. Task-Aversion Mitigation → Fresh Agents for Retry
+
+**lean4-autoformalization:**
+> "When an agent fails and accumulates pessimistic context, it becomes reluctant to retry. A fresh Lean Agent with the Plan Agent's revised strategy avoids this trap."
+
+**spec-testing:**
+When Beta's v1 phi tests had the wrong structure (bad property in ensures), rather than asking Beta to fix in the same conversation, the correction came from outside (Tianyu) and Beta rewrote from scratch. The Task Force agents, running in Docker containers, effectively had "fresh context" for each task since their Discord sessions don't accumulate heavy context.
+
+**How absorbed:** Implicitly. The protocol doesn't formally say "spawn fresh agent on failure," but the architecture naturally achieves this because each task is dispatched as a new message, not a continuation.
+
+### 4. Model Specialization → Not Absorbed
+
+**lean4-autoformalization:**
+> "Plan Agent can use Claude Opus for strategic reasoning; Informal Agent uses Gemini for mathematical reasoning; Lean Agent uses Claude Opus for code"
+
+**spec-testing:** All agents use the same model (Claude Opus 4.6). No model specialization was attempted.
+
+**Why not absorbed:** Spec testing is less sensitive to model choice — all tasks (brainstorm, formalize, review) are within one model's capabilities. lean4-autoformalization benefits from specialization because Lean syntax is niche (Opus) while informal math reasoning is broader (Gemini).
+
+**Potential improvement:** Using a faster/cheaper model for Alpha (strategy analysis is simpler) and Opus only for Gamma (adversarial review needs the strongest reasoning).
+
+### 5. Informal Agent → Not Absorbed (but could be)
+
+**lean4-autoformalization:**
+> "Dedicated Informal Agent (Gemini) to produce step-by-step sub-proof before dispatching Lean workers"
+
+**spec-testing:** No informal reasoning step. Beta goes directly from natural-language property to Verus proof fn.
+
+**Potential improvement:** An "Informal Witness Agent" could produce a step-by-step algebraic witness before Beta formalizes. This would catch witness errors earlier — analogous to how the Informal Agent catches proof strategy errors before the Lean Agent wastes cycles on a bad approach.
+
+### 6. Worker Task Format → Partially Absorbed
+
+**lean4-autoformalization** requires each worker task to include:
+1. File path + project root
+2. Exact sorry locations
+3. Proof strategy hints
+4. Mathlib imports needed
+5. Verification command
+6. Constraint: don't modify outside targets
+
+**spec-testing** task messages include:
+1. ✅ Source file path
+2. ✅ Known gaps (context)
+3. ✅ Focus areas (from Alpha)
+4. ❌ No import hints
+5. ❌ Verification command was missing initially (added after Delta requested it)
+6. ❌ No constraint on what to modify
+
+**How partially absorbed:** The structured task format principle was absorbed but not the rigor. lean4-autoformalization's format is a checklist; spec-testing's is free-form Discord messages. This led to issues (Beta not knowing where to find files, needing multiple rounds to get the verification command).
+
+### 7. Memory Management → Not Absorbed
+
+**lean4-autoformalization:**
+> "Before each context compression, agent persists to shared memory file: architecture decisions, failed approaches, techniques learned, sorry status map"
+
+**spec-testing:** No formal memory persistence between agents. Each agent's analysis is transient (Discord messages). The shared knowledge directory (`/knowledge/`) serves as a crude equivalent, but agents don't systematically write to it during the task.
+
+**Potential improvement:** After each module analysis, write a `module_memory.md` to `/knowledge/` capturing: confirmed gaps, killed FPs, techniques used (counting arguments, inv analysis). This would help when analyzing similar modules later.
+
+### 8. Polish Pass → Not Absorbed (but relevant)
+
+**lean4-autoformalization:**
+> "Dedicated polish pass: extract reusable lemmas, remove maxHeartbeats, library compatibility, style conformance"
+
+**spec-testing:** No polish pass. The phi tests are functional but not clean — multiple versions (v1→v5), verbose assume blocks, no deduplication of common patterns.
+
+**Potential improvement:** A post-analysis pass could: (a) deduplicate phi tests that test the same gap, (b) extract common assume patterns into helper proof fns, (c) standardize naming conventions.
+
+## Summary Table
+
+| lean4-autoformalization Pattern | spec-testing Absorption | Status |
+|--------------------------------|------------------------|--------|
+| Dual-agent cycle (Plan ↔ Lean) | Alpha/Beta/Gamma pipeline | ✅ Absorbed (extended to 3 roles) |
+| Context explosion prevention | Clean sub-agent sessions | ✅ Absorbed |
+| Task-aversion mitigation | Fresh agents on failure | ⚠️ Implicitly absorbed |
+| Model specialization | Not used (all Claude Opus) | ❌ Not absorbed |
+| Informal Agent pre-reasoning | No informal witness step | ❌ Not absorbed |
+| Structured worker task format | Free-form Discord messages | ⚠️ Partially absorbed |
+| Memory persistence across sessions | Shared /knowledge/ dir (crude) | ⚠️ Partially absorbed |
+| Polish pass for quality | No post-analysis cleanup | ❌ Not absorbed |
+| Progress reporting to human | Delta status tables in Discord | ✅ Absorbed |
+| Failure handling (3-5 retries then stop) | Correction cycles but no formal limit | ⚠️ Partially absorbed |
