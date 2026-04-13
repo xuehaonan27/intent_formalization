@@ -122,9 +122,9 @@ The root cause is not LLM capability — Beta understood the spec correctly. It'
 
 **Fix:** The formalize step should remain tool-mediated (parser extracts spec, assembler builds proof fn). Agents handle the creative work — brainstorming negative properties, constructing witnesses, adversarial review — where LLM judgment adds value. The boundary is: **spec copying = tool, witness construction = LLM**.
 
-### 2. FP Detection is Significantly Stronger
+### 2. Adversarial Review Significantly Strengthens Both FP Detection and Gap Discovery
 
-The adversarial Verifier (Gamma) caught FPs through three distinct mechanisms that single-pass critics miss:
+The adversarial Verifier (Gamma) was the highest-value role, catching FPs through three mechanisms that single-pass critics miss, and discovering new gaps that the Reasoner overlooked:
 
 **a) Reading actual source code.** The bitmap `alloc` frame condition FP was caught because Gamma actually read the ensures clause in the source file and found the `forall|i| ...` frame. The v2 single-pass critic operated on a summary/brainstorm and never verified against the source. This is the simplest but most impactful check — "did you actually read what the spec says?"
 
@@ -132,7 +132,9 @@ The adversarial Verifier (Gamma) caught FPs through three distinct mechanisms th
 
 **c) Counting arguments.** For sorted-vec, Gamma killed the reverse frame (spurious elements) claim with a tight counting argument: N structurally-distinct old elements must occupy N distinct positions in a post-sequence of length N+1, leaving exactly one free slot. This slot is forced to hold an sv_eq-to-value element, so no truly spurious element can appear. This style of combinatorial reasoning emerged naturally from the adversarial debate format.
 
-### 3. Self-Correction During Generation is Valuable
+**d) Discovering gaps the Reasoner missed.** Gamma found the `remove` return-not-pinned gap that Beta — tasked with *generating* gaps — completely missed. This suggests that in spec testing, **verification is harder than generation**: it's easier to brainstorm a plausible gap than to rigorously confirm or deny it. The adversarial framing ("your job is to kill candidates") appears to elicit more careful spec reading than the generative framing ("find gaps"), and this deeper reading surfaces gaps that the generator overlooked.
+
+### 3. Self-Correction is Valuable but Should Preserve Weak Candidates
 
 Beta (Reasoner) self-corrected 4 candidates during generation — flagging them as "low confidence" or explicitly withdrawing them. Examples:
 - `set()` Err on valid unset bit — Beta noticed the Err guard constrains this
@@ -141,12 +143,5 @@ Beta (Reasoner) self-corrected 4 candidates during generation — flagging them 
 
 This is a feature of the agentic protocol: because Gamma will adversarially review, Beta has incentive to pre-filter weak candidates. In the single-pass pipeline, the generator has no such feedback loop.
 
-### 4. Adversarial Review Creates Asymmetric Value
+However, the optimal strategy is **"flag as low-confidence but keep"** rather than drop entirely. Weak candidates can seed adjacent discoveries: for sorted-vec, Beta's withdrawn `remove` reverse-frame candidate led Gamma to examine `remove`'s spec more carefully, which is how Gamma discovered the return-not-pinned gap (C4). If Beta had never mentioned `remove`, Gamma might not have focused on that function. In this experiment, no withdrawn candidate directly turned into a TP, but the *attention signal* from weak candidates contributed to Gamma's coverage.
 
-Gamma (Verifier) produced the most impactful contributions despite having the simplest mandate ("try to kill each candidate"):
-
-- Found the bitmap alloc frame FP by reading 4 lines of source code that the v2 pipeline's critic overlooked across 55 candidates
-- Discovered the `remove` return-not-pinned gap that Beta — tasked with *generating* gaps — completely missed
-- Killed the reverse frame candidate with a counting argument that required combining three spec properties (frame + length + strict sorting)
-
-This asymmetry suggests that in spec testing, **verification is harder than generation** — it's easier to brainstorm a plausible gap than to rigorously confirm or deny it. The adversarial framing ("your job is to kill candidates") appears to elicit more careful spec reading than the generative framing ("find gaps").
