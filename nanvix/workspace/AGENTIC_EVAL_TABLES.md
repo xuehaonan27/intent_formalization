@@ -116,7 +116,11 @@ When the pipeline was a single agent calling a parser (AST-based spec extraction
 - **Flattened branch structure** — Original spec has `result.is_some() ==> { ... }, result.is_none() ==> { ... }` branches. Beta collapsed these, keeping only the relevant branch. This tests a different (weaker) spec.
 - **Put bad property in ensures** — First version (v1) put the bad property in the ensures block instead of the body. This changes what Verus checks entirely.
 
-All three issues were caught during review (by Tianyu and Gamma), but they required explicit correction cycles. The lesson: **for tasks requiring mechanical precision (exact spec copying), tool-mediated extraction is strictly better than LLM-mediated copying**, even with multiple reviewers. The agentic protocol should use the parser for spec extraction and only delegate the creative work (brainstorm, witness construction) to LLMs.
+All three issues were caught during review (by Tianyu and Gamma), but they required explicit correction cycles.
+
+The root cause is not LLM capability — Beta understood the spec correctly. It's that **when the collaboration medium shifts from code to natural language (Discord chat), deterministic tool chains break**. In the single-agent pipeline, spec extraction is `parser → rewrite → assemble` — each step deterministic. In the multi-agent Discord workflow, this became "Beta reads source and hand-writes proof fn" — a creative task substituted for a mechanical one. Beta's container didn't have tree-sitter installed, and Discord's conversational format encouraged direct writing over tool invocation.
+
+**Fix:** The formalize step should remain tool-mediated (parser extracts spec, assembler builds proof fn). Agents handle the creative work — brainstorming negative properties, constructing witnesses, adversarial review — where LLM judgment adds value. The boundary is: **spec copying = tool, witness construction = LLM**.
 
 ### 2. FP Detection is Significantly Stronger
 
@@ -137,11 +141,12 @@ Beta (Reasoner) self-corrected 4 candidates during generation — flagging them 
 
 This is a feature of the agentic protocol: because Gamma will adversarially review, Beta has incentive to pre-filter weak candidates. In the single-pass pipeline, the generator has no such feedback loop.
 
-### 4. Agent Role Specialization Matters
+### 4. Adversarial Review Creates Asymmetric Value
 
-The three-role split (Meta-Prompter / Reasoner / Verifier) outperformed both single-agent and undifferentiated multi-agent approaches:
+Gamma (Verifier) produced the most impactful contributions despite having the simplest mandate ("try to kill each candidate"):
 
-- **Alpha (Meta-Prompter)** focused the search space. Without Alpha's strategy ("sv_eq vs == is the primary attack surface"), Beta would have wasted cycles on inv-covered candidates.
-- **Gamma (Verifier)** was the highest-value role — responsible for both new TPs and FP corrections. The adversarial framing ("try to kill each candidate") was key.
-- **Delta (Arbitrator)** prevented duplicate work and kept the discussion on track with status tables.
-- **Beta (Reasoner)** did the bulk work but was also the most error-prone (spec copying issues). This suggests Beta's role should be more tool-assisted in future iterations.
+- Found the bitmap alloc frame FP by reading 4 lines of source code that the v2 pipeline's critic overlooked across 55 candidates
+- Discovered the `remove` return-not-pinned gap that Beta — tasked with *generating* gaps — completely missed
+- Killed the reverse frame candidate with a counting argument that required combining three spec properties (frame + length + strict sorting)
+
+This asymmetry suggests that in spec testing, **verification is harder than generation** — it's easier to brainstorm a plausible gap than to rigorously confirm or deny it. The adversarial framing ("your job is to kill candidates") appears to elicit more careful spec reading than the generative framing ("find gaps").
