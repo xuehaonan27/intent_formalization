@@ -2,23 +2,27 @@
 
 ## Table 1: TP and FP Comparison (with vs without Agentic Reasoning)
 
-| Module | Pipeline | φ Tested | TP (True Gaps) | FP (False Positives) | Precision |
-|--------|----------|----------|---------------|---------------------|-----------|
-| Bitmap | Baseline | 18 verified | 3 | 1 (alloc frame) | 75% |
-| Bitmap | + Agentic | 18 verified | **2** | **0** | **100%** |
-| Slab | Baseline | 97 verified | 7 | 1 (nondeterminism) | 88% |
-| Slab | + Agentic | 97 verified | **6** | **0** | **100%** |
-| SortedVec | Baseline | 2 verified | 2 | 0 | 100% |
-| SortedVec | + Agentic | 4 verified | **4** | **0** | **100%** |
-| **Total** | **Baseline** | **117** | **12** | **2** | **86%** |
-| **Total** | **+ Agentic** | **119** | **12** | **0** | **100%** |
+| Module | Pipeline | φ Tested | Reported TP | FP (undetected) | True Gaps | Precision |
+|--------|----------|----------|------------|----------------|-----------|-----------|
+| Bitmap | Baseline | 18 verified | 3 | 1 (alloc frame) | 2 | 67% |
+| Bitmap | + Agentic | 18 verified | **2** | **0** | **2** | **100%** |
+| Slab | Baseline | 97 verified | 7 | 1 (nondeterminism) | 6 | 86% |
+| Slab | + Agentic | 97 verified | **6** | **0** | **6** | **100%** |
+| SortedVec | Baseline | 2 verified | 2 | 0 | 2 | 100% |
+| SortedVec | + Agentic | 4 verified | **4** | **0** | **4** | **100%** |
+| **Total** | **Baseline** | **117** | **12** | **2** | **10** | **83%** |
+| **Total** | **+ Agentic** | **119** | **12** | **0** | **12** | **100%** |
 
 Notes:
 - Baseline = v2 automated pipeline + manual review (Tianyu + Lem)
 - "+ Agentic" = Alpha(Meta-Prompter) → Beta(Reasoner) → Gamma(Verifier)
-- Bitmap baseline had 3 TP but 1 was FP (alloc frame "Critical" gap was wrong) → net 2
-- Slab baseline had 7 TP (6 gaps + 1 nondeterminism) but nondeterminism = design choice → net 6
-- SortedVec agentic found 2 additional TPs not in baseline
+- "Reported TP" = what the pipeline claimed as true positives
+- "FP (undetected)" = FPs that slipped through the pipeline, caught later by manual review or agentic Gamma
+- "True Gaps" = Reported TP minus undetected FP = actual confirmed spec incompleteness
+- Bitmap baseline reported 3 TP but alloc frame was FP → true gaps = 2
+- Slab baseline reported 7 TP but nondeterminism was design choice → true gaps = 6
+- SortedVec agentic found 2 additional true gaps not in baseline (C3 + C4)
+- Agentic overall: same 12 reported TP, but 0 FP + 2 new TPs = higher recall AND precision
 
 ## Table 2: New True Positives Found by Agentic Reasoning
 
