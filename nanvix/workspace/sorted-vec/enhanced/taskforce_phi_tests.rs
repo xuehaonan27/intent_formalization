@@ -9,6 +9,7 @@
 // ==========================================================================
 
 // C1: insert(new) — inserted value not structurally present
+// Target function: SortedVec::insert(&mut self, value: T) -> Option<T>
 // Bad property: !post_seq.contains(value) — value absent structurally despite spec_contains
 proof fn phi_c1_insert_new_structural_absence<T: Ord>(
     pre_seq: Seq<T>, post_seq: Seq<T>, value: T,
@@ -38,6 +39,7 @@ proof fn phi_c1_insert_new_structural_absence<T: Ord>(
 }
 
 // C2: insert(replace) — old element retained, new value not stored
+// Target function: SortedVec::insert(&mut self, value: T) -> Option<T>
 // Bad property: !post_seq.contains(value) — new value absent, old stays
 proof fn phi_c2_insert_replace_old_retained<T: Ord>(
     pre_seq: Seq<T>, post_seq: Seq<T>, value: T, result: T,
@@ -72,6 +74,7 @@ proof fn phi_c2_insert_replace_old_retained<T: Ord>(
 }
 
 // C3: insert(replace) — neither old nor new present, third sv_eq element
+// Target function: SortedVec::insert(&mut self, value: T) -> Option<T>
 // Bad property: neither value nor result present, phantom sv_eq element instead
 proof fn phi_c3_insert_replace_third_element<T: Ord>(
     pre_seq: Seq<T>, post_seq: Seq<T>, value: T, result: T, phantom: T,
@@ -110,6 +113,7 @@ proof fn phi_c3_insert_replace_third_element<T: Ord>(
 }
 
 // C4: remove — return value not from old sequence
+// Target function: SortedVec::remove(&mut self, value: &T) -> Option<T>
 // Bad property: !pre_seq.contains(result) — result was never stored
 proof fn phi_c4_remove_return_not_pinned<T: Ord>(
     pre_seq: Seq<T>, post_seq: Seq<T>, value: T, result: T,
