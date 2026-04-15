@@ -56,19 +56,24 @@ proof fn det_foo(pre: T, arg: ArgType, post1: T, post2: T,
 When Step 1 fails, construct a concrete witness `(x, y1, y2)` by progressively
 adding `assume()` constraints. **Binary search input first, then output.**
 
-### Variable Mapping for `&mut self` Functions
+### Variable Mapping for Mutable References
 
-For `fn foo(&mut self, arg) -> result`:
-- `pre` = `old(self)` — **input** (the object before the call)
-- `post` = `self` — **output** (the object after the call)
-- `arg` = additional input parameter
-- `result` = return value — **output**
+Any `&mut` parameter is both input and output — its pre-call value is input,
+its post-call value is output. Split each `&mut` into two variables:
 
-So a `&mut self` function has:
-- **Input** = `(pre, arg)`
-- **Output** = `(post, result)`
+| Parameter | Input variable | Output variable |
+|-----------|---------------|----------------|
+| `&mut self` | `pre_self` | `post_self` |
+| `&mut buf: Buffer` | `pre_buf` | `post_buf` |
+| `val: usize` (not mut) | `val` | — (not output) |
+| return value | — (not input) | `result` |
 
-Binary search Phase 1 narrows `(pre, arg)`. Phase 2 narrows `(post1, result1)` vs `(post2, result2)`.
+For `fn foo(&mut self, &mut buf: Buffer, arg: usize) -> Result<(), Error>`:
+- **Input** = `(pre_self, pre_buf, arg)`
+- **Output** = `(post_self, post_buf, result)`
+
+Binary search Phase 1 narrows all input variables.
+Phase 2 narrows all output variable pairs `(out1_i, out2_i)`.
 
 ### Phase 1: Narrow Input (x)
 
