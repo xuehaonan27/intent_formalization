@@ -1,13 +1,15 @@
 """
 Module 4: binary_search — Type-Guided Witness Narrowing
 
-Decorator-based strategy registry + search driver.
-Each type kind has its own narrowing function.
+Decorator-based strategy registry.
+Each strategy is a recursive function that calls ctx.try_assume()
+and branches based on FAIL/PASS results. NOT generators.
+
 LLM fallback for unknown types.
 """
 
 import logging
-from typing import Callable, Generator, Optional
+from typing import Callable, Optional
 
 from .types import (
     TypeKind, TypeInfo, FieldInfo, Param,
@@ -35,55 +37,96 @@ def strategy_for(*type_kinds: TypeKind):
     return decorator
 
 
-def narrow(ty: TypeInfo, var: str, ctx: "SearchContext") -> Generator[Assume, None, None]:
+def narrow(ty: TypeInfo, var: str, ctx: "SearchContext"):
     """Dispatch to the registered strategy for this type, or LLM fallback."""
     handler = _registry.get(ty.kind, _llm_fallback)
-    yield from handler(ty, var, ctx)
+    handler(ty, var, ctx)
 
 
 # ---------------------------------------------------------------------------
-# Concrete strategies
+# Integer range helper
+# ---------------------------------------------------------------------------
+
+def _int_range(ty: TypeInfo) -> tuple[int, int]:
+    """Return (lo_inclusive, hi_exclusive) for an integer type."""
+    match ty.kind:
+        case TypeKind.U8:    return (0, 256)
+        case TypeKind.U16:   return (0, 65536)
+        case TypeKind.U32:   return (0, 2**32)
+        case TypeKind.U64:   return (0, 2**64)
+        case TypeKind.USIZE: return (0, 2**64)
+        case TypeKind.I8:    return (-128, 128)
+        case TypeKind.I16:   return (-32768, 32768)
+        case TypeKind.I32:   return (-(2**31), 2**31)
+        case TypeKind.I64:   return (-(2**63), 2**63)
+        case TypeKind.ISIZE: return (-(2**63), 2**63)
+        case TypeKind.INT:   return (-(2**31), 2**31)  # Verus int is unbounded, use reasonable default
+        case _:              return (-256, 256)
+
+
+# ---------------------------------------------------------------------------
+# Concrete strategies (recursive, NOT generators)
 # ---------------------------------------------------------------------------
 
 @strategy_for(TypeKind.RESULT)
 def narrow_result(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow Result<T, E>: try Ok vs Err variants."""
-    yield Assume(var, f"{var} is Ok", "variant: Ok")
-    yield Assume(var, f"{var} is Err", "variant: Err")
-    # If Ok, narrow inner value
-    if ty.type_args:
-        ok_ty = ty.type_args[0]
-        yield from narrow(ok_ty, f"{var}->Ok_0", ctx)
+    """
+    Narrow Result<T, E>: binary choice between Ok and Err.
+    Try constraining to Ok — if nondeterminism persists, it's within Ok branch.
+    If Ok eliminates nondeterminism, the gap is cross-variant (Ok vs Err).
+    """
+    ok_assume = Assume(var, f"{var} is Ok", "variant: Ok")
+    if ctx.try_assume(ok_assume):
+        # FAIL → nondeterminism within Ok branch. Narrow the Ok inner value.
+        if ty.type_args:
+            narrow(ty.type_args[0], f"{var}->Ok_0", ctx)
+    else:
+        # PASS → nondeterminism is cross-variant (one run Ok, other Err)
+        # This is typically a liveness gap. No further narrowing on this var.
+        pass
 
 
 @strategy_for(TypeKind.OPTION)
 def narrow_option(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow Option<T>: try Some vs None."""
-    yield Assume(var, f"{var} is Some", "variant: Some")
-    yield Assume(var, f"{var} is None", "variant: None")
-    if ty.type_args:
-        inner_ty = ty.type_args[0]
-        yield from narrow(inner_ty, f"{var}->Some_0", ctx)
+    """
+    Narrow Option<T>: binary choice between Some and None.
+    """
+    some_assume = Assume(var, f"{var} is Some", "variant: Some")
+    if ctx.try_assume(some_assume):
+        # FAIL → nondeterminism within Some. Narrow inner.
+        if ty.type_args:
+            narrow(ty.type_args[0], f"{var}->Some_0", ctx)
+    else:
+        # PASS → cross-variant nondeterminism (Some vs None)
+        pass
 
 
 @strategy_for(TypeKind.ENUM)
 def narrow_enum(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow a general enum by trying each variant."""
+    """
+    Narrow a general enum: try each variant until we find the one that preserves nondeterminism.
+    """
     for variant in ty.variants:
-        yield Assume(var, f"{var} is {variant.name}", f"variant: {variant.name}")
-        if variant.inner:
-            yield from narrow(variant.inner, f"{var}->{variant.name}_0", ctx)
+        assume = Assume(var, f"{var} is {variant.name}", f"variant: {variant.name}")
+        if ctx.try_assume(assume):
+            # FAIL → nondeterminism within this variant
+            if variant.inner:
+                narrow(variant.inner, f"{var}->{variant.name}_0", ctx)
+            return
+    # If no variant preserves nondeterminism → cross-variant gap
 
 
 @strategy_for(TypeKind.STRUCT)
 def narrow_struct(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow a struct by iterating over fields."""
-    # If type has a spec view (@), use that for field access
+    """
+    Narrow a struct: iterate over fields, narrow each.
+    Uses spec view (@) if available.
+    """
     view = ty.spec_view or ty
     accessor = f"{var}@" if ty.spec_view else var
 
-    for field in view.fields:
-        yield from narrow(field.type, f"{accessor}.{field.name}", ctx)
+    for fld in view.fields:
+        narrow(fld.type, f"{accessor}.{fld.name}", ctx)
 
 
 @strategy_for(
@@ -92,52 +135,106 @@ def narrow_struct(ty: TypeInfo, var: str, ctx: "SearchContext"):
     TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
 )
 def narrow_integer(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow integer: range bisection then exact values."""
-    # Common ranges to try
-    ranges = [100, 10, 5]
-    for bound in ranges:
-        yield Assume(var, f"{var} < {bound}", f"range: [0, {bound})")
+    """
+    Narrow integer: first coarse probing, then binary search for exact value.
+    """
+    type_lo, type_hi = _int_range(ty)
 
-    # Common exact values
-    for val in [0, 1, 8, 16, 32]:
-        yield Assume(var, f"{var} == {val}", f"exact: {val}")
+    # Phase 1: Coarse probing to find a small window
+    lo, hi = type_lo, type_hi
+    probes = sorted(set([0, 1, -1, 2, 4, 8, 16, 32, 64, 100, 128, 256]))
+    probes = [p for p in probes if type_lo <= p < type_hi]
+
+    for p in probes:
+        assume = Assume(var, f"{var} < {p}", f"coarse: < {p}")
+        if ctx.try_assume(assume):
+            # FAIL → nondeterminism trigger is in [lo, p)
+            hi = p
+            break
+        else:
+            # PASS → trigger is >= p, remove this assume (already not added)
+            lo = p
+
+    # Phase 2: Binary search within [lo, hi)
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        assume = Assume(var, f"{var} < {mid}", f"bisect: < {mid}")
+        if ctx.try_assume(assume):
+            hi = mid
+        else:
+            lo = mid
+
+    # Phase 3: Try exact value
+    ctx.try_assume(Assume(var, f"{var} == {lo}", f"exact: {lo}"))
 
 
 @strategy_for(TypeKind.BOOL)
 def narrow_bool(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow bool: try true, then false."""
-    yield Assume(var, f"{var} == true", "bool: true")
-    yield Assume(var, f"{var} == false", "bool: false")
+    """Narrow bool: try true. If FAIL, it's true. If PASS, it's false."""
+    assume = Assume(var, f"{var} == true", "bool: true")
+    if not ctx.try_assume(assume):
+        # PASS → nondeterminism only when var is false
+        ctx.try_assume(Assume(var, f"{var} == false", "bool: false"))
 
 
 @strategy_for(TypeKind.SET)
 def narrow_set(ty: TypeInfo, var: str, ctx: "SearchContext"):
-    """Narrow Set<T>: length first, then elements."""
+    """
+    Narrow Set<T>: try empty first, then increasing sizes.
+    """
     elem_ty_name = ty.type_args[0].name if ty.type_args else "int"
-    yield Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
-    yield Assume(var, f"{var}.len() == 1", "set: len=1")
-    yield Assume(var, f"{var}.len() == 2", "set: len=2")
-    # If we know element type, try narrowing elements
-    if ty.type_args:
-        yield from narrow(ty.type_args[0], f"/* element of {var} */", ctx)
+
+    # Try empty
+    empty_assume = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
+    if ctx.try_assume(empty_assume):
+        return  # nondeterminism with empty set, done
+
+    # Try size 1
+    size1 = Assume(var, f"{var}.len() == 1", "set: len=1")
+    if ctx.try_assume(size1):
+        # Narrow the single element
+        if ty.type_args:
+            # For a single-element set, we can try: exists |e| var == set![e]
+            narrow(ty.type_args[0], f"/* elem of {var} */", ctx)
+        return
+
+    # Try size 2, etc.
+    for size in [2, 3, 4]:
+        assume = Assume(var, f"{var}.len() == {size}", f"set: len={size}")
+        if ctx.try_assume(assume):
+            return
 
 
 @strategy_for(TypeKind.SEQ)
 def narrow_seq(ty: TypeInfo, var: str, ctx: "SearchContext"):
     """Narrow Seq<T>: length first, then elements."""
-    yield Assume(var, f"{var}.len() == 0", "seq: empty")
-    yield Assume(var, f"{var}.len() == 1", "seq: len=1")
-    yield Assume(var, f"{var}.len() == 2", "seq: len=2")
-    if ty.type_args:
-        yield Assume(var, f"{var}[0]", "seq: first element")
-        yield from narrow(ty.type_args[0], f"{var}[0]", ctx)
+    # Try empty
+    empty_assume = Assume(var, f"{var}.len() == 0", "seq: empty")
+    if ctx.try_assume(empty_assume):
+        return
+
+    # Try length 1
+    len1 = Assume(var, f"{var}.len() == 1", "seq: len=1")
+    if ctx.try_assume(len1):
+        if ty.type_args:
+            narrow(ty.type_args[0], f"{var}[0]", ctx)
+        return
+
+    # Increasing lengths
+    for length in [2, 3, 4]:
+        assume = Assume(var, f"{var}.len() == {length}", f"seq: len={length}")
+        if ctx.try_assume(assume):
+            # Narrow individual elements
+            if ty.type_args:
+                for i in range(length):
+                    narrow(ty.type_args[0], f"{var}[{i}]", ctx)
+            return
 
 
 @strategy_for(TypeKind.UNIT)
 def narrow_unit(ty: TypeInfo, var: str, ctx: "SearchContext"):
     """Unit type: nothing to narrow."""
-    return
-    yield  # make it a generator
+    pass
 
 
 def _llm_fallback(ty: TypeInfo, var: str, ctx: "SearchContext"):
@@ -155,11 +252,9 @@ def _llm_fallback(ty: TypeInfo, var: str, ctx: "SearchContext"):
             user_prompt=prompt,
         )
         expr = response.content.strip().strip("`")
-        yield Assume(var, expr, f"LLM-suggested for {ty.name}")
+        ctx.try_assume(Assume(var, expr, f"LLM-suggested for {ty.name}"))
     else:
         logger.error(f"No LLM client and no strategy for type {ty.name}")
-        return
-        yield
 
 
 # ---------------------------------------------------------------------------
@@ -182,42 +277,46 @@ class SearchContext:
         self.trace: list[dict] = []
         self._round = 0
 
-    def _record(self, phase: str, assume: Assume | None, result: VerifyResult):
+    def _record(self, phase: str, assume: Assume, result: VerifyResult):
         self._round += 1
         self.trace.append({
             "round": self._round,
             "phase": phase,
-            "assumes": [a.expression for a in self.active_assumes],
-            "new_assume": assume.expression if assume else None,
+            "assumes": [a.expression for a in self.active_assumes] + [assume.expression],
+            "new_assume": assume.expression,
             "result": result.status,
-            "description": assume.description if assume else "",
+            "description": assume.description,
         })
 
-    def try_assume(self, assume: Assume, phase: str) -> bool:
+    def try_assume(self, assume: Assume, phase: str = "") -> bool:
         """
-        Add assume and check if nondeterminism persists.
+        Test an assume constraint.
 
-        Returns True if FAIL (keep the assume), False if PASS (backtrack).
+        - FAIL → nondeterminism persists with this constraint. Add to active.
+        - PASS → this constraint eliminated nondeterminism. Do NOT add.
+
+        Returns True if FAIL (constraint kept), False if PASS (constraint rejected).
         """
         test_assumes = self.active_assumes + [assume]
         code = generate_det_check(self.spec, extra_assumes=test_assumes)
         fn_name = f"det_{self.spec.name}"
         result = self.runner.check(code, fn_name)
 
-        self._record(phase, assume, result)
+        p = phase or ("P1:input" if not self.active_assumes else "search")
+        self._record(p, assume, result)
         logger.info(
-            f"R{self._round} [{phase}] {assume.expression} → {result.status}"
+            f"R{self._round} [{p}] +{assume.expression} → {result.status}"
         )
 
         if result.status == "fail":
             self.active_assumes.append(assume)
-            return True   # nondeterminism persists, keep this assume
+            return True
         elif result.status == "pass":
-            return False  # this constraint eliminated nondeterminism, backtrack
-        elif result.status == "timeout":
-            logger.warning(f"Timeout on {assume.expression} — treating as inconclusive")
             return False
-        else:  # error
+        elif result.status == "timeout":
+            logger.warning(f"Timeout on {assume.expression} — treating as inconclusive, skipping")
+            return False
+        else:  # error (e.g. compile error)
             logger.error(f"Error on {assume.expression}: {result.stderr[:200]}")
             return False
 
@@ -241,22 +340,27 @@ def binary_search(
     ctx.trace.append({
         "round": 0, "phase": "initial", "assumes": [],
         "new_assume": None, "result": r0.status,
+        "description": "full determinism check",
     })
 
     if r0.status == "pass":
         logger.info(f"{spec.name}: spec is deterministic")
         return Witness(function=spec.name, trace=ctx.trace)
 
+    if r0.status != "fail":
+        logger.error(f"{spec.name}: initial check returned {r0.status}, aborting")
+        return Witness(function=spec.name, trace=ctx.trace)
+
     logger.info(f"{spec.name}: nondeterminism detected, starting binary search")
 
     # Phase 1: Narrow inputs
     for param in spec.params:
-        _narrow_var(ctx, param.type, _input_var_name(param), "P1:input")
+        var = _input_var_name(param)
+        narrow(param.type, var, ctx)
 
     # Phase 2: Narrow outputs
     for out_name, out_type in spec.output_vars():
-        # Narrow output1 vs output2 — need special handling
-        _narrow_output_pair(ctx, out_type, out_name, "P2:output")
+        _narrow_output_pair(ctx, out_type, out_name)
 
     return Witness(
         function=spec.name,
@@ -273,38 +377,24 @@ def _input_var_name(param: Param) -> str:
     return base
 
 
-def _narrow_var(ctx: SearchContext, ty: TypeInfo, var: str, phase: str):
-    """Narrow a single variable using its type's strategy."""
-    for assume in narrow(ty, var, ctx):
-        hit = ctx.try_assume(assume, phase)
-        if hit:
-            # If this was a compound type (struct/enum), the strategy
-            # generator already yielded child constraints — they'll be
-            # tried in subsequent iterations
-            pass
-        # Continue trying other constraints at same level
-
-
-def _narrow_output_pair(ctx: SearchContext, ty: TypeInfo, base_name: str, phase: str):
+def _narrow_output_pair(ctx: SearchContext, ty: TypeInfo, base_name: str):
     """
-    Narrow an output variable pair (out1 vs out2).
-    
-    For result: r1 vs r2
-    For post-state: post1_self_ vs post2_self_
+    Narrow an output variable pair.
+
+    Output vars come in pairs: (post1_X, post2_X) or (r1, r2).
+    We narrow by fixing one output's value and letting SMT find
+    the other that differs.
     """
-    name1 = base_name.replace("post_", "post1_").replace("result", "r1")
-    name2 = base_name.replace("post_", "post2_").replace("result", "r2")
+    # Determine the pair names
+    if base_name == "result":
+        name1, name2 = "r1", "r2"
+    elif base_name.startswith("post_"):
+        suffix = base_name[5:]  # after "post_"
+        name1 = f"post1_{suffix}"
+        name2 = f"post2_{suffix}"
+    else:
+        name1 = base_name + "1"
+        name2 = base_name + "2"
 
-    if name1 == base_name and "post_" not in base_name:
-        name1 = "r1"
-        name2 = "r2"
-
-    for assume in narrow(ty, name1, ctx):
-        # Try constraining output1
-        hit = ctx.try_assume(assume, phase)
-        if hit:
-            # Also try a different value for output2
-            for assume2 in narrow(ty, name2, ctx):
-                if assume2.expression != assume.expression:
-                    ctx.try_assume(assume2, phase)
-                    break
+    # Narrow output1 — this constrains y1. SMT will find y2 that differs.
+    narrow(ty, name1, ctx)
