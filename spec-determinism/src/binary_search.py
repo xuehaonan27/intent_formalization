@@ -47,21 +47,41 @@ def narrow(ty: TypeInfo, var: str, ctx: "SearchContext"):
 # Integer range helper
 # ---------------------------------------------------------------------------
 
+# Small default ranges for initial search. If nondeterminism is not found
+# within these, fall back to full type range.
+_SMALL_UNSIGNED = (0, 9)      # [0, 8] inclusive → [0, 9) exclusive
+_SMALL_SIGNED = (-4, 4)       # [-4, 3] inclusive → [-4, 4) exclusive
+
+_FULL_RANGE: dict[TypeKind, tuple[int, int]] = {
+    TypeKind.U8:    (0, 256),
+    TypeKind.U16:   (0, 65536),
+    TypeKind.U32:   (0, 2**32),
+    TypeKind.U64:   (0, 2**64),
+    TypeKind.USIZE: (0, 2**64),
+    TypeKind.I8:    (-128, 128),
+    TypeKind.I16:   (-32768, 32768),
+    TypeKind.I32:   (-(2**31), 2**31),
+    TypeKind.I64:   (-(2**63), 2**63),
+    TypeKind.ISIZE: (-(2**63), 2**63),
+    TypeKind.INT:   (-(2**31), 2**31),
+}
+
+
 def _int_range(ty: TypeInfo) -> tuple[int, int]:
-    """Return (lo_inclusive, hi_exclusive) for an integer type."""
-    match ty.kind:
-        case TypeKind.U8:    return (0, 256)
-        case TypeKind.U16:   return (0, 65536)
-        case TypeKind.U32:   return (0, 2**32)
-        case TypeKind.U64:   return (0, 2**64)
-        case TypeKind.USIZE: return (0, 2**64)
-        case TypeKind.I8:    return (-128, 128)
-        case TypeKind.I16:   return (-32768, 32768)
-        case TypeKind.I32:   return (-(2**31), 2**31)
-        case TypeKind.I64:   return (-(2**63), 2**63)
-        case TypeKind.ISIZE: return (-(2**63), 2**63)
-        case TypeKind.INT:   return (-(2**31), 2**31)  # Verus int is unbounded, use reasonable default
-        case _:              return (-256, 256)
+    """Return (lo_inclusive, hi_exclusive) for small initial search."""
+    if ty.kind in (TypeKind.U8, TypeKind.U16, TypeKind.U32,
+                   TypeKind.U64, TypeKind.USIZE):
+        return _SMALL_UNSIGNED
+    elif ty.kind in (TypeKind.I8, TypeKind.I16, TypeKind.I32,
+                     TypeKind.I64, TypeKind.ISIZE, TypeKind.INT):
+        return _SMALL_SIGNED
+    else:
+        return _SMALL_SIGNED
+
+
+def _full_int_range(ty: TypeInfo) -> tuple[int, int]:
+    """Return full type range as fallback."""
+    return _FULL_RANGE.get(ty.kind, (-256, 256))
 
 
 # ---------------------------------------------------------------------------
@@ -136,13 +156,25 @@ def narrow_struct(ty: TypeInfo, var: str, ctx: "SearchContext"):
 )
 def narrow_integer(ty: TypeInfo, var: str, ctx: "SearchContext"):
     """
-    Narrow integer via recursive bisection on [lo, hi].
-    Each step splits into [lo, mid] and [mid+1, hi], tests left half.
-    FAIL → left, PASS → right. Recurse until lo == hi.
+    Narrow integer via recursive bisection.
+    Try small range first [0,8] / [-4,3]. If nondeterminism is not
+    found within, fall back to full type range.
     """
-    type_lo, type_hi = _int_range(ty)
-    # _int_range returns [lo, hi) exclusive, convert to inclusive
-    _bisect_range(var, type_lo, type_hi - 1, ctx)
+    small_lo, small_hi = _int_range(ty)
+    # Try small range: assume(var >= lo && var <= hi-1)
+    small_inclusive_hi = small_hi - 1
+    small_assume = Assume(
+        var,
+        f"{var} >= {small_lo} && {var} <= {small_inclusive_hi}",
+        f"small range: [{small_lo}, {small_inclusive_hi}]",
+    )
+    if ctx.try_assume(small_assume):
+        # FAIL → nondeterminism within small range, bisect it
+        _bisect_range(var, small_lo, small_inclusive_hi, ctx)
+    else:
+        # PASS → nondeterminism outside small range, try full range
+        full_lo, full_hi = _full_int_range(ty)
+        _bisect_range(var, full_lo, full_hi - 1, ctx)
 
 
 def _bisect_range(var: str, lo: int, hi: int, ctx: "SearchContext"):
