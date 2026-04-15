@@ -50,7 +50,7 @@ def narrow(ty: TypeInfo, var: str, ctx: "SearchContext"):
 # Small default ranges for initial search. If nondeterminism is not found
 # within these, fall back to full type range.
 _SMALL_UNSIGNED = (0, 9)      # [0, 8] inclusive → [0, 9) exclusive
-_SMALL_SIGNED = (-4, 4)       # [-4, 3] inclusive → [-4, 4) exclusive
+_SMALL_SIGNED = (-4, 5)       # [-4, 4] inclusive → [-4, 5) exclusive
 
 _FULL_RANGE: dict[TypeKind, tuple[int, int]] = {
     TypeKind.U8:    (0, 256),
