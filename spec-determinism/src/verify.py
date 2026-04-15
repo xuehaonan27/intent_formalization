@@ -116,18 +116,17 @@ def parse_result(raw: dict, fn_name: str) -> VerifyResult:
         )
 
     # Check if our specific function failed
+    # Verus error format: "postcondition not satisfied" then fn name on nearby lines
     fn_failed = bool(re.search(
-        rf"error.*\b{re.escape(fn_name)}\b", combined
+        rf"postcondition not satisfied", combined
+    )) and bool(re.search(
+        rf"\b{re.escape(fn_name)}\b", combined
     ))
 
-    # Also check general "postcondition not satisfied" near our fn
+    # Also check: "error" line mentioning fn name directly
     if not fn_failed:
         fn_failed = bool(re.search(
-            rf"postcondition not satisfied.*\n.*{re.escape(fn_name)}", combined
-        ))
-    if not fn_failed:
-        fn_failed = bool(re.search(
-            rf"{re.escape(fn_name)}.*\n.*postcondition not satisfied", combined
+            rf"error.*\b{re.escape(fn_name)}\b", combined
         ))
 
     if fn_failed:

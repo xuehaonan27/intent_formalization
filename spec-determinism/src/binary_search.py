@@ -104,8 +104,8 @@ def narrow(ty: TypeInfo, var: str, node: "AssumeNode", ctx: "SearchContext"):
 # Integer range helpers
 # ===========================================================================
 
-_SMALL_UNSIGNED = (0, 9)      # [0, 8] inclusive
-_SMALL_SIGNED = (-4, 5)       # [-4, 4] inclusive
+_SMALL_UNSIGNED = (0, 17)      # [0, 16] inclusive
+_SMALL_SIGNED = (-8, 9)       # [-8, 8] inclusive
 
 _FULL_RANGE: dict[TypeKind, tuple[int, int]] = {
     TypeKind.U8:    (0, 256),
@@ -202,10 +202,11 @@ def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext
     small_assume = Assume(var, f"{var} >= {small_lo} && {var} <= {hi_inclusive}",
                           f"small range: [{small_lo}, {hi_inclusive}]")
     if ctx.test_and_set(node, small_assume):
+        # FAIL → nondeterminism within small range, bisect it
         _bisect_range(var, small_lo, hi_inclusive, node, ctx)
     else:
-        full_lo, full_hi = _full_int_range(ty)
-        _bisect_range(var, full_lo, full_hi - 1, node, ctx)
+        # PASS → this variable's value is not a nondeterminism source. Skip.
+        pass
 
 
 def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext"):

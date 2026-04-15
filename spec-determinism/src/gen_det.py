@@ -137,24 +137,35 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     """
     Substitute ensures clause for a specific run.
     
-    run_id=1: self → post1_self_, old(self) → pre_self_, result → r1
-    run_id=2: self → post2_self_, old(self) → pre_self_, result → r2
+    Handles both original Verus names and placeholder names:
+    - old(self) / __PRE__  → pre_self_  (shared, not run-specific)
+    - self / __POST__      → post{run_id}_self_
+    - result / __RESULT__  → r{run_id}
+    
+    For non-self &mut params:
+    - old(param) → pre_{param}
+    - param      → post{run_id}_{param}
     """
     result = ensures_raw
 
     for p in spec.params:
         if p.is_mut_ref and p.is_self:
             vn = _var_name(p)
-            # old(self) or old(self).field → pre_self_
+            # Placeholders
+            result = result.replace('__PRE__', f'pre_{vn}')
+            result = result.replace('__POST__', f'post{run_id}_{vn}')
+            result = result.replace('__RESULT__', f'r{run_id}')
+            # Original Verus names
             result = re.sub(r'\bold\(self\)', f'pre_{vn}', result)
-            # self (post-state) → postN_self_
             result = re.sub(r'\bself\b', f'post{run_id}_{vn}', result)
         elif p.is_mut_ref:
             vn = _var_name(p)
             result = re.sub(rf'\bold\({re.escape(p.name)}\)', f'pre_{vn}', result)
             result = re.sub(rf'\b{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
 
-    # result → r1 or r2
+    # result → r1 or r2 (original Verus name)
     result = re.sub(r'\bresult\b', f'r{run_id}', result)
+    # Placeholder
+    result = result.replace('__RESULT__', f'r{run_id}')
 
     return result
