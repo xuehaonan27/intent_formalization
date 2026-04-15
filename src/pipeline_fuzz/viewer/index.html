@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Spec-Fuzz Viewer</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --border:#2a2f3a; --fg:#e6e6e6;
+    --muted:#8a93a6; --accent:#7cc4ff;
+    --ok:#3ecf8e; --incorrect:#ff6b6b; --incomplete:#ffb454; --timeout:#b48dff;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:13px/1.45 ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial;}
+  header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  header h1{font-size:14px;margin:0;font-weight:600;letter-spacing:.3px;}
+  header .sp{flex:1;}
+  input,select,button{background:var(--panel);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font:inherit;}
+  button{cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  .layout{display:grid;grid-template-columns:280px 1fr 1fr;height:calc(100vh - 52px);}
+  .col{border-right:1px solid var(--border);overflow:auto;}
+  .col:last-child{border-right:0;}
+  .col h2{font-size:11px;text-transform:uppercase;color:var(--muted);margin:0;padding:10px 12px;position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);letter-spacing:.8px;}
+  .task{padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .task:hover{background:var(--panel);}
+  .task.active{background:#1d2230;}
+  .task .name{font-weight:600;}
+  .task .stats{color:var(--muted);font-size:11px;margin-top:2px;}
+  .pill{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;margin-right:4px;border:1px solid var(--border);}
+  .pill.incorrect{color:var(--incorrect);border-color:var(--incorrect);}
+  .pill.incomplete{color:var(--incomplete);border-color:var(--incomplete);}
+  .pill.ok{color:var(--ok);border-color:var(--ok);}
+  .pill.timeout{color:var(--timeout);border-color:var(--timeout);}
+  .case{padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;}
+  .case:hover{background:var(--panel);}
+  .case.active{background:#1d2230;}
+  .case .head{display:flex;justify-content:space-between;gap:8px;}
+  .case .fn{color:var(--accent);}
+  .case .verdict{font-weight:600;}
+  .v-OK{color:var(--ok);} .v-INCORRECTNESS{color:var(--incorrect);}
+  .v-INCOMPLETENESS{color:var(--incomplete);} .v-TIMEOUT{color:var(--timeout);}
+  .v-DISCARDED{color:var(--muted);}
+  .detail{padding:14px 18px;}
+  .detail h3{margin:0 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+  .detail pre{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin-bottom:14px;}
+  .kv dt{color:var(--muted);}
+  .filter-row{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .filter-row label{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:11px;}
+  .empty{padding:20px;color:var(--muted);}
+  tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 12px;}
+  .tab{padding:8px 10px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);}
+  .tab.active{color:var(--fg);border-color:var(--accent);}
+</style>
+</head>
+<body>
+<header>
+  <h1>spec-fuzz viewer</h1>
+  <input id="base" value="/ws/" style="width:280px" title="workspace base URL (served by serve.py)"/>
+  <button id="reload">reload</button>
+  <span class="sp"></span>
+  <span id="summary" style="color:var(--muted);"></span>
+</header>
+<div class="layout">
+  <div class="col" id="tasks-col">
+    <h2>tasks</h2>
+    <div id="tasks"></div>
+  </div>
+  <div class="col" id="cases-col">
+    <h2>cases</h2>
+    <div class="filter-row">
+      <label><input type="checkbox" class="vf" value="INCORRECTNESS" checked/>incorrect</label>
+      <label><input type="checkbox" class="vf" value="INCOMPLETENESS" checked/>incomplete</label>
+      <label><input type="checkbox" class="vf" value="OK" checked/>ok</label>
+      <label><input type="checkbox" class="vf" value="TIMEOUT" checked/>timeout</label>
+      <label><input type="checkbox" class="vf" value="DISCARDED"/>discarded</label>
+      <input id="q" placeholder="filter fn..." style="flex:1;min-width:120px;"/>
+    </div>
+    <div id="cases"></div>
+  </div>
+  <div class="col" id="detail-col">
+    <h2>detail</h2>
+    <div id="detail" class="detail empty">select a case</div>
+  </div>
+</div>
+<script>
+const state = { base:"/ws/", tasks:[], cases:[], task:null, case:null };
+
+async function fetchJSON(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(url+" "+r.status);
+  return r.json();
+}
+async function fetchText(url){
+  const r = await fetch(url);
+  if(!r.ok) return null;
+  return r.text();
+}
+
+async function loadTasks(){
+  state.base = document.getElementById('base').value.replace(/\/?$/, '/');
+  const idx = await fetchJSON(state.base+"_index.json").catch(()=>null);
+  if(!idx){
+    document.getElementById('tasks').innerHTML = '<div class="empty">no _index.json at '+state.base+'<br>start serve.py in your workspace dir.</div>';
+    return;
+  }
+  state.tasks = idx.tasks || [];
+  document.getElementById('summary').textContent =
+    state.tasks.length+" tasks · "+
+    state.tasks.reduce((a,t)=>a+(t.counts?.INCORRECTNESS||0),0)+" incorrect · "+
+    state.tasks.reduce((a,t)=>a+(t.counts?.INCOMPLETENESS||0),0)+" incomplete";
+  renderTasks();
+}
+
+function renderTasks(){
+  const el = document.getElementById('tasks');
+  el.innerHTML = '';
+  for(const t of state.tasks){
+    const c = t.counts||{};
+    const d = document.createElement('div');
+    d.className = 'task'+(state.task===t?' active':'');
+    d.innerHTML = `<div class="name">${t.task}</div>
+      <div class="stats">
+        ${c.INCORRECTNESS?`<span class="pill incorrect">${c.INCORRECTNESS} incorrect</span>`:''}
+        ${c.INCOMPLETENESS?`<span class="pill incomplete">${c.INCOMPLETENESS} incomplete</span>`:''}
+        ${c.OK?`<span class="pill ok">${c.OK} ok</span>`:''}
+        ${c.TIMEOUT?`<span class="pill timeout">${c.TIMEOUT} to</span>`:''}
+      </div>`;
+    d.onclick = ()=>selectTask(t);
+    el.appendChild(d);
+  }
+}
+
+async function selectTask(t){
+  state.task = t; state.case = null;
+  renderTasks();
+  const cases = await fetchJSON(state.base+encodeURIComponent(t.task)+"/cases.json").catch(()=>[]);
+  const findings = await fetchJSON(state.base+encodeURIComponent(t.task)+"/findings.json").catch(()=>[]);
+  const vmap = {};
+  for(const f of findings) vmap[f.case_id||f.id] = f.verdict;
+  state.cases = cases.map(c=>({...c, verdict: vmap[c.id]||c.verdict||"OK"}));
+  renderCases();
+  document.getElementById('detail').innerHTML = '<div class="empty">select a case</div>';
+  document.getElementById('detail').classList.add('empty');
+}
+
+function renderCases(){
+  const allow = new Set([...document.querySelectorAll('.vf:checked')].map(c=>c.value));
+  const q = document.getElementById('q').value.toLowerCase();
+  const el = document.getElementById('cases');
+  el.innerHTML = '';
+  let n=0;
+  for(const c of state.cases){
+    if(!allow.has(c.verdict||'OK')) continue;
+    if(q && !(c.fn||'').toLowerCase().includes(q)) continue;
+    const d = document.createElement('div');
+    d.className = 'case'+(state.case===c?' active':'');
+    d.innerHTML = `<div class="head">
+        <span class="fn">${c.fn}</span>
+        <span class="verdict v-${c.verdict||'OK'}">${c.verdict||'OK'}</span>
+      </div>
+      <div style="color:var(--muted);margin-top:2px;">${c.oracle||'?'} · ${c.id}</div>`;
+    d.onclick = ()=>selectCase(c);
+    el.appendChild(d);
+    n++;
+  }
+  if(!n) el.innerHTML = '<div class="empty">no cases match</div>';
+}
+
+async function selectCase(c){
+  state.case = c;
+  renderCases();
+  const rsUrl = state.base+encodeURIComponent(state.task.task)+"/verus/"+c.fn+"_"+c.id+".rs";
+  const logUrl = state.base+encodeURIComponent(state.task.task)+"/verus/"+c.fn+"_"+c.id+".log";
+  const [rs, log] = await Promise.all([fetchText(rsUrl), fetchText(logUrl)]);
+  const el = document.getElementById('detail');
+  el.classList.remove('empty');
+  el.innerHTML = `
+    <dl class="kv">
+      <dt>task</dt><dd>${state.task.task}</dd>
+      <dt>fn</dt><dd>${c.fn}</dd>
+      <dt>case id</dt><dd>${c.id}</dd>
+      <dt>oracle</dt><dd>${c.oracle||'—'}</dd>
+      <dt>verdict</dt><dd class="v-${c.verdict||'OK'}">${c.verdict||'OK'}</dd>
+      <dt>justification</dt><dd>${(c.oracle_justification||'').replace(/</g,'&lt;')}</dd>
+    </dl>
+    <h3>assumes</h3>
+    <pre>${[
+        ...(c.pre_assumes||[]).map(s=>'pre:  '+s),
+        ...(c.arg_assumes||[]).map(s=>'arg:  '+s),
+        ...(c.post_assumes||[]).map(s=>'post: '+s),
+        ...(c.result_assume?['result: '+c.result_assume]:[]),
+    ].join('\n').replace(/</g,'&lt;')||'(none)'}</pre>
+    <h3>proof fn (${rs?'loaded':'not found'})</h3>
+    <pre>${(rs||'(no .rs on disk)').replace(/</g,'&lt;')}</pre>
+    <h3>verus log (${log?'loaded':'not found'})</h3>
+    <pre>${(log||'(no .log on disk)').replace(/</g,'&lt;')}</pre>
+  `;
+}
+
+document.getElementById('reload').onclick = loadTasks;
+document.getElementById('q').oninput = renderCases;
+document.querySelectorAll('.vf').forEach(c=>c.onchange=renderCases);
+loadTasks();
+</script>
+</body>
+</html>

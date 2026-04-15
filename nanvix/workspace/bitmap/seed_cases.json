@@ -1,0 +1,1976 @@
+[
+  {
+    "task": "bitmap",
+    "fn": "number_of_bits",
+    "case_id": "number_of_bits_0",
+    "pre_assumes": [],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_0",
+    "pre_assumes": [],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_1",
+    "pre_assumes": [],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_2",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_3",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_4",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_5",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_6",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc",
+    "case_id": "alloc_7",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_4",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_5",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_6",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_7",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_8",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_9",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_10",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_11",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_12",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_13",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_14",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_15",
+    "pre_assumes": [
+      "// pre-state is full"
+    ],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_16",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_17",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_18",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_19",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_20",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_21",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_22",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "alloc_range",
+    "case_id": "alloc_range_23",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "size == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_4",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_5",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_6",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_7",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_8",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_9",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_10",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_11",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_12",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_13",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_14",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_15",
+    "pre_assumes": [
+      "// pre-state has exactly one free slot"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_16",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_17",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_18",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_19",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_20",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_21",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_22",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "set",
+    "case_id": "set_23",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_4",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_5",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_6",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_7",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_8",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_9",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_10",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_11",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_12",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_13",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_14",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "clear",
+    "case_id": "clear_15",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_4",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_5",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_6",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_7",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_8",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_9",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_10",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_11",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_12",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_13",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_14",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "test",
+    "case_id": "test_15",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_4",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_5",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_6",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_7",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_8",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_9",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_10",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_11",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_12",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_13",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_14",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Ok",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index",
+    "case_id": "index_15",
+    "pre_assumes": [
+      "// pre-state triggers error path"
+    ],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": "result is Err",
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index_unchecked",
+    "case_id": "index_unchecked_0",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 0"
+    ],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index_unchecked",
+    "case_id": "index_unchecked_1",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 1"
+    ],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index_unchecked",
+    "case_id": "index_unchecked_2",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 7"
+    ],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "index_unchecked",
+    "case_id": "index_unchecked_3",
+    "pre_assumes": [],
+    "arg_assumes": [
+      "index == 8"
+    ],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  },
+  {
+    "task": "bitmap",
+    "fn": "deref",
+    "case_id": "deref_0",
+    "pre_assumes": [],
+    "arg_assumes": [],
+    "post_assumes": [],
+    "result_assume": null,
+    "oracle": null,
+    "oracle_justification": null,
+    "verus_outcome": null,
+    "verus_log": null,
+    "verdict": null,
+    "requires_violated": false
+  }
+]

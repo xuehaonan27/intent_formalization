@@ -1,0 +1,369 @@
+[
+  {
+    "fn": "new",
+    "has_self": false,
+    "is_mut_self": false,
+    "requires_text": "",
+    "ensures_text": "result matches Ok(bitmap) ==> {\n                &&& bitmap.inv()\n                &&& bitmap@.num_bits == number_of_bits as int\n                &&& bitmap@.is_empty()\n            },\n            number_of_bits == 0 ==> result is Err,\n            number_of_bits >= u32::MAX ==> result is Err,\n            number_of_bits % (u8::BITS as usize) != 0 ==> result is Err,",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [],
+    "arg_domains": [
+      {
+        "name": "number_of_bits",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "from_raw_array",
+    "has_self": false,
+    "is_mut_self": false,
+    "requires_text": "array.inv(),\n            array@.len() > 0,\n            array@.len() * (u8::BITS as usize) < u32::MAX as usize,\n            forall|i: int| 0 <= i < array@.len() ==> array@[i] == 0,",
+    "ensures_text": "// Liveness: given preconditions, always succeeds.\n            result matches Ok(bitmap) && {\n                &&& bitmap.inv()\n                &&& bitmap@.num_bits == array@.len() * (u8::BITS as int)\n                &&& bitmap@.is_empty()\n                &&& forall|i: int| 0 <= i < bitmap@.num_bits ==> !bitmap@.is_bit_set(i)\n            },",
+    "return_paths": [
+      "Ok"
+    ],
+    "state_scenarios": [],
+    "arg_domains": [
+      {
+        "name": "array",
+        "type_hint": "RawArray<u8>",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "number_of_bits",
+    "has_self": true,
+    "is_mut_self": false,
+    "requires_text": "self.inv(),",
+    "ensures_text": "result as int == self@.num_bits,\n            result > 0,\n            result < u32::MAX as usize,",
+    "return_paths": [
+      "scalar"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      }
+    ],
+    "arg_domains": []
+  },
+  {
+    "fn": "alloc",
+    "has_self": true,
+    "is_mut_self": true,
+    "requires_text": "old(self).inv(),",
+    "ensures_text": "self.inv(),\n            match result {\n                Ok(index) => {\n                    &&& 0 <= index < self@.num_bits\n                    &&& self@.num_bits == old(self)@.num_bits\n                    &&& !old(self)@.is_bit_set(index as int)\n                    &&& self@.is_bit_set(index as int)\n                    &&& forall|i: int|\n                        0 <= i < self@.num_bits && i != index ==> self@.is_bit_set(i) == old(\n                            self,\n                        )@.is_bit_set(i)\n                    &&& self@.set_bits == old(self)@.set_bits.insert(index as int)\n                    &&& self@.usage() == old(self)@.usage() + 1\n                },\n                Err(_) => {\n                    &&& old(self)@.is_full()\n                    &&& self@ == old(self)@\n                },\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "full",
+        "description": "Pre-state where the data structure is completely full.",
+        "pre_constraints": [
+          "// pre-state is full"
+        ]
+      },
+      {
+        "name": "almost_full",
+        "description": "Pre-state with exactly one free slot.",
+        "pre_constraints": [
+          "// pre-state has exactly one free slot"
+        ]
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": []
+  },
+  {
+    "fn": "alloc_range",
+    "has_self": true,
+    "is_mut_self": true,
+    "requires_text": "old(self).inv(),\n            size > 0,\n            size <= old(self)@.num_bits,",
+    "ensures_text": "self.inv(),\n            match result {\n                Ok(start) => {\n                    &&& 0 <= start < self@.num_bits\n                    &&& 0 < size <= self@.num_bits\n                    &&& start + (size as int) <= self@.num_bits\n                    &&& self@.num_bits == old(self)@.num_bits\n                    &&& self@.all_bits_set_in_range(start as int, start + (size as int))\n                    &&& old(self)@.all_bits_unset_in_range(\n                        start as int,\n                        start + (size as int),\n                    )\n                    // Frame: only the allocated range changed.\n                    &&& forall|i: int|\n                        0 <= i < self@.num_bits && (i < start || i >= start + (size as int))\n                            ==> self@.is_bit_set(i) == old(self)@.is_bit_set(\n                            i,\n                        )\n                    // Set-based frame.\n                    &&& self@.set_bits == old(self)@.set_bits.union(\n                        BitmapView::range_set(start as int, start + (size as int)),\n                    )\n                    &&& self@.usage() == old(self)@.usage() + (size as int)\n                },\n                Err(_) => {\n                    &&& !old(self)@.exists_contiguous_free_range(size as int)\n                    &&& self@ == old(self)@\n                },\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "full",
+        "description": "Pre-state where the data structure is completely full.",
+        "pre_constraints": [
+          "// pre-state is full"
+        ]
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "size",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "set",
+    "has_self": true,
+    "is_mut_self": true,
+    "requires_text": "old(self).inv(),",
+    "ensures_text": "self.inv(),\n            match result {\n                Ok(()) => {\n                    &&& index < self@.num_bits\n                    &&& self@.is_bit_set(index as int)\n                    &&& !old(self)@.is_bit_set(index as int)\n                    &&& self@.num_bits == old(self)@.num_bits\n                    // Frame.\n                    &&& forall|i: int|\n                        0 <= i < self@.num_bits && i != (index as int) ==> self@.is_bit_set(i)\n                            == old(self)@.is_bit_set(\n                            i,\n                        )\n                    // Set-based frame.\n                    &&& self@.set_bits == old(self)@.set_bits.insert(index as int)\n                    &&& self@.usage() == old(self)@.usage() + 1\n                },\n                Err(_) => {\n                    &&& index >= old(self)@.num_bits || old(self)@.is_bit_set(index as int)\n                    &&& *self == *old(self)\n                },\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "almost_full",
+        "description": "Pre-state with exactly one free slot.",
+        "pre_constraints": [
+          "// pre-state has exactly one free slot"
+        ]
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "index",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "clear",
+    "has_self": true,
+    "is_mut_self": true,
+    "requires_text": "old(self).inv(),",
+    "ensures_text": "self.inv(),\n            match result {\n                Ok(()) => {\n                    &&& index < self@.num_bits\n                    &&& !self@.is_bit_set(index as int)\n                    &&& self@.num_bits == old(self)@.num_bits\n                    &&& forall|i: int|\n                        0 <= i < self@.num_bits && i != (index as int) ==> self@.is_bit_set(i)\n                            == old(self)@.is_bit_set(i)\n                    &&& self@.set_bits == old(self)@.set_bits.remove(index as int)\n                    &&& self@.usage() == old(self)@.usage() - 1\n                },\n                Err(_) => {\n                    &&& index >= old(self)@.num_bits || !old(self)@.is_bit_set(index as int)\n                    &&& *self == *old(self)\n                },\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "index",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "test",
+    "has_self": true,
+    "is_mut_self": false,
+    "requires_text": "self.inv(),",
+    "ensures_text": "match result {\n                Ok(b) => {\n                    &&& index < self@.num_bits\n                    &&& b == self@.is_bit_set(index as int)\n                },\n                Err(_) => index >= self@.num_bits,\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "index",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "index",
+    "has_self": true,
+    "is_mut_self": false,
+    "requires_text": "self.inv(),",
+    "ensures_text": "match result {\n                Ok((which_byte, which_bit)) => {\n                    &&& index < self.number_of_bits\n                    &&& which_byte < self.bits@.len()\n                    &&& which_bit < u8::BITS as usize\n                    &&& which_byte == index as int / (u8::BITS as int)\n                    &&& which_bit == index as int % (u8::BITS as int)\n                },\n                Err(_) => index >= self.number_of_bits,\n            },",
+    "return_paths": [
+      "Ok",
+      "Err"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      },
+      {
+        "name": "error_path",
+        "description": "Pre-state that forces the function to return an error.",
+        "pre_constraints": [
+          "// pre-state triggers error path"
+        ]
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "index",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "index_unchecked",
+    "has_self": true,
+    "is_mut_self": false,
+    "requires_text": "index < self.bits@.len() * u8::BITS as usize,",
+    "ensures_text": "result.0 < self.bits@.len(),\n            result.1 < u8::BITS as usize,\n            result.0 as int == index as int / (u8::BITS as int),\n            result.1 as int == index as int % (u8::BITS as int),",
+    "return_paths": [
+      "scalar"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      }
+    ],
+    "arg_domains": [
+      {
+        "name": "index",
+        "type_hint": "usize",
+        "domain": [
+          0,
+          1,
+          7,
+          8,
+          255,
+          "usize::MAX"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "deref",
+    "has_self": true,
+    "is_mut_self": false,
+    "requires_text": "",
+    "ensures_text": "",
+    "return_paths": [
+      "scalar"
+    ],
+    "state_scenarios": [
+      {
+        "name": "general",
+        "description": "No specific pre-state constraints; tests spec in an arbitrary valid state.",
+        "pre_constraints": []
+      }
+    ],
+    "arg_domains": []
+  }
+]

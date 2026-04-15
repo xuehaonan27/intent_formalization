@@ -1,0 +1,14 @@
+[project]
+name = "intent-formalization"
+version = "0.1.0"
+description = "Intent formalization + spec-fuzzing pipelines for Verus"
+requires-python = ">=3.11"
+dependencies = [
+    "tree-sitter>=0.23",
+    "tree-sitter-rust>=0.23",
+    "tqdm>=4.66",
+    "pyyaml>=6.0",
+]
+
+[tool.uv]
+package = false
