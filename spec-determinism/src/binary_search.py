@@ -205,8 +205,17 @@ def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext
         # FAIL → nondeterminism within small range, bisect it
         _bisect_range(var, small_lo, hi_inclusive, node, ctx)
     else:
-        # PASS → this variable's value is not a nondeterminism source. Skip.
-        pass
+        # PASS → not in small range. Try full type range.
+        full_lo, full_hi = _full_int_range(ty)
+        full_hi_inclusive = full_hi - 1
+        full_assume = Assume(var, f"{var} >= {full_lo} && {var} <= {full_hi_inclusive}",
+                             f"full range: [{full_lo}, {full_hi_inclusive}]")
+        if ctx.test_and_set(node, full_assume):
+            # FAIL → nondeterminism in full range (but outside small range), bisect
+            _bisect_range(var, full_lo, full_hi_inclusive, node, ctx)
+        else:
+            # PASS → truly not a nondeterminism source. Skip.
+            pass
 
 
 def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext"):
