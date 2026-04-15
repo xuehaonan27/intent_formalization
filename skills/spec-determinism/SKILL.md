@@ -56,6 +56,20 @@ proof fn det_foo(pre: T, arg: ArgType, post1: T, post2: T,
 When Step 1 fails, construct a concrete witness `(x, y1, y2)` by progressively
 adding `assume()` constraints. **Binary search input first, then output.**
 
+### Variable Mapping for `&mut self` Functions
+
+For `fn foo(&mut self, arg) -> result`:
+- `pre` = `old(self)` — **input** (the object before the call)
+- `post` = `self` — **output** (the object after the call)
+- `arg` = additional input parameter
+- `result` = return value — **output**
+
+So a `&mut self` function has:
+- **Input** = `(pre, arg)`
+- **Output** = `(post, result)`
+
+Binary search Phase 1 narrows `(pre, arg)`. Phase 2 narrows `(post1, result1)` vs `(post2, result2)`.
+
 ### Phase 1: Narrow Input (x)
 
 Fix the input to a specific concrete value. Search order by type:
