@@ -168,7 +168,7 @@ def narrow_integer(ty: TypeInfo, var: str, ctx: "SearchContext"):
         f"{var} >= {small_lo} && {var} <= {small_inclusive_hi}",
         f"small range: [{small_lo}, {small_inclusive_hi}]",
     )
-    if ctx.try_assume(small_assume):
+    if ctx.try_assume_replace(small_assume):
         # FAIL → nondeterminism within small range, bisect it
         _bisect_range(var, small_lo, small_inclusive_hi, ctx)
     else:
@@ -178,9 +178,9 @@ def narrow_integer(ty: TypeInfo, var: str, ctx: "SearchContext"):
 
 
 def _bisect_range(var: str, lo: int, hi: int, ctx: "SearchContext"):
-    """Recursive bisection on [lo, hi] inclusive."""
+    """Recursive bisection on [lo, hi] inclusive. Uses replace mode."""
     if lo == hi:
-        ctx.try_assume(Assume(var, f"{var} == {lo}", f"exact: {lo}"))
+        ctx.try_assume_replace(Assume(var, f"{var} == {lo}", f"exact: {lo}"))
         return
 
     mid = (lo + hi) // 2
@@ -194,7 +194,7 @@ def _bisect_range(var: str, lo: int, hi: int, ctx: "SearchContext"):
             f"range: [{lo}, {mid}]",
         )
 
-    if ctx.try_assume(left_assume):
+    if ctx.try_assume_replace(left_assume):
         # FAIL → nondeterminism in [lo, mid], recurse
         _bisect_range(var, lo, mid, ctx)
     else:
@@ -324,12 +324,13 @@ class SearchContext:
 
     def try_assume(self, assume: Assume, phase: str = "") -> bool:
         """
-        Test an assume constraint.
+        Test an assume constraint (append mode).
+        Use for constraints on NEW variables (e.g. r1 is Ok, pre@.num_bits).
 
-        - FAIL → nondeterminism persists with this constraint. Add to active.
-        - PASS → this constraint eliminated nondeterminism. Do NOT add.
+        - FAIL → nondeterminism persists. Add to active.
+        - PASS → eliminated nondeterminism. Do NOT add.
 
-        Returns True if FAIL (constraint kept), False if PASS (constraint rejected).
+        Returns True if FAIL, False if PASS.
         """
         test_assumes = self.active_assumes + [assume]
         code = generate_det_check(self.spec, extra_assumes=test_assumes)
@@ -351,6 +352,40 @@ class SearchContext:
             logger.warning(f"Timeout on {assume.expression} — treating as inconclusive, skipping")
             return False
         else:  # error (e.g. compile error)
+            logger.error(f"Error on {assume.expression}: {result.stderr[:200]}")
+            return False
+
+    def try_assume_replace(self, assume: Assume, phase: str = "") -> bool:
+        """
+        Test an assume constraint (replace mode).
+        Use when refining the SAME variable (e.g. bisecting [0,8] → [0,4] → [3,4] → 3).
+        On FAIL, replaces any existing assume with the same var_name.
+
+        Returns True if FAIL, False if PASS.
+        """
+        # Build test set: existing assumes with same var_name replaced
+        filtered = [a for a in self.active_assumes if a.var_name != assume.var_name]
+        test_assumes = filtered + [assume]
+        code = generate_det_check(self.spec, extra_assumes=test_assumes)
+        fn_name = f"det_{self.spec.name}"
+        result = self.runner.check(code, fn_name)
+
+        p = phase or "refine"
+        self._record(p, assume, result)
+        logger.info(
+            f"R{self._round} [{p}] ~{assume.expression} → {result.status}"
+        )
+
+        if result.status == "fail":
+            # Replace: remove old assume for this var, add new one
+            self.active_assumes = filtered + [assume]
+            return True
+        elif result.status == "pass":
+            return False
+        elif result.status == "timeout":
+            logger.warning(f"Timeout on {assume.expression} — treating as inconclusive, skipping")
+            return False
+        else:
             logger.error(f"Error on {assume.expression}: {result.stderr[:200]}")
             return False
 
