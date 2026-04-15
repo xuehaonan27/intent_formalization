@@ -1,131 +1,73 @@
-# Bitmap Determinism Check — Binary Search Traces
+# Bitmap Determinism Check — Complete Binary Search Traces (v2)
 
 ## Function: `new(number_of_bits) -> Result<Bitmap, Error>`
 
-### Round 0: Full determinism check
-```rust
-proof fn det_new(number_of_bits, result1, result2)
-    ensures Q(nb, result1) && Q(nb, result2) ==> result1 == result2
-```
-**Result: ❌ FAIL** → nondeterminism exists
+| Round | Query | Constraint | Result | Interpretation |
+|-------|-------|-----------|--------|---------------|
+| R0 | det_new | (none) | ❌ FAIL | nondeterminism exists |
+| R1a | det_new_r1a | result1 is Ok && result2 is Ok | ❌ FAIL | two Ok bitmaps can differ |
+| R1b | det_new_r1b | (none, check branch agreement) | ❌ FAIL | Ok+Err both allowed |
+| R2a | det_new_r2a | number_of_bits < 100 | ❌ FAIL | trigger in [0,100) |
+| R2b | det_new_r2b | number_of_bits == 8 | ❌ FAIL | **trigger at 8** |
+| R2c | det_new_r2c | number_of_bits == 0 | ✅ PASS | forced Err, deterministic |
 
-### Round 1a: L1 — Both Ok → same bitmap?
-```rust
-ensures ... && result1 is Ok && result2 is Ok ==> result1 == result2
+**Concrete witness:**
 ```
-**Result: ❌ FAIL** → two Ok bitmaps can differ
-
-### Round 1b: L1 — Same branch?
-```rust
-ensures ... ==> (result1 is Ok <==> result2 is Ok)
-```
-**Result: ❌ FAIL** → one Ok, one Err allowed for same input
-
-### Round 2a: L3 — Narrow input: number_of_bits < 100?
-```rust
-ensures ... && number_of_bits < 100 ==> (result1 is Ok <==> result2 is Ok)
-```
-**Result: ❌ FAIL** → trigger in small range
-
-### Round 2b: L3 — Narrow input: number_of_bits == 8?
-```rust
-ensures ... && number_of_bits == 8 ==> (result1 is Ok <==> result2 is Ok)
-```
-**Result: ❌ FAIL** → **TRIGGER FOUND: number_of_bits = 8**
-
-### Round 2c: L3 — Control: number_of_bits == 0?
-```rust
-ensures ... && number_of_bits == 0 ==> (result1 is Ok <==> result2 is Ok)
-```
-**Result: ✅ PASS** → forced Err (deterministic)
-
-### Final witness
-```
-Input:  number_of_bits = 8
-y1:     Ok(bitmap)    — valid per spec
-y2:     Err(...)      — also valid per spec
-Gap:    Liveness — spec never guarantees Ok for valid inputs
+x:  number_of_bits = 8  (valid: >0, <u32::MAX, %8==0)
+y1: Ok(bitmap)           — valid per spec
+y2: Err(InvalidArgument) — also valid per spec
+Gap: Liveness — spec never guarantees Ok for valid inputs
 ```
 
 ---
 
 ## Function: `alloc(&mut self) -> Result<usize, Error>`
 
-### Round 0: Full determinism check
-```rust
-proof fn det_alloc(pre, post1, post2, result1, result2)
-    requires pre.inv()
-    ensures Q(pre, post1, result1) && Q(pre, post2, result2) ==> result1 == result2 && post1@ == post2@
-```
-**Result: ❌ FAIL** → nondeterminism exists
+| Round | Query | Constraint | Result | Interpretation |
+|-------|-------|-----------|--------|---------------|
+| R0 | det_alloc | (none) | ❌ FAIL | nondeterminism exists |
+| R1 | det_alloc_r1_branch | check branch agreement | ✅ PASS | Ok/Err deterministic |
+| R2 | det_alloc_r2_index | both Ok → same index? | ❌ FAIL | index nondeterministic |
+| R3 | det_alloc_r3 | pre@.num_bits==8, pre@.usage()==0 | ❌ FAIL | trigger: 8-bit empty bitmap |
+| R4 | det_alloc_r4 | result1==Ok(0), result2==Ok(1) | ❌ FAIL | **concrete witness valid** |
 
-### Round 1: L1 — Same branch?
-```rust
-ensures ... ==> (result1 is Ok <==> result2 is Ok)
+**Concrete witness:**
 ```
-**Result: ✅ PASS** → branch is deterministic (is_full() is biconditional)
-
-### Round 2: L1 — Both Ok → same index?
-```rust
-ensures ... && result1 is Ok && result2 is Ok ==> result1 == result2
-```
-**Result: ❌ FAIL** → **different free bits can be returned**
-
-### Round 3: L2 — Same index → same post-state?
-```rust
-ensures ... && result1 is Ok && result2 is Ok && result1 == result2 ==> post1@ == post2@
-```
-**Result: ✅ PASS** → given same index, post-state is fully determined
-
-### Final witness
-```
-Input:  pre = any non-full bitmap with ≥2 free bits
-y1:     Ok(index_a), post with bit a set
-y2:     Ok(index_b), post with bit b set  (a ≠ b)
-Gap:    Nondeterministic bit selection — DESIGN CHOICE, not a bug
+x:  pre = 8-bit bitmap, all bits free (usage==0)
+y1: Ok(0), post = {bit 0 set, rest free}
+y2: Ok(1), post = {bit 1 set, rest free}
+Gap: Nondeterministic bit selection — DESIGN CHOICE
 ```
 
 ---
 
 ## Function: `set(&mut self, index) -> Result<(), Error>`
 
-### Round 0: Full determinism check
-```rust
-proof fn det_set(pre, index, post1, post2, result1, result2)
-    requires pre.inv()
-    ensures Q(pre, index, post1, result1) && Q(pre, index, post2, result2) ==> result1 == result2 && post1@ == post2@
-```
-**Result: ❌ FAIL** → nondeterminism exists
+| Round | Query | Constraint | Result | Interpretation |
+|-------|-------|-----------|--------|---------------|
+| R0 | det_set | (none) | ❌ FAIL | nondeterminism exists |
+| R1 | det_set_r1_branch | check branch agreement | ✅ PASS | Ok/Err deterministic |
+| R2 | det_set_r2_err_code | both Err → same code? | ❌ FAIL | error code nondeterministic |
+| R3 | det_set_r3 | pre@.num_bits==8, index==10 | ❌ FAIL | trigger: OOB index |
+| R4 | det_set_r4 | y1=Err(InvalidArgument), y2=Err(ResourceBusy) | ❌ FAIL | **concrete witness valid** |
 
-### Round 1: L1 — Same branch?
-```rust
-ensures ... ==> (result1 is Ok <==> result2 is Ok)
+**Concrete witness:**
 ```
-**Result: ✅ PASS** → branch deterministic (Err guard: `index >= num_bits || is_bit_set`)
-
-### Round 2: L1 — Both Err → same error code?
-```rust
-ensures ... && result1 is Err && result2 is Err ==> result1 == result2
-```
-**Result: ❌ FAIL** → **error code is nondeterministic**
-
-### Final witness
-```
-Input:  pre = bitmap, index >= num_bits (out of bounds)
-y1:     Err(InvalidArgument)   — valid per spec (Err(_) wildcard)
-y2:     Err(ResourceBusy)      — also valid per spec
-Gap:    Error code unconstrained — Err(_) wildcard allows any ErrorCode
+x:  pre = 8-bit bitmap, index = 10 (out of bounds)
+y1: Err(InvalidArgument) — valid per spec (Err(_) wildcard)
+y2: Err(ResourceBusy)    — also valid per spec
+Gap: Error code unconstrained — Err(_) allows any ErrorCode
 ```
 
 ---
 
 ## Summary
 
-| Function | Rounds | Source of nondeterminism | Gap type |
-|----------|--------|------------------------|----------|
-| `new` | 6 | Ok vs Err on valid input (nb=8) | **Liveness gap** |
-| `alloc` | 3 | Which free bit returned | Design choice |
-| `set` | 2 | Error code on Err | **Error wildcard** |
+| Function | Total rounds | Nondeterminism source | Concrete witness | Gap type |
+|----------|-------------|----------------------|-----------------|----------|
+| `new` | 6 | Ok vs Err on nb=8 | nb=8, y1=Ok, y2=Err | **Liveness** |
+| `alloc` | 5 | index choice on empty bitmap | pre=empty 8-bit, y1=Ok(0), y2=Ok(1) | Design choice |
+| `set` | 5 | error code on OOB | pre=8-bit, idx=10, y1=InvalidArgument, y2=ResourceBusy | **Error wildcard** |
 
-Total Verus calls: 11 (6 + 3 + 2)
-All results match previously known findings from LLM-based pipeline.
+**Total Verus calls: 16**
+All concrete witnesses match previously known findings from LLM-based pipeline.
