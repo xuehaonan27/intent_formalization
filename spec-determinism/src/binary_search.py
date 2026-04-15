@@ -136,36 +136,38 @@ def narrow_struct(ty: TypeInfo, var: str, ctx: "SearchContext"):
 )
 def narrow_integer(ty: TypeInfo, var: str, ctx: "SearchContext"):
     """
-    Narrow integer: first coarse probing, then binary search for exact value.
+    Narrow integer via recursive bisection on [lo, hi].
+    Each step splits into [lo, mid] and [mid+1, hi], tests left half.
+    FAIL → left, PASS → right. Recurse until lo == hi.
     """
     type_lo, type_hi = _int_range(ty)
+    # _int_range returns [lo, hi) exclusive, convert to inclusive
+    _bisect_range(var, type_lo, type_hi - 1, ctx)
 
-    # Phase 1: Coarse probing to find a small window
-    lo, hi = type_lo, type_hi
-    probes = sorted(set([0, 1, -1, 2, 4, 8, 16, 32, 64, 100, 128, 256]))
-    probes = [p for p in probes if type_lo <= p < type_hi]
 
-    for p in probes:
-        assume = Assume(var, f"{var} < {p}", f"coarse: < {p}")
-        if ctx.try_assume(assume):
-            # FAIL → nondeterminism trigger is in [lo, p)
-            hi = p
-            break
-        else:
-            # PASS → trigger is >= p, remove this assume (already not added)
-            lo = p
+def _bisect_range(var: str, lo: int, hi: int, ctx: "SearchContext"):
+    """Recursive bisection on [lo, hi] inclusive."""
+    if lo == hi:
+        ctx.try_assume(Assume(var, f"{var} == {lo}", f"exact: {lo}"))
+        return
 
-    # Phase 2: Binary search within [lo, hi)
-    while hi - lo > 1:
-        mid = (lo + hi) // 2
-        assume = Assume(var, f"{var} < {mid}", f"bisect: < {mid}")
-        if ctx.try_assume(assume):
-            hi = mid
-        else:
-            lo = mid
+    mid = (lo + hi) // 2
+    # Test left half: [lo, mid]
+    if lo == mid:
+        left_assume = Assume(var, f"{var} == {lo}", f"exact: {lo}")
+    else:
+        left_assume = Assume(
+            var,
+            f"{var} >= {lo} && {var} <= {mid}",
+            f"range: [{lo}, {mid}]",
+        )
 
-    # Phase 3: Try exact value
-    ctx.try_assume(Assume(var, f"{var} == {lo}", f"exact: {lo}"))
+    if ctx.try_assume(left_assume):
+        # FAIL → nondeterminism in [lo, mid], recurse
+        _bisect_range(var, lo, mid, ctx)
+    else:
+        # PASS → nondeterminism in [mid+1, hi], recurse
+        _bisect_range(var, mid + 1, hi, ctx)
 
 
 @strategy_for(TypeKind.BOOL)
