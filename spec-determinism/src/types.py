@@ -39,11 +39,41 @@ class TypeInfo:
     type_args: list["TypeInfo"] = field(default_factory=list)    # for generics
     spec_view: Optional["TypeInfo"] = None  # the type returned by @/@view
 
+    def to_dict(self) -> dict:
+        d = {"kind": self.kind.value, "name": self.name}
+        if self.fields:
+            d["fields"] = [f.to_dict() for f in self.fields]
+        if self.variants:
+            d["variants"] = [v.to_dict() for v in self.variants]
+        if self.type_args:
+            d["type_args"] = [t.to_dict() for t in self.type_args]
+        if self.spec_view:
+            d["spec_view"] = self.spec_view.to_dict()
+        return d
+
+    @staticmethod
+    def from_dict(d: dict) -> "TypeInfo":
+        return TypeInfo(
+            kind=TypeKind(d["kind"]),
+            name=d["name"],
+            fields=[FieldInfo.from_dict(f) for f in d.get("fields", [])],
+            variants=[VariantInfo.from_dict(v) for v in d.get("variants", [])],
+            type_args=[TypeInfo.from_dict(t) for t in d.get("type_args", [])],
+            spec_view=TypeInfo.from_dict(d["spec_view"]) if d.get("spec_view") else None,
+        )
+
 
 @dataclass
 class FieldInfo:
     name: str
     type: TypeInfo
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "type": self.type.to_dict()}
+
+    @staticmethod
+    def from_dict(d: dict) -> "FieldInfo":
+        return FieldInfo(name=d["name"], type=TypeInfo.from_dict(d["type"]))
 
 
 @dataclass
@@ -51,32 +81,43 @@ class VariantInfo:
     name: str
     inner: Optional[TypeInfo] = None
 
+    def to_dict(self) -> dict:
+        d = {"name": self.name}
+        if self.inner:
+            d["inner"] = self.inner.to_dict()
+        return d
+
+    @staticmethod
+    def from_dict(d: dict) -> "VariantInfo":
+        return VariantInfo(
+            name=d["name"],
+            inner=TypeInfo.from_dict(d["inner"]) if d.get("inner") else None,
+        )
+
 
 @dataclass
 class Param:
     name: str
     type: TypeInfo
-    is_mut_ref: bool = False   # &mut → split into pre/post
-    is_ref: bool = False       # &    → input only
-    is_self: bool = False      # self param
+    is_mut_ref: bool = False
+    is_ref: bool = False
+    is_self: bool = False
 
 
 @dataclass
 class FunctionSpec:
+    """Raw extracted spec — used internally by extract + gen_det."""
     name: str
     params: list[Param]
     return_type: TypeInfo
-    requires: list[str]         # raw Verus clause strings
-    ensures: list[str]          # raw Verus clause strings
-    type_defs: dict[str, "TypeInfo"] = field(default_factory=dict)
+    requires: list[str]
+    ensures: list[str]
+    type_defs: dict[str, TypeInfo] = field(default_factory=dict)
 
     def input_vars(self) -> list[Param]:
-        """All input variables (including pre-state of &mut params)."""
         return list(self.params)
 
     def output_vars(self) -> list[tuple[str, TypeInfo]]:
-        """All output variables: (name, type) pairs.
-        Names match gen_det parameter naming convention."""
         outs = []
         for p in self.params:
             if p.is_mut_ref:
@@ -86,39 +127,111 @@ class FunctionSpec:
         return outs
 
 
+# ===========================================================================
+# Symbol — a variable to be narrowed during binary search
+# ===========================================================================
+
+@dataclass
+class Symbol:
+    """One variable in the symbol table for binary search."""
+    name: str           # e.g. "pre_self_@.num_bits", "r1", "post1_self_"
+    type: TypeInfo      # type info for strategy dispatch
+    phase: str          # "input" | "output_simple" | "output_compound"
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "type": self.type.to_dict(),
+            "phase": self.phase,
+        }
+
+    @staticmethod
+    def from_dict(d: dict) -> "Symbol":
+        return Symbol(
+            name=d["name"],
+            type=TypeInfo.from_dict(d["type"]),
+            phase=d["phase"],
+        )
+
+
+# ===========================================================================
+# DetCheckSpec — output of Step 1, input to Step 2
+# ===========================================================================
+
+@dataclass
+class DetCheckSpec:
+    """
+    Everything the search step needs. JSON-serializable.
+    
+    Produced by Step 1 (extract + gen_det).
+    Consumed by Step 2 (binary search).
+    """
+    function: str                    # function name
+    det_check_template: str          # Verus proof fn with {ASSUMES} placeholder
+    symbols: list[Symbol]            # variables to narrow, in order
+    verus_config: dict = field(default_factory=dict)  # crate_dir, crate_name, etc.
+
+    def to_dict(self) -> dict:
+        return {
+            "function": self.function,
+            "det_check_template": self.det_check_template,
+            "symbols": [s.to_dict() for s in self.symbols],
+            "verus_config": self.verus_config,
+        }
+
+    @staticmethod
+    def from_dict(d: dict) -> "DetCheckSpec":
+        return DetCheckSpec(
+            function=d["function"],
+            det_check_template=d["det_check_template"],
+            symbols=[Symbol.from_dict(s) for s in d["symbols"]],
+            verus_config=d.get("verus_config", {}),
+        )
+
+    def to_json(self) -> str:
+        import json
+        return json.dumps(self.to_dict(), indent=2)
+
+    @staticmethod
+    def from_json(text: str) -> "DetCheckSpec":
+        import json
+        return DetCheckSpec.from_dict(json.loads(text))
+
+
+# ===========================================================================
+# Search output types (unchanged)
+# ===========================================================================
+
 @dataclass
 class Assume:
-    """A single narrowing constraint."""
     var_name: str
-    expression: str       # Verus expression, e.g. "pre@.num_bits == 8"
-    description: str = "" # human-readable
+    expression: str
+    description: str = ""
 
 
 @dataclass
 class VerifyResult:
     status: str           # "pass", "fail", "timeout", "error"
-    function: str         # proof fn name
+    function: str
     duration_ms: int = 0
     stderr: str = ""
 
 
 @dataclass
 class ConcreteValue:
-    """A fully concrete value for a variable."""
     var_name: str
     type_name: str
     fields: dict[str, str] = field(default_factory=dict)
-    raw: str = ""              # if not a struct, just the value string
+    raw: str = ""
 
 
 @dataclass
 class Witness:
-    """Complete witness with all fields concrete."""
     function: str
     inputs: dict[str, ConcreteValue] = field(default_factory=dict)
     output1: dict[str, ConcreteValue] = field(default_factory=dict)
     output2: dict[str, ConcreteValue] = field(default_factory=dict)
     assumes: list[Assume] = field(default_factory=list)
-    trace: list[dict] = field(default_factory=list)  # [{round, phase, assumes, result}]
+    trace: list[dict] = field(default_factory=list)
     gap_type: str = ""
     gap_description: str = ""

@@ -15,8 +15,9 @@ from typing import Callable, Optional
 from .types import (
     TypeKind, TypeInfo, FieldInfo, Param,
     FunctionSpec, Assume, VerifyResult, Witness,
+    Symbol, DetCheckSpec,
 )
-from .gen_det import generate_det_check
+from .gen_det import render_template
 from .verify import VerusRunner
 
 logger = logging.getLogger(__name__)
@@ -397,18 +398,11 @@ def _llm_fallback(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
 
 class SearchContext:
     """
-    Holds search state: the assume tree, Verus runner, trace log.
-    
-    All strategies call `test_and_set(node, assume)` which:
-    1. Temporarily sets node.assume = assume
-    2. Collects all assumes from tree
-    3. Runs Verus
-    4. On FAIL: keeps the assume (refinement in-place). Returns True.
-    5. On PASS: reverts node.assume. Returns False.
+    Holds search state. Operates on DetCheckSpec (template + symbols).
     """
 
-    def __init__(self, spec: FunctionSpec, runner: VerusRunner, llm_client=None):
-        self.spec = spec
+    def __init__(self, det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None):
+        self.det_spec = det_spec
         self.runner = runner
         self.llm_client = llm_client
         self.tree = AssumeNode(key="root")
@@ -417,17 +411,15 @@ class SearchContext:
 
     def test_and_set(self, node: AssumeNode, assume: Assume, phase: str = "") -> bool:
         """
-        The single operation for all strategies.
-        
-        Sets node.assume = assume, runs Verus with ALL current tree assumes.
-        FAIL → keep (return True). PASS → revert (return False).
+        Sets node.assume = assume, renders template with ALL tree assumes,
+        runs Verus. FAIL → keep. PASS → revert.
         """
         old_assume = node.assume
         node.assume = assume
 
         all_assumes = self.tree.collect_assumes()
-        code = generate_det_check(self.spec, extra_assumes=all_assumes)
-        fn_name = f"det_{self.spec.name}"
+        code = render_template(self.det_spec.det_check_template, all_assumes)
+        fn_name = f"det_{self.det_spec.function}"
         result = self.runner.check(code, fn_name)
 
         self._round += 1
@@ -463,13 +455,13 @@ class SearchContext:
 # Driver
 # ===========================================================================
 
-def binary_search(spec: FunctionSpec, runner: VerusRunner, llm_client=None) -> Witness:
-    """Run full binary search: input first, then output."""
-    ctx = SearchContext(spec, runner, llm_client)
+def binary_search(det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None) -> Witness:
+    """Run full binary search using a DetCheckSpec (template + symbol table)."""
+    ctx = SearchContext(det_spec, runner, llm_client)
 
-    # R0: initial determinism check
-    code = generate_det_check(spec)
-    fn_name = f"det_{spec.name}"
+    # R0: initial determinism check (no assumes)
+    code = render_template(det_spec.det_check_template, [])
+    fn_name = f"det_{det_spec.function}"
     r0 = runner.check(code, fn_name)
     ctx.trace.append({
         "round": 0, "phase": "initial", "node_key": "root",
@@ -478,63 +470,22 @@ def binary_search(spec: FunctionSpec, runner: VerusRunner, llm_client=None) -> W
     })
 
     if r0.status == "pass":
-        logger.info(f"{spec.name}: spec is deterministic")
-        return Witness(function=spec.name, trace=ctx.trace)
+        logger.info(f"{det_spec.function}: spec is deterministic")
+        return Witness(function=det_spec.function, trace=ctx.trace)
 
     if r0.status != "fail":
-        logger.error(f"{spec.name}: initial check returned {r0.status}")
-        return Witness(function=spec.name, trace=ctx.trace)
+        logger.error(f"{det_spec.function}: initial check returned {r0.status}")
+        return Witness(function=det_spec.function, trace=ctx.trace)
 
-    logger.info(f"{spec.name}: nondeterminism detected, starting binary search")
+    logger.info(f"{det_spec.function}: nondeterminism detected, starting binary search")
 
-    # Phase 1: Narrow inputs
-    for param in spec.params:
-        var = _input_var_name(param)
-        param_node = ctx.tree.get_or_create(var)
-        narrow(param.type, var, param_node, ctx)
-
-    # Phase 2: Narrow outputs — simple types first (enum/primitive), then compound (struct)
-    simple_outputs = []  # Result, Option, Enum, bool, integers
-    compound_outputs = []  # Struct, Set, Seq
-    for out_name, out_type in spec.output_vars():
-        if out_type.kind in (TypeKind.RESULT, TypeKind.OPTION, TypeKind.ENUM,
-                             TypeKind.BOOL, TypeKind.UNIT,
-                             TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
-                             TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
-                             TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64):
-            simple_outputs.append((out_name, out_type))
-        else:
-            compound_outputs.append((out_name, out_type))
-
-    for out_name, out_type in simple_outputs:
-        _narrow_output_pair(ctx, out_type, out_name)
-    for out_name, out_type in compound_outputs:
-        _narrow_output_pair(ctx, out_type, out_name)
+    # Narrow symbols in order (already sorted: input → output_simple → output_compound)
+    for sym in det_spec.symbols:
+        sym_node = ctx.tree.get_or_create(sym.name)
+        narrow(sym.type, sym.name, sym_node, ctx)
 
     return Witness(
-        function=spec.name,
+        function=det_spec.function,
         assumes=ctx.tree.collect_assumes(),
         trace=ctx.trace,
     )
-
-
-def _input_var_name(param: Param) -> str:
-    base = "self_" if param.is_self else param.name
-    return f"pre_{base}" if param.is_mut_ref else base
-
-
-def _narrow_output_pair(ctx: SearchContext, ty: TypeInfo, base_name: str):
-    """Narrow output pair (r1/r2 or post1/post2). Narrow both."""
-    if base_name == "result":
-        name1, name2 = "r1", "r2"
-    elif base_name.startswith("post_"):
-        suffix = base_name[5:]
-        name1, name2 = f"post1_{suffix}", f"post2_{suffix}"
-    else:
-        name1, name2 = f"{base_name}1", f"{base_name}2"
-
-    out1_node = ctx.tree.get_or_create(name1)
-    narrow(ty, name1, out1_node, ctx)
-
-    out2_node = ctx.tree.get_or_create(name2)
-    narrow(ty, name2, out2_node, ctx)
