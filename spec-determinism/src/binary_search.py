@@ -438,7 +438,7 @@ def _input_var_name(param: Param) -> str:
 
 
 def _narrow_output_pair(ctx: SearchContext, ty: TypeInfo, base_name: str):
-    """Narrow output pair (r1/r2 or post1/post2)."""
+    """Narrow output pair (r1/r2 or post1/post2). Narrow both."""
     if base_name == "result":
         name1, name2 = "r1", "r2"
     elif base_name.startswith("post_"):
@@ -449,3 +449,6 @@ def _narrow_output_pair(ctx: SearchContext, ty: TypeInfo, base_name: str):
 
     out1_node = ctx.tree.get_or_create(name1)
     narrow(ty, name1, out1_node, ctx)
+
+    out2_node = ctx.tree.get_or_create(name2)
+    narrow(ty, name2, out2_node, ctx)
