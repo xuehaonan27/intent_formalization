@@ -407,8 +407,22 @@ def binary_search(spec: FunctionSpec, runner: VerusRunner, llm_client=None) -> W
         param_node = ctx.tree.get_or_create(var)
         narrow(param.type, var, param_node, ctx)
 
-    # Phase 2: Narrow outputs
+    # Phase 2: Narrow outputs — simple types first (enum/primitive), then compound (struct)
+    simple_outputs = []  # Result, Option, Enum, bool, integers
+    compound_outputs = []  # Struct, Set, Seq
     for out_name, out_type in spec.output_vars():
+        if out_type.kind in (TypeKind.RESULT, TypeKind.OPTION, TypeKind.ENUM,
+                             TypeKind.BOOL, TypeKind.UNIT,
+                             TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
+                             TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
+                             TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64):
+            simple_outputs.append((out_name, out_type))
+        else:
+            compound_outputs.append((out_name, out_type))
+
+    for out_name, out_type in simple_outputs:
+        _narrow_output_pair(ctx, out_type, out_name)
+    for out_name, out_type in compound_outputs:
         _narrow_output_pair(ctx, out_type, out_name)
 
     return Witness(

@@ -75,11 +75,13 @@ class FunctionSpec:
         return list(self.params)
 
     def output_vars(self) -> list[tuple[str, TypeInfo]]:
-        """All output variables: (name, type) pairs."""
+        """All output variables: (name, type) pairs.
+        Names match gen_det parameter naming convention."""
         outs = []
         for p in self.params:
             if p.is_mut_ref:
-                outs.append((f"post_{p.name}", p.type))
+                base = "self_" if p.is_self else p.name
+                outs.append((f"post_{base}", p.type))
         outs.append(("result", self.return_type))
         return outs
 
