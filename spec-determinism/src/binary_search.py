@@ -140,22 +140,26 @@ def _full_int_range(ty: TypeInfo) -> tuple[int, int]:
 
 @strategy_for(TypeKind.RESULT)
 def narrow_result(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow Result<T, E>: binary choice Ok vs Err, then recurse into inner."""
+    """Narrow Result<T, E>: try Ok first, then Err if Ok PASS."""
     variant_node = node.get_or_create("variant")
     ok_assume = Assume(var, f"{var} is Ok", "variant: Ok")
     if ctx.test_and_set(variant_node, ok_assume):
-        # FAIL → nondeterminism within Ok. Narrow inner.
+        # FAIL → nondeterminism with this var as Ok. Narrow Ok inner.
         if ty.type_args:
             inner_node = node.get_or_create("Ok_0")
             narrow(ty.type_args[0], f"{var}->Ok_0", inner_node, ctx)
     else:
-        # PASS → cross-variant (Ok vs Err). Liveness gap.
-        pass
+        # PASS → Ok doesn't exhibit nondeterminism here. Try Err.
+        err_assume = Assume(var, f"{var} is Err", "variant: Err")
+        if ctx.test_and_set(variant_node, err_assume):
+            if len(ty.type_args) > 1:
+                inner_node = node.get_or_create("Err_0")
+                narrow(ty.type_args[1], f"{var}->Err_0", inner_node, ctx)
 
 
 @strategy_for(TypeKind.OPTION)
 def narrow_option(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow Option<T>: binary choice Some vs None."""
+    """Narrow Option<T>: try Some first, then None if Some PASS."""
     variant_node = node.get_or_create("variant")
     some_assume = Assume(var, f"{var} is Some", "variant: Some")
     if ctx.test_and_set(variant_node, some_assume):
@@ -163,7 +167,9 @@ def narrow_option(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
             inner_node = node.get_or_create("Some_0")
             narrow(ty.type_args[0], f"{var}->Some_0", inner_node, ctx)
     else:
-        pass
+        # PASS → Some doesn't exhibit nondeterminism. Try None.
+        none_assume = Assume(var, f"{var} is None", "variant: None")
+        ctx.test_and_set(variant_node, none_assume)
 
 
 @strategy_for(TypeKind.ENUM)
@@ -196,33 +202,29 @@ def narrow_struct(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
     TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
 )
 def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow integer: small range first, then bisect."""
+    """Narrow integer: small range first, then full type range, then bisect."""
     small_lo, small_hi = _int_range(ty)
     hi_inclusive = small_hi - 1
     small_assume = Assume(var, f"{var} >= {small_lo} && {var} <= {hi_inclusive}",
                           f"small range: [{small_lo}, {hi_inclusive}]")
     if ctx.test_and_set(node, small_assume):
-        # FAIL → nondeterminism within small range, bisect it
         _bisect_range(var, small_lo, hi_inclusive, node, ctx)
-    else:
-        # PASS → not in small range. Try full type range.
-        full_lo, full_hi = _full_int_range(ty)
-        full_hi_inclusive = full_hi - 1
-        full_assume = Assume(var, f"{var} >= {full_lo} && {var} <= {full_hi_inclusive}",
-                             f"full range: [{full_lo}, {full_hi_inclusive}]")
-        if ctx.test_and_set(node, full_assume):
-            # FAIL → nondeterminism in full range (but outside small range), bisect
-            _bisect_range(var, full_lo, full_hi_inclusive, node, ctx)
-        else:
-            # PASS → truly not a nondeterminism source. Skip.
-            pass
+        return
+
+    # Small range PASS — rare case, just bisect full type range directly
+    full_lo, full_hi = _full_int_range(ty)
+    full_hi_inclusive = full_hi - 1
+    full_assume = Assume(var, f"{var} >= {full_lo} && {var} <= {full_hi_inclusive}",
+                         f"full range: [{full_lo}, {full_hi_inclusive}]")
+    if ctx.test_and_set(node, full_assume):
+        _bisect_range(var, full_lo, full_hi_inclusive, node, ctx)
 
 
-def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext"):
-    """Recursive bisection on [lo, hi] inclusive. Refines node.assume in-place."""
+def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext") -> int | None:
+    """Recursive bisection on [lo, hi] inclusive. Returns the exact value found, or None."""
     if lo == hi:
         ctx.test_and_set(node, Assume(var, f"{var} == {lo}", f"exact: {lo}"))
-        return
+        return lo
 
     mid = (lo + hi) // 2
     if lo == mid:
@@ -231,9 +233,37 @@ def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchCont
         left = Assume(var, f"{var} >= {lo} && {var} <= {mid}", f"range: [{lo}, {mid}]")
 
     if ctx.test_and_set(node, left):
-        _bisect_range(var, lo, mid, node, ctx)
+        if lo == mid:
+            return lo  # exact value already confirmed, skip redundant recursion
+        return _bisect_range(var, lo, mid, node, ctx)
     else:
-        _bisect_range(var, mid + 1, hi, node, ctx)
+        return _bisect_range(var, mid + 1, hi, node, ctx)
+
+
+def _narrow_length(var_len_expr: str, node: AssumeNode, ctx: "SearchContext",
+                   max_bound: int = 2 ** 20) -> int | None:
+    """
+    Narrow collection length: exact probes for small values [0..4],
+    then bisect the full range if needed.
+
+    Returns the exact length found, or None.
+    """
+    # Phase 1: exact probes for common small values
+    EXACT_LIMIT = 4
+    for n in range(EXACT_LIMIT + 1):
+        assume = Assume(var_len_expr, f"{var_len_expr} == {n}", f"len: {n}")
+        if ctx.test_and_set(node, assume):
+            return n
+
+    # Phase 2: not in [0..4], bisect the full range
+    lo = EXACT_LIMIT + 1
+    full_assume = Assume(var_len_expr,
+                         f"{var_len_expr} >= {lo} && {var_len_expr} <= {max_bound}",
+                         f"len range: [{lo}, {max_bound}]")
+    if ctx.test_and_set(node, full_assume):
+        return _bisect_range(var_len_expr, lo, max_bound, node, ctx)
+
+    return None
 
 
 @strategy_for(TypeKind.BOOL)
@@ -248,31 +278,36 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     elem_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
     elem_ty_name = elem_ty.name
 
-    # Try empty
-    empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
-    if ctx.test_and_set(node, empty):
-        return
-
-    # Try sizes via bisection on length
+    # Narrow length (starting from 0)
     len_node = node.get_or_create("len")
-    length = None
-    for size in [1, 2, 3, 4]:
-        assume = Assume(var, f"{var}.len() == {size}", f"set: len={size}")
-        if ctx.test_and_set(len_node, assume):
-            length = size
-            break
+    length = _narrow_length(f"{var}.len()", len_node, ctx)
 
     if length is None:
-        return  # couldn't determine length
+        return
 
-    # Narrow elements one by one, building up the full set expression
+    if length == 0:
+        # Explicitly confirm empty set (stronger than just len==0 for Z3)
+        empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
+        ctx.test_and_set(node, empty)
+        node.children.clear()  # len child subsumed by parent
+        return
+
+    # Find elements via contains() probing, skipping already-found values
     elements: list[int] = []
     for i in range(length):
-        val = _bisect_set_element(var, elem_ty, elements, node, ctx)
+        val = _bisect_set_element(var, elem_ty, node, i, ctx,
+                                  skip_vals=frozenset(elements))
         if val is not None:
             elements.append(val)
         else:
-            break  # couldn't narrow this element
+            break
+
+    # One final confirmation with full set expression; clears intermediate children
+    if elements:
+        set_expr = _build_set_expr(elem_ty_name, sorted(elements))
+        desc = ", ".join(str(e) for e in sorted(elements))
+        ctx.test_and_set(node, Assume(var, f"{var} == {set_expr}", f"set: {{{desc}}}"))
+        node.children.clear()  # len + elem children subsumed by full set expr
 
 
 def _build_set_expr(elem_ty_name: str, elements: list[int]) -> str:
@@ -286,80 +321,49 @@ def _build_set_expr(elem_ty_name: str, elements: list[int]) -> str:
 def _bisect_set_element(
     var: str,
     elem_ty: TypeInfo,
-    known_elements: list[int],
     parent_node: AssumeNode,
+    elem_idx: int,
     ctx: "SearchContext",
+    skip_vals: frozenset[int] = frozenset(),
 ) -> int | None:
-    """
-    Find the next element of a set via bisection.
-    Each step tests a full set expression: var == {known..., candidate}.
+    """Find the next element of a set via contains() probing, skipping known elements."""
+    elem_node = parent_node.get_or_create(f"elem_{elem_idx}")
 
-    Uses integer bisection on the candidate value.
-    At each step, tests: var.contains(mid) to determine which half.
-    Once found via contains, confirms with full set equality.
-    """
-    elem_ty_name = elem_ty.name
-    idx = len(known_elements)
-    elem_node = parent_node.get_or_create(f"elem_{idx}")
-
-    # Step 1: Use contains() to bisect the element value
     small_lo, small_hi = _int_range(elem_ty)
-    lo, hi = small_lo, small_hi - 1
-
-    # First check if element is in small range
-    # We can't directly range-constrain a set element,
-    # so we try contains() for specific values via bisection
-    found_val = _bisect_contains(var, lo, hi, elem_node, ctx)
+    found_val = _bisect_contains(var, small_lo, small_hi - 1, elem_node, ctx, skip_vals)
 
     if found_val is None:
-        # Try full range
         full_lo, full_hi = _full_int_range(elem_ty)
-        found_val = _bisect_contains(var, full_lo, full_hi - 1, elem_node, ctx)
+        found_val = _bisect_contains(var, full_lo, full_hi - 1, elem_node, ctx, skip_vals)
 
-    if found_val is not None:
-        # Confirm with full set expression
-        trial_elements = sorted(known_elements + [found_val])
-        set_expr = _build_set_expr(elem_ty_name, trial_elements)
-        assume = Assume(var, f"{var} == {set_expr}", f"set: {{{', '.join(str(e) for e in trial_elements)}}}")
-        ctx.test_and_set(elem_node, assume)
-        return found_val
-
-    return None
+    return found_val
 
 
-def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext") -> int | None:
-    """
-    Find a specific value that var.contains(val) via bisection.
-    Uses: test_and_set with var.contains(mid)
-    FAIL → set does contain mid → found
-    But wait — contains(mid) being added makes it EASIER to satisfy antecedent,
-    not harder. If FAIL, nondeterminism persists WITH contains(mid) → mid is possible.
-    If PASS, contains(mid) killed nondeterminism → mid is essential.
-
-    Actually, we should just test concrete full-set values.
-    """
-    # Simple approach: try values in small range
+def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext",
+                     skip: frozenset[int] = frozenset()) -> int | None:
+    """Find a value that the set contains via linear probing, skipping known elements."""
     for val in range(lo, min(lo + 17, hi + 1)):
+        if val in skip:
+            continue
         assume = Assume(var, f"{var}.contains({val})", f"contains {val}")
         if ctx.test_and_set(node, assume):
-            # FAIL → nondeterminism persists when set contains val
             return val
     return None
 
 
 @strategy_for(TypeKind.SEQ)
 def narrow_seq(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    # Length first
+    """Narrow Seq<T>: length first, then elements."""
     len_node = node.get_or_create("len")
-    for length in [0, 1, 2, 3, 4]:
-        assume = Assume(var, f"{var}.len() == {length}", f"seq: len={length}")
-        if ctx.test_and_set(len_node, assume):
-            # Narrow elements
-            if ty.type_args:
-                for i in range(length):
-                    elem_node = node.get_or_create(f"elem_{i}")
-                    narrow(ty.type_args[0], f"{var}[{i}]", elem_node, ctx)
-            return
+    length = _narrow_length(f"{var}.len()", len_node, ctx)
+
+    if length is None:
+        return
+
+    if ty.type_args and length > 0:
+        for i in range(length):
+            elem_node = node.get_or_create(f"elem_{i}")
+            narrow(ty.type_args[0], f"{var}[{i}]", elem_node, ctx)
 
 
 @strategy_for(TypeKind.UNIT)

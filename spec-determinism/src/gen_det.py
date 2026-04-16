@@ -91,7 +91,8 @@ def generate_det_check(
     # Build ensures clause
     # Run 1: substitute for (post1_*, r1)
     # Run 2: substitute for (post2_*, r2)
-    ensures_raw = "\n".join(spec.ensures)
+    # Multiple ensures clauses are joined with &&
+    ensures_raw = "\n        && ".join(spec.ensures)
     run1 = _substitute_run(ensures_raw, spec, run_id=1)
     run2 = _substitute_run(ensures_raw, spec, run_id=2)
 
@@ -125,11 +126,18 @@ def generate_det_check(
 
 
 def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
-    """Substitute self references in requires with pre_ names."""
+    """Substitute self references in requires with proof fn variable names."""
     result = requires_raw
     for p in spec.params:
         if p.is_self:
-            result = re.sub(r'\bself\b', f'pre_{_var_name(p)}', result)
+            vn = _var_name(p)
+            if p.is_mut_ref:
+                target = f'pre_{vn}'
+            else:
+                target = vn
+            # old(self) → target (old() is identity in requires context)
+            result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', target, result)
+            result = re.sub(r'\bself\b', target, result)
     return result
 
 
@@ -137,35 +145,36 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     """
     Substitute ensures clause for a specific run.
     
-    Handles both original Verus names and placeholder names:
-    - old(self) / __PRE__  → pre_self_  (shared, not run-specific)
-    - self / __POST__      → post{run_id}_self_
-    - result / __RESULT__  → r{run_id}
-    
-    For non-self &mut params:
-    - old(param) → pre_{param}
-    - param      → post{run_id}_{param}
+    For &mut self:
+      old(self) / __PRE__  → pre_self_  (shared, not run-specific)
+      self / __POST__      → post{run_id}_self_
+    For &self:
+      old(self) → self_  (same as self, no mutation)
+      self      → self_
+    result / __RESULT__  → r{run_id}
     """
     result = ensures_raw
 
     for p in spec.params:
         if p.is_mut_ref and p.is_self:
             vn = _var_name(p)
-            # Placeholders
             result = result.replace('__PRE__', f'pre_{vn}')
             result = result.replace('__POST__', f'post{run_id}_{vn}')
             result = result.replace('__RESULT__', f'r{run_id}')
-            # Original Verus names
-            result = re.sub(r'\bold\(self\)', f'pre_{vn}', result)
+            result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(r'\bself\b', f'post{run_id}_{vn}', result)
         elif p.is_mut_ref:
             vn = _var_name(p)
-            result = re.sub(rf'\bold\({re.escape(p.name)}\)', f'pre_{vn}', result)
+            result = re.sub(rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\b{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
+        elif p.is_self:
+            # &self — read-only, same variable for both runs
+            vn = _var_name(p)
+            result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', vn, result)
+            result = re.sub(r'\bself\b', vn, result)
 
     # result → r1 or r2 (original Verus name)
     result = re.sub(r'\bresult\b', f'r{run_id}', result)
-    # Placeholder
     result = result.replace('__RESULT__', f'r{run_id}')
 
     return result

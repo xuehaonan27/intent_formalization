@@ -1,15 +1,17 @@
 """
 Module 1: extract — Spec Extraction
 
-Parser path: regex-based extraction of Verus function specs.
-LLM fallback: when regex fails on unknown patterns.
+Uses tree-sitter-verus for structured parsing of Verus function specs.
+Handles both:
+  - #[verus_spec(...)] attribute-level specs
+  - Inline fn_qualifier (requires/ensures) inside verus! {} blocks
 """
 
-import re
 import logging
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
+
+import tree_sitter as ts
+import tree_sitter_verus as tsv
 
 from .types import (
     TypeKind, TypeInfo, FieldInfo, VariantInfo,
@@ -18,278 +20,492 @@ from .types import (
 
 logger = logging.getLogger(__name__)
 
+_lang = ts.Language(tsv.language())
+_parser = ts.Parser(_lang)
+
 
 # ---------------------------------------------------------------------------
-# Type resolution
+# Tree-sitter helpers
+# ---------------------------------------------------------------------------
+
+def _children_by_type(node: ts.Node, *types: str) -> list[ts.Node]:
+    return [c for c in node.children if c.type in types]
+
+
+def _child_by_type(node: ts.Node, *types: str) -> Optional[ts.Node]:
+    for c in node.children:
+        if c.type in types:
+            return c
+    return None
+
+
+def _text(node: ts.Node) -> str:
+    return node.text.decode()
+
+
+# ---------------------------------------------------------------------------
+# Type extraction from AST nodes
 # ---------------------------------------------------------------------------
 
 PRIMITIVE_MAP = {
     "usize": TypeKind.USIZE, "isize": TypeKind.ISIZE,
     "u8": TypeKind.U8, "u16": TypeKind.U16, "u32": TypeKind.U32, "u64": TypeKind.U64,
     "i8": TypeKind.I8, "i16": TypeKind.I16, "i32": TypeKind.I32, "i64": TypeKind.I64,
-    "int": TypeKind.INT, "bool": TypeKind.BOOL, "()": TypeKind.UNIT,
+    "int": TypeKind.INT, "nat": TypeKind.INT,
+    "bool": TypeKind.BOOL, "()": TypeKind.UNIT,
+}
+
+_KNOWN_GENERICS = {
+    "Result": TypeKind.RESULT, "Option": TypeKind.OPTION,
+    "Set": TypeKind.SET, "Seq": TypeKind.SEQ,
 }
 
 
-def parse_type(raw: str) -> TypeInfo:
-    """Parse a Verus type string into TypeInfo (best-effort)."""
-    raw = raw.strip()
+def _parse_type_node(node: ts.Node) -> TypeInfo:
+    """Convert a tree-sitter type node into TypeInfo."""
+    if node.type == "primitive_type":
+        name = _text(node)
+        return TypeInfo(kind=PRIMITIVE_MAP.get(name, TypeKind.UNKNOWN), name=name)
 
-    # Primitives
-    if raw in PRIMITIVE_MAP:
-        return TypeInfo(kind=PRIMITIVE_MAP[raw], name=raw)
+    if node.type == "unit_type":
+        return TypeInfo(kind=TypeKind.UNIT, name="()")
 
-    # Result<T, E>
-    m = re.match(r"^Result\s*<(.+),\s*(.+)>$", raw)
-    if m:
-        ok_ty = parse_type(m.group(1).strip())
-        err_ty = parse_type(m.group(2).strip())
-        return TypeInfo(
-            kind=TypeKind.RESULT, name=raw,
-            variants=[VariantInfo("Ok", ok_ty), VariantInfo("Err", err_ty)],
-            type_args=[ok_ty, err_ty],
-        )
+    if node.type == "type_identifier":
+        name = _text(node)
+        return TypeInfo(kind=PRIMITIVE_MAP.get(name, TypeKind.UNKNOWN), name=name)
 
-    # Option<T>
-    m = re.match(r"^Option\s*<(.+)>$", raw)
-    if m:
-        inner = parse_type(m.group(1).strip())
-        return TypeInfo(
-            kind=TypeKind.OPTION, name=raw,
-            variants=[VariantInfo("Some", inner), VariantInfo("None")],
-            type_args=[inner],
-        )
+    if node.type == "generic_type":
+        name_node = _child_by_type(node, "type_identifier")
+        args_node = _child_by_type(node, "type_arguments")
+        name = _text(name_node) if name_node else _text(node)
+        type_args = []
+        if args_node:
+            for c in args_node.children:
+                if c.type not in ("<", ">", ","):
+                    type_args.append(_parse_type_node(c))
 
-    # Set<T>
-    m = re.match(r"^Set\s*<(.+)>$", raw)
-    if m:
-        inner = parse_type(m.group(1).strip())
-        return TypeInfo(kind=TypeKind.SET, name=raw, type_args=[inner])
+        kind = _KNOWN_GENERICS.get(name, TypeKind.UNKNOWN)
+        info = TypeInfo(kind=kind, name=_text(node), type_args=type_args)
 
-    # Seq<T>
-    m = re.match(r"^Seq\s*<(.+)>$", raw)
-    if m:
-        inner = parse_type(m.group(1).strip())
-        return TypeInfo(kind=TypeKind.SEQ, name=raw, type_args=[inner])
+        if kind == TypeKind.RESULT and len(type_args) >= 2:
+            info.variants = [VariantInfo("Ok", type_args[0]),
+                             VariantInfo("Err", type_args[1])]
+        elif kind == TypeKind.OPTION and len(type_args) >= 1:
+            info.variants = [VariantInfo("Some", type_args[0]),
+                             VariantInfo("None")]
+        return info
 
-    # Unknown / user-defined struct (will be resolved later)
-    return TypeInfo(kind=TypeKind.UNKNOWN, name=raw)
+    if node.type == "scoped_type_identifier":
+        return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(node))
 
+    if node.type == "reference_type":
+        inner = node.children[-1]
+        return _parse_type_node(inner)
 
-# ---------------------------------------------------------------------------
-# Spec block extraction
-# ---------------------------------------------------------------------------
-
-def _extract_clause_block(source: str, keyword: str, start_pos: int) -> tuple[list[str], int]:
-    """
-    Extract a requires/ensures block starting from `keyword` at start_pos.
-    Returns (list of clause strings, end position).
-    """
-    # Find the keyword
-    idx = source.find(keyword, start_pos)
-    if idx == -1:
-        return [], start_pos
-
-    # After keyword, find the clause body
-    pos = idx + len(keyword)
-
-    # Collect clauses until we hit another keyword or '{'
-    clauses = []
-    current = ""
-    depth = 0
-    while pos < len(source):
-        ch = source[pos]
-        if ch in "({[":
-            depth += 1
-            current += ch
-        elif ch in ")}]":
-            depth -= 1
-            if depth < 0:
-                break
-            current += ch
-        elif ch == "," and depth == 0:
-            clause = current.strip()
-            if clause:
-                clauses.append(clause)
-            current = ""
-        elif source[pos:].startswith("ensures") and depth == 0 and not current.strip():
-            break
-        elif source[pos:].startswith("decreases") and depth == 0 and not current.strip():
-            break
-        elif ch == "{" and depth == 0:
-            break
-        else:
-            current += ch
-        pos += 1
-
-    clause = current.strip()
-    if clause:
-        clauses.append(clause)
-
-    return clauses, pos
-
-
-def _balance_depth(text: str) -> int:
-    """Count net bracket depth."""
-    depth = 0
-    for ch in text:
-        if ch in "({[<":
-            depth += 1
-        elif ch in ")}]>":
-            depth -= 1
-    return depth
+    # Fallback
+    return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(node))
 
 
 # ---------------------------------------------------------------------------
-# Function signature parsing
+# Parameter extraction
 # ---------------------------------------------------------------------------
 
-_FN_PATTERN = re.compile(
-    r"(?:pub\s+)?(?:(?:exec|proof|spec)\s+)?fn\s+(\w+)\s*"
-    r"(?:<[^>]*>)?\s*"   # optional generic params
-    r"\(([^)]*(?:\([^)]*\))*[^)]*)\)"  # params (handles nested parens)
-    r"(?:\s*->\s*(.+?))?"             # optional return type
-    r"\s*(?:requires|ensures|decreases|\{)",
-    re.DOTALL,
-)
-
-_PARAM_PATTERN = re.compile(
-    r"(&\s*mut\s+self|&\s*self|self|"
-    r"(?:&\s*mut\s+)?(\w+)\s*:\s*(.+?))\s*(?:,|$)",
-    re.DOTALL,
-)
-
-
-def parse_function_header(source: str, fn_name: str) -> Optional[dict]:
-    """
-    Parse function signature for a specific function.
-    Returns dict with name, params, return_type, requires_raw, ensures_raw.
-    """
-    # Find the function
-    pattern = re.compile(
-        rf"(?:pub\s+)?(?:(?:exec|proof|spec)\s+)?fn\s+{re.escape(fn_name)}\s*"
-        r"(?:<[^>]*>)?\s*"
-        r"\(([^)]*(?:\([^)]*\))*[^)]*)\)"
-        r"(?:\s*->\s*(.+?))?"
-        r"\s*(requires|ensures|decreases|\{)",
-        re.DOTALL,
-    )
-    m = pattern.search(source)
-    if not m:
-        return None
-
-    params_raw = m.group(1)
-    return_raw = m.group(2) or "()"
-    after_sig = m.start(3)
-
-    # Parse params
-    params = []
-    for pm in re.finditer(
-        r"(&\s*mut\s+self|&\s*self|self)|"
-        r"(&\s*mut\s+)?(\w+)\s*:\s*([^,]+)",
-        params_raw,
-    ):
-        if pm.group(1):
-            # self variant
-            self_str = pm.group(1).replace(" ", "")
-            is_mut = "mut" in self_str
-            params.append(Param(
+def _extract_params(params_node: ts.Node) -> list[Param]:
+    """Extract parameters from a `parameters` AST node."""
+    result = []
+    for child in params_node.children:
+        if child.type == "self_parameter":
+            has_mut = _child_by_type(child, "mutable_specifier") is not None
+            has_ref = any(c.type == "&" for c in child.children)
+            result.append(Param(
                 name="self",
                 type=TypeInfo(kind=TypeKind.UNKNOWN, name="Self"),
-                is_mut_ref=is_mut,
-                is_ref="&" in self_str,
+                is_mut_ref=has_ref and has_mut,
+                is_ref=has_ref,
                 is_self=True,
             ))
-        else:
-            is_mut = pm.group(2) is not None
-            name = pm.group(3)
-            ty_raw = pm.group(4).strip()
-            params.append(Param(
-                name=name,
-                type=parse_type(ty_raw),
+        elif child.type == "parameter":
+            name_node = _child_by_type(child, "identifier")
+            # Type is the child after ":"
+            type_node = None
+            after_colon = False
+            for c in child.children:
+                if c.type == ":":
+                    after_colon = True
+                elif after_colon and c.type not in (",",):
+                    type_node = c
+            # Detect &mut on the type: reference_type with mutable_specifier
+            is_ref = type_node is not None and type_node.type == "reference_type"
+            is_mut = is_ref and _child_by_type(type_node, "mutable_specifier") is not None
+            result.append(Param(
+                name=_text(name_node) if name_node else "?",
+                type=_parse_type_node(type_node) if type_node else TypeInfo(kind=TypeKind.UNKNOWN, name="?"),
                 is_mut_ref=is_mut,
-                is_ref=False,
+                is_ref=is_ref,
                 is_self=False,
             ))
-
-    return_type = parse_type(return_raw.strip())
-
-    # Extract requires and ensures blocks
-    # Find from after_sig onward
-    rest = source[after_sig:]
-
-    requires_clauses = []
-    ensures_clauses = []
-
-    # Simple extraction: find `requires` and `ensures` blocks
-    req_match = re.search(r"\brequires\b", rest)
-    ens_match = re.search(r"\bensures\b", rest)
-    body_match = re.search(r"\{", rest)
-
-    if req_match:
-        # Extract from requires to ensures or body
-        req_start = req_match.end()
-        if ens_match:
-            req_text = rest[req_start:ens_match.start()]
-        elif body_match:
-            req_text = rest[req_start:body_match.start()]
-        else:
-            req_text = rest[req_start:]
-        requires_clauses = [c.strip() for c in _split_clauses(req_text) if c.strip()]
-
-    if ens_match:
-        ens_start = ens_match.end()
-        if body_match and body_match.start() > ens_match.start():
-            ens_text = rest[ens_start:body_match.start()]
-        else:
-            ens_text = rest[ens_start:]
-        ensures_clauses = [c.strip() for c in _split_clauses(ens_text) if c.strip()]
-
-    return {
-        "name": fn_name,
-        "params": params,
-        "return_type": return_type,
-        "requires_raw": requires_clauses,
-        "ensures_raw": ensures_clauses,
-    }
-
-
-def _split_clauses(text: str) -> list[str]:
-    """
-    Split ensures/requires text into individual clauses.
-    Respects bracket depth and Verus &&& syntax.
-    """
-    text = text.strip().rstrip(",")
-    # If there's a single top-level expression, return it whole
-    # For now, just return the whole block as one clause
-    return [text] if text else []
+    return result
 
 
 # ---------------------------------------------------------------------------
-# Struct/enum definition extraction
+# Return type extraction
 # ---------------------------------------------------------------------------
 
-def extract_struct_fields(source: str, struct_name: str) -> Optional[TypeInfo]:
-    """Extract fields from a pub struct definition."""
-    pattern = re.compile(
-        rf"pub\s+(?:ghost\s+)?struct\s+{re.escape(struct_name)}\s*\{{([^}}]*)\}}",
-        re.DOTALL,
+def _extract_return_type(fn_node: ts.Node) -> tuple[TypeInfo, Optional[str]]:
+    """
+    Extract return type and optional result binding name.
+    Returns (TypeInfo, binding_name_or_None).
+    
+    Handles both:
+      -> Result<usize, Error>                    (no binding)
+      -> (result: Result<usize, Error>)          (named return)
+    """
+    ret_node = _child_by_type(fn_node, "named_return_type")
+    if ret_node is None:
+        return TypeInfo(kind=TypeKind.UNIT, name="()"), None
+
+    # Named return: (name: Type)
+    id_node = _child_by_type(ret_node, "identifier")
+    binding_name = _text(id_node) if id_node else None
+
+    # Find the type node (generic_type, type_identifier, primitive_type, etc.)
+    type_node = _child_by_type(ret_node, "generic_type", "type_identifier",
+                                "primitive_type", "unit_type", "scoped_type_identifier")
+    if type_node:
+        return _parse_type_node(type_node), binding_name
+
+    return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(ret_node)), binding_name
+
+
+# ---------------------------------------------------------------------------
+# Requires/ensures clause extraction
+# ---------------------------------------------------------------------------
+
+def _extract_clauses(fn_qualifier: ts.Node) -> tuple[list[str], list[str]]:
+    """Extract requires and ensures clause texts from an fn_qualifier node."""
+    requires = []
+    ensures = []
+    for child in fn_qualifier.children:
+        if child.type == "requires_clause":
+            requires.extend(_clause_expressions(child))
+        elif child.type == "ensures_clause":
+            ensures.extend(_clause_expressions(child))
+    return requires, ensures
+
+
+def _clause_expressions(clause_node: ts.Node) -> list[str]:
+    """Extract expression text from a requires_clause or ensures_clause node."""
+    exprs = []
+    for child in clause_node.children:
+        if child.type not in ("requires", "ensures", ","):
+            exprs.append(_text(child))
+    return exprs
+
+
+# ---------------------------------------------------------------------------
+# Find function + spec in parsed tree
+# ---------------------------------------------------------------------------
+
+def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]]:
+    """
+    Extract a source chunk containing #[verus_spec(...)] + fn definition,
+    and re-parse it in isolation for a cleaner AST.
+    
+    Returns (chunk_text, parsed_tree) or ("", None).
+    """
+    import re
+    # Find `pub fn <name>` in source
+    fn_pattern = re.compile(
+        rf'(?:pub\s+)?fn\s+{re.escape(fn_name)}\s*(?:<[^>]*>)?\s*\(',
     )
-    m = pattern.search(source)
+    m = fn_pattern.search(source)
     if not m:
+        return "", None
+
+    fn_start = m.start()
+
+    # Walk backwards to find the verus_spec attribute (if any)
+    chunk_start = fn_start
+    prefix = source[:fn_start].rstrip()
+    if prefix.endswith(')]'):
+        # Find the matching #[verus_spec or #[cfg_attr(... verus_spec
+        bracket_depth = 0
+        i = len(prefix) - 1
+        while i >= 0:
+            if prefix[i] == ']':
+                bracket_depth += 1
+            elif prefix[i] == '[':
+                bracket_depth -= 1
+                if bracket_depth == 0:
+                    # Check for # before [
+                    if i > 0 and prefix[i - 1] == '#':
+                        chunk_start = i - 1
+                    else:
+                        chunk_start = i
+                    break
+            i -= 1
+
+    # Walk forward from fn_start to find the end of the function body
+    depth = 0
+    found_open = False
+    fn_end = len(source)
+    for i in range(fn_start, len(source)):
+        if source[i] == '{':
+            depth += 1
+            found_open = True
+        elif source[i] == '}':
+            depth -= 1
+            if found_open and depth == 0:
+                fn_end = i + 1
+                break
+
+    chunk = source[chunk_start:fn_end]
+    chunk_tree = _parser.parse(chunk.encode())
+    return chunk, chunk_tree
+
+def _find_function_items(tree: ts.Tree) -> list[ts.Node]:
+    """Find all function_item nodes in the tree (including inside impl blocks)."""
+    results = []
+
+    def walk(node: ts.Node):
+        if node.type == "function_item":
+            results.append(node)
+        for child in node.children:
+            walk(child)
+
+    walk(tree.root_node)
+    return results
+
+
+def _find_impl_type(fn_node: ts.Node, tree: ts.Tree, source: str,
+                    fn_name: Optional[str] = None) -> Optional[str]:
+    """Find the impl type name for a function.
+    
+    Strategy:
+      1. Walk up parent chain looking for impl_item
+      2. Find impl_item nodes by byte range
+      3. Scan top-level tokens for `impl` → `type_identifier` → `{` ... `}` pattern
+         and check containment (by byte range, or by fn_name text search)
+    """
+    fn_start = fn_node.start_byte
+    fn_end = fn_node.end_byte
+
+    # Strategy 1: walk up parent chain
+    node = fn_node.parent
+    while node is not None:
+        if node.type == "impl_item":
+            ty = _child_by_type(node, "type_identifier")
+            if ty:
+                return _text(ty)
+        node = node.parent
+
+    # Strategy 2: find enclosing impl_item by byte range
+    best = None
+    for impl_node in _find_all_nodes(tree.root_node, "impl_item"):
+        if impl_node.start_byte <= fn_start and impl_node.end_byte >= fn_end:
+            if best is None or (impl_node.end_byte - impl_node.start_byte) < (best.end_byte - best.start_byte):
+                best = impl_node
+    if best:
+        ty = _child_by_type(best, "type_identifier")
+        if ty:
+            return _text(ty)
+
+    # Strategy 3: scan for flat `impl` → `type_identifier` → `{` ... `}` pattern
+    root = tree.root_node
+    children = root.children
+    for i, child in enumerate(children):
+        if child.type == "impl" and child.child_count == 0:
+            if i + 2 < len(children) and children[i + 1].type == "type_identifier":
+                type_name = _text(children[i + 1])
+                if children[i + 2].type != "{":
+                    continue
+                brace_start = children[i + 2].start_byte
+                # Find matching `}` by scanning forward
+                depth = 0
+                impl_end = len(source)
+                for j in range(i + 2, len(children)):
+                    if children[j].type == "{" and children[j].child_count == 0:
+                        depth += 1
+                    elif children[j].type == "}" and children[j].child_count == 0:
+                        depth -= 1
+                        if depth == 0:
+                            impl_end = children[j].end_byte
+                            break
+
+                # Check containment: either by byte range (same tree)
+                # or by fn_name text search in the impl span (for chunk-parsed fns)
+                if brace_start <= fn_start and impl_end >= fn_end:
+                    return type_name
+                if fn_name:
+                    impl_text = source[brace_start:impl_end]
+                    import re
+                    if re.search(rf'\bfn\s+{re.escape(fn_name)}\b', impl_text):
+                        return type_name
+
+    return None
+
+
+def _find_verus_spec_for_fn(
+    fn_node: ts.Node,
+    tree: ts.Tree,
+) -> Optional[tuple[Optional[str], ts.Node]]:
+    """
+    Find verus_spec attribute associated with a function.
+    Returns (result_binding_name, fn_qualifier_node) or None.
+    
+    Strategy:
+      1. Check sibling attribute_items in the same declaration_with_attrs
+      2. Fallback: find nearest verus_spec_attribute by byte proximity
+         (handles cases where parse errors break the parent chain)
+    """
+    result = _find_verus_spec_sibling(fn_node)
+    if result:
+        return result
+
+    # Fallback: search all verus_spec_attribute nodes in the tree
+    # and find the one immediately before this function
+    all_attrs = _find_all_nodes(tree.root_node, "verus_spec_attribute")
+    best = None
+    for attr in all_attrs:
+        if attr.end_byte <= fn_node.start_byte:
+            if best is None or attr.end_byte > best.end_byte:
+                best = attr
+    if best is None:
         return None
 
-    fields = []
-    body = m.group(1)
-    for fm in re.finditer(r"pub\s+(\w+)\s*:\s*([^,\n]+)", body):
-        fname = fm.group(1)
-        ftype = parse_type(fm.group(2).strip().rstrip(","))
-        fields.append(FieldInfo(name=fname, type=ftype))
+    # Only accept if the gap is small (whitespace/comments only)
+    gap = fn_node.start_byte - best.end_byte
+    if gap > 200:
+        return None
 
-    return TypeInfo(
-        kind=TypeKind.STRUCT, name=struct_name,
-        fields=fields,
-    )
+    return _extract_from_verus_spec_attr_node(best)
+
+
+def _find_verus_spec_sibling(fn_node: ts.Node) -> Optional[tuple[Optional[str], ts.Node]]:
+    """Try to find verus_spec as a sibling attribute in declaration_with_attrs."""
+    parent = fn_node.parent
+    if parent is None or parent.type != "declaration_with_attrs":
+        return None
+
+    for sibling in parent.children:
+        if sibling.type != "attribute_item":
+            continue
+        spec_attr = _child_by_type(sibling, "verus_spec_attribute")
+        if spec_attr is None:
+            continue
+        result = _extract_from_verus_spec_attr_node(spec_attr)
+        if result:
+            return result
+
+    return None
+
+
+def _extract_from_verus_spec_attr_node(
+    spec_attr: ts.Node,
+) -> Optional[tuple[Optional[str], ts.Node]]:
+    """Extract (binding_name, fn_qualifier) from a verus_spec_attribute node."""
+    # Find verus_spec_attr (could be direct or inside cfg_attr_verus_spec)
+    vs_attr = _child_by_type(spec_attr, "verus_spec_attr")
+    if vs_attr is None:
+        cfg = _child_by_type(spec_attr, "cfg_attr_verus_spec")
+        if cfg:
+            vs_attr = _child_by_type(cfg, "verus_spec_attr")
+    if vs_attr is None:
+        return None
+
+    binding = None
+    id_node = _child_by_type(vs_attr, "identifier")
+    if id_node:
+        binding = _text(id_node)
+
+    fq = _child_by_type(vs_attr, "fn_qualifier")
+    if fq:
+        return binding, fq
+
+    return None
+
+
+def _find_all_nodes(node: ts.Node, target_type: str) -> list[ts.Node]:
+    """Find all nodes of a given type in the tree."""
+    results = []
+    if node.type == target_type:
+        results.append(node)
+    for child in node.children:
+        results.extend(_find_all_nodes(child, target_type))
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Struct / enum extraction
+# ---------------------------------------------------------------------------
+
+def _find_struct(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
+    """Find a struct definition by name and extract its fields."""
+    def walk(node: ts.Node) -> Optional[TypeInfo]:
+        if node.type == "struct_item":
+            name_node = _child_by_type(node, "type_identifier")
+            if name_node and _text(name_node) == name:
+                fields = []
+                fdl = _child_by_type(node, "field_declaration_list")
+                if fdl:
+                    for fd in _children_by_type(fdl, "field_declaration"):
+                        fname_node = _child_by_type(fd, "field_identifier")
+                        ftype_node = None
+                        after_colon = False
+                        for c in fd.children:
+                            if c.type == ":":
+                                after_colon = True
+                            elif after_colon:
+                                ftype_node = c
+                                break
+                        if fname_node and ftype_node:
+                            fields.append(FieldInfo(
+                                name=_text(fname_node),
+                                type=_parse_type_node(ftype_node),
+                            ))
+                is_ghost = _child_by_type(node, "data_mode") is not None
+                return TypeInfo(kind=TypeKind.STRUCT, name=name, fields=fields)
+        for child in node.children:
+            result = walk(child)
+            if result:
+                return result
+        return None
+
+    return walk(tree.root_node)
+
+
+def _find_enum(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
+    """Find an enum definition by name and extract its variants."""
+    def walk(node: ts.Node) -> Optional[TypeInfo]:
+        if node.type == "enum_item":
+            name_node = _child_by_type(node, "type_identifier")
+            if name_node and _text(name_node) == name:
+                variants = []
+                vl = _child_by_type(node, "enum_variant_list")
+                if vl:
+                    for v in _children_by_type(vl, "enum_variant"):
+                        vname = _child_by_type(v, "identifier")
+                        # Check for tuple inner type
+                        inner = None
+                        ofl = _child_by_type(v, "ordered_field_declaration_list")
+                        if ofl:
+                            for c in ofl.children:
+                                if c.type not in ("(", ")", ","):
+                                    inner = _parse_type_node(c)
+                                    break
+                        if vname:
+                            variants.append(VariantInfo(
+                                name=_text(vname),
+                                inner=inner,
+                            ))
+                return TypeInfo(kind=TypeKind.ENUM, name=name, variants=variants)
+        for child in node.children:
+            result = walk(child)
+            if result:
+                return result
+        return None
+
+    return walk(tree.root_node)
 
 
 # ---------------------------------------------------------------------------
@@ -301,13 +517,25 @@ class Unsupported(Exception):
     pass
 
 
+def _resolve_self_in_type(ty: TypeInfo, impl_name: str):
+    """Replace Self references in a TypeInfo with the concrete impl type name."""
+    if ty.name == "Self":
+        ty.name = impl_name
+    ty.name = ty.name.replace("Self", impl_name)
+    for ta in ty.type_args:
+        _resolve_self_in_type(ta, impl_name)
+    for v in ty.variants:
+        if v.inner:
+            _resolve_self_in_type(v.inner, impl_name)
+
+
 def extract_spec(
     source: str,
     fn_name: str,
     type_sources: list[str] | None = None,
 ) -> FunctionSpec:
     """
-    Extract function spec from source code.
+    Extract function spec from source code using tree-sitter-verus.
 
     Args:
         source: The .rs source containing the function
@@ -320,63 +548,117 @@ def extract_spec(
     Raises:
         Unsupported: when parser cannot handle the pattern
     """
-    parsed = parse_function_header(source, fn_name)
-    if parsed is None:
-        raise Unsupported(f"Cannot parse function '{fn_name}' from source")
+    full_tree = _parser.parse(source.encode())
 
-    # Resolve self type — find the impl block
-    self_type_name = None
-    impl_match = re.search(
-        rf"impl\s+(\w+)\s*\{{[^}}]*fn\s+{re.escape(fn_name)}",
-        source, re.DOTALL,
-    )
-    if impl_match:
-        self_type_name = impl_match.group(1)
+    # Find target function — first try tree-sitter, then re-parse a chunk
+    fn_node = None
+    tree = full_tree  # tree used for fn_node context (may be chunk tree)
+    for fn in _find_function_items(full_tree):
+        name_node = _child_by_type(fn, "identifier")
+        if name_node and _text(name_node) == fn_name:
+            fn_node = fn
+            break
 
-    # Update self params with resolved type
-    for p in parsed["params"]:
-        if p.is_self and self_type_name:
-            p.type = TypeInfo(kind=TypeKind.UNKNOWN, name=self_type_name)
+    if fn_node is None:
+        # Fallback: extract the function chunk and re-parse it in isolation.
+        # This handles cases where ERROR recovery in the full file swallows
+        # some functions (e.g. due to proof! macros, nested cfg_attr, etc.)
+        chunk, chunk_tree = _extract_fn_chunk(source, fn_name)
+        if chunk_tree is not None:
+            tree = chunk_tree
+            for fn in _find_function_items(tree):
+                name_node = _child_by_type(fn, "identifier")
+                if name_node and _text(name_node) == fn_name:
+                    fn_node = fn
+                    break
 
-    # Resolve type definitions
+    if fn_node is None:
+        raise Unsupported(f"Cannot find function '{fn_name}' in source")
+
+    # Extract parameters
+    params_node = _child_by_type(fn_node, "parameters")
+    params = _extract_params(params_node) if params_node else []
+
+    # Extract return type
+    return_type, ret_binding = _extract_return_type(fn_node)
+
+    # Extract requires/ensures — try attribute first, then inline fn_qualifier
+    requires_raw: list[str] = []
+    ensures_raw: list[str] = []
+    result_binding = ret_binding  # from named return type
+
+    spec_info = _find_verus_spec_for_fn(fn_node, tree)
+    if spec_info is not None:
+        attr_binding, fq_node = spec_info
+        if attr_binding:
+            result_binding = attr_binding
+        requires_raw, ensures_raw = _extract_clauses(fq_node)
+    else:
+        # Inline fn_qualifier on the function itself
+        fq = _child_by_type(fn_node, "fn_qualifier")
+        if fq:
+            requires_raw, ensures_raw = _extract_clauses(fq)
+
+    # Resolve self type from enclosing impl block (always use full_tree)
+    impl_type_name = _find_impl_type(fn_node, full_tree, source, fn_name=fn_name)
+    if impl_type_name:
+        for p in params:
+            if p.is_self:
+                p.type = TypeInfo(kind=TypeKind.UNKNOWN, name=impl_type_name)
+        # Also resolve Self in return type
+        _resolve_self_in_type(return_type, impl_type_name)
+
+    # Resolve type definitions from all sources
     all_sources = [source] + (type_sources or [])
-    type_defs = {}
-    type_names_to_resolve = set()
+    type_defs = _resolve_types(params, return_type, all_sources)
 
-    for p in parsed["params"]:
+    return FunctionSpec(
+        name=fn_name,
+        params=params,
+        return_type=return_type,
+        requires=requires_raw,
+        ensures=ensures_raw,
+        type_defs=type_defs,
+    )
+
+
+def _resolve_types(
+    params: list[Param],
+    return_type: TypeInfo,
+    sources: list[str],
+) -> dict[str, TypeInfo]:
+    """Resolve unknown types by searching source files for struct/enum definitions."""
+    type_defs: dict[str, TypeInfo] = {}
+    names_to_resolve: set[str] = set()
+
+    # Collect names that need resolution
+    for p in params:
         if p.type.kind == TypeKind.UNKNOWN and p.type.name not in PRIMITIVE_MAP:
-            type_names_to_resolve.add(p.type.name)
-    if parsed["return_type"].kind in (TypeKind.RESULT, TypeKind.OPTION):
-        for ta in parsed["return_type"].type_args:
-            if ta.kind == TypeKind.UNKNOWN:
-                type_names_to_resolve.add(ta.name)
+            names_to_resolve.add(p.type.name)
+    for ta in return_type.type_args:
+        if ta.kind == TypeKind.UNKNOWN and ta.name not in PRIMITIVE_MAP:
+            names_to_resolve.add(ta.name)
 
-    for type_name in type_names_to_resolve:
-        for src in all_sources:
-            resolved = extract_struct_fields(src, type_name)
+    # Search all sources for type definitions
+    trees = [_parser.parse(src.encode()) for src in sources]
+    for name in names_to_resolve:
+        for t in trees:
+            resolved = _find_struct(t, name) or _find_enum(t, name)
             if resolved:
-                type_defs[type_name] = resolved
-                # Also update param types
-                for p in parsed["params"]:
-                    if p.type.name == type_name:
+                type_defs[name] = resolved
+                for p in params:
+                    if p.type.name == name:
                         p.type = resolved
                 break
 
-    # Also look for spec view types (e.g. BitmapView for Bitmap)
-    for type_name in list(type_defs.keys()):
-        view_name = type_name + "View"
-        for src in all_sources:
-            view_type = extract_struct_fields(src, view_name)
+    # Look for spec view types (e.g. BitmapView for Bitmap)
+    for name in list(type_defs.keys()):
+        view_name = name + "View"
+        for t in trees:
+            view_type = _find_struct(t, view_name)
             if view_type:
                 type_defs[view_name] = view_type
-                type_defs[type_name].spec_view = view_type
+                type_defs[name].spec_view = view_type
                 break
 
-    return FunctionSpec(
-        name=parsed["name"],
-        params=parsed["params"],
-        return_type=parsed["return_type"],
-        requires=parsed["requires_raw"],
-        ensures=parsed["ensures_raw"],
-        type_defs=type_defs,
-    )
+    return type_defs

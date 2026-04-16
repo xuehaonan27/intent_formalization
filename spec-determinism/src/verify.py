@@ -20,12 +20,16 @@ logger = logging.getLogger(__name__)
 def inject_proof_fn(proof_file: str, code: str, marker: str = "} // end verus!") -> str:
     """
     Inject proof fn code into a .proof.rs file before the closing marker.
+    Falls back to the last `}` if the specific marker isn't found.
     Returns the original content (for restoration).
     """
     original = Path(proof_file).read_text()
     idx = original.rfind(marker)
     if idx == -1:
-        raise ValueError(f"Marker '{marker}' not found in {proof_file}")
+        # Fallback: inject before the last closing brace (end of verus! block)
+        idx = original.rfind("}")
+    if idx == -1:
+        raise ValueError(f"No suitable injection point found in {proof_file}")
 
     new_content = (
         original[:idx]
