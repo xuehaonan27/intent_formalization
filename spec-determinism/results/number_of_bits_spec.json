@@ -1,0 +1,93 @@
+{
+  "function": "number_of_bits",
+  "det_check_template": "proof fn det_number_of_bits(self_: Bitmap, r1: usize, r2: usize)\n    requires self_.inv(),\n    ensures\n        (r1 as int == self_@.num_bits\n        && r1 > 0\n        && r1 < u32::MAX as usize\n        && r2 as int == self_@.num_bits\n        && r2 > 0\n        && r2 < u32::MAX as usize\n        {ASSUMES})\n        ==> r1 == r2\n{\n}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {}
+}

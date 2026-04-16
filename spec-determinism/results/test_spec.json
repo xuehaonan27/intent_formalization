@@ -1,0 +1,153 @@
+{
+  "function": "test",
+  "det_check_template": "proof fn det_test(self_: Bitmap, index: usize, r1: Result<bool, Error>, r2: Result<bool, Error>)\n    requires self_.inv(),\n    ensures\n        (match r1 {\n                Ok(b_1) => {\n                    &&& index < self_@.num_bits\n                    &&& b_1 == self_@.is_bit_set(index as int)\n                },\n                Err(_) => index >= self_@.num_bits,\n            }\n        && match r2 {\n                Ok(b_2) => {\n                    &&& index < self_@.num_bits\n                    &&& b_2 == self_@.is_bit_set(index as int)\n                },\n                Err(_) => index >= self_@.num_bits,\n            }\n        {ASSUMES})\n        ==> r1 == r2\n{\n}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "index",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<bool, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<bool, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {}
+}

@@ -258,4 +258,36 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     result = re.sub(r'\bresult\b', f'r{run_id}', result)
     result = result.replace('__RESULT__', f'r{run_id}')
 
+    # Rename match-arm bindings to avoid collisions between runs.
+    # Find patterns like Ok(name), Err(name), Some(name) and rename the binding.
+    result = _rename_match_bindings(result, run_id)
+
     return result
+
+
+def _rename_match_bindings(text: str, run_id: int) -> str:
+    """
+    Rename match-arm binding variables to be unique per run.
+    
+    Finds patterns like `Ok(name)`, `Err(name)`, `Some(name)` where `name`
+    is an identifier (not `_` or a literal), and renames both the binding
+    and all references within the same match arm.
+    """
+    # Find all match-arm bindings: Ok(identifier), Err(identifier), Some(identifier)
+    binding_pattern = re.compile(
+        r'\b(Ok|Err|Some)\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)'
+    )
+    
+    bindings_found = set()
+    for m in binding_pattern.finditer(text):
+        name = m.group(2)
+        if name != '_':  # skip wildcard
+            bindings_found.add(name)
+    
+    # Rename each binding: name → name_{run_id}
+    for name in bindings_found:
+        new_name = f"{name}_{run_id}"
+        # Replace the binding in pattern position and all references
+        text = re.sub(rf'\b{re.escape(name)}\b', new_name, text)
+    
+    return text
