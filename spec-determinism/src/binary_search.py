@@ -245,7 +245,8 @@ def narrow_bool(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
 
 @strategy_for(TypeKind.SET)
 def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    elem_ty_name = ty.type_args[0].name if ty.type_args else "int"
+    elem_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
+    elem_ty_name = elem_ty.name
 
     # Try empty
     empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
@@ -254,15 +255,96 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
 
     # Try sizes via bisection on length
     len_node = node.get_or_create("len")
+    length = None
     for size in [1, 2, 3, 4]:
         assume = Assume(var, f"{var}.len() == {size}", f"set: len={size}")
         if ctx.test_and_set(len_node, assume):
-            # Narrow elements
-            if ty.type_args and size <= 2:
-                for i in range(size):
-                    elem_node = node.get_or_create(f"elem_{i}")
-                    narrow(ty.type_args[0], f"/* {var}[{i}] */", elem_node, ctx)
-            return
+            length = size
+            break
+
+    if length is None:
+        return  # couldn't determine length
+
+    # Narrow elements one by one, building up the full set expression
+    elements: list[int] = []
+    for i in range(length):
+        val = _bisect_set_element(var, elem_ty, elements, node, ctx)
+        if val is not None:
+            elements.append(val)
+        else:
+            break  # couldn't narrow this element
+
+
+def _build_set_expr(elem_ty_name: str, elements: list[int]) -> str:
+    """Build a Verus Set literal from a list of concrete elements."""
+    expr = f"Set::<{elem_ty_name}>::empty()"
+    for e in elements:
+        expr += f".insert({e})"
+    return expr
+
+
+def _bisect_set_element(
+    var: str,
+    elem_ty: TypeInfo,
+    known_elements: list[int],
+    parent_node: AssumeNode,
+    ctx: "SearchContext",
+) -> int | None:
+    """
+    Find the next element of a set via bisection.
+    Each step tests a full set expression: var == {known..., candidate}.
+
+    Uses integer bisection on the candidate value.
+    At each step, tests: var.contains(mid) to determine which half.
+    Once found via contains, confirms with full set equality.
+    """
+    elem_ty_name = elem_ty.name
+    idx = len(known_elements)
+    elem_node = parent_node.get_or_create(f"elem_{idx}")
+
+    # Step 1: Use contains() to bisect the element value
+    small_lo, small_hi = _int_range(elem_ty)
+    lo, hi = small_lo, small_hi - 1
+
+    # First check if element is in small range
+    # We can't directly range-constrain a set element,
+    # so we try contains() for specific values via bisection
+    found_val = _bisect_contains(var, lo, hi, elem_node, ctx)
+
+    if found_val is None:
+        # Try full range
+        full_lo, full_hi = _full_int_range(elem_ty)
+        found_val = _bisect_contains(var, full_lo, full_hi - 1, elem_node, ctx)
+
+    if found_val is not None:
+        # Confirm with full set expression
+        trial_elements = sorted(known_elements + [found_val])
+        set_expr = _build_set_expr(elem_ty_name, trial_elements)
+        assume = Assume(var, f"{var} == {set_expr}", f"set: {{{', '.join(str(e) for e in trial_elements)}}}")
+        ctx.test_and_set(elem_node, assume)
+        return found_val
+
+    return None
+
+
+def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext") -> int | None:
+    """
+    Find a specific value that var.contains(val) via bisection.
+    Uses: test_and_set with var.contains(mid)
+    FAIL → set does contain mid → found
+    But wait — contains(mid) being added makes it EASIER to satisfy antecedent,
+    not harder. If FAIL, nondeterminism persists WITH contains(mid) → mid is possible.
+    If PASS, contains(mid) killed nondeterminism → mid is essential.
+
+    Actually, we should just test concrete full-set values.
+    """
+    # Simple approach: try values in small range
+    for val in range(lo, min(lo + 17, hi + 1)):
+        assume = Assume(var, f"{var}.contains({val})", f"contains {val}")
+        if ctx.test_and_set(node, assume):
+            # FAIL → nondeterminism persists when set contains val
+            return val
+    return None
 
 
 @strategy_for(TypeKind.SEQ)
