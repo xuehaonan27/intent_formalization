@@ -244,11 +244,17 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             result = result.replace('__PRE__', f'pre_{vn}')
             result = result.replace('__POST__', f'post{run_id}_{vn}')
             result = result.replace('__RESULT__', f'r{run_id}')
+            # *old(self) → pre_self_ (strip deref, params are values not refs)
+            result = re.sub(r'\*\s*old\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
+            # *self → post{run_id}_self_ (strip deref)
+            result = re.sub(r'\*\s*self\b', f'post{run_id}_{vn}', result)
             result = re.sub(r'\bself\b', f'post{run_id}_{vn}', result)
         elif p.is_mut_ref:
             vn = _var_name(p)
+            result = re.sub(rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
+            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
             result = re.sub(rf'\b{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
         elif p.is_self:
             vn = _var_name(p)

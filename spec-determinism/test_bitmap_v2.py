@@ -38,7 +38,7 @@ runner = VerusRunner(
 )
 
 # Functions to test
-functions = ["number_of_bits", "alloc", "test"]
+functions = ["number_of_bits", "alloc", "test", "new", "set", "clear"]
 
 for fn_name in functions:
     print(f"\n{'='*60}")

@@ -1,0 +1,293 @@
+{
+  "function": "set",
+  "det_check_template": "proof fn det_set(pre_self_: Bitmap, index: usize, post1_self_: Bitmap, r1: Result<(), Error>, post2_self_: Bitmap, r2: Result<(), Error>)\n    requires pre_self_.inv(),\n    ensures\n        (post1_self_.inv()\n        && match r1 {\n                Ok(()) => {\n                    &&& index < post1_self_@.num_bits\n                    &&& post1_self_@.is_bit_set(index as int)\n                    &&& !pre_self_@.is_bit_set(index as int)\n                    &&& post1_self_@.num_bits == pre_self_@.num_bits\n                    // Frame.\n                    &&& forall|i: int|\n                        0 <= i < post1_self_@.num_bits && i != (index as int) ==> post1_self_@.is_bit_set(i)\n                            == pre_self_@.is_bit_set(\n                            i,\n                        )\n                    // Set-based frame.\n                    &&& post1_self_@.set_bits == pre_self_@.set_bits.insert(index as int)\n                    &&& post1_self_@.usage() == pre_self_@.usage() + 1\n                },\n                Err(_) => {\n                    &&& index >= pre_self_@.num_bits || pre_self_@.is_bit_set(index as int)\n                    &&& post1_self_ == pre_self_\n                },\n            }\n        && post2_self_.inv()\n        && match r2 {\n                Ok(()) => {\n                    &&& index < post2_self_@.num_bits\n                    &&& post2_self_@.is_bit_set(index as int)\n                    &&& !pre_self_@.is_bit_set(index as int)\n                    &&& post2_self_@.num_bits == pre_self_@.num_bits\n                    // Frame.\n                    &&& forall|i: int|\n                        0 <= i < post2_self_@.num_bits && i != (index as int) ==> post2_self_@.is_bit_set(i)\n                            == pre_self_@.is_bit_set(\n                            i,\n                        )\n                    // Set-based frame.\n                    &&& post2_self_@.set_bits == pre_self_@.set_bits.insert(index as int)\n                    &&& post2_self_@.usage() == pre_self_@.usage() + 1\n                },\n                Err(_) => {\n                    &&& index >= pre_self_@.num_bits || pre_self_@.is_bit_set(index as int)\n                    &&& post2_self_ == pre_self_\n                },\n            }\n        {ASSUMES})\n        ==> post1_self_@ == post2_self_@ && r1 == r2\n{\n}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "index",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<(), Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "()",
+              "name": "()"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "()",
+            "name": "()"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<(), Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "()",
+              "name": "()"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "()",
+            "name": "()"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {}
+}
