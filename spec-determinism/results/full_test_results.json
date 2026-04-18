@@ -1,0 +1,257 @@
+[
+  {
+    "crate": "bitmap",
+    "function": "number_of_bits",
+    "status": "deterministic",
+    "rounds": 1,
+    "verus_calls": 1,
+    "elapsed": 5.1,
+    "assumes": []
+  },
+  {
+    "crate": "bitmap",
+    "function": "new",
+    "status": "nondeterministic",
+    "rounds": 12,
+    "verus_calls": 13,
+    "elapsed": 28.5,
+    "assumes": [
+      "number_of_bits == 0",
+      "r1 is Err",
+      "r2 is Err",
+      "!det_new_equal(r1, r2)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "from_raw_array",
+    "status": "nondeterministic",
+    "rounds": 4,
+    "verus_calls": 17,
+    "elapsed": 9.4,
+    "assumes": [
+      "r1 is Ok",
+      "r2 is Ok",
+      "!det_from_raw_array_equal(r1, r2)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "alloc",
+    "status": "nondeterministic",
+    "rounds": 62,
+    "verus_calls": 79,
+    "elapsed": 151.1,
+    "assumes": [
+      "pre_self_@.num_bits == 8",
+      "pre_self_@.set_bits == Set::<int>::empty()",
+      "r1 is Ok",
+      "r1->Ok_0 == 0",
+      "r2 is Ok",
+      "r2->Ok_0 == 1",
+      "post1_self_@.num_bits == 8",
+      "post1_self_@.set_bits == Set::<int>::empty().insert(0)",
+      "post2_self_@.num_bits == 8",
+      "post2_self_@.set_bits == Set::<int>::empty().insert(1)",
+      "!det_alloc_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "alloc_range",
+    "status": "nondeterministic",
+    "rounds": 69,
+    "verus_calls": 148,
+    "elapsed": 167.6,
+    "assumes": [
+      "pre_self_@.num_bits == 8",
+      "pre_self_@.set_bits == Set::<int>::empty()",
+      "size == 1",
+      "r1 is Ok",
+      "r1->Ok_0 == 0",
+      "r2 is Ok",
+      "r2->Ok_0 == 1",
+      "post1_self_@.num_bits == 8",
+      "post1_self_@.set_bits == Set::<int>::empty().insert(0)",
+      "post2_self_@.num_bits == 8",
+      "post2_self_@.set_bits == Set::<int>::empty().insert(1)",
+      "!det_alloc_range_chk_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "set",
+    "status": "nondeterministic",
+    "rounds": 36,
+    "verus_calls": 184,
+    "elapsed": 87.5,
+    "assumes": [
+      "pre_self_@.num_bits == 8",
+      "pre_self_@.set_bits == Set::<int>::empty()",
+      "index == 8",
+      "r1 is Err",
+      "r2 is Err",
+      "post1_self_@.num_bits == 8",
+      "post1_self_@.set_bits == Set::<int>::empty()",
+      "post2_self_@.num_bits == 8",
+      "post2_self_@.set_bits == Set::<int>::empty()",
+      "!det_set_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "clear",
+    "status": "nondeterministic",
+    "rounds": 36,
+    "verus_calls": 220,
+    "elapsed": 86.5,
+    "assumes": [
+      "pre_self_@.num_bits == 8",
+      "pre_self_@.set_bits == Set::<int>::empty()",
+      "index == 0",
+      "r1 is Err",
+      "r2 is Err",
+      "post1_self_@.num_bits == 8",
+      "post1_self_@.set_bits == Set::<int>::empty()",
+      "post2_self_@.num_bits == 8",
+      "post2_self_@.set_bits == Set::<int>::empty()",
+      "!det_clear_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "bitmap",
+    "function": "test",
+    "status": "nondeterministic",
+    "rounds": 20,
+    "verus_calls": 240,
+    "elapsed": 48.0,
+    "assumes": [
+      "self_@.num_bits == 8",
+      "self_@.set_bits == Set::<int>::empty()",
+      "index == 8",
+      "r1 is Err",
+      "r2 is Err",
+      "!det_test_equal(r1, r2)"
+    ]
+  },
+  {
+    "crate": "slab",
+    "function": "from_raw_parts",
+    "status": "nondeterministic",
+    "rounds": 18,
+    "verus_calls": 18,
+    "elapsed": 53.5,
+    "assumes": [
+      "len == 0",
+      "block_size == 0",
+      "r1 is Err",
+      "r2 is Err",
+      "!det_from_raw_parts_equal(r1, r2)"
+    ]
+  },
+  {
+    "crate": "slab",
+    "function": "allocate",
+    "status": "nondeterministic",
+    "rounds": 78,
+    "verus_calls": 96,
+    "elapsed": 212.8,
+    "assumes": [
+      "pre_self_@.block_size == 1",
+      "pre_self_@.start_addr == 0",
+      "pre_self_@.end_addr == 1",
+      "pre_self_@.allocated_addrs == Set::<usize>::empty()",
+      "pre_self_@.free_addrs == Set::<usize>::empty()",
+      "r1 is Err",
+      "r2 is Err",
+      "post1_self_@.block_size == 1",
+      "post1_self_@.start_addr == 0",
+      "post1_self_@.end_addr == 1",
+      "post1_self_@.allocated_addrs == Set::<usize>::empty()",
+      "post1_self_@.free_addrs == Set::<usize>::empty()",
+      "post2_self_@.block_size == 1",
+      "post2_self_@.start_addr == 0",
+      "post2_self_@.end_addr == 1",
+      "post2_self_@.allocated_addrs == Set::<usize>::empty()",
+      "post2_self_@.free_addrs == Set::<usize>::empty()",
+      "!det_allocate_chk_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "slab",
+    "function": "deallocate",
+    "status": "nondeterministic",
+    "rounds": 78,
+    "verus_calls": 174,
+    "elapsed": 214.2,
+    "assumes": [
+      "pre_self_@.block_size == 1",
+      "pre_self_@.start_addr == 0",
+      "pre_self_@.end_addr == 1",
+      "pre_self_@.allocated_addrs == Set::<usize>::empty()",
+      "pre_self_@.free_addrs == Set::<usize>::empty()",
+      "r1 is Err",
+      "r2 is Err",
+      "post1_self_@.block_size == 1",
+      "post1_self_@.start_addr == 0",
+      "post1_self_@.end_addr == 1",
+      "post1_self_@.allocated_addrs == Set::<usize>::empty()",
+      "post1_self_@.free_addrs == Set::<usize>::empty()",
+      "post2_self_@.block_size == 1",
+      "post2_self_@.start_addr == 0",
+      "post2_self_@.end_addr == 1",
+      "post2_self_@.allocated_addrs == Set::<usize>::empty()",
+      "post2_self_@.free_addrs == Set::<usize>::empty()",
+      "!det_deallocate_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "kernel",
+    "function": "from_raw_parts",
+    "status": "nondeterministic",
+    "rounds": 18,
+    "verus_calls": 18,
+    "elapsed": 42.8,
+    "assumes": [
+      "addr == 0",
+      "size == 0",
+      "r1 is Err",
+      "r2 is Err",
+      "!det_from_raw_parts_equal(r1, r2)"
+    ]
+  },
+  {
+    "crate": "kernel",
+    "function": "allocate",
+    "status": "nondeterministic",
+    "rounds": 82,
+    "verus_calls": 100,
+    "elapsed": 209.4,
+    "assumes": [
+      "pre_self_@.slabs.len() == 7",
+      "r1 is Ok",
+      "r2 is Ok",
+      "post1_self_@.slabs.len() == 7",
+      "post2_self_@.slabs.len() == 7",
+      "!det_allocate_equal(r1, r2, post1_self_@, post2_self_@)"
+    ]
+  },
+  {
+    "crate": "kernel",
+    "function": "deallocate",
+    "status": "deterministic",
+    "rounds": 1,
+    "verus_calls": 101,
+    "elapsed": 3.1,
+    "assumes": []
+  },
+  {
+    "crate": "kernel",
+    "function": "layout_to_allocator",
+    "status": "deterministic",
+    "rounds": 1,
+    "verus_calls": 102,
+    "elapsed": 3.0,
+    "assumes": []
+  }
+]

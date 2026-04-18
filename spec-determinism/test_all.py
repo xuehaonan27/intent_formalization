@@ -201,11 +201,12 @@ def run_crate(cfg):
 
 print("=" * 70)
 print("  spec-determinism: full completeness test")
-print("  bitmap (8 functions) + slab (3 functions)")
+print("  bitmap (8 fns) + slab (3 fns) + kheap (4 fns)")
 print("=" * 70)
 
 run_crate(BITMAP_CFG)
 run_crate(SLAB_CFG)
+run_crate(KHEAP_CFG)
 
 # ---------------------------------------------------------------------------
 # Summary
