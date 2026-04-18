@@ -17,13 +17,29 @@ from .types import VerifyResult
 logger = logging.getLogger(__name__)
 
 
+_INJECT_BLOCK_RE = re.compile(
+    r"\n*// === INJECTED DET CHECK ===.*?// === END INJECTED ===\n*",
+    re.DOTALL,
+)
+
+
 def inject_proof_fn(proof_file: str, code: str, marker: str = "} // end verus!") -> str:
     """
     Inject proof fn code into a .proof.rs file before the closing marker.
     Falls back to the last `}` if the specific marker isn't found.
-    Returns the original content (for restoration).
+
+    Defensive: any pre-existing INJECTED DET CHECK block (left over from a
+    previous crashed/killed run) is stripped before injection. The original
+    content returned for restoration is the on-disk content with stale
+    injections also stripped — restoring it leaves the file clean.
     """
-    original = Path(proof_file).read_text()
+    raw = Path(proof_file).read_text()
+    cleaned = _INJECT_BLOCK_RE.sub("\n", raw)
+    if cleaned != raw:
+        logger.warning(
+            f"inject_proof_fn: stripped stale INJECTED DET CHECK from {proof_file}"
+        )
+    original = cleaned
     idx = original.rfind(marker)
     if idx == -1:
         # Fallback: inject before the last closing brace (end of verus! block)
@@ -172,6 +188,7 @@ class VerusRunner:
         verus_path: str,
         features: list[str] | None = None,
         timeout: int = 120,
+        extra_args: list[str] | None = None,
     ):
         self.crate_dir = crate_dir
         self.crate_name = crate_name
@@ -179,6 +196,7 @@ class VerusRunner:
         self.verus_path = verus_path
         self.features = features
         self.timeout = timeout
+        self.extra_args = extra_args
         self._original: str | None = None
         self._call_count = 0
 
@@ -189,6 +207,7 @@ class VerusRunner:
             raw = run_cargo_verus(
                 self.crate_dir, self.crate_name,
                 self.verus_path, self.features, self.timeout,
+                extra_args=self.extra_args,
             )
             self._call_count += 1
             return parse_result(raw, fn_name)

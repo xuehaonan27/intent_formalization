@@ -311,6 +311,10 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
                 target = vn
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', target, result)
             result = re.sub(r'\bself\b', target, result)
+        elif p.is_ref and not p.is_mut_ref:
+            # Shared reference param passed by value in det-check fn:
+            # strip `*p` dereferences.
+            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
     return result
 
 
@@ -341,6 +345,10 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             vn = _var_name(p)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', vn, result)
             result = re.sub(r'\bself\b', vn, result)
+        elif p.is_ref:
+            # Shared reference param: body may write `*p` to dereference.
+            # In det-check fn it's passed by value, so strip the deref.
+            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
 
     result = re.sub(r'\bresult\b', f'r{run_id}', result)
     result = result.replace('__RESULT__', f'r{run_id}')
