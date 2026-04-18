@@ -668,7 +668,8 @@ def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
     Strategy: find the output symbols by phase (output_simple / output_compound),
     group into pairs (r1/r2, post1_X/post2_X), then replay ``_build_equal_fn``.
     """
-    equal_fn_name = f"det_{det_spec.function}_equal"
+    base = det_spec.check_fn_name or f"det_{det_spec.function}"
+    equal_fn_name = f"{base}_equal"
 
     # Collect output symbols. Symbols are created by _build_symbols with
     # names r1/r2 (output_simple) and post1_X/post2_X (output_compound).
