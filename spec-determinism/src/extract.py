@@ -197,8 +197,9 @@ def _clause_expressions(clause_node: ts.Node) -> list[str]:
     """Extract expression text from a requires_clause or ensures_clause node."""
     exprs = []
     for child in clause_node.children:
-        if child.type not in ("requires", "ensures", ","):
-            exprs.append(_text(child))
+        if child.type in ("requires", "ensures", ",", "line_comment", "block_comment"):
+            continue
+        exprs.append(_text(child))
     return exprs
 
 
@@ -216,7 +217,7 @@ def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]
     import re
     # Find `pub fn <name>` in source
     fn_pattern = re.compile(
-        rf'(?:pub\s+)?fn\s+{re.escape(fn_name)}\s*(?:<[^>]*>)?\s*\(',
+        rf'(?:pub(?:\s*\([^)]*\))?\s+)?(?:const\s+|async\s+|unsafe\s+|extern(?:\s+"[^"]*")?\s+)*fn\s+{re.escape(fn_name)}\s*(?:<[^>]*>)?\s*\(',
     )
     m = fn_pattern.search(source)
     if not m:
@@ -245,22 +246,44 @@ def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]
                     break
             i -= 1
 
-    # Walk forward from fn_start to find the end of the function body
-    depth = 0
-    found_open = False
-    fn_end = len(source)
+    # Walk forward from fn_start to find the opening brace of the body
+    body_open = None
     for i in range(fn_start, len(source)):
         if source[i] == '{':
+            body_open = i
+            break
+
+    if body_open is None:
+        return "", None
+
+    # Walk forward to find end of body (text-level brace matching; may be
+    # wrong in the presence of `proof!{}` / macros — we accept that because
+    # we discard the body below).
+    depth = 0
+    fn_end = len(source)
+    for i in range(body_open, len(source)):
+        if source[i] == '{':
             depth += 1
-            found_open = True
         elif source[i] == '}':
             depth -= 1
-            if found_open and depth == 0:
+            if depth == 0:
                 fn_end = i + 1
                 break
 
     chunk = source[chunk_start:fn_end]
     chunk_tree = _parser.parse(chunk.encode())
+
+    # If the body contains constructs tree-sitter can't parse (e.g. `proof!`,
+    # `cfg_attr(..., verus_spec(...))` invariants), the root can end up as
+    # ERROR and no function_item is recognised. Retry with the body stubbed
+    # out — we only need the signature + attribute for spec extraction.
+    if chunk_tree.root_node.has_error:
+        stub = source[chunk_start:body_open] + "{}"
+        stub_tree = _parser.parse(stub.encode())
+        if not stub_tree.root_node.has_error or \
+           _find_function_items(stub_tree):
+            return stub, stub_tree
+
     return chunk, chunk_tree
 
 def _find_function_items(tree: ts.Tree) -> list[ts.Node]:

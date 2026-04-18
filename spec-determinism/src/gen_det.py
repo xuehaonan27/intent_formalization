@@ -5,13 +5,22 @@ Merged with extract into Step 1 of the pipeline.
 Produces a DetCheckSpec (template + symbol table) that Step 2 consumes.
 """
 
+import logging
 import re
 from typing import Optional
+
+import tree_sitter as ts
+import tree_sitter_verus as tsv
 
 from .types import (
     TypeKind, TypeInfo, Param, FunctionSpec, Assume,
     Symbol, DetCheckSpec,
 )
+
+logger = logging.getLogger(__name__)
+
+_lang = ts.Language(tsv.language())
+_parser = ts.Parser(_lang)
 
 
 class Unsupported(Exception):
@@ -146,35 +155,80 @@ def _build_template(spec: FunctionSpec, check_name: str | None = None) -> str:
     # Requires
     requires_str = ""
     if spec.requires:
-        requires_raw = "\n".join(spec.requires)
-        requires_sub = _substitute_input(requires_raw, spec)
-        requires_str = f"\n    requires {requires_sub},"
+        # Wrap each clause in `(...)` so constructs like `a ==> b` don't merge
+        # with the next clause when joined, and join with commas.
+        req_clauses = [f"({_substitute_input(c.strip(), spec)})"
+                       for c in spec.requires if c.strip()]
+        if req_clauses:
+            requires_str = "\n    requires " + ", ".join(req_clauses) + ","
 
-    # Ensures: run1 && run2
-    ensures_raw = "\n        && ".join(spec.ensures)
-    run1 = _substitute_run(ensures_raw, spec, run_id=1)
-    run2 = _substitute_run(ensures_raw, spec, run_id=2)
+    # Ensures: join individual clauses with &&& (Verus short-circuit conjunction),
+    # wrapping each clause in parens so constructs like `matches ==>` are never
+    # exposed on the RHS of a binary operator.
+    def _join_clauses(clauses: list[str]) -> str:
+        parts = [f"({c.strip()})" for c in clauses if c.strip()]
+        return "\n            &&& ".join(parts)
 
-    # Equality conclusion
-    eq_parts = []
-    for name1, _ in output1_params:
-        name2 = name1.replace("post1_", "post2_").replace("r1", "r2")
-        if name1 == "r1":
-            eq_parts.append("r1 == r2")
+    ensures_joined = _join_clauses(spec.ensures)
+    run1 = _substitute_run(ensures_joined, spec, run_id=1)
+    run2 = _substitute_run(ensures_joined, spec, run_id=2)
+
+    # Equality conclusion: call a generated spec fn `{fn_name}_equal(...)`.
+    # This fn is a structural-equality relation generated from TypeInfo, which
+    # avoids quirks of Verus's default `==` on types whose inner types lack
+    # PartialEq (e.g. Result<(), Error> where Error has no Eq impl).
+    equal_fn_name = f"{fn_name}_equal"
+    equal_body_args = []  # list of (lhs, rhs, ty) used inside equal fn body
+    equal_call_args = []  # callsite expressions (wraps `@` for view types)
+    equal_params = []     # list of param decls in the spec fn signature
+    # r1/r2 always go first
+    equal_body_args.append(("r1", "r2", spec.return_type))
+    equal_call_args.append(("r1", "r2"))
+    equal_params.append(("r1", spec.return_type))
+    equal_params.append(("r2", spec.return_type))
+    # then each &mut param's post1/post2, using spec_view when available
+    for p in spec.params:
+        if not p.is_mut_ref:
+            continue
+        vn = _var_name(p)
+        ty = p.type
+        if ty.spec_view is not None:
+            # callsite passes post1_X@ / post2_X@ (convert to view);
+            # equal fn parameter is typed as the View; body accesses fields
+            # directly on the bare param name (no `@`).
+            view_ty = ty.spec_view
+            equal_body_args.append((f"post1_{vn}", f"post2_{vn}", view_ty))
+            equal_call_args.append((f"post1_{vn}@", f"post2_{vn}@"))
+            equal_params.append((f"post1_{vn}", view_ty))
+            equal_params.append((f"post2_{vn}", view_ty))
         else:
-            eq_parts.append(f"{name1}@ == {name2}@")
-    conclusion = " && ".join(eq_parts)
+            equal_body_args.append((f"post1_{vn}", f"post2_{vn}", ty))
+            equal_call_args.append((f"post1_{vn}", f"post2_{vn}"))
+            equal_params.append((f"post1_{vn}", ty))
+            equal_params.append((f"post2_{vn}", ty))
 
+    call_args_flat = []
+    for (a1, a2) in equal_call_args:
+        call_args_flat.append(a1)
+        call_args_flat.append(a2)
+    conclusion = f"{equal_fn_name}({', '.join(call_args_flat)})"
+
+    # Ensures: `({&&& run1 &&& run2}) ==> conclusion`. No assumes here — they
+    # go into the body as `assume(...)` statements, which is cleaner and keeps
+    # the postcondition stable across search rounds.
     code = f"""proof fn {fn_name}({params_str}){requires_str}
     ensures
-        ({run1}
-        && {run2}
-        {{ASSUMES}})
-        ==> {conclusion}
+        ({{
+            &&& {run1}
+            &&& {run2}
+        }}) ==> {conclusion},
 {{
-}}"""
+{{ASSUMES}}}}"""
 
-    return code
+    # Build the default equal spec fn body uses bare names (no `@`).
+    equal_fn_def = _build_equal_fn(equal_fn_name, equal_params, equal_body_args)
+
+    return code, equal_fn_def, equal_fn_name, equal_call_args
 
 
 # ---------------------------------------------------------------------------
@@ -191,30 +245,55 @@ def build_det_check_spec(
     
     This is the output of Step 1 (extract + gen_det).
     """
-    template = _build_template(spec, check_name)
+    template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(spec, check_name)
     symbols = _build_symbols(spec)
+    check_fn_name = check_name or f"det_{spec.name}"
 
     return DetCheckSpec(
         function=spec.name,
         det_check_template=template,
         symbols=symbols,
         verus_config=verus_config or {},
+        equal_fn_def=equal_fn_def,
+        equal_fn_name=equal_fn_name,
+        check_fn_name=check_fn_name,
+        # callsite form: includes `@` for view-wrapped compound outputs.
+        # Used by distinctness phase to call `!{equal_fn_name}(lhs, rhs, ...)`.
+        equal_arg_pairs=[
+            {"lhs": a1, "rhs": a2} for (a1, a2) in equal_call_args
+        ],
     )
 
 
-def render_template(template: str, assumes: list[Assume]) -> str:
+def render_template(
+    template_or_spec,
+    assumes: list[Assume],
+) -> str:
+    """Render a det check template with concrete assumes.
+
+    Accepts either a raw template string (legacy) or a DetCheckSpec
+    (preferred). When a DetCheckSpec is passed, the generated
+    `spec fn {equal_fn_name}(...) -> bool` is prepended to the rendered
+    code so the conclusion call `{equal_fn_name}(...)` resolves.
+    Replaces `{ASSUMES}` in the template with `assume(...)` statements.
     """
-    Render a det check template with concrete assumes.
-    
-    Replaces {ASSUMES} with the assume expressions.
-    """
+    if isinstance(template_or_spec, DetCheckSpec):
+        template = template_or_spec.det_check_template
+        equal_fn_def = template_or_spec.equal_fn_def or ""
+    else:
+        template = template_or_spec
+        equal_fn_def = ""
+
     if assumes:
-        assume_parts = [a.expression for a in assumes]
-        assume_str = "\n        && " + "\n        && ".join(assume_parts)
+        assume_parts = [f"    assume({a.expression.strip()});" for a in assumes]
+        assume_str = "\n".join(assume_parts) + "\n"
     else:
         assume_str = ""
 
-    return template.replace("{ASSUMES}", assume_str)
+    body = template.replace("{ASSUMES}", assume_str)
+    if equal_fn_def:
+        return equal_fn_def + "\n\n" + body
+    return body
 
 
 # ---------------------------------------------------------------------------
@@ -236,7 +315,9 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
 
 
 def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
-    result = ensures_raw
+    # Rename match-arm bindings first while text is still valid Verus,
+    # so tree-sitter can parse it correctly for scoped renaming.
+    result = _rename_match_bindings(ensures_raw, run_id)
 
     for p in spec.params:
         if p.is_mut_ref and p.is_self:
@@ -264,36 +345,396 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     result = re.sub(r'\bresult\b', f'r{run_id}', result)
     result = result.replace('__RESULT__', f'r{run_id}')
 
-    # Rename match-arm bindings to avoid collisions between runs.
-    # Find patterns like Ok(name), Err(name), Some(name) and rename the binding.
-    result = _rename_match_bindings(result, run_id)
-
     return result
 
 
+# ---------------------------------------------------------------------------
+# AST-based match-arm binding rename
+# ---------------------------------------------------------------------------
+
+def _extract_pattern_bindings(pattern_node: ts.Node) -> list[ts.Node]:
+    """Extract binding identifier nodes from a pattern AST node.
+
+    For ``tuple_struct_pattern`` like ``Ok(x)``, returns ``[x_node]``.
+    Handles nested ``tuple_pattern`` / ``tuple_struct_pattern`` recursively.
+
+    Skips bare identifiers (could be constants) and struct-pattern shorthand
+    (renaming ``Foo { a }`` to ``Foo { a_1 }`` would change the field name).
+    """
+    bindings: list[ts.Node] = []
+
+    if pattern_node.type == 'tuple_struct_pattern':
+        after_paren = False
+        for child in pattern_node.children:
+            if child.type == '(':
+                after_paren = True
+                continue
+            if child.type == ')':
+                break
+            if not after_paren or child.type == ',':
+                continue
+            if child.type == 'identifier':
+                bindings.append(child)
+            elif child.type == 'mut_pattern':
+                for sub in child.children:
+                    if sub.type == 'identifier':
+                        bindings.append(sub)
+            elif child.type == '_':
+                continue
+            else:
+                bindings.extend(_extract_pattern_bindings(child))
+
+    elif pattern_node.type == 'tuple_pattern':
+        for child in pattern_node.children:
+            if child.type in ('(', ')', ','):
+                continue
+            if child.type == 'identifier':
+                bindings.append(child)
+            elif child.type == '_':
+                continue
+            else:
+                bindings.extend(_extract_pattern_bindings(child))
+
+    return bindings
+
+
+_SHADOW_INTRODUCING_TYPES = frozenset({
+    'quantifier_expression',
+    'let_declaration',
+    'closure_expression',
+})
+
+
+def _shadows_name(node: ts.Node, name: str) -> bool:
+    """Check if *node* introduces a binding that shadows *name*."""
+    if node.type == 'quantifier_expression':
+        for child in node.children:
+            if child.type == 'closure_parameters':
+                for param in child.children:
+                    if param.type == 'parameter':
+                        for sub in param.children:
+                            if sub.type == 'identifier' and sub.text.decode() == name:
+                                return True
+                    elif param.type == 'identifier' and param.text.decode() == name:
+                        return True
+    elif node.type == 'let_declaration':
+        pat = node.child_by_field_name('pattern')
+        if pat is None:
+            # Fallback: first identifier child is the binding
+            for child in node.children:
+                if child.type == 'identifier':
+                    pat = child
+                    break
+        if pat and pat.type == 'identifier' and pat.text.decode() == name:
+            return True
+    elif node.type == 'closure_expression':
+        for child in node.children:
+            if child.type == 'closure_parameters':
+                for param in child.children:
+                    if param.type == 'identifier' and param.text.decode() == name:
+                        return True
+    return False
+
+
+def _find_scoped_refs(node: ts.Node, name: str) -> list[ts.Node]:
+    """Find ``identifier`` nodes matching *name* in subtree, skipping shadowed scopes."""
+    refs: list[ts.Node] = []
+    if node.type == 'identifier' and node.text.decode() == name:
+        refs.append(node)
+        return refs
+    for child in node.children:
+        if child.type in _SHADOW_INTRODUCING_TYPES and _shadows_name(child, name):
+            continue
+        refs.extend(_find_scoped_refs(child, name))
+    return refs
+
+
 def _rename_match_bindings(text: str, run_id: int) -> str:
+    """Rename match-arm bindings using tree-sitter AST analysis.
+
+    Wraps the ensures text in a minimal parseable context, walks the AST
+    to find ``expr matches Pattern ==> body`` constructs, extracts binding
+    identifiers from *Pattern*, then renames them (and their scoped
+    references in *body*) to ``{name}_{run_id}`` via byte-level replacement.
     """
-    Rename match-arm binding variables to be unique per run.
-    
-    Finds patterns like `Ok(name)`, `Err(name)`, `Some(name)` where `name`
-    is an identifier (not `_` or a literal), and renames both the binding
-    and all references within the same match arm.
+    prefix = 'spec fn _w() -> bool {\n'
+    suffix = '\n}'
+    wrapper = prefix + text + suffix
+    tree = _parser.parse(wrapper.encode())
+
+    prefix_bytes = len(prefix.encode())
+    text_byte_len = len(text.encode())
+
+    # Abort if parse produced errors in the text region.
+    def _has_error(node: ts.Node) -> bool:
+        if node.type == 'ERROR':
+            if node.start_byte < prefix_bytes + text_byte_len and node.end_byte > prefix_bytes:
+                return True
+        return any(_has_error(c) for c in node.children)
+
+    if _has_error(tree.root_node):
+        logger.warning("_rename_match_bindings: parse errors in ensures text, skipping rename")
+        return text
+
+    replacements: list[tuple[int, int, str]] = []
+
+    def _collect(node: ts.Node) -> None:
+        if node.type == 'binary_expression':
+            lhs = node.child_by_field_name('left')
+            op = node.child_by_field_name('operator')
+            rhs = node.child_by_field_name('right')
+
+            if (lhs is not None and op is not None and rhs is not None
+                    and lhs.type == 'matches_expression'
+                    and op.type == '==>'):
+                pattern = lhs.child_by_field_name('pattern')
+                if pattern is not None:
+                    for bnode in _extract_pattern_bindings(pattern):
+                        bname = bnode.text.decode()
+                        if bname == '_':
+                            continue
+                        # Binding definition in pattern
+                        s = bnode.start_byte - prefix_bytes
+                        e = bnode.end_byte - prefix_bytes
+                        if 0 <= s < text_byte_len:
+                            replacements.append((s, e, bname))
+                        # Scoped references in body
+                        for ref in _find_scoped_refs(rhs, bname):
+                            s = ref.start_byte - prefix_bytes
+                            e = ref.end_byte - prefix_bytes
+                            if 0 <= s < text_byte_len:
+                                replacements.append((s, e, bname))
+
+        for child in node.children:
+            _collect(child)
+
+    _collect(tree.root_node)
+
+    if not replacements:
+        return text
+
+    # Deduplicate by start position, sort reverse for safe byte-level editing
+    seen: set[int] = set()
+    unique: list[tuple[int, int, str]] = []
+    for r in replacements:
+        if r[0] not in seen:
+            seen.add(r[0])
+            unique.append(r)
+    unique.sort(key=lambda x: x[0], reverse=True)
+
+    result = bytearray(text.encode())
+    for start, end, name in unique:
+        result[start:end] = f"{name}_{run_id}".encode()
+
+    return result.decode()
+
+
+# ---------------------------------------------------------------------------
+# Equal fn generation (structural-equality spec fn built from TypeInfo)
+# ---------------------------------------------------------------------------
+
+def _build_equal_fn(
+    fn_name: str,
+    params: list[tuple[str, TypeInfo]],
+    arg_pairs: list[tuple[str, str, TypeInfo]],
+) -> str:
+    """Emit a Verus spec fn that structurally compares each (lhs, rhs) pair.
+
+    The function is `&&`-joined over all pairs. Each individual equality is
+    built recursively by `build_equal_expr` based on TypeInfo, which means
+    enums/Results are `match`-split so we never rely on a derived `==` that
+    might be missing for nested types (e.g. `Error` without `PartialEq`).
     """
-    # Find all match-arm bindings: Ok(identifier), Err(identifier), Some(identifier)
-    binding_pattern = re.compile(
-        r'\b(Ok|Err|Some)\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)'
+    param_decls = ", ".join(f"{n}: {_type_annotation(t)}" for (n, t) in params)
+
+    clauses = []
+    for (lhs, rhs, ty) in arg_pairs:
+        clauses.append(build_equal_expr(ty, lhs, rhs))
+
+    if not clauses:
+        body = "true"
+    else:
+        body = "\n    && ".join(f"({c})" for c in clauses)
+
+    return (
+        f"spec fn {fn_name}({param_decls}) -> bool {{\n"
+        f"    {body}\n"
+        f"}}"
     )
-    
-    bindings_found = set()
-    for m in binding_pattern.finditer(text):
-        name = m.group(2)
-        if name != '_':  # skip wildcard
-            bindings_found.add(name)
-    
-    # Rename each binding: name → name_{run_id}
-    for name in bindings_found:
-        new_name = f"{name}_{run_id}"
-        # Replace the binding in pattern position and all references
-        text = re.sub(rf'\b{re.escape(name)}\b', new_name, text)
-    
-    return text
+
+
+def _type_annotation(ty: TypeInfo) -> str:
+    """Render a TypeInfo as a Verus type annotation for a parameter."""
+    return ty.name
+
+
+def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
+    """Recursively emit a Verus boolean expression that structurally compares
+    two values of the given type. The output is always inside `spec` mode.
+
+    For primitive / Set / Seq, uses `==` directly (Verus has structural
+    equality on these). For Result / Option / generic Enum, emits a
+    conjunction of `is`-discriminator equality + per-variant implication
+    comparing inner fields. For Struct, emits a conjunction over field
+    comparisons; uses `@` if the struct has a spec view.
+    """
+    k = ty.kind
+    # Primitive / value types where structural `==` is safe
+    if k in (
+        TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
+        TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
+        TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
+        TypeKind.BOOL, TypeKind.UNIT, TypeKind.STR,
+        TypeKind.SET, TypeKind.SEQ,
+    ):
+        return f"{lhs} == {rhs}"
+
+    if k == TypeKind.RESULT:
+        ok_ty = ty.type_args[0] if len(ty.type_args) > 0 else TypeInfo(TypeKind.UNIT, "()")
+        err_ty = ty.type_args[1] if len(ty.type_args) > 1 else TypeInfo(TypeKind.UNKNOWN, "unknown")
+        ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0")
+        err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0")
+        return (
+            f"(({lhs} is Ok) == ({rhs} is Ok))"
+            f" && (({lhs} is Ok) ==> ({ok_eq}))"
+            f" && (({lhs} is Err) ==> ({err_eq}))"
+        )
+
+    if k == TypeKind.OPTION:
+        inner_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.UNKNOWN, "unknown")
+        some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0")
+        return (
+            f"(({lhs} is Some) == ({rhs} is Some))"
+            f" && (({lhs} is Some) ==> ({some_eq}))"
+        )
+
+    if k == TypeKind.ENUM:
+        # For each variant, require both sides to be that variant and inner
+        # fields to match. The discriminators must agree first.
+        if not ty.variants:
+            # No variant info — fall back to `==` (may or may not work)
+            return f"{lhs} == {rhs}"
+        parts = []
+        for v in ty.variants:
+            disc = f"(({lhs} is {v.name}) == ({rhs} is {v.name}))"
+            parts.append(disc)
+            if v.inner is not None:
+                # Single-field variant (e.g. Foo(T)). Compare ->{name}_0
+                inner_eq = build_equal_expr(
+                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0"
+                )
+                parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
+        return " && ".join(parts)
+
+    if k == TypeKind.STRUCT:
+        view = ty.spec_view
+        if view is not None and view.fields:
+            # Caller passes `X@` expressions; access view fields directly.
+            clauses = []
+            for fld in view.fields:
+                clauses.append(build_equal_expr(
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}"
+                ))
+            return " && ".join(f"({c})" for c in clauses)
+        if ty.fields:
+            # No spec view but we have field info — expand on the exec type.
+            # Assumes listed fields are publicly accessible (LLM is instructed
+            # to only return `pub` fields; static-extracted fields are also
+            # public by construction since tree-sitter only sees what's
+            # visible to the enclosing crate).
+            clauses = []
+            for fld in ty.fields:
+                clauses.append(build_equal_expr(
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}"
+                ))
+            return " && ".join(f"({c})" for c in clauses)
+        # No field info at all — fall back to `==`
+        return f"{lhs} == {rhs}"
+
+    # UNKNOWN: fall back to raw `==`; it may still work or may cause a verify
+    # error if the type lacks Eq. Better than dropping the comparison entirely.
+    return f"{lhs} == {rhs}"
+
+
+# ---------------------------------------------------------------------------
+# rebuild_equal_fn — regenerate equal fn after llm_refine (types may have
+# become more informative, e.g. UNKNOWN -> struct).
+# ---------------------------------------------------------------------------
+
+def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
+    """Regenerate ``equal_fn_def`` / ``equal_fn_name`` / ``equal_arg_pairs`` from
+    the (possibly refined) ``det_spec.symbols`` and return the updated spec.
+
+    Strategy: find the output symbols by phase (output_simple / output_compound),
+    group into pairs (r1/r2, post1_X/post2_X), then replay ``_build_equal_fn``.
+    """
+    equal_fn_name = f"det_{det_spec.function}_equal"
+
+    # Collect output symbols. Symbols are created by _build_symbols with
+    # names r1/r2 (output_simple) and post1_X/post2_X (output_compound).
+    sym_by_name: dict[str, Symbol] = {s.name: s for s in det_spec.symbols}
+
+    params: list[tuple[str, TypeInfo]] = []
+    body_pairs: list[tuple[str, str, TypeInfo]] = []   # used inside equal fn
+    callsite_pairs: list[tuple[str, str]] = []         # used at call site
+    declared: set[str] = set()
+
+    # r1 / r2 first
+    if "r1" in sym_by_name and "r2" in sym_by_name:
+        r1 = sym_by_name["r1"]
+        r2 = sym_by_name["r2"]
+        params.append(("r1", r1.type))
+        params.append(("r2", r2.type))
+        body_pairs.append(("r1", "r2", r1.type))
+        callsite_pairs.append(("r1", "r2"))
+        declared.add("r1")
+        declared.add("r2")
+
+    # then post1_X / post2_X — for compound outputs with a spec view, the
+    # equal fn parameter is typed as the view (e.g. BitmapView), and the
+    # callsite passes `post1_X@`. Inside the fn body the local name is
+    # already the view, so we access fields directly (no `@`).
+    for name in sorted(sym_by_name.keys()):
+        if not name.startswith("post1_"):
+            continue
+        partner = "post2_" + name[len("post1_"):]
+        if partner not in sym_by_name:
+            continue
+        if name in declared or partner in declared:
+            continue
+        sym = sym_by_name[name]
+        ty = sym.type
+        if sym.phase == "output_compound" and ty.spec_view is not None:
+            view_ty = ty.spec_view
+            params.append((name, view_ty))
+            params.append((partner, view_ty))
+            body_pairs.append((name, partner, view_ty))
+            callsite_pairs.append((f"{name}@", f"{partner}@"))
+        else:
+            params.append((name, ty))
+            params.append((partner, ty))
+            body_pairs.append((name, partner, ty))
+            callsite_pairs.append((name, partner))
+        declared.add(name)
+        declared.add(partner)
+
+    equal_fn_def = _build_equal_fn(equal_fn_name, params, body_pairs)
+    det_spec.equal_fn_def = equal_fn_def
+    det_spec.equal_fn_name = equal_fn_name
+    det_spec.equal_arg_pairs = [{"lhs": a1, "rhs": a2} for (a1, a2) in callsite_pairs]
+
+    # Also rewrite the template's conclusion call so it uses the updated
+    # callsite forms (may differ from pre-refine if spec_view became known).
+    call_args_flat = []
+    for (a1, a2) in callsite_pairs:
+        call_args_flat.append(a1)
+        call_args_flat.append(a2)
+    new_call = f"{equal_fn_name}({', '.join(call_args_flat)})"
+    import re as _re
+    det_spec.det_check_template = _re.sub(
+        rf"{_re.escape(equal_fn_name)}\([^)]*\)",
+        new_call,
+        det_spec.det_check_template,
+        count=1,
+    )
+    return det_spec

@@ -20,6 +20,7 @@ class TypeKind(Enum):
     I32 = "i32"
     I64 = "i64"
     BOOL = "bool"
+    STR = "str"
     UNIT = "()"
     ENUM = "enum"
     STRUCT = "struct"
@@ -170,6 +171,11 @@ class DetCheckSpec:
     det_check_template: str          # Verus proof fn with {ASSUMES} placeholder
     symbols: list[Symbol]            # variables to narrow, in order
     verus_config: dict = field(default_factory=dict)  # crate_dir, crate_name, etc.
+    # Structural-equality spec fn injected alongside the det check.
+    equal_fn_def: str = ""            # Verus source of `spec fn {equal_fn_name}(...) -> bool`
+    equal_fn_name: str = ""           # e.g. "set_equal"
+    equal_arg_pairs: list[dict] = field(default_factory=list)  # [{"lhs":"r1","rhs":"r2"}, ...]
+    check_fn_name: str = ""           # actual `proof fn <name>` emitted; default `det_{function}`
 
     def to_dict(self) -> dict:
         return {
@@ -177,6 +183,10 @@ class DetCheckSpec:
             "det_check_template": self.det_check_template,
             "symbols": [s.to_dict() for s in self.symbols],
             "verus_config": self.verus_config,
+            "equal_fn_def": self.equal_fn_def,
+            "equal_fn_name": self.equal_fn_name,
+            "equal_arg_pairs": list(self.equal_arg_pairs),
+            "check_fn_name": self.check_fn_name,
         }
 
     @staticmethod
@@ -186,6 +196,10 @@ class DetCheckSpec:
             det_check_template=d["det_check_template"],
             symbols=[Symbol.from_dict(s) for s in d["symbols"]],
             verus_config=d.get("verus_config", {}),
+            equal_fn_def=d.get("equal_fn_def", ""),
+            equal_fn_name=d.get("equal_fn_name", ""),
+            equal_arg_pairs=list(d.get("equal_arg_pairs", [])),
+            check_fn_name=d.get("check_fn_name", ""),
         )
 
     def to_json(self) -> str:

@@ -372,6 +372,24 @@ def narrow_unit(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     pass
 
 
+_STR_CANDIDATES = ('""', '"string 1"', '"string 2"')
+
+
+@strategy_for(TypeKind.STR)
+def narrow_str(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
+    """Narrow a string: try the three allowed literal values.
+
+    To keep the search space tiny, we assume every string in the spec can
+    only take one of `""`, `"string 1"`, `"string 2"`. This is intentionally
+    coarse — strings are typically either ignored entirely (via custom
+    equality) or distinguished by identity, not by content.
+    """
+    for lit in _STR_CANDIDATES:
+        assume = Assume(var, f'{var} == {lit}', f'str: {lit}')
+        if ctx.test_and_set(node, assume):
+            return
+
+
 def _llm_fallback(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """LLM fallback for unknown types."""
     logger.warning(f"No strategy for {ty.kind}:{ty.name} — using LLM fallback")
@@ -418,8 +436,8 @@ class SearchContext:
         node.assume = assume
 
         all_assumes = self.tree.collect_assumes()
-        code = render_template(self.det_spec.det_check_template, all_assumes)
-        fn_name = f"det_{self.det_spec.function}"
+        code = render_template(self.det_spec, all_assumes)
+        fn_name = self.det_spec.check_fn_name or f"det_{self.det_spec.function}"
         result = self.runner.check(code, fn_name)
 
         self._round += 1
@@ -460,8 +478,8 @@ def binary_search(det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None) 
     ctx = SearchContext(det_spec, runner, llm_client)
 
     # R0: initial determinism check (no assumes)
-    code = render_template(det_spec.det_check_template, [])
-    fn_name = f"det_{det_spec.function}"
+    code = render_template(det_spec, [])
+    fn_name = det_spec.check_fn_name or f"det_{det_spec.function}"
     r0 = runner.check(code, fn_name)
     ctx.trace.append({
         "round": 0, "phase": "initial", "node_key": "root",
@@ -474,7 +492,16 @@ def binary_search(det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None) 
         return Witness(function=det_spec.function, trace=ctx.trace)
 
     if r0.status != "fail":
-        logger.error(f"{det_spec.function}: initial check returned {r0.status}")
+        # Smoke-test failure: the template itself didn't even parse/typecheck.
+        # Surface the stderr prominently — this is almost always a gen_det bug,
+        # not a real spec issue.
+        logger.error(
+            f"{det_spec.function}: SMOKE TEST FAILED — initial check returned "
+            f"{r0.status!r}. This usually means the generated det-check template "
+            f"is malformed (syntax/type error), not that the spec is indeterminate.\n"
+            f"Verus stderr:\n{r0.stderr[:4000]}"
+        )
+        ctx.trace[-1]["smoke_test_error"] = r0.stderr[:4000]
         return Witness(function=det_spec.function, trace=ctx.trace)
 
     logger.info(f"{det_spec.function}: nondeterminism detected, starting binary search")
@@ -484,8 +511,40 @@ def binary_search(det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None) 
         sym_node = ctx.tree.get_or_create(sym.name)
         narrow(sym.type, sym.name, sym_node, ctx)
 
+    # Final step: for each pair of output variables (r1/r2, post1_X/post2_X),
+    # try to add an explicit `!=` / `@ != @` assume. If this FAILs, we have a
+    # strong witness: the two outputs are provably distinct under current
+    # assumes. If it PASSes, the two outputs must be equal — narrowing below
+    # has already pinned them down, so we leave it alone.
+    _add_distinctness_witnesses(ctx, det_spec)
+
     return Witness(
         function=det_spec.function,
         assumes=ctx.tree.collect_assumes(),
         trace=ctx.trace,
     )
+
+
+def _add_distinctness_witnesses(ctx: "SearchContext", det_spec: DetCheckSpec):
+    """Final witness step: try to assume `!{fn_name}_equal(...)`. If FAIL, the
+    spec provably admits two non-equivalent output tuples, i.e. the generated
+    witness is a strong demonstration of nondeterminism.
+
+    This is a single-shot check against the same user-replaceable equal fn
+    used by the conclusion, so changing the equality policy only requires
+    editing `{fn_name}_equal`.
+    """
+    if not det_spec.equal_fn_name:
+        return
+    call_args = []
+    for pair in det_spec.equal_arg_pairs:
+        call_args.append(pair["lhs"])
+        call_args.append(pair["rhs"])
+    call = f"{det_spec.equal_fn_name}({', '.join(call_args)})"
+    node = ctx.tree.get_or_create("tuple_not_equal")
+    assume = Assume(
+        "tuple",
+        f"!{call}",
+        f"distinctness: output tuple not equal under {det_spec.equal_fn_name}",
+    )
+    ctx.test_and_set(node, assume, phase="distinct")
