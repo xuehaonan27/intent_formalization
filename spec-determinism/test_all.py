@@ -68,6 +68,9 @@ KHEAP_CFG = {
     "check_name_overrides": {},
     # kheap.allocate / deallocate verify slow — bump timeout
     "timeout": 300,
+    # Scope verify to this module (with --verify-function det_<name>)
+    # to dodge proof-stability collateral on unrelated kernel functions.
+    "verify_module": "mm::kheap",
 }
 
 # ---------------------------------------------------------------------------
@@ -94,6 +97,7 @@ def run_crate(cfg):
         features=cfg.get("features"),
         timeout=cfg.get("timeout", 120),
         extra_args=cfg.get("extra_args"),
+        verify_module=cfg.get("verify_module"),
     )
 
     for fn_name in cfg["functions"]:

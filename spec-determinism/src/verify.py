@@ -70,9 +70,16 @@ def run_cargo_verus(
     features: list[str] | None = None,
     timeout: int = 120,
     extra_args: list[str] | None = None,
+    verify_module: str | None = None,
+    verify_function: str | None = None,
 ) -> dict:
     """
     Run cargo verus verify on a crate.
+
+    If verify_module is set, restrict verification to that module (and
+    optionally one function inside it via verify_function). The
+    restriction is forwarded only to the root crate via
+    `--fwd-verus-args-to roots` so dependencies still verify normally.
 
     Returns raw dict: {returncode, stdout, stderr, duration_ms}
     """
@@ -82,12 +89,19 @@ def run_cargo_verus(
 
     cmd = [
         "cargo", "+nightly-2025-12-08", "verus", "verify",
-        "-p", crate_name,
     ]
+    if verify_module:
+        cmd.extend(["--fwd-verus-args-to", "roots"])
+    cmd.extend(["-p", crate_name])
     if features:
         cmd.extend(["--features", ",".join(features)])
     if extra_args:
         cmd.extend(extra_args)
+    if verify_module:
+        verus_args = ["--", "--verify-only-module", verify_module]
+        if verify_function:
+            verus_args.extend(["--verify-function", verify_function])
+        cmd.extend(verus_args)
 
     logger.info(f"Running: {' '.join(cmd)} in {crate_dir}")
     start = time.monotonic()
@@ -189,6 +203,7 @@ class VerusRunner:
         features: list[str] | None = None,
         timeout: int = 120,
         extra_args: list[str] | None = None,
+        verify_module: str | None = None,
     ):
         self.crate_dir = crate_dir
         self.crate_name = crate_name
@@ -197,17 +212,62 @@ class VerusRunner:
         self.features = features
         self.timeout = timeout
         self.extra_args = extra_args
+        self.verify_module = verify_module
         self._original: str | None = None
         self._call_count = 0
+        self._baseline_checked = False
+
+    def _ensure_baseline(self) -> None:
+        """Run one full verify (no injection, no module restriction) to
+        confirm the baseline crate is clean. Raises RuntimeError if not.
+        Cached: only runs once per VerusRunner instance."""
+        if self._baseline_checked:
+            return
+        logger.info(
+            f"Baseline preflight: full verify of {self.crate_name} "
+            f"(no injection)"
+        )
+        raw = run_cargo_verus(
+            self.crate_dir, self.crate_name,
+            self.verus_path, self.features, self.timeout,
+            extra_args=self.extra_args,
+        )
+        combined = raw["stdout"] + "\n" + raw["stderr"]
+        if "could not compile" in combined or raw["returncode"] != 0:
+            raise RuntimeError(
+                f"Baseline verify of {self.crate_name} FAILED "
+                f"(no injection). Tool would inject into a broken crate.\n"
+                f"stderr tail:\n{combined[-2000:]}"
+            )
+        # Sanity: check for at least one "X verified, 0 errors" line
+        m = re.findall(r"(\d+)\s+verified,\s+(\d+)\s+errors?", combined)
+        if not m or any(int(e) != 0 for _, e in m):
+            raise RuntimeError(
+                f"Baseline verify of {self.crate_name} reports errors:\n"
+                f"{combined[-2000:]}"
+            )
+        logger.info(
+            f"Baseline OK: {sum(int(v) for v, _ in m)} verified, 0 errors"
+        )
+        self._baseline_checked = True
 
     def check(self, code: str, fn_name: str) -> VerifyResult:
-        """Inject code, run Verus, parse result, restore file."""
+        """Inject code, run Verus, parse result, restore file.
+
+        On first call, runs a baseline preflight verify of the crate
+        without any injection to ensure we're not building on a broken
+        baseline. If verify_module was set, subsequent runs are scoped
+        to that module + the injected fn_name (avoids proof-stability
+        collateral damage on unrelated functions)."""
+        self._ensure_baseline()
         self._original = inject_proof_fn(self.proof_file, code)
         try:
             raw = run_cargo_verus(
                 self.crate_dir, self.crate_name,
                 self.verus_path, self.features, self.timeout,
                 extra_args=self.extra_args,
+                verify_module=self.verify_module,
+                verify_function=fn_name if self.verify_module else None,
             )
             self._call_count += 1
             return parse_result(raw, fn_name)
