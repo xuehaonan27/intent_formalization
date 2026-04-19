@@ -636,14 +636,23 @@ def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
 
     if k == TypeKind.STRUCT:
         view = ty.spec_view
-        if view is not None and view.fields:
-            # Caller passes `X@` expressions; access view fields directly.
+        # If the lhs/rhs expressions already refer to a view (end with `@`),
+        # we can expand on the view's fields directly. Otherwise, if a view
+        # exists, compare `lhs@ == rhs@` — this dodges issues like exec types
+        # without PartialEq and keeps us at spec equality on the ghost view.
+        lhs_is_viewed = lhs.endswith("@")
+        rhs_is_viewed = rhs.endswith("@")
+        if view is not None and view.fields and lhs_is_viewed and rhs_is_viewed:
             clauses = []
             for fld in view.fields:
                 clauses.append(build_equal_expr(
                     fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}"
                 ))
             return " && ".join(f"({c})" for c in clauses)
+        if view is not None and not (lhs_is_viewed and rhs_is_viewed):
+            # Nested struct-with-view (e.g. Result<Kheap, _> where caller
+            # passed `r1->Ok_0`). Compare through the view at spec level.
+            return f"({lhs})@ == ({rhs})@"
         if ty.fields:
             # No spec view but we have field info — expand on the exec type.
             # Assumes listed fields are publicly accessible (LLM is instructed

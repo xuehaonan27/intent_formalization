@@ -31,6 +31,9 @@ BITMAP_CFG = {
     "spec": os.path.join(NANVIX, "src/libs/bitmap/src/lib.spec.rs"),
     "proof": os.path.join(NANVIX, "src/libs/bitmap/src/lib.proof.rs"),
     "features": ["std"],
+    "extra_type_sources": [
+        os.path.join(NANVIX, "src/libs/error/src/lib.rs"),
+    ],
     "functions": [
         "number_of_bits", "new", "from_raw_array",
         "alloc", "alloc_range", "set", "clear", "test",
@@ -44,6 +47,9 @@ SLAB_CFG = {
     "spec": os.path.join(NANVIX, "src/libs/slab/src/lib.spec.rs"),
     "proof": os.path.join(NANVIX, "src/libs/slab/src/lib.proof.rs"),
     "features": ["std"],
+    "extra_type_sources": [
+        os.path.join(NANVIX, "src/libs/error/src/lib.rs"),
+    ],
     "functions": ["from_raw_parts", "allocate", "deallocate"],
     # Avoid name collision with existing det_allocate in slab proof file
     "check_name_overrides": {"allocate": "det_allocate_chk"},
@@ -66,6 +72,10 @@ KHEAP_CFG = {
         "from_raw_parts", "allocate", "deallocate", "layout_to_allocator",
     ],
     "check_name_overrides": {},
+    # Error struct / ErrorCode enum live in the error crate
+    "extra_type_sources": [
+        os.path.join(NANVIX, "src/libs/error/src/lib.rs"),
+    ],
     # kheap.allocate / deallocate verify slow — bump timeout
     "timeout": 300,
     # Scope verify to this module (with --verify-function det_<name>)
@@ -88,6 +98,10 @@ def run_crate(cfg):
     if os.path.exists(cfg["spec"]):
         with open(cfg["spec"]) as f:
             type_sources.append(f.read())
+    for extra in cfg.get("extra_type_sources", []):
+        if os.path.exists(extra):
+            with open(extra) as f:
+                type_sources.append(f.read())
 
     runner = VerusRunner(
         crate_dir=NANVIX,

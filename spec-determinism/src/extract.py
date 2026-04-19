@@ -8,6 +8,7 @@ Handles both:
 """
 
 import logging
+import re
 from typing import Optional
 
 import tree_sitter as ts
@@ -53,6 +54,7 @@ PRIMITIVE_MAP = {
     "i8": TypeKind.I8, "i16": TypeKind.I16, "i32": TypeKind.I32, "i64": TypeKind.I64,
     "int": TypeKind.INT, "nat": TypeKind.INT,
     "bool": TypeKind.BOOL, "()": TypeKind.UNIT,
+    "str": TypeKind.STR, "String": TypeKind.STR,
 }
 
 _KNOWN_GENERICS = {
@@ -650,29 +652,85 @@ def _resolve_types(
     return_type: TypeInfo,
     sources: list[str],
 ) -> dict[str, TypeInfo]:
-    """Resolve unknown types by searching source files for struct/enum definitions."""
+    """Resolve unknown types by searching source files for struct/enum definitions.
+
+    Does a transitive resolution: if `Error` is resolved to a struct with
+    field `code: ErrorCode`, `ErrorCode` is resolved too. Also propagates
+    resolved types into any TypeInfo slot (params, return type_args, struct
+    field types, enum variant inners) that still has kind=UNKNOWN with the
+    matching name.
+    """
     type_defs: dict[str, TypeInfo] = {}
-    names_to_resolve: set[str] = set()
+    # tree-sitter-rust trips on inner attributes (`#![...]`) at the top of
+    # some files (e.g. nanvix's error crate has `#![cfg_attr(...)]`), which
+    # produces an ERROR node that prevents finding enum/struct definitions.
+    # Strip them out for type-resolution parsing.
+    cleaned_sources = [re.sub(r'#!\[[^\]]*\]', '', s) for s in sources]
+    trees = [_parser.parse(src.encode()) for src in cleaned_sources]
 
-    # Collect names that need resolution
-    for p in params:
-        if p.type.kind == TypeKind.UNKNOWN and p.type.name not in PRIMITIVE_MAP:
-            names_to_resolve.add(p.type.name)
-    for ta in return_type.type_args:
-        if ta.kind == TypeKind.UNKNOWN and ta.name not in PRIMITIVE_MAP:
-            names_to_resolve.add(ta.name)
-
-    # Search all sources for type definitions
-    trees = [_parser.parse(src.encode()) for src in sources]
-    for name in names_to_resolve:
+    def _lookup(name: str) -> Optional[TypeInfo]:
+        if name in type_defs:
+            return type_defs[name]
+        if name in PRIMITIVE_MAP:
+            return None
         for t in trees:
             resolved = _find_struct(t, name) or _find_enum(t, name)
             if resolved:
                 type_defs[name] = resolved
-                for p in params:
-                    if p.type.name == name:
-                        p.type = resolved
-                break
+                return resolved
+        return None
+
+    def _collect_unknown(ti: TypeInfo, out: set[str]) -> None:
+        if ti.kind == TypeKind.UNKNOWN and ti.name and ti.name not in PRIMITIVE_MAP:
+            out.add(ti.name)
+        for ta in ti.type_args:
+            _collect_unknown(ta, out)
+        for f in ti.fields:
+            _collect_unknown(f.type, out)
+        for v in ti.variants:
+            if v.inner:
+                _collect_unknown(v.inner, out)
+
+    def _substitute(ti: TypeInfo) -> TypeInfo:
+        if ti.kind == TypeKind.UNKNOWN and ti.name in type_defs:
+            return type_defs[ti.name]
+        # Recurse into nested slots (mutate in place for consistency)
+        ti.type_args = [_substitute(ta) for ta in ti.type_args]
+        for f in ti.fields:
+            f.type = _substitute(f.type)
+        for v in ti.variants:
+            if v.inner:
+                v.inner = _substitute(v.inner)
+        return ti
+
+    # Seed worklist from params and return type_args
+    worklist: set[str] = set()
+    for p in params:
+        _collect_unknown(p.type, worklist)
+    _collect_unknown(return_type, worklist)
+
+    # Transitive resolution: resolve each name, then harvest any new names
+    # referenced by the resolved definition.
+    seen: set[str] = set()
+    while worklist:
+        name = worklist.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        resolved = _lookup(name)
+        if resolved is None:
+            continue
+        # New names referenced by the resolved def
+        refs: set[str] = set()
+        _collect_unknown(resolved, refs)
+        worklist.update(refs - seen)
+
+    # Propagate resolved types into all TypeInfo slots
+    for p in params:
+        p.type = _substitute(p.type)
+    _substitute(return_type)
+    for td in list(type_defs.values()):
+        _substitute(td)
 
     # Look for spec view types (e.g. BitmapView for Bitmap)
     for name in list(type_defs.keys()):
