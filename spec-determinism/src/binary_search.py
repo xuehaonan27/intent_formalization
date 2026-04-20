@@ -278,36 +278,33 @@ def narrow_bool(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
 def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     elem_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
     elem_ty_name = elem_ty.name
+    empty_expr = f"Set::<{elem_ty_name}>::empty()"
 
-    # Narrow length (starting from 0)
-    len_node = node.get_or_create("len")
-    length = _narrow_length(f"{var}.len()", len_node, ctx)
+    # Verus `Set::<T>::len()` returns 0 for BOTH empty and infinite sets, so
+    # len-first probing is ambiguous. Instead, split into two disjoint finite
+    # cases — `s == empty` or `s.len() > 0` — and skip the "infinite set"
+    # witness (Verus admits it, but it carries no useful signal for the
+    # developer and cannot be printed concretely).
 
-    if length is None:
+    # Case 1: empty set
+    empty = Assume(var, f"{var} == {empty_expr}", "set: empty")
+    if ctx.test_and_set(node, empty):
         return
 
-    if length == 0:
-        # Try to confirm empty set. NOTE: in Verus `Set::<T>::len()` returns
-        # 0 for both empty AND infinite sets, so `len==0` does NOT imply
-        # `== empty`. If the `== empty` check FAILs (i.e. the verifier keeps
-        # nondeterminism), the set might be infinite; we keep both `len==0`
-        # and the stricter assume to pin that case down. If `== empty`
-        # PASSes (stricter constraint makes the spec deterministic), that
-        # means the nondeterminism witness is an infinite set on at least
-        # one side — we preserve the `len==0` child so the witness records
-        # that fact.
-        empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
-        if ctx.test_and_set(node, empty):
-            node.children.clear()  # empty subsumes the len child
-        else:
-            # PASS → the stricter == empty would have killed nondet, so the
-            # witness requires s != empty. Combined with len()==0 this pins
-            # down "infinite set" (Verus `Set::len()` returns 0 for infinite
-            # sets). Record that explicitly so the witness is self-contained.
-            not_empty = Assume(var,
-                               f"!({var} == Set::<{elem_ty_name}>::empty())",
-                               "set: infinite (len==0 but non-empty)")
-            ctx.test_and_set(len_node, not_empty)
+    # Case 2: finite non-empty. Establish len > 0 as a precondition; once that
+    # sticks, len() is the true cardinality and we can enumerate elements.
+    pos_len = Assume(var, f"{var}.len() > 0", "set: non-empty (finite)")
+    if not ctx.test_and_set(node, pos_len):
+        # Spec admits neither empty nor any finite non-empty witness — the
+        # only remaining nondeterminism is via infinite sets, which we don't
+        # try to pin down concretely.
+        return
+
+    # Now narrow length. _narrow_length probes from small upward; its results
+    # are meaningful because we've already committed to len() > 0.
+    len_node = node.get_or_create("len")
+    length = _narrow_length(f"{var}.len()", len_node, ctx)
+    if length is None or length == 0:
         return
 
     # Find elements via contains() probing, skipping already-found values
