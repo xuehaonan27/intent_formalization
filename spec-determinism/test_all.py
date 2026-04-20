@@ -40,6 +40,7 @@ BITMAP_CFG = {
         "alloc", "alloc_range", "set", "clear", "test",
     ],
     "check_name_overrides": {"alloc_range": "det_alloc_range_chk"},
+    "use_llm_equal_policy": True,
 }
 
 SLAB_CFG = {
@@ -54,6 +55,7 @@ SLAB_CFG = {
     "functions": ["from_raw_parts", "allocate", "deallocate"],
     # Avoid name collision with existing det_allocate in slab proof file
     "check_name_overrides": {"allocate": "det_allocate_chk"},
+    "use_llm_equal_policy": True,
 }
 
 # kheap lives inside the kernel crate. Verifying the kernel needs build-std +
@@ -82,6 +84,7 @@ KHEAP_CFG = {
     # Scope verify to this module (with --verify-function det_<name>)
     # to dodge proof-stability collateral on unrelated kernel functions.
     "verify_module": "mm::kheap",
+    "use_llm_equal_policy": True,
 }
 
 # ---------------------------------------------------------------------------
@@ -135,11 +138,25 @@ def run_crate(cfg):
         # --- Step 2: Gen det check ---
         try:
             check_name = cfg.get("check_name_overrides", {}).get(fn_name)
-            # Per-function equal-fn policy override. Defaults to policy with
-            # errs_equivalent=True (all Errs equivalent). Configs can coarsen
-            # further for specific functions (e.g. opaque_ok for allocators).
-            policy_overrides = cfg.get("equal_policy_overrides", {})
-            policy = EqualPolicy.from_dict(policy_overrides.get(fn_name))
+            # Per-function equal-fn policy. Precedence:
+            #   1. explicit equal_policy_overrides[fn_name]
+            #   2. LLM suggestion (if use_llm_equal_policy enabled + client)
+            #   3. default (errs_equivalent=True).
+            manual_overrides = cfg.get("equal_policy_overrides", {})
+            if fn_name in manual_overrides:
+                policy = EqualPolicy.from_dict(manual_overrides[fn_name])
+                print(f"  Policy: manual override → {policy.to_dict()}")
+            elif cfg.get("use_llm_equal_policy"):
+                from src.equal_llm import suggest_equal_policy
+                llm_policy = suggest_equal_policy(
+                    spec, workspace=NANVIX,
+                    cache_dir=cfg.get("policy_cache_dir", "results/refine_cache"),
+                )
+                policy = llm_policy if llm_policy is not None else EqualPolicy()
+                origin = "LLM" if llm_policy is not None else "default (LLM kept)"
+                print(f"  Policy: {origin} → {policy.to_dict()}")
+            else:
+                policy = EqualPolicy()
             det_spec = build_det_check_spec(
                 spec, check_name=check_name, equal_policy=policy
             )
