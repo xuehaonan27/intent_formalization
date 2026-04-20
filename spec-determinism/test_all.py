@@ -171,6 +171,16 @@ def run_crate(cfg):
         for sym in det_spec.symbols:
             print(f"    [{sym.phase}] {sym.name}: {sym.type.kind.value}")
 
+        # --- Dump intermediate artefacts for review ---
+        # results/artifacts/<crate>__<fn>/{det_spec.json,template.rs}
+        art_dir = os.path.join("results", "artifacts", f"{crate}__{fn_name}")
+        os.makedirs(art_dir, exist_ok=True)
+        with open(os.path.join(art_dir, "det_spec.json"), "w") as f:
+            f.write(det_spec.to_json())
+        with open(os.path.join(art_dir, "template.rs"), "w") as f:
+            f.write(render_template(det_spec, []))
+        entry["artifact_dir"] = art_dir
+
         # --- Step 3: Binary search ---
         try:
             witness = binary_search(det_spec, runner)

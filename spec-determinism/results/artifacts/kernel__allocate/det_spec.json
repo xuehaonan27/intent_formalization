@@ -1,0 +1,400 @@
+{
+  "function": "allocate",
+  "det_check_template": "proof fn det_allocate(pre_self_: Kheap, layout: Layout, post1_self_: Kheap, r1: Result<*mut u8, AllocError>, post2_self_: Kheap, r2: Result<*mut u8, AllocError>)\n    requires (pre_self_.inv()),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(ptr) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3b: address was free in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].free_addrs.contains(ptr as usize)\n                    // FN-3c: pointer is block-aligned\n                    &&& ptr as usize % pre_self_@.slabs[opt_idx.unwrap()].block_size == 0\n                    // FN-3d: exact state transition\n                    &&& post1_self_@ == pre_self_@.spec_allocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3g: state preserved on error\n                    &&& post1_self_@ == pre_self_@\n                    // FN-3f: error iff size unsupported or slab exhausted\n                    &&& (opt_idx.is_none()\n                        || pre_self_@.slabs[opt_idx.unwrap()].free_addrs\n                            == Set::<usize>::empty())\n                }\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(ptr) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3b: address was free in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].free_addrs.contains(ptr as usize)\n                    // FN-3c: pointer is block-aligned\n                    &&& ptr as usize % pre_self_@.slabs[opt_idx.unwrap()].block_size == 0\n                    // FN-3d: exact state transition\n                    &&& post2_self_@ == pre_self_@.spec_allocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3g: state preserved on error\n                    &&& post2_self_@ == pre_self_@\n                    // FN-3f: error iff size unsupported or slab exhausted\n                    &&& (opt_idx.is_none()\n                        || pre_self_@.slabs[opt_idx.unwrap()].free_addrs\n                            == Set::<usize>::empty())\n                }\n            })\n        }) ==> det_allocate_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Kheap",
+        "fields": [
+          {
+            "name": "slab_8_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_16_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_32_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_64_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_128_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_256_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_512_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_1024_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_2048_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_4096_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "KheapView",
+          "fields": [
+            {
+              "name": "slabs",
+              "type": {
+                "kind": "Seq",
+                "name": "Seq<SlabView>",
+                "type_args": [
+                  {
+                    "kind": "unknown",
+                    "name": "SlabView"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "layout",
+      "type": {
+        "kind": "unknown",
+        "name": "Layout"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<*mut u8, AllocError>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "*mut u8"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "AllocError"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "*mut u8"
+          },
+          {
+            "kind": "unknown",
+            "name": "AllocError"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<*mut u8, AllocError>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "*mut u8"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "AllocError"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "*mut u8"
+          },
+          {
+            "kind": "unknown",
+            "name": "AllocError"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Kheap",
+        "fields": [
+          {
+            "name": "slab_8_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_16_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_32_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_64_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_128_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_256_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_512_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_1024_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_2048_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_4096_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "KheapView",
+          "fields": [
+            {
+              "name": "slabs",
+              "type": {
+                "kind": "Seq",
+                "name": "Seq<SlabView>",
+                "type_args": [
+                  {
+                    "kind": "unknown",
+                    "name": "SlabView"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Kheap",
+        "fields": [
+          {
+            "name": "slab_8_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_16_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_32_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_64_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_128_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_256_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_512_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_1024_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_2048_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          },
+          {
+            "name": "slab_4096_bytes",
+            "type": {
+              "kind": "unknown",
+              "name": "Slab"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "KheapView",
+          "fields": [
+            {
+              "name": "slabs",
+              "type": {
+                "kind": "Seq",
+                "name": "Seq<SlabView>",
+                "type_args": [
+                  {
+                    "kind": "unknown",
+                    "name": "SlabView"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=True\nspec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> true))\n    && ((post1_self_.slabs == post2_self_.slabs))\n}",
+  "equal_fn_name": "det_allocate_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_@",
+      "rhs": "post2_self_@"
+    }
+  ],
+  "check_fn_name": "det_allocate",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": true,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null
+  }
+}
