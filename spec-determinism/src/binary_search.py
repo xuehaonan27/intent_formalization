@@ -299,8 +299,15 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
         if ctx.test_and_set(node, empty):
             node.children.clear()  # empty subsumes the len child
-        # else: PASS → the stricter == empty didn't hold; keep len==0 child
-        # so the witness at least records cardinality information.
+        else:
+            # PASS → the stricter == empty would have killed nondet, so the
+            # witness requires s != empty. Combined with len()==0 this pins
+            # down "infinite set" (Verus `Set::len()` returns 0 for infinite
+            # sets). Record that explicitly so the witness is self-contained.
+            not_empty = Assume(var,
+                               f"!({var} == Set::<{elem_ty_name}>::empty())",
+                               "set: infinite (len==0 but non-empty)")
+            ctx.test_and_set(len_node, not_empty)
         return
 
     # Find elements via contains() probing, skipping already-found values
