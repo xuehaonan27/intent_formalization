@@ -1,0 +1,10 @@
+<EQUAL_POLICY>
+{
+  "errs_equivalent": true,
+  "opaque_ok": true,
+  "ignore_fields": [],
+  "opaque_types": [],
+  "rationale": "Ok(start) is an opaque allocation index; the spec permits any valid start satisfying the range constraints, not a specific one."
+}
+</EQUAL_POLICY>
+

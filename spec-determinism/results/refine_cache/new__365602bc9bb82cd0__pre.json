@@ -1,0 +1,91 @@
+{
+  "function": "new",
+  "det_check_template": "proof fn det_new(number_of_bits: usize, r1: Result<Bitmap, Error>, r2: Result<Bitmap, Error>)\n    ensures\n        ({\n            &&& (r1 matches Ok(bitmap_1) ==> {\n                &&& bitmap_1.inv()\n                &&& bitmap_1@.num_bits == number_of_bits as int\n                &&& bitmap_1@.is_empty()\n            })\n            &&& (number_of_bits == 0 ==> r1 is Err)\n            &&& (number_of_bits >= u32::MAX ==> r1 is Err)\n            &&& (number_of_bits % (u8::BITS as usize) != 0 ==> r1 is Err)\n            &&& (r2 matches Ok(bitmap_2) ==> {\n                &&& bitmap_2.inv()\n                &&& bitmap_2@.num_bits == number_of_bits as int\n                &&& bitmap_2@.is_empty()\n            })\n            &&& (number_of_bits == 0 ==> r2 is Err)\n            &&& (number_of_bits >= u32::MAX ==> r2 is Err)\n            &&& (number_of_bits % (u8::BITS as usize) != 0 ==> r2 is Err)\n        }) ==> det_new_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "number_of_bits",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<Bitmap, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "Bitmap"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Bitmap"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<Bitmap, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "Bitmap"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "Error"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Bitmap"
+          },
+          {
+            "kind": "unknown",
+            "name": "Error"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "spec fn det_new_equal(r1: Result<Bitmap, Error>, r2: Result<Bitmap, Error>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)) && ((r1 is Err) ==> (r1->Err_0 == r2->Err_0)))\n}",
+  "equal_fn_name": "det_new_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ]
+}

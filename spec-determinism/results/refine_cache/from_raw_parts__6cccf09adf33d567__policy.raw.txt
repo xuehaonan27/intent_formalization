@@ -1,0 +1,10 @@
+<EQUAL_POLICY>
+{
+  "errs_equivalent": false,
+  "opaque_ok": false,
+  "ignore_fields": [],
+  "opaque_types": [],
+  "rationale": "Spec pins Err.code to ErrorCode::InvalidArgument, so Err variants must be compared; Ok payload (Kheap) is constrained structurally by the ensures clauses."
+}
+</EQUAL_POLICY>
+

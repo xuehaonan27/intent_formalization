@@ -287,10 +287,20 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         return
 
     if length == 0:
-        # Explicitly confirm empty set (stronger than just len==0 for Z3)
+        # Try to confirm empty set. NOTE: in Verus `Set::<T>::len()` returns
+        # 0 for both empty AND infinite sets, so `len==0` does NOT imply
+        # `== empty`. If the `== empty` check FAILs (i.e. the verifier keeps
+        # nondeterminism), the set might be infinite; we keep both `len==0`
+        # and the stricter assume to pin that case down. If `== empty`
+        # PASSes (stricter constraint makes the spec deterministic), that
+        # means the nondeterminism witness is an infinite set on at least
+        # one side — we preserve the `len==0` child so the witness records
+        # that fact.
         empty = Assume(var, f"{var} == Set::<{elem_ty_name}>::empty()", "set: empty")
-        ctx.test_and_set(node, empty)
-        node.children.clear()  # len child subsumed by parent
+        if ctx.test_and_set(node, empty):
+            node.children.clear()  # empty subsumes the len child
+        # else: PASS → the stricter == empty didn't hold; keep len==0 child
+        # so the witness at least records cardinality information.
         return
 
     # Find elements via contains() probing, skipping already-found values
@@ -303,12 +313,13 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         else:
             break
 
-    # One final confirmation with full set expression; clears intermediate children
+    # One final confirmation with full set expression; clears intermediate
+    # children only if the confirmation sticks.
     if elements:
         set_expr = _build_set_expr(elem_ty_name, sorted(elements))
         desc = ", ".join(str(e) for e in sorted(elements))
-        ctx.test_and_set(node, Assume(var, f"{var} == {set_expr}", f"set: {{{desc}}}"))
-        node.children.clear()  # len + elem children subsumed by full set expr
+        if ctx.test_and_set(node, Assume(var, f"{var} == {set_expr}", f"set: {{{desc}}}")):
+            node.children.clear()  # len + elem children subsumed by full set expr
 
 
 def _build_set_expr(elem_ty_name: str, elements: list[int]) -> str:

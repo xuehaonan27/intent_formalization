@@ -1,0 +1,709 @@
+● Search (grep)
+  │ "struct RawArray|pub struct RawArray" (~/nanvix)
+  └ 33 lines found
+
+● Search (grep)
+  │ "enum Error|pub enum Error" (~/nanvix)
+  └ 43 lines found
+
+● Find Rust source files (shell)
+  │ find /home/chentianyu/nanvix -type f -name "*.rs" | head -50
+  └ 51 lines...
+
+● Search (grep)
+  │ "spec fn view" (~/nanvix/src/libs/raw-array/src/lib.rs)
+  └ No matches found
+
+● Search (grep)
+  │ "enum RawArrayStorage|struct RawArrayStorage"
+  │ (~/nanvix/src/libs/raw-array/src/lib.rs)
+  └ 6 lines found
+
+● Search (grep)
+  │ "pub struct Error" (~/nanvix)
+  └ 47 lines found
+
+Now let me find where the Bitmap uses Error to confirm which Error type is relevant:
+
+● Search (grep)
+  │ "struct Bitmap" (~/nanvix)
+  └ 43 lines found
+
+● Search (grep)
+  │ "pub enum ErrorCode" (~/nanvix/src/libs/error/src/lib.rs)
+  └ 81 lines found
+
+Now let me check how Bitmap imports Error:
+
+● Search (grep)
+  │ "use.*Error|use.*error" (~/nanvix/src/libs/bitmap/src/lib.rs)
+  └ 1 line found
+
+● Search (grep)
+  │ "impl.*View.*for RawArray|spec fn view"
+  │ (~/nanvix/src/libs/raw-array/src/lib.rs)
+  └ No matches found
+
+✗ Search (grep)
+  │ "-> Result" (~/nanvix/src/libs/bitmap/src/lib.rs)
+  └ rg: unrecognized flag ->
+
+● Search (grep)
+  │ "Result" (~/nanvix/src/libs/bitmap/src/lib.rs)
+  └ 8 lines found
+
+● Read lib.rs
+  │ ~/nanvix/src/libs/bitmap/src/lib.rs
+  └ L27:40 (14 lines read)
+
+Now I have all the information. The `Error` type from `::sys::error` is the one in `/home/chentianyu/nanvix/src/libs/error/src/lib.rs` — a struct with `code: ErrorCode` and `reason: &'static str`. The `RawArray<T>` is a struct with a single field `storage: RawArrayStorage<T>`, which has a `RawArrayView<T>` spec view with `contents: Seq<T>`.
+
+<REFINED_SYMBOLS>
+[
+  {
+    "name": "pre_self_",
+    "type": {
+      "kind": "struct",
+      "name": "Bitmap",
+      "fields": [
+        {
+          "name": "number_of_bits",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "usage",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "bits",
+          "type": {
+            "kind": "struct",
+            "name": "RawArray<u8>",
+            "type_args": [
+              {
+                "kind": "u8",
+                "name": "u8"
+              }
+            ],
+            "fields": [
+              {
+                "name": "storage",
+                "type": {
+                  "kind": "enum",
+                  "name": "RawArrayStorage<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ],
+                  "variants": [
+                    {
+                      "name": "Managed"
+                    },
+                    {
+                      "name": "Unmanaged"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec_view": {
+              "kind": "struct",
+              "name": "RawArrayView<u8>",
+              "fields": [
+                {
+                  "name": "contents",
+                  "type": {
+                    "kind": "Seq",
+                    "name": "Seq<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "next_free",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        }
+      ],
+      "spec_view": {
+        "kind": "struct",
+        "name": "BitmapView",
+        "fields": [
+          {
+            "name": "num_bits",
+            "type": {
+              "kind": "int",
+              "name": "int"
+            }
+          },
+          {
+            "name": "set_bits",
+            "type": {
+              "kind": "Set",
+              "name": "Set<int>",
+              "type_args": [
+                {
+                  "kind": "int",
+                  "name": "int"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "phase": "input"
+  },
+  {
+    "name": "index",
+    "type": {
+      "kind": "usize",
+      "name": "usize"
+    },
+    "phase": "input"
+  },
+  {
+    "name": "r1",
+    "type": {
+      "kind": "Result",
+      "name": "Result<(), Error>",
+      "variants": [
+        {
+          "name": "Ok",
+          "inner": {
+            "kind": "()",
+            "name": "()"
+          }
+        },
+        {
+          "name": "Err",
+          "inner": {
+            "kind": "struct",
+            "name": "Error",
+            "fields": [
+              {
+                "name": "code",
+                "type": {
+                  "kind": "enum",
+                  "name": "ErrorCode",
+                  "variants": [
+                    { "name": "OperationNotPermitted" },
+                    { "name": "NoSuchEntry" },
+                    { "name": "NoSuchProcess" },
+                    { "name": "Interrupted" },
+                    { "name": "IoErr" },
+                    { "name": "NoSuchDeviceOrAddress" },
+                    { "name": "TooBig" },
+                    { "name": "InvalidExecutableFormat" },
+                    { "name": "BadFile" },
+                    { "name": "NoChildProcess" },
+                    { "name": "TryAgain" },
+                    { "name": "OutOfMemory" },
+                    { "name": "PermissionDenied" },
+                    { "name": "BadAddress" },
+                    { "name": "NotBlockDevice" },
+                    { "name": "ResourceBusy" },
+                    { "name": "EntryExists" },
+                    { "name": "CrossDeviceLink" },
+                    { "name": "NoSuchDevice" },
+                    { "name": "InvalidDirectory" },
+                    { "name": "IsDirectory" },
+                    { "name": "InvalidArgument" },
+                    { "name": "FileTableOVerflow" },
+                    { "name": "TooManyOpenFiles" },
+                    { "name": "NotTerminal" },
+                    { "name": "TextFileBusy" },
+                    { "name": "FileTooLarge" },
+                    { "name": "NoSpaceOnDevice" },
+                    { "name": "IllegalSeek" },
+                    { "name": "ReadOnlyFileSystem" },
+                    { "name": "TooManyLinks" },
+                    { "name": "BrokenPipe" },
+                    { "name": "MathArgDomainErr" },
+                    { "name": "ValueOutOfRange" },
+                    { "name": "NoMessageAvailable" },
+                    { "name": "IdentifierRemoved" },
+                    { "name": "OutOfRangeChannel" },
+                    { "name": "Level2NotSynchronized" },
+                    { "name": "Level3Halted" },
+                    { "name": "Level3Reset" }
+                  ]
+                }
+              },
+              {
+                "name": "reason",
+                "type": {
+                  "kind": "str",
+                  "name": "&'static str"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "type_args": [
+        {
+          "kind": "()",
+          "name": "()"
+        },
+        {
+          "kind": "struct",
+          "name": "Error",
+          "fields": [
+            {
+              "name": "code",
+              "type": {
+                "kind": "enum",
+                "name": "ErrorCode",
+                "variants": [
+                  { "name": "OperationNotPermitted" },
+                  { "name": "NoSuchEntry" },
+                  { "name": "NoSuchProcess" },
+                  { "name": "Interrupted" },
+                  { "name": "IoErr" },
+                  { "name": "NoSuchDeviceOrAddress" },
+                  { "name": "TooBig" },
+                  { "name": "InvalidExecutableFormat" },
+                  { "name": "BadFile" },
+                  { "name": "NoChildProcess" },
+                  { "name": "TryAgain" },
+                  { "name": "OutOfMemory" },
+                  { "name": "PermissionDenied" },
+                  { "name": "BadAddress" },
+                  { "name": "NotBlockDevice" },
+                  { "name": "ResourceBusy" },
+                  { "name": "EntryExists" },
+                  { "name": "CrossDeviceLink" },
+                  { "name": "NoSuchDevice" },
+                  { "name": "InvalidDirectory" },
+                  { "name": "IsDirectory" },
+                  { "name": "InvalidArgument" },
+                  { "name": "FileTableOVerflow" },
+                  { "name": "TooManyOpenFiles" },
+                  { "name": "NotTerminal" },
+                  { "name": "TextFileBusy" },
+                  { "name": "FileTooLarge" },
+                  { "name": "NoSpaceOnDevice" },
+                  { "name": "IllegalSeek" },
+                  { "name": "ReadOnlyFileSystem" },
+                  { "name": "TooManyLinks" },
+                  { "name": "BrokenPipe" },
+                  { "name": "MathArgDomainErr" },
+                  { "name": "ValueOutOfRange" },
+                  { "name": "NoMessageAvailable" },
+                  { "name": "IdentifierRemoved" },
+                  { "name": "OutOfRangeChannel" },
+                  { "name": "Level2NotSynchronized" },
+                  { "name": "Level3Halted" },
+                  { "name": "Level3Reset" }
+                ]
+              }
+            },
+            {
+              "name": "reason",
+              "type": {
+                "kind": "str",
+                "name": "&'static str"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "phase": "output_simple"
+  },
+  {
+    "name": "r2",
+    "type": {
+      "kind": "Result",
+      "name": "Result<(), Error>",
+      "variants": [
+        {
+          "name": "Ok",
+          "inner": {
+            "kind": "()",
+            "name": "()"
+          }
+        },
+        {
+          "name": "Err",
+          "inner": {
+            "kind": "struct",
+            "name": "Error",
+            "fields": [
+              {
+                "name": "code",
+                "type": {
+                  "kind": "enum",
+                  "name": "ErrorCode",
+                  "variants": [
+                    { "name": "OperationNotPermitted" },
+                    { "name": "NoSuchEntry" },
+                    { "name": "NoSuchProcess" },
+                    { "name": "Interrupted" },
+                    { "name": "IoErr" },
+                    { "name": "NoSuchDeviceOrAddress" },
+                    { "name": "TooBig" },
+                    { "name": "InvalidExecutableFormat" },
+                    { "name": "BadFile" },
+                    { "name": "NoChildProcess" },
+                    { "name": "TryAgain" },
+                    { "name": "OutOfMemory" },
+                    { "name": "PermissionDenied" },
+                    { "name": "BadAddress" },
+                    { "name": "NotBlockDevice" },
+                    { "name": "ResourceBusy" },
+                    { "name": "EntryExists" },
+                    { "name": "CrossDeviceLink" },
+                    { "name": "NoSuchDevice" },
+                    { "name": "InvalidDirectory" },
+                    { "name": "IsDirectory" },
+                    { "name": "InvalidArgument" },
+                    { "name": "FileTableOVerflow" },
+                    { "name": "TooManyOpenFiles" },
+                    { "name": "NotTerminal" },
+                    { "name": "TextFileBusy" },
+                    { "name": "FileTooLarge" },
+                    { "name": "NoSpaceOnDevice" },
+                    { "name": "IllegalSeek" },
+                    { "name": "ReadOnlyFileSystem" },
+                    { "name": "TooManyLinks" },
+                    { "name": "BrokenPipe" },
+                    { "name": "MathArgDomainErr" },
+                    { "name": "ValueOutOfRange" },
+                    { "name": "NoMessageAvailable" },
+                    { "name": "IdentifierRemoved" },
+                    { "name": "OutOfRangeChannel" },
+                    { "name": "Level2NotSynchronized" },
+                    { "name": "Level3Halted" },
+                    { "name": "Level3Reset" }
+                  ]
+                }
+              },
+              {
+                "name": "reason",
+                "type": {
+                  "kind": "str",
+                  "name": "&'static str"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "type_args": [
+        {
+          "kind": "()",
+          "name": "()"
+        },
+        {
+          "kind": "struct",
+          "name": "Error",
+          "fields": [
+            {
+              "name": "code",
+              "type": {
+                "kind": "enum",
+                "name": "ErrorCode",
+                "variants": [
+                  { "name": "OperationNotPermitted" },
+                  { "name": "NoSuchEntry" },
+                  { "name": "NoSuchProcess" },
+                  { "name": "Interrupted" },
+                  { "name": "IoErr" },
+                  { "name": "NoSuchDeviceOrAddress" },
+                  { "name": "TooBig" },
+                  { "name": "InvalidExecutableFormat" },
+                  { "name": "BadFile" },
+                  { "name": "NoChildProcess" },
+                  { "name": "TryAgain" },
+                  { "name": "OutOfMemory" },
+                  { "name": "PermissionDenied" },
+                  { "name": "BadAddress" },
+                  { "name": "NotBlockDevice" },
+                  { "name": "ResourceBusy" },
+                  { "name": "EntryExists" },
+                  { "name": "CrossDeviceLink" },
+                  { "name": "NoSuchDevice" },
+                  { "name": "InvalidDirectory" },
+                  { "name": "IsDirectory" },
+                  { "name": "InvalidArgument" },
+                  { "name": "FileTableOVerflow" },
+                  { "name": "TooManyOpenFiles" },
+                  { "name": "NotTerminal" },
+                  { "name": "TextFileBusy" },
+                  { "name": "FileTooLarge" },
+                  { "name": "NoSpaceOnDevice" },
+                  { "name": "IllegalSeek" },
+                  { "name": "ReadOnlyFileSystem" },
+                  { "name": "TooManyLinks" },
+                  { "name": "BrokenPipe" },
+                  { "name": "MathArgDomainErr" },
+                  { "name": "ValueOutOfRange" },
+                  { "name": "NoMessageAvailable" },
+                  { "name": "IdentifierRemoved" },
+                  { "name": "OutOfRangeChannel" },
+                  { "name": "Level2NotSynchronized" },
+                  { "name": "Level3Halted" },
+                  { "name": "Level3Reset" }
+                ]
+              }
+            },
+            {
+              "name": "reason",
+              "type": {
+                "kind": "str",
+                "name": "&'static str"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "phase": "output_simple"
+  },
+  {
+    "name": "post1_self_",
+    "type": {
+      "kind": "struct",
+      "name": "Bitmap",
+      "fields": [
+        {
+          "name": "number_of_bits",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "usage",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "bits",
+          "type": {
+            "kind": "struct",
+            "name": "RawArray<u8>",
+            "type_args": [
+              {
+                "kind": "u8",
+                "name": "u8"
+              }
+            ],
+            "fields": [
+              {
+                "name": "storage",
+                "type": {
+                  "kind": "enum",
+                  "name": "RawArrayStorage<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ],
+                  "variants": [
+                    {
+                      "name": "Managed"
+                    },
+                    {
+                      "name": "Unmanaged"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec_view": {
+              "kind": "struct",
+              "name": "RawArrayView<u8>",
+              "fields": [
+                {
+                  "name": "contents",
+                  "type": {
+                    "kind": "Seq",
+                    "name": "Seq<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "next_free",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        }
+      ],
+      "spec_view": {
+        "kind": "struct",
+        "name": "BitmapView",
+        "fields": [
+          {
+            "name": "num_bits",
+            "type": {
+              "kind": "int",
+              "name": "int"
+            }
+          },
+          {
+            "name": "set_bits",
+            "type": {
+              "kind": "Set",
+              "name": "Set<int>",
+              "type_args": [
+                {
+                  "kind": "int",
+                  "name": "int"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "phase": "output_compound"
+  },
+  {
+    "name": "post2_self_",
+    "type": {
+      "kind": "struct",
+      "name": "Bitmap",
+      "fields": [
+        {
+          "name": "number_of_bits",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "usage",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        },
+        {
+          "name": "bits",
+          "type": {
+            "kind": "struct",
+            "name": "RawArray<u8>",
+            "type_args": [
+              {
+                "kind": "u8",
+                "name": "u8"
+              }
+            ],
+            "fields": [
+              {
+                "name": "storage",
+                "type": {
+                  "kind": "enum",
+                  "name": "RawArrayStorage<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ],
+                  "variants": [
+                    {
+                      "name": "Managed"
+                    },
+                    {
+                      "name": "Unmanaged"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec_view": {
+              "kind": "struct",
+              "name": "RawArrayView<u8>",
+              "fields": [
+                {
+                  "name": "contents",
+                  "type": {
+                    "kind": "Seq",
+                    "name": "Seq<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "next_free",
+          "type": {
+            "kind": "usize",
+            "name": "usize"
+          }
+        }
+      ],
+      "spec_view": {
+        "kind": "struct",
+        "name": "BitmapView",
+        "fields": [
+          {
+            "name": "num_bits",
+            "type": {
+              "kind": "int",
+              "name": "int"
+            }
+          },
+          {
+            "name": "set_bits",
+            "type": {
+              "kind": "Set",
+              "name": "Set<int>",
+              "type_args": [
+                {
+                  "kind": "int",
+                  "name": "int"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "phase": "output_compound"
+  }
+]
+</REFINED_SYMBOLS>
+

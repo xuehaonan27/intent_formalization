@@ -1,0 +1,10 @@
+<EQUAL_POLICY>
+{
+  "errs_equivalent": true,
+  "opaque_ok": true,
+  "ignore_fields": [],
+  "opaque_types": [],
+  "rationale": "Spec only requires returned ptr be some element of free_addrs, so the specific handle is opaque; Err variant is not pinned."
+}
+</EQUAL_POLICY>
+

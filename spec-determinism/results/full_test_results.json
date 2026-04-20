@@ -2,19 +2,21 @@
   {
     "crate": "bitmap",
     "function": "number_of_bits",
+    "artifact_dir": "results/artifacts/bitmap__number_of_bits",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 1,
-    "elapsed": 14.1,
+    "elapsed": 5.1,
     "assumes": []
   },
   {
     "crate": "bitmap",
     "function": "new",
+    "artifact_dir": "results/artifacts/bitmap__new",
     "status": "nondeterministic",
     "rounds": 21,
     "verus_calls": 22,
-    "elapsed": 59.3,
+    "elapsed": 50.6,
     "assumes": [
       "number_of_bits == 8",
       "r1 is Ok",
@@ -29,19 +31,21 @@
   {
     "crate": "bitmap",
     "function": "from_raw_array",
+    "artifact_dir": "results/artifacts/bitmap__from_raw_array",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 23,
-    "elapsed": 13.4,
+    "elapsed": 2.6,
     "assumes": []
   },
   {
     "crate": "bitmap",
     "function": "alloc",
+    "artifact_dir": "results/artifacts/bitmap__alloc",
     "status": "nondeterministic",
     "rounds": 62,
     "verus_calls": 85,
-    "elapsed": 161.7,
+    "elapsed": 151.6,
     "assumes": [
       "pre_self_@.num_bits == 8",
       "pre_self_@.set_bits == Set::<int>::empty()",
@@ -59,10 +63,11 @@
   {
     "crate": "bitmap",
     "function": "alloc_range",
+    "artifact_dir": "results/artifacts/bitmap__alloc_range",
     "status": "nondeterministic",
     "rounds": 69,
     "verus_calls": 154,
-    "elapsed": 179.1,
+    "elapsed": 168.8,
     "assumes": [
       "pre_self_@.num_bits == 8",
       "pre_self_@.set_bits == Set::<int>::empty()",
@@ -81,37 +86,41 @@
   {
     "crate": "bitmap",
     "function": "set",
+    "artifact_dir": "results/artifacts/bitmap__set",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 155,
-    "elapsed": 11.7,
+    "elapsed": 2.6,
     "assumes": []
   },
   {
     "crate": "bitmap",
     "function": "clear",
+    "artifact_dir": "results/artifacts/bitmap__clear",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 156,
-    "elapsed": 11.2,
+    "elapsed": 2.6,
     "assumes": []
   },
   {
     "crate": "bitmap",
     "function": "test",
+    "artifact_dir": "results/artifacts/bitmap__test",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 157,
-    "elapsed": 11.3,
+    "elapsed": 2.6,
     "assumes": []
   },
   {
     "crate": "slab",
     "function": "from_raw_parts",
+    "artifact_dir": "results/artifacts/slab__from_raw_parts",
     "status": "nondeterministic",
     "rounds": 66,
     "verus_calls": 66,
-    "elapsed": 194.7,
+    "elapsed": 184.0,
     "assumes": [
       "len == 1",
       "block_size == 1",
@@ -126,50 +135,57 @@
       "r2->Ok_0@.start_addr == 0",
       "r2->Ok_0@.end_addr == 1",
       "r2->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.free_addrs.len() == 0",
       "!det_from_raw_parts_equal(r1, r2)"
     ]
   },
   {
     "crate": "slab",
     "function": "allocate",
+    "artifact_dir": "results/artifacts/slab__allocate",
     "status": "nondeterministic",
     "rounds": 78,
     "verus_calls": 144,
-    "elapsed": 219.5,
+    "elapsed": 210.2,
     "assumes": [
       "pre_self_@.block_size == 1",
       "pre_self_@.start_addr == 0",
       "pre_self_@.end_addr == 2",
       "pre_self_@.allocated_addrs == Set::<usize>::empty()",
+      "pre_self_@.free_addrs.len() == 0",
       "r1 is Ok",
       "r2 is Ok",
       "post1_self_@.block_size == 1",
       "post1_self_@.start_addr == 0",
       "post1_self_@.end_addr == 2",
       "post1_self_@.allocated_addrs == Set::<usize>::empty().insert(0)",
+      "post1_self_@.free_addrs.len() == 0",
       "post2_self_@.block_size == 1",
       "post2_self_@.start_addr == 0",
       "post2_self_@.end_addr == 2",
       "post2_self_@.allocated_addrs == Set::<usize>::empty().insert(1)",
+      "post2_self_@.free_addrs.len() == 0",
       "!det_allocate_chk_equal(r1, r2, post1_self_@, post2_self_@)"
     ]
   },
   {
     "crate": "slab",
     "function": "deallocate",
+    "artifact_dir": "results/artifacts/slab__deallocate",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 145,
-    "elapsed": 12.6,
+    "elapsed": 2.9,
     "assumes": []
   },
   {
     "crate": "kernel",
     "function": "from_raw_parts",
+    "artifact_dir": "results/artifacts/kernel__from_raw_parts",
     "status": "nondeterministic",
     "rounds": 65,
     "verus_calls": 65,
-    "elapsed": 199.2,
+    "elapsed": 189.1,
     "assumes": [
       "addr == 0",
       "size == 0",
@@ -185,10 +201,11 @@
   {
     "crate": "kernel",
     "function": "allocate",
+    "artifact_dir": "results/artifacts/kernel__allocate",
     "status": "nondeterministic",
     "rounds": 82,
     "verus_calls": 147,
-    "elapsed": 192.9,
+    "elapsed": 180.5,
     "assumes": [
       "pre_self_@.slabs.len() == 7",
       "r1 is Ok",
@@ -201,19 +218,21 @@
   {
     "crate": "kernel",
     "function": "deallocate",
+    "artifact_dir": "results/artifacts/kernel__deallocate",
     "status": "deterministic",
     "rounds": 1,
     "verus_calls": 148,
-    "elapsed": 14.7,
+    "elapsed": 3.1,
     "assumes": []
   },
   {
     "crate": "kernel",
     "function": "layout_to_allocator",
+    "artifact_dir": "results/artifacts/kernel__layout_to_allocator",
     "status": "verify_error",
     "rounds": 1,
     "verus_calls": 149,
-    "elapsed": 11.5,
+    "elapsed": 1.5,
     "assumes": [],
     "error": "\n   Compiling kernel v0.12.355 (/home/chentianyu/nanvix/src/kernel)\nerror: no variant `Slab1024` for this datatype\n   --> src/kernel/src/mm/kheap.proof.rs:370:408\n    |\n370 | ... is Slab512) == (r2->Ok_0 is Slab512)) && ((r1->Ok_0 is Slab1024) == (r2->Ok_0 is Slab1024)) && ((r1->Ok_0 i...\n    |                                               ^^^^^^^^^^^^^^^^^^^^^^\n\nerror: could not compile `kernel` (bin \"kernel\") due to 1 previous error\n"
   }

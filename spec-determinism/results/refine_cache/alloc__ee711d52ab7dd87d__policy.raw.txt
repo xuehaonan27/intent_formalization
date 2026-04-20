@@ -1,0 +1,10 @@
+<EQUAL_POLICY>
+{
+  "errs_equivalent": true,
+  "opaque_ok": true,
+  "ignore_fields": [],
+  "opaque_types": [],
+  "rationale": "Spec only constrains that the returned index is an unset bit; which specific free index is chosen is not pinned down, so Ok payloads are opaque handles."
+}
+</EQUAL_POLICY>
+

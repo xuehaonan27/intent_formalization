@@ -1,0 +1,4 @@
+<EQUAL_POLICY>
+{"keep_default": true, "rationale": "Ok payload is a specific SlabSize pinned by spec_slab_size_to_index to the unique tightest-fit index, so default field comparison is correct."}
+</EQUAL_POLICY>
+
