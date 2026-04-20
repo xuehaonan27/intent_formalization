@@ -75,15 +75,22 @@ KHEAP_CFG = {
         "from_raw_parts", "allocate", "deallocate", "layout_to_allocator",
     ],
     "check_name_overrides": {},
-    # Error struct / ErrorCode enum live in the error crate
+    # Error struct / ErrorCode enum live in the error crate.
+    # SlabView is defined in the slab crate and is referenced by KheapView.
     "extra_type_sources": [
         os.path.join(NANVIX, "src/libs/error/src/lib.rs"),
+        os.path.join(NANVIX, "src/libs/slab/src/lib.rs"),
+        os.path.join(NANVIX, "src/libs/slab/src/lib.spec.rs"),
     ],
     # kheap.allocate / deallocate verify slow — bump timeout
     "timeout": 300,
     # Scope verify to this module (with --verify-function det_<name>)
     # to dodge proof-stability collateral on unrelated kernel functions.
     "verify_module": "mm::kheap",
+    # Kernel is a [[bin]] crate; `cargo verus build` trips on duplicate
+    # #![feature(stmt_expr_attributes)] between the wrapper and kmain.rs.
+    # Stick with `verify` for this crate.
+    "use_build": False,
     "use_llm_equal_policy": True,
 }
 
@@ -116,6 +123,7 @@ def run_crate(cfg):
         timeout=cfg.get("timeout", 120),
         extra_args=cfg.get("extra_args"),
         verify_module=cfg.get("verify_module"),
+        use_build=cfg.get("use_build", True),
     )
 
     for fn_name in cfg["functions"]:

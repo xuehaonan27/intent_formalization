@@ -11,71 +11,901 @@
           {
             "name": "slab_8_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_16_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_32_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_64_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_128_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_256_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_512_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_1024_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_2048_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_4096_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           }
         ],
@@ -90,8 +920,57 @@
                 "name": "Seq<SlabView>",
                 "type_args": [
                   {
-                    "kind": "unknown",
-                    "name": "SlabView"
+                    "kind": "struct",
+                    "name": "SlabView",
+                    "fields": [
+                      {
+                        "name": "block_size",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "start_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "end_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "allocated_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "free_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -186,71 +1065,901 @@
           {
             "name": "slab_8_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_16_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_32_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_64_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_128_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_256_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_512_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_1024_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_2048_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_4096_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           }
         ],
@@ -265,8 +1974,57 @@
                 "name": "Seq<SlabView>",
                 "type_args": [
                   {
-                    "kind": "unknown",
-                    "name": "SlabView"
+                    "kind": "struct",
+                    "name": "SlabView",
+                    "fields": [
+                      {
+                        "name": "block_size",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "start_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "end_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "allocated_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "free_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -285,71 +2043,901 @@
           {
             "name": "slab_8_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_16_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_32_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_64_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_128_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_256_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_512_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_1024_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_2048_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           },
           {
             "name": "slab_4096_bytes",
             "type": {
-              "kind": "unknown",
-              "name": "Slab"
+              "kind": "struct",
+              "name": "Slab",
+              "fields": [
+                {
+                  "name": "index",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Bitmap"
+                  }
+                },
+                {
+                  "name": "data_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*mut u8"
+                  }
+                },
+                {
+                  "name": "end_addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "*const u8"
+                  }
+                },
+                {
+                  "name": "block_size",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                }
+              ],
+              "spec_view": {
+                "kind": "struct",
+                "name": "SlabView",
+                "fields": [
+                  {
+                    "name": "block_size",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "start_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "end_addr",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "allocated_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "free_addrs",
+                    "type": {
+                      "kind": "Set",
+                      "name": "Set<usize>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           }
         ],
@@ -364,8 +2952,57 @@
                 "name": "Seq<SlabView>",
                 "type_args": [
                   {
-                    "kind": "unknown",
-                    "name": "SlabView"
+                    "kind": "struct",
+                    "name": "SlabView",
+                    "fields": [
+                      {
+                        "name": "block_size",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "start_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "end_addr",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "allocated_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "free_addrs",
+                        "type": {
+                          "kind": "Set",
+                          "name": "Set<usize>",
+                          "type_args": [
+                            {
+                              "kind": "usize",
+                              "name": "usize"
+                            }
+                          ]
+                        }
+                      }
+                    ]
                   }
                 ]
               }

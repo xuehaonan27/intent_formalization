@@ -732,7 +732,12 @@ def _resolve_types(
     for td in list(type_defs.values()):
         _substitute(td)
 
-    # Look for spec view types (e.g. BitmapView for Bitmap)
+    # Look for spec view types (e.g. BitmapView for Bitmap). The view types
+    # themselves may reference additional unresolved types (e.g. KheapView's
+    # `slabs: Seq<SlabView>` pulls SlabView into scope). Collect those as a
+    # second-pass worklist and resolve + substitute so every field inside a
+    # view structure has its concrete definition.
+    view_worklist: set[str] = set()
     for name in list(type_defs.keys()):
         view_name = name + "View"
         for t in trees:
@@ -740,6 +745,40 @@ def _resolve_types(
             if view_type:
                 type_defs[view_name] = view_type
                 type_defs[name].spec_view = view_type
+                _collect_unknown(view_type, view_worklist)
                 break
+
+    while view_worklist:
+        name = view_worklist.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        resolved = _lookup(name)
+        if resolved is None:
+            continue
+        refs: set[str] = set()
+        _collect_unknown(resolved, refs)
+        view_worklist.update(refs - seen)
+        # Also pick up the referenced type's own spec_view (e.g. Slab → SlabView)
+        vname = name + "View"
+        if vname not in type_defs:
+            for t in trees:
+                v = _find_struct(t, vname)
+                if v:
+                    type_defs[vname] = v
+                    resolved.spec_view = v
+                    extra: set[str] = set()
+                    _collect_unknown(v, extra)
+                    view_worklist.update(extra - seen)
+                    break
+
+    # Second-pass substitution so newly-resolved names propagate into every slot
+    for p in params:
+        p.type = _substitute(p.type)
+    _substitute(return_type)
+    for td in list(type_defs.values()):
+        _substitute(td)
+        if td.spec_view:
+            _substitute(td.spec_view)
 
     return type_defs

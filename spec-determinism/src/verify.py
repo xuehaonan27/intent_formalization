@@ -72,14 +72,25 @@ def run_cargo_verus(
     extra_args: list[str] | None = None,
     verify_module: str | None = None,
     verify_function: str | None = None,
+    use_build: bool = True,
 ) -> dict:
     """
-    Run cargo verus verify on a crate.
+    Run cargo verus on a crate.
 
     If verify_module is set, restrict verification to that module (and
     optionally one function inside it via verify_function). The
     restriction is forwarded only to the root crate via
     `--fwd-verus-args-to roots` so dependencies still verify normally.
+
+    If use_build is True (default) we invoke `cargo verus build` instead
+    of `verify`. `build` actually produces the crate's final artifact
+    (.rlib for libs, .elf for bins) which satisfies cargo's fingerprint
+    check; `verify` skips codegen and leaves the artifact missing, which
+    makes cargo mark the crate stale on every invocation and forces a
+    full re-verify even when source is unchanged. Some bin crates with
+    nightly features that collide with Verus's wrapper (e.g. a duplicate
+    `#![feature(stmt_expr_attributes)]`) can't be built by the wrapper;
+    those should pass use_build=False.
 
     Returns raw dict: {returncode, stdout, stderr, duration_ms}
     """
@@ -88,17 +99,26 @@ def run_cargo_verus(
     env["RUSTC_BOOTSTRAP"] = "1"
 
     cmd = [
-        "cargo", "+nightly-2025-12-08", "verus", "verify",
+        "cargo", "+nightly-2025-12-08", "verus",
+        "build" if use_build else "verify",
     ]
-    if verify_module:
+    scoped = bool(verify_module) or bool(verify_function)
+    if scoped:
         cmd.extend(["--fwd-verus-args-to", "roots"])
     cmd.extend(["-p", crate_name])
     if features:
         cmd.extend(["--features", ",".join(features)])
     if extra_args:
         cmd.extend(extra_args)
-    if verify_module:
-        verus_args = ["--", "--verify-only-module", verify_module]
+    if scoped:
+        verus_args = ["--"]
+        if verify_module:
+            verus_args.extend(["--verify-only-module", verify_module])
+        else:
+            # Injected det_X fns live at the crate root (the proof file
+            # is `include!`d directly into lib.rs). Scope Verus SMT to
+            # that single fn via --verify-root.
+            verus_args.append("--verify-root")
         if verify_function:
             verus_args.extend(["--verify-function", verify_function])
         cmd.extend(verus_args)
@@ -204,6 +224,7 @@ class VerusRunner:
         timeout: int = 120,
         extra_args: list[str] | None = None,
         verify_module: str | None = None,
+        use_build: bool = True,
     ):
         self.crate_dir = crate_dir
         self.crate_name = crate_name
@@ -213,6 +234,7 @@ class VerusRunner:
         self.timeout = timeout
         self.extra_args = extra_args
         self.verify_module = verify_module
+        self.use_build = use_build
         self._original: str | None = None
         self._call_count = 0
         self._baseline_checked = False
@@ -227,10 +249,15 @@ class VerusRunner:
             f"Baseline preflight: full verify of {self.crate_name} "
             f"(no injection)"
         )
+        # Baseline uses `verify` unconditionally: `build` with no module
+        # scope can trip on primary-package codegen (e.g. duplicate
+        # `#![feature(stmt_expr_attributes)]` on the kernel bin). The
+        # baseline only runs once per session, so its perf is irrelevant.
         raw = run_cargo_verus(
             self.crate_dir, self.crate_name,
             self.verus_path, self.features, self.timeout,
             extra_args=self.extra_args,
+            use_build=False,
         )
         combined = raw["stdout"] + "\n" + raw["stderr"]
         if "could not compile" in combined or raw["returncode"] != 0:
@@ -239,16 +266,24 @@ class VerusRunner:
                 f"(no injection). Tool would inject into a broken crate.\n"
                 f"stderr tail:\n{combined[-2000:]}"
             )
-        # Sanity: check for at least one "X verified, 0 errors" line
+        # Sanity: check for at least one "X verified, 0 errors" line.
+        # NOTE: `cargo verus build` may hit the cache (no verify output) when
+        # the crate is already up-to-date — this is a valid OK state.
         m = re.findall(r"(\d+)\s+verified,\s+(\d+)\s+errors?", combined)
-        if not m or any(int(e) != 0 for _, e in m):
+        if m and any(int(e) != 0 for _, e in m):
             raise RuntimeError(
                 f"Baseline verify of {self.crate_name} reports errors:\n"
                 f"{combined[-2000:]}"
             )
-        logger.info(
-            f"Baseline OK: {sum(int(v) for v, _ in m)} verified, 0 errors"
-        )
+        if m:
+            logger.info(
+                f"Baseline OK: {sum(int(v) for v, _ in m)} verified, 0 errors"
+            )
+        else:
+            logger.info(
+                f"Baseline OK: {self.crate_name} cached "
+                f"(no recompile needed)"
+            )
         self._baseline_checked = True
 
     def check(self, code: str, fn_name: str) -> VerifyResult:
@@ -267,7 +302,8 @@ class VerusRunner:
                 self.verus_path, self.features, self.timeout,
                 extra_args=self.extra_args,
                 verify_module=self.verify_module,
-                verify_function=fn_name if self.verify_module else None,
+                verify_function=fn_name,
+                use_build=self.use_build,
             )
             self._call_count += 1
             return parse_result(raw, fn_name)
