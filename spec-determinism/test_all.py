@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from src.types import *
 from src.extract import extract_spec
 from src.gen_det import build_det_check_spec, render_template
+from src.equal_policy import EqualPolicy
 from src.verify import VerusRunner
 from src.binary_search import binary_search
 
@@ -134,7 +135,14 @@ def run_crate(cfg):
         # --- Step 2: Gen det check ---
         try:
             check_name = cfg.get("check_name_overrides", {}).get(fn_name)
-            det_spec = build_det_check_spec(spec, check_name=check_name)
+            # Per-function equal-fn policy override. Defaults to policy with
+            # errs_equivalent=True (all Errs equivalent). Configs can coarsen
+            # further for specific functions (e.g. opaque_ok for allocators).
+            policy_overrides = cfg.get("equal_policy_overrides", {})
+            policy = EqualPolicy.from_dict(policy_overrides.get(fn_name))
+            det_spec = build_det_check_spec(
+                spec, check_name=check_name, equal_policy=policy
+            )
         except Exception as e:
             elapsed = time.time() - t0
             entry.update(status="gen_fail", error=str(e), elapsed=elapsed)

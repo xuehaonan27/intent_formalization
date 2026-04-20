@@ -176,6 +176,7 @@ class DetCheckSpec:
     equal_fn_name: str = ""           # e.g. "set_equal"
     equal_arg_pairs: list[dict] = field(default_factory=list)  # [{"lhs":"r1","rhs":"r2"}, ...]
     check_fn_name: str = ""           # actual `proof fn <name>` emitted; default `det_{function}`
+    equal_policy: dict = field(default_factory=dict)  # EqualPolicy.to_dict() — coarsening rules used
 
     def to_dict(self) -> dict:
         return {
@@ -187,6 +188,7 @@ class DetCheckSpec:
             "equal_fn_name": self.equal_fn_name,
             "equal_arg_pairs": list(self.equal_arg_pairs),
             "check_fn_name": self.check_fn_name,
+            "equal_policy": dict(self.equal_policy),
         }
 
     @staticmethod
@@ -200,6 +202,7 @@ class DetCheckSpec:
             equal_fn_name=d.get("equal_fn_name", ""),
             equal_arg_pairs=list(d.get("equal_arg_pairs", [])),
             check_fn_name=d.get("check_fn_name", ""),
+            equal_policy=dict(d.get("equal_policy") or {}),
         )
 
     def to_json(self) -> str:

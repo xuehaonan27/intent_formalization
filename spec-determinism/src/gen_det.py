@@ -16,6 +16,7 @@ from .types import (
     TypeKind, TypeInfo, Param, FunctionSpec, Assume,
     Symbol, DetCheckSpec,
 )
+from .equal_policy import EqualPolicy, default_policy
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,11 @@ def _build_symbols(spec: FunctionSpec) -> list[Symbol]:
 # Template generation
 # ---------------------------------------------------------------------------
 
-def _build_template(spec: FunctionSpec, check_name: str | None = None) -> str:
+def _build_template(
+    spec: FunctionSpec,
+    check_name: str | None = None,
+    policy: EqualPolicy | None = None,
+) -> str:
     """
     Generate the det check proof fn with {ASSUMES} placeholder.
     
@@ -226,7 +231,7 @@ def _build_template(spec: FunctionSpec, check_name: str | None = None) -> str:
 {{ASSUMES}}}}"""
 
     # Build the default equal spec fn body uses bare names (no `@`).
-    equal_fn_def = _build_equal_fn(equal_fn_name, equal_params, equal_body_args)
+    equal_fn_def = _build_equal_fn(equal_fn_name, equal_params, equal_body_args, policy)
 
     return code, equal_fn_def, equal_fn_name, equal_call_args
 
@@ -239,13 +244,22 @@ def build_det_check_spec(
     spec: FunctionSpec,
     check_name: str | None = None,
     verus_config: dict | None = None,
+    equal_policy: EqualPolicy | None = None,
 ) -> DetCheckSpec:
     """
     Build a DetCheckSpec from a FunctionSpec.
-    
+
     This is the output of Step 1 (extract + gen_det).
+
+    ``equal_policy`` controls how the generated ``det_<fn>_equal`` spec fn
+    coarsens structural equality. Defaults to ``default_policy()`` — all
+    ``Err`` values equivalent; everything else strict.
     """
-    template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(spec, check_name)
+    if equal_policy is None:
+        equal_policy = default_policy()
+    template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(
+        spec, check_name, equal_policy
+    )
     symbols = _build_symbols(spec)
     check_fn_name = check_name or f"det_{spec.name}"
 
@@ -257,6 +271,7 @@ def build_det_check_spec(
         equal_fn_def=equal_fn_def,
         equal_fn_name=equal_fn_name,
         check_fn_name=check_fn_name,
+        equal_policy=equal_policy.to_dict(),
         # callsite form: includes `@` for view-wrapped compound outputs.
         # Used by distinctness phase to call `!{equal_fn_name}(lhs, rhs, ...)`.
         equal_arg_pairs=[
@@ -545,26 +560,52 @@ def _build_equal_fn(
     fn_name: str,
     params: list[tuple[str, TypeInfo]],
     arg_pairs: list[tuple[str, str, TypeInfo]],
+    policy: EqualPolicy | None = None,
 ) -> str:
     """Emit a Verus spec fn that structurally compares each (lhs, rhs) pair.
 
     The function is `&&`-joined over all pairs. Each individual equality is
-    built recursively by `build_equal_expr` based on TypeInfo, which means
-    enums/Results are `match`-split so we never rely on a derived `==` that
-    might be missing for nested types (e.g. `Error` without `PartialEq`).
+    built recursively by `build_equal_expr` based on TypeInfo + policy, which
+    means enums/Results are `match`-split so we never rely on a derived `==`
+    that might be missing for nested types (e.g. `Error` without `PartialEq`).
+
+    If ``policy.custom_body`` is set, it is used verbatim as the function
+    body (the caller — typically a human reviewer or an LLM hook — takes
+    full responsibility for correctness).
     """
+    if policy is None:
+        policy = default_policy()
+
     param_decls = ", ".join(f"{n}: {_type_annotation(t)}" for (n, t) in params)
 
-    clauses = []
-    for (lhs, rhs, ty) in arg_pairs:
-        clauses.append(build_equal_expr(ty, lhs, rhs))
-
-    if not clauses:
-        body = "true"
+    if policy.custom_body is not None and policy.custom_body.strip():
+        body = policy.custom_body.strip()
     else:
-        body = "\n    && ".join(f"({c})" for c in clauses)
+        clauses = []
+        for (lhs, rhs, ty) in arg_pairs:
+            clauses.append(build_equal_expr(ty, lhs, rhs, policy))
+
+        if not clauses:
+            body = "true"
+        else:
+            body = "\n    && ".join(f"({c})" for c in clauses)
+
+    # Header comment makes it explicit to reviewers that this body is
+    # generated from a declarative policy and summarises the active rules.
+    header = (
+        f"// Generated equal-fn for determinism check.\n"
+        f"// Policy: errs_equivalent={policy.errs_equivalent}, "
+        f"opaque_ok={policy.opaque_ok}"
+    )
+    if policy.ignore_fields:
+        header += f", ignore_fields={sorted(policy.ignore_fields)}"
+    if policy.opaque_types:
+        header += f", opaque_types={sorted(policy.opaque_types)}"
+    if policy.custom_body:
+        header += " [custom_body in use]"
 
     return (
+        f"{header}\n"
         f"spec fn {fn_name}({param_decls}) -> bool {{\n"
         f"    {body}\n"
         f"}}"
@@ -576,7 +617,12 @@ def _type_annotation(ty: TypeInfo) -> str:
     return ty.name
 
 
-def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
+def build_equal_expr(
+    ty: TypeInfo,
+    lhs: str,
+    rhs: str,
+    policy: EqualPolicy | None = None,
+) -> str:
     """Recursively emit a Verus boolean expression that structurally compares
     two values of the given type. The output is always inside `spec` mode.
 
@@ -585,8 +631,21 @@ def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
     conjunction of `is`-discriminator equality + per-variant implication
     comparing inner fields. For Struct, emits a conjunction over field
     comparisons; uses `@` if the struct has a spec view.
+
+    ``policy`` (default: ``default_policy()``) controls coarsening rules —
+    e.g. ``errs_equivalent`` collapses all ``Err`` to one equivalence class,
+    ``opaque_ok`` does the same for ``Ok``, ``opaque_types`` treats whole
+    named types as equivalent, and ``ignore_fields`` omits struct fields.
     """
+    if policy is None:
+        policy = default_policy()
+
     k = ty.kind
+
+    # Whole-type opacity (policy override)
+    if ty.name and ty.name in policy.opaque_types:
+        return "true"
+
     # Primitive / value types where structural `==` is safe
     if k in (
         TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
@@ -600,17 +659,29 @@ def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
     if k == TypeKind.RESULT:
         ok_ty = ty.type_args[0] if len(ty.type_args) > 0 else TypeInfo(TypeKind.UNIT, "()")
         err_ty = ty.type_args[1] if len(ty.type_args) > 1 else TypeInfo(TypeKind.UNKNOWN, "unknown")
-        ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0")
-        err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0")
+        # Ok side — opaque or recurse
+        if policy.opaque_ok:
+            ok_clause = f"(({lhs} is Ok) ==> true)"
+        else:
+            ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0", policy)
+            ok_clause = f"(({lhs} is Ok) ==> ({ok_eq}))"
+        # Err side — collapse all Errs or recurse
+        if policy.errs_equivalent:
+            # All Errs are equivalent: only discriminator match matters.
+            return (
+                f"(({lhs} is Ok) == ({rhs} is Ok))"
+                f" && {ok_clause}"
+            )
+        err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0", policy)
         return (
             f"(({lhs} is Ok) == ({rhs} is Ok))"
-            f" && (({lhs} is Ok) ==> ({ok_eq}))"
+            f" && {ok_clause}"
             f" && (({lhs} is Err) ==> ({err_eq}))"
         )
 
     if k == TypeKind.OPTION:
         inner_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.UNKNOWN, "unknown")
-        some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0")
+        some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0", policy)
         return (
             f"(({lhs} is Some) == ({rhs} is Some))"
             f" && (({lhs} is Some) ==> ({some_eq}))"
@@ -629,41 +700,43 @@ def build_equal_expr(ty: TypeInfo, lhs: str, rhs: str) -> str:
             if v.inner is not None:
                 # Single-field variant (e.g. Foo(T)). Compare ->{name}_0
                 inner_eq = build_equal_expr(
-                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0"
+                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0", policy
                 )
                 parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
         return " && ".join(parts)
 
     if k == TypeKind.STRUCT:
         view = ty.spec_view
-        # If the lhs/rhs expressions already refer to a view (end with `@`),
-        # we can expand on the view's fields directly. Otherwise, if a view
-        # exists, compare `lhs@ == rhs@` — this dodges issues like exec types
-        # without PartialEq and keeps us at spec equality on the ghost view.
         lhs_is_viewed = lhs.endswith("@")
         rhs_is_viewed = rhs.endswith("@")
         if view is not None and view.fields and lhs_is_viewed and rhs_is_viewed:
             clauses = []
             for fld in view.fields:
+                if fld.name in policy.ignore_fields:
+                    continue
                 clauses.append(build_equal_expr(
-                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}"
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy
                 ))
+            if not clauses:
+                return "true"
             return " && ".join(f"({c})" for c in clauses)
         if view is not None and not (lhs_is_viewed and rhs_is_viewed):
             # Nested struct-with-view (e.g. Result<Kheap, _> where caller
             # passed `r1->Ok_0`). Compare through the view at spec level.
+            # Note: ignore_fields/errs_equivalent cannot be threaded through
+            # a raw `@ == @` comparison — if the caller needs that, they
+            # should supply a custom_body for this function.
             return f"({lhs})@ == ({rhs})@"
         if ty.fields:
-            # No spec view but we have field info — expand on the exec type.
-            # Assumes listed fields are publicly accessible (LLM is instructed
-            # to only return `pub` fields; static-extracted fields are also
-            # public by construction since tree-sitter only sees what's
-            # visible to the enclosing crate).
             clauses = []
             for fld in ty.fields:
+                if fld.name in policy.ignore_fields:
+                    continue
                 clauses.append(build_equal_expr(
-                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}"
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy
                 ))
+            if not clauses:
+                return "true"
             return " && ".join(f"({c})" for c in clauses)
         # No field info at all — fall back to `==`
         return f"{lhs} == {rhs}"
@@ -736,7 +809,10 @@ def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
         declared.add(name)
         declared.add(partner)
 
-    equal_fn_def = _build_equal_fn(equal_fn_name, params, body_pairs)
+    equal_fn_def = _build_equal_fn(
+        equal_fn_name, params, body_pairs,
+        EqualPolicy.from_dict(det_spec.equal_policy),
+    )
     det_spec.equal_fn_def = equal_fn_def
     det_spec.equal_fn_name = equal_fn_name
     det_spec.equal_arg_pairs = [{"lhs": a1, "rhs": a2} for (a1, a2) in callsite_pairs]
