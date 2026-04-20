@@ -182,6 +182,7 @@ def run_crate(cfg):
         entry["artifact_dir"] = art_dir
 
         # --- Step 3: Binary search ---
+        calls_before = runner.call_count
         try:
             witness = binary_search(det_spec, runner)
         except Exception as e:
@@ -213,7 +214,7 @@ def run_crate(cfg):
         entry.update(
             status=status,
             rounds=rounds,
-            verus_calls=runner.call_count,
+            verus_calls=runner.call_count - calls_before,
             elapsed=round(elapsed, 1),
             assumes=[a.expression for a in witness.assumes] if witness.assumes else [],
         )
