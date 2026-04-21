@@ -18,7 +18,7 @@ from .types import (
     Symbol, DetCheckSpec,
 )
 from .gen_det import render_template
-from .backend import DetBackend
+from .verify import VerusRunner
 
 logger = logging.getLogger(__name__)
 
@@ -434,7 +434,7 @@ class SearchContext:
     Holds search state. Operates on DetCheckSpec (template + symbols).
     """
 
-    def __init__(self, det_spec: DetCheckSpec, runner: DetBackend, llm_client=None):
+    def __init__(self, det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None):
         self.det_spec = det_spec
         self.runner = runner
         self.llm_client = llm_client
@@ -488,7 +488,7 @@ class SearchContext:
 # Driver
 # ===========================================================================
 
-def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -> Witness:
+def binary_search(det_spec: DetCheckSpec, runner: VerusRunner, llm_client=None) -> Witness:
     """Run full binary search using a DetCheckSpec (template + symbol table)."""
     ctx = SearchContext(det_spec, runner, llm_client)
 

@@ -73,7 +73,6 @@ def run_cargo_verus(
     verify_module: str | None = None,
     verify_function: str | None = None,
     use_build: bool = True,
-    verus_extra_args: list[str] | None = None,
 ) -> dict:
     """
     Run cargo verus on a crate.
@@ -122,12 +121,7 @@ def run_cargo_verus(
             verus_args.append("--verify-root")
         if verify_function:
             verus_args.extend(["--verify-function", verify_function])
-        if verus_extra_args:
-            verus_args.extend(verus_extra_args)
         cmd.extend(verus_args)
-    elif verus_extra_args:
-        cmd.append("--")
-        cmd.extend(verus_extra_args)
 
     logger.info(f"Running: {' '.join(cmd)} in {crate_dir}")
     start = time.monotonic()
