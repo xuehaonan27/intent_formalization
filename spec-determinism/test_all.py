@@ -12,6 +12,7 @@ from src.extract import extract_spec
 from src.gen_det import build_det_check_spec, render_template
 from src.equal_policy import EqualPolicy
 from src.verify import VerusRunner
+from src.z3_backend import Z3Backend
 from src.binary_search import binary_search
 
 logging.basicConfig(
@@ -114,17 +115,33 @@ def run_crate(cfg):
             with open(extra) as f:
                 type_sources.append(f.read())
 
-    runner = VerusRunner(
-        crate_dir=NANVIX,
-        crate_name=crate,
-        proof_file=cfg["proof"],
-        verus_path=VERUS_PATH,
-        features=cfg.get("features"),
-        timeout=cfg.get("timeout", 120),
-        extra_args=cfg.get("extra_args"),
-        verify_module=cfg.get("verify_module"),
-        use_build=cfg.get("use_build", True),
-    )
+    backend_kind = cfg.get("backend", "z3")
+    if backend_kind == "z3":
+        runner = Z3Backend(
+            crate_dir=NANVIX,
+            crate_name=crate,
+            proof_file=cfg["proof"],
+            verus_path=VERUS_PATH,
+            features=cfg.get("features"),
+            timeout=cfg.get("timeout", 120),
+            extra_args=cfg.get("extra_args"),
+            verify_module=cfg.get("verify_module"),
+            log_dir=cfg.get("log_dir", f"/tmp/verus-log-{crate}"),
+        )
+        print(f"[{crate}] backend = Z3Backend (model shortcut enabled)")
+    else:
+        runner = VerusRunner(
+            crate_dir=NANVIX,
+            crate_name=crate,
+            proof_file=cfg["proof"],
+            verus_path=VERUS_PATH,
+            features=cfg.get("features"),
+            timeout=cfg.get("timeout", 120),
+            extra_args=cfg.get("extra_args"),
+            verify_module=cfg.get("verify_module"),
+            use_build=cfg.get("use_build", True),
+        )
+        print(f"[{crate}] backend = VerusRunner")
 
     for fn_name in cfg["functions"]:
         print(f"\n{'='*70}")

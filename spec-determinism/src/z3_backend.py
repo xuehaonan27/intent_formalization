@@ -170,6 +170,7 @@ class Z3Backend:
         verify_module: str | None = None,
         log_dir: str | None = None,
         tracked_symbols: list[str] | None = None,
+        extra_args: list[str] | None = None,
     ):
         self.crate_dir = crate_dir
         self.crate_name = crate_name
@@ -181,6 +182,7 @@ class Z3Backend:
         self.verify_module = verify_module
         self.log_dir = log_dir or "/tmp/verus-log"
         self.tracked_symbols = tracked_symbols or []
+        self.extra_args = extra_args
         self.call_count = 0
         self._last_result: Z3VerifyResult | None = None
 
@@ -243,7 +245,7 @@ class Z3Backend:
                 verus_path=self.verus_path,
                 features=self.features,
                 timeout=self.timeout,
-                extra_args=None,
+                extra_args=self.extra_args,
                 verus_extra_args=[
                     "--log-dir", str(log_dir),
                     "--log", "smt-transcript",
