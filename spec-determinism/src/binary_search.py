@@ -491,14 +491,18 @@ class SearchContext:
 def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -> Witness:
     """Run full binary search using a DetCheckSpec (template + symbol table).
 
-    Fast path: if `runner` is a Z3Backend (duck-typed via `last_model` and
-    `set_det_spec`), the R0 failure already comes with a Z3 model that
-    may fully specify every top-level symbol. If so, construct a Witness
-    directly from the model and skip narrowing entirely.
+    Fast path: if `runner` satisfies `ModelProvidingBackend`, the R0
+    failure already comes with a Z3 model that may fully specify every
+    top-level symbol. If so, construct a Witness directly from the model
+    and skip narrowing entirely.
     """
-    # Let a Z3-style backend know which SMT symbols to read out.
-    if hasattr(runner, "set_det_spec"):
-        runner.set_det_spec(det_spec)
+    from .backend import ModelProvidingBackend
+
+    model_backend = runner if isinstance(runner, ModelProvidingBackend) else None
+
+    # Let a model-providing backend know which SMT symbols to read out.
+    if model_backend is not None:
+        model_backend.set_det_spec(det_spec)
 
     ctx = SearchContext(det_spec, runner, llm_client)
 
@@ -530,7 +534,7 @@ def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -
         return Witness(function=det_spec.function, trace=ctx.trace)
 
     # Fast path: a model-returning backend may already have a full witness.
-    model = getattr(runner, "last_model", None)
+    model = model_backend.last_model if model_backend is not None else None
     if model:
         # Lazy import to avoid a hard cycle between the two modules.
         from .z3_backend import witness_from_model
