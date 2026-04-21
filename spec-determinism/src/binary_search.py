@@ -489,7 +489,17 @@ class SearchContext:
 # ===========================================================================
 
 def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -> Witness:
-    """Run full binary search using a DetCheckSpec (template + symbol table)."""
+    """Run full binary search using a DetCheckSpec (template + symbol table).
+
+    Fast path: if `runner` is a Z3Backend (duck-typed via `last_model` and
+    `set_det_spec`), the R0 failure already comes with a Z3 model that
+    may fully specify every top-level symbol. If so, construct a Witness
+    directly from the model and skip narrowing entirely.
+    """
+    # Let a Z3-style backend know which SMT symbols to read out.
+    if hasattr(runner, "set_det_spec"):
+        runner.set_det_spec(det_spec)
+
     ctx = SearchContext(det_spec, runner, llm_client)
 
     # R0: initial determinism check (no assumes)
@@ -518,6 +528,33 @@ def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -
         )
         ctx.trace[-1]["smoke_test_error"] = r0.stderr[:4000]
         return Witness(function=det_spec.function, trace=ctx.trace)
+
+    # Fast path: a model-returning backend may already have a full witness.
+    model = getattr(runner, "last_model", None)
+    if model:
+        # Lazy import to avoid a hard cycle between the two modules.
+        from .z3_backend import witness_from_model
+        shortcut = witness_from_model(det_spec, model, trace=ctx.trace)
+        if shortcut is not None:
+            ctx.trace.append({
+                "round": 0, "phase": "z3_shortcut",
+                "node_key": "root", "assumes": [], "new_assume": None,
+                "result": "fail",
+                "description": (
+                    f"full witness extracted from Z3 model "
+                    f"({len(model)} symbols); skipping narrowing"
+                ),
+            })
+            logger.info(
+                f"{det_spec.function}: Z3 model covers all "
+                f"{len(model)} top-level symbols; skipping narrowing"
+            )
+            shortcut.trace = ctx.trace
+            return shortcut
+        logger.info(
+            f"{det_spec.function}: Z3 model incomplete; "
+            "falling back to binary-search narrowing"
+        )
 
     logger.info(f"{det_spec.function}: nondeterminism detected, starting binary search")
 

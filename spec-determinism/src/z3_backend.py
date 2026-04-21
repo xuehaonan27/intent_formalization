@@ -42,7 +42,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .types import VerifyResult
+from .types import VerifyResult, DetCheckSpec, Witness, ConcreteValue, Symbol
 from .verify import inject_proof_fn, restore_file, run_cargo_verus
 
 logger = logging.getLogger(__name__)
@@ -208,6 +208,17 @@ class Z3Backend:
         """Model captured by the most recent `check()` call (empty if pass)."""
         return self._last_result.model if self._last_result else {}
 
+    def set_det_spec(self, det_spec: DetCheckSpec) -> None:
+        """Derive `tracked_symbols` from a DetCheckSpec.
+
+        Each top-level symbol (variables like `number_of_bits`, `r1`, `r2`,
+        `pre_self_`, `post1_self_`, `post2_self_`) maps to a Verus SMT
+        binding of the form `<name>!`. Projection-style symbols (those
+        containing `@` or `.`) refer to sub-fields of a view and are not
+        bound as their own SMT variable, so we skip them.
+        """
+        self.tracked_symbols = tracked_symbols_from_det_spec(det_spec)
+
     # -------------------------------------------------------------------
     # Internals
     # -------------------------------------------------------------------
@@ -320,3 +331,124 @@ def summarise_model(model: dict[str, tuple[str, str]]) -> dict[str, str]:
         else:
             out[name] = v
     return out
+
+
+# ---------------------------------------------------------------------------
+# DetCheckSpec integration — binary_search short-circuit path
+# ---------------------------------------------------------------------------
+
+def tracked_symbols_from_det_spec(det_spec: DetCheckSpec) -> list[str]:
+    """Derive the SMT-level symbol names to read out of a Z3 model.
+
+    The `DetCheckSpec.symbols` list contains narrowing symbols; some are
+    Verus-bound top-level vars (e.g. `number_of_bits`, `r1`, `r2`,
+    `pre_self_`, `post1_self_`) and some are projections of those
+    (e.g. `pre_self_@.num_bits`). Only the top-level ones have a
+    `<name>!` binding in the SMT transcript, so we keep just those.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for s in det_spec.symbols:
+        # Projection symbols contain "@" (view) or "." (field access).
+        if "@" in s.name or "." in s.name:
+            continue
+        sym = s.name + "!"
+        if sym not in seen:
+            seen.add(sym)
+            out.append(sym)
+    return out
+
+
+def _classify_symbol(name: str) -> tuple[str, str]:
+    """Return (bucket, clean_var_name) for a DetCheckSpec symbol name.
+
+    bucket ∈ {"input", "output1", "output2"}.
+    """
+    if name.startswith("post1_"):
+        return ("output1", name[len("post1_"):])
+    if name.startswith("post2_"):
+        return ("output2", name[len("post2_"):])
+    if name == "r1":
+        return ("output1", "r1")
+    if name == "r2":
+        return ("output2", "r2")
+    # `pre_self_`, plain params → input
+    if name.startswith("pre_"):
+        return ("input", name[len("pre_"):])
+    return ("input", name)
+
+
+def witness_from_model(
+    det_spec: DetCheckSpec,
+    model: dict[str, tuple[str, str]],
+    trace: list[dict] | None = None,
+) -> Witness | None:
+    """Build a `Witness` from a Z3 model if it covers every top-level
+    symbol in `det_spec`.
+
+    Returns None if the model is missing any tracked symbol — in that
+    case the caller should fall back to binary-search narrowing so
+    that the witness is complete.
+    """
+    tracked = tracked_symbols_from_det_spec(det_spec)
+    missing = [s for s in tracked if s not in model]
+    if missing:
+        logger.info(
+            f"Z3 model missing {len(missing)}/{len(tracked)} symbols: "
+            f"{missing[:5]}{'...' if len(missing) > 5 else ''}"
+        )
+        return None
+
+    pretty = summarise_model(model)
+
+    inputs: dict[str, ConcreteValue] = {}
+    output1: dict[str, ConcreteValue] = {}
+    output2: dict[str, ConcreteValue] = {}
+
+    for s in det_spec.symbols:
+        if "@" in s.name or "." in s.name:
+            continue
+        smt_name = s.name + "!"
+        mv = model.get(smt_name)
+        if mv is None:
+            continue
+        sort, raw = mv
+        human = pretty.get(smt_name, raw)
+        cv = ConcreteValue(
+            var_name=s.name,
+            type_name=s.type.name,
+            fields={},
+            raw=human,
+        )
+        bucket, clean = _classify_symbol(s.name)
+        target = {"input": inputs, "output1": output1, "output2": output2}[bucket]
+        target[clean] = cv
+
+    # Identify whether the two outputs structurally differ in their
+    # human-readable Z3 summary — this is a strong signal.
+    gap_desc = ""
+    # Pair r1↔r2 and post1_X↔post2_X (keyed under the same clean name
+    # in output1 / output2).
+    for key in list(output1):
+        if key in output2 and output1[key].raw != output2[key].raw:
+            gap_desc = (
+                f"{key}: {output1[key].raw} vs {output2[key].raw}"
+            )
+            break
+    if not gap_desc:
+        # r1/r2 are bucketed under their own clean names ("r1" and "r2"
+        # respectively). Compare them explicitly as a final resort.
+        v1 = output1.get("r1")
+        v2 = output2.get("r2")
+        if v1 is not None and v2 is not None and v1.raw != v2.raw:
+            gap_desc = f"return value: {v1.raw} vs {v2.raw}"
+
+    return Witness(
+        function=det_spec.function,
+        inputs=inputs,
+        output1=output1,
+        output2=output2,
+        trace=trace or [],
+        gap_type="z3_model",
+        gap_description=gap_desc,
+    )

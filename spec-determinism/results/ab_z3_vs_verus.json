@@ -1,0 +1,217 @@
+[
+  {
+    "fn": "number_of_bits",
+    "backend": "z3",
+    "elapsed": 1.5,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "number_of_bits",
+    "backend": "verus",
+    "elapsed": 4.1,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "new",
+    "backend": "z3",
+    "elapsed": 1.4,
+    "rounds": 2,
+    "calls": 1,
+    "status": "nondet",
+    "gap": "return value: Err(<opaque>) vs Ok(<opaque>)",
+    "inputs": {
+      "number_of_bits": "2704"
+    },
+    "output1": {
+      "r1": "Err(<opaque>)"
+    },
+    "output2": {
+      "r2": "Ok(<opaque>)"
+    }
+  },
+  {
+    "fn": "new",
+    "backend": "verus",
+    "elapsed": 32.2,
+    "rounds": 20,
+    "calls": 20,
+    "status": "nondet",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "from_raw_array",
+    "backend": "z3",
+    "elapsed": 1.5,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "from_raw_array",
+    "backend": "verus",
+    "elapsed": 4.1,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "alloc",
+    "backend": "z3",
+    "elapsed": 1.4,
+    "rounds": 2,
+    "calls": 1,
+    "status": "nondet",
+    "gap": "self_: (bitmap!Bitmap./Bitmap 92760 2617 raw_array!RawArray<u8.>.!val!1 2446) vs (bitmap!Bitmap./Bitmap 92760 2617 raw_array!RawArray<u8.>.!val!2 590)",
+    "inputs": {
+      "self_": "(bitmap!Bitmap./Bitmap 92760 2616 raw_array!RawArray<u8.>.!val!0 2275)"
+    },
+    "output1": {
+      "r1": "Ok(<opaque>)",
+      "self_": "(bitmap!Bitmap./Bitmap 92760 2617 raw_array!RawArray<u8.>.!val!1 2446)"
+    },
+    "output2": {
+      "r2": "Ok(<opaque>)",
+      "self_": "(bitmap!Bitmap./Bitmap 92760 2617 raw_array!RawArray<u8.>.!val!2 590)"
+    }
+  },
+  {
+    "fn": "alloc",
+    "backend": "verus",
+    "elapsed": 97.6,
+    "rounds": 65,
+    "calls": 65,
+    "status": "nondet",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "alloc_range",
+    "backend": "z3",
+    "elapsed": 1.4,
+    "rounds": 2,
+    "calls": 1,
+    "status": "nondet",
+    "gap": "self_: (bitmap!Bitmap./Bitmap 80264 590 raw_array!RawArray<u8.>.!val!1 6906) vs (bitmap!Bitmap./Bitmap 80264 70608 raw_array!RawArray<u8.>.!val!2 1235)",
+    "inputs": {
+      "self_": "(bitmap!Bitmap./Bitmap 80264 590 raw_array!RawArray<u8.>.!val!0 8586)",
+      "size": "70018"
+    },
+    "output1": {
+      "r1": "Err(<opaque>)",
+      "self_": "(bitmap!Bitmap./Bitmap 80264 590 raw_array!RawArray<u8.>.!val!1 6906)"
+    },
+    "output2": {
+      "r2": "Ok(<opaque>)",
+      "self_": "(bitmap!Bitmap./Bitmap 80264 70608 raw_array!RawArray<u8.>.!val!2 1235)"
+    }
+  },
+  {
+    "fn": "alloc_range",
+    "backend": "verus",
+    "elapsed": 107.4,
+    "rounds": 72,
+    "calls": 72,
+    "status": "nondet",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "set",
+    "backend": "z3",
+    "elapsed": 1.5,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "set",
+    "backend": "verus",
+    "elapsed": 4.1,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "clear",
+    "backend": "z3",
+    "elapsed": 1.5,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "clear",
+    "backend": "verus",
+    "elapsed": 4.1,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "test",
+    "backend": "z3",
+    "elapsed": 1.5,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  },
+  {
+    "fn": "test",
+    "backend": "verus",
+    "elapsed": 4.1,
+    "rounds": 1,
+    "calls": 1,
+    "status": "det",
+    "gap": "",
+    "inputs": {},
+    "output1": {},
+    "output2": {}
+  }
+]

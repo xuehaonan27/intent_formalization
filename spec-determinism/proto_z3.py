@@ -54,36 +54,24 @@ def main():
         spec, equal_policy=EqualPolicy(errs_equivalent=True))
     code = render_template(det_spec, [])
 
-    # The SMT-level names we want to read out of the model.
-    # Verus mangles variables as `<name>!`; the input `number_of_bits`
-    # and the synthetic outputs `r1`, `r2` are named exactly that.
-    tracked = ["number_of_bits!", "r1!", "r2!"]
-
     backend = Z3Backend(
         crate_dir=NANVIX,
         crate_name="bitmap",
         verus_path=VERUS_PATH,
         proof_file=BITMAP_PROOF,
-        tracked_symbols=tracked,
     )
 
-    print("running Verus + extracting Z3 model...")
-    res = backend.check_with_model(code, "det_new")
-    print(f"\nstatus   : {res.status}")
-    print(f"duration : {res.duration_ms} ms ({res.duration_ms/1000:.2f} s)")
-    print(f"transcript: {res.transcript_path}")
+    print("running binary_search with Z3Backend...")
+    from src.binary_search import binary_search
+    witness = binary_search(det_spec, backend)
 
-    if res.status == "fail":
-        if res.model:
-            print("\nconcrete witness (from Z3 get-model):")
-            for name, v in summarise_model(res.model).items():
-                print(f"  {name:25s} = {v}")
-        else:
-            print("\n(no model extracted — fall back to binary search)")
-    elif res.status == "pass":
-        print("\ndeterministic at R0 (no witness needed).")
-    else:
-        print(f"\nstderr:\n{res.stderr[:500]}")
+    print(f"\ncalls    : {backend.call_count}")
+    print(f"trace    : {len(witness.trace)} rounds")
+    print(f"gap_type : {witness.gap_type}")
+    print(f"gap_desc : {witness.gap_description}")
+    print(f"inputs   : { {k: v.raw for k, v in witness.inputs.items()} }")
+    print(f"output1  : { {k: v.raw for k, v in witness.output1.items()} }")
+    print(f"output2  : { {k: v.raw for k, v in witness.output2.items()} }")
 
 
 if __name__ == "__main__":
