@@ -49,14 +49,19 @@ def build_a_prime_ctx(
     first_push = text.find("(push)")
     prelude = text[:first_push]
 
-    # Locate the specific Function-Def block for fn_name.
-    marker = f";; Function-Def {crate_name}::{fn_name}"
-    mi = text.find(marker)
-    if mi < 0:
-        # Fallback: any line referencing it.
+    # Locate the specific Function-Def block for fn_name. The marker may
+    # include module prefix when --verify-only-module is used, e.g.
+    #   ;; Function-Def kernel::mm::kheap::det_allocate
+    # Search by suffix "::{fn_name}\n" which is unique enough.
+    import re as _re
+    m = _re.search(rf";; Function-Def\s+\S*::{_re.escape(fn_name)}\b", text)
+    if not m:
+        # Fallback to plain substring.
         mi = text.find(f"Function-Def {crate_name}::{fn_name}")
-    if mi < 0:
-        raise RuntimeError(f"No Function-Def for {fn_name} in {smt2_path}")
+        if mi < 0:
+            raise RuntimeError(f"No Function-Def for {fn_name} in {smt2_path}")
+    else:
+        mi = m.start()
     push_idx = text.find("(push)", mi)
     cs_idx = text.find("(check-sat)", push_idx)
     body = text[push_idx + len("(push)"):cs_idx]
