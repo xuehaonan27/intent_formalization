@@ -337,11 +337,22 @@ def _expand_with_model(
         logger.debug(f"model_eval load failed: {exc}")
         return {n: v for n, (_, v) in tracked_vals.items()}
 
+    # Pre-build Poly→Set name map and a memoization dict for algebraic facts.
+    try:
+        poly2set = model_eval.build_set_poly_index(m, ev)
+    except Exception:
+        poly2set = {}
+    set_facts_cache: dict[str, list] = {}
+
     out: dict[str, str] = {}
     for name, (sort, value) in tracked_vals.items():
         try:
             expanded = ev.eval(name)
-            out[name] = _stringify_with_views(ev, expanded)
+            out[name] = _stringify_with_views(
+                ev, expanded,
+                _poly2set=poly2set,
+                _set_facts=set_facts_cache,
+            )
         except Exception as exc:
             logger.debug(f"expand {name} failed: {exc}")
             out[name] = value
@@ -350,10 +361,17 @@ def _expand_with_model(
 
 def _stringify_with_views(ev: "model_eval.Evaluator", expr,
                           _cache: dict | None = None,
-                          _seen: set | None = None) -> str:
+                          _seen: set | None = None,
+                          _poly2set: dict | None = None,
+                          _set_facts: dict | None = None) -> str:
     """Render an expanded s-expression, but for any opaque universe-sort
     element (`Foo!val!N`) that has a `View` interpretation in the model,
     substitute in the concrete view value.
+
+    Additionally, for opaque `vstd!set.Set<…>.!val!N` elements, look up
+    algebraic facts committed by the model (e.g. `insert(Set#0, Poly#80)
+    = Set#12`) and render the relational form. This turns two otherwise
+    indistinguishable `Set!val!N` skolems into a diff-friendly expression.
     """
     if _cache is None:
         _cache = {}
@@ -361,7 +379,8 @@ def _stringify_with_views(ev: "model_eval.Evaluator", expr,
         _seen = set()
     if isinstance(expr, list):
         head = expr[0] if expr else ""
-        parts = [_stringify_with_views(ev, x, _cache, _seen) for x in expr[1:]]
+        parts = [_stringify_with_views(ev, x, _cache, _seen, _poly2set, _set_facts)
+                 for x in expr[1:]]
         return "(" + " ".join([str(head), *parts]) + ")"
     if isinstance(expr, str):
         if expr in _cache:
@@ -369,6 +388,43 @@ def _stringify_with_views(ev: "model_eval.Evaluator", expr,
         m = re.match(r"^([A-Za-z][\w!<>%.&\-]*?)!val!\d+$", expr)
         if m:
             sort = m.group(1)
+            # Set-valued uninterpreted sort: render via algebraic facts
+            # if the model committed any insert/remove/union/… entry for
+            # this element.
+            if sort.startswith("vstd!set.Set<") and expr not in _seen:
+                try:
+                    if _set_facts is not None and expr in _set_facts:
+                        facts = _set_facts[expr]
+                    else:
+                        facts = model_eval.set_algebraic_facts(ev.model, ev, expr) or []
+                        if _set_facts is not None:
+                            _set_facts[expr] = facts
+                    if facts:
+                        _seen.add(expr)
+                        op, args, _ = facts[0]
+                        rendered_args = []
+                        for a in args:
+                            a_str = model_eval.render(a)
+                            named = _poly2set.get(a_str) if _poly2set else None
+                            if named is not None and named != expr:
+                                # Recurse into the named Set so nested
+                                # insert/remove chains also expand.
+                                rendered_args.append(
+                                    _stringify_with_views(
+                                        ev, named, _cache, _seen,
+                                        _poly2set, _set_facts,
+                                    )
+                                )
+                            else:
+                                rendered_args.append(a_str)
+                        _seen.discard(expr)
+                        friendly = model_eval.friendly_op_name(op)
+                        rendered = (f"{friendly}({', '.join(rendered_args)})"
+                                    f"[={expr}]")
+                        _cache[expr] = rendered
+                        return rendered
+                except Exception as exc:
+                    logger.debug(f"set_algebraic_facts {expr} failed: {exc}")
             # Only try a view for datatype-like sorts that typically have a
             # corresponding `View`. Heuristic: sort must look crate-qualified.
             if "!" in sort and expr not in _seen:
@@ -378,10 +434,6 @@ def _stringify_with_views(ev: "model_eval.Evaluator", expr,
                                       model_eval.DCR_ZERO,
                                       f"TYPE%{sort}",
                                       ev.eval([f"Poly%{sort}", expr])])
-                    # Try decoders whose target-type name starts with the
-                    # crate prefix of `sort` (e.g. `slab!Slab.` → try
-                    # `%Poly%slab!...`). This is much tighter than scanning
-                    # all 40 decoders and avoids pathological cascades.
                     crate_prefix = sort.split("!", 1)[0] + "!"
                     for fname in ev.model.fns:
                         if not (fname.startswith(f"%Poly%{crate_prefix}")
@@ -393,10 +445,6 @@ def _stringify_with_views(ev: "model_eval.Evaluator", expr,
                                 and "/" in candidate[0]
                                 and not candidate[0].startswith("%Poly%")):
                             continue
-                        # Round-trip: make sure `candidate` actually belongs
-                        # to the decoder's type by checking that wrapping it
-                        # back with the matching `Poly%T.` yields `viewed`.
-                        # `%Poly%slab!SlabView.` pairs with `Poly%slab!SlabView.`.
                         tname = fname[len("%Poly%"):]
                         wrapper = f"Poly%{tname}"
                         if wrapper not in ev.model.fns:
@@ -404,8 +452,9 @@ def _stringify_with_views(ev: "model_eval.Evaluator", expr,
                         rewrapped = ev.eval([wrapper, candidate])
                         if model_eval.render(rewrapped) != model_eval.render(viewed):
                             continue
-                        rendered = _stringify_with_views(ev, candidate,
-                                                          _cache, _seen)
+                        rendered = _stringify_with_views(
+                            ev, candidate, _cache, _seen, _poly2set, _set_facts,
+                        )
                         _seen.discard(expr)
                         _cache[expr] = rendered
                         return rendered

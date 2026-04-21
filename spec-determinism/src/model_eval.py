@@ -277,6 +277,20 @@ class Evaluator:
         return [head] + [self.eval(a, env, _d + 1) for a in e[1:]]
 
 
+def as_int(value: SExp) -> int | None:
+    """Return `value` as a Python int if it is a numeric literal, else None."""
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    # Z3 also emits `(- 5)` for negatives.
+    if isinstance(value, list) and len(value) == 2 and value[0] == "-":
+        inner = as_int(value[1])
+        return -inner if inner is not None else None
+    return None
+
+
 # ---------------------------------------------------------------------------
 # High-level witness helpers
 # ---------------------------------------------------------------------------
@@ -288,11 +302,7 @@ VIEW_FN = "vstd!view.View.view.?"
 
 
 def smt_type_symbol(crate_type_name: str) -> str:
-    """Return the SMT `TYPE%…` sort symbol for a fully-qualified Rust type.
-
-    E.g. `slab::Slab` → `TYPE%slab!Slab.` (the dotted suffix comes from
-    Verus's air mangling).
-    """
+    """Return the SMT `TYPE%…` sort symbol for a fully-qualified Rust type."""
     return f"TYPE%{crate_type_name}"
 
 
@@ -307,12 +317,7 @@ def poly_unwrap(ev: Evaluator, type_sym: str, poly: SExp) -> SExp:
 
 
 def view_of(ev: Evaluator, type_sym: str, value: SExp) -> SExp:
-    """Apply Verus's `View::view` for the concrete type.
-
-    Encoded as:  `(vstd!view.View.view.? Dcr!val!0 TYPE%T. (Poly%T. value))`
-    returning a Poly wrapping the view type. Caller typically follows with
-    `poly_unwrap` using the view's SMT type symbol.
-    """
+    """Apply Verus's `View::view` and return the raw Poly."""
     wrapped = poly_wrap(ev, type_sym, value)
     return ev.eval([VIEW_FN, DCR_ZERO, type_sym, wrapped])
 
@@ -323,10 +328,7 @@ def walk_datatype(
     ctor_tag: str,
     field_names: Iterable[str],
 ) -> dict[str, SExp] | None:
-    """Decompose `(Ctor f0 f1 …)` into `{field_name: value}`.
-
-    Returns None if `value` is not the expected constructor form.
-    """
+    """Decompose `(Ctor f0 f1 …)` into `{field_name: value}`."""
     if not isinstance(value, list) or not value:
         return None
     if not str(value[0]).endswith("/" + ctor_tag):
@@ -337,7 +339,134 @@ def walk_datatype(
     return {n: value[i + 1] for i, n in enumerate(names)}
 
 
-def as_int(value: SExp) -> int | None:
+# ---------------------------------------------------------------------------
+# Uninterpreted-sort expansion via model algebraic facts
+# ---------------------------------------------------------------------------
+
+# Set operators whose `(get-model)` ite cascade encodes concrete algebraic
+# facts like `insert(pre_set_poly, elem_poly) = post_set_poly`. Verus's
+# encoding for `vstd::set::Set` wraps every operator as `<op>.?` taking
+# (Dcr, Type, arg_polys...) and returning a Poly (for set-valued ops) or
+# Bool (for contains). We use these to derive relational witnesses for
+# opaque `Set!val!N` values.
+_SET_POLY_OPS = {
+    # op_name: (n_set_args, n_elem_args, result_is_set)
+    "vstd!set.Set.insert.?": (1, 1, True),   # (s, e) → s ∪ {e}
+    "vstd!set.Set.remove.?": (1, 1, True),   # (s, e) → s \ {e}
+    "vstd!set.Set.empty.?":  (0, 0, True),   # () → ∅  (0-ary rhs)
+    "vstd!set.Set.union.?":  (2, 0, True),
+    "vstd!set.Set.intersect.?": (2, 0, True),
+    "vstd!set.Set.difference.?": (2, 0, True),
+}
+
+
+def _ite_entries(body: SExp) -> list[tuple[dict[str, SExp], SExp]]:
+    """Flatten a nested `(ite cond then else)` cascade in a model body.
+
+    Returns a list of `({var_name: matched_val}, value_in_that_branch)`
+    plus a final `({}, default_value)` entry for the terminal else. Each
+    condition is assumed to be either `(= x!i VAL)` or a conjunction of
+    such equalities (the shape Z3 always emits for model interpretations).
+    """
+    out: list[tuple[dict[str, SExp], SExp]] = []
+    cur = body
+    while isinstance(cur, list) and len(cur) == 4 and cur[0] == "ite":
+        cond, then_b, else_b = cur[1], cur[2], cur[3]
+        d: dict[str, SExp] = {}
+        if isinstance(cond, list):
+            parts = cond[1:] if cond and cond[0] == "and" else [cond]
+            for c in parts:
+                if isinstance(c, list) and len(c) == 3 and c[0] == "=":
+                    if isinstance(c[1], str):
+                        d[c[1]] = c[2]
+        out.append((d, then_b))
+        cur = else_b
+    out.append(({}, cur))
+    return out
+
+
+def build_set_poly_index(model: Model, ev: Evaluator, max_id: int = 200) -> dict[str, str]:
+    """Return a map `Poly!val!N → Set!val!K` for all declared Set values.
+
+    Note: multiple Set universe elements CAN share a Poly (if the model's
+    `Poly%<SetType>.` function is not injective on that Set), so the map
+    is first-writer-wins — good enough for naming purposes.
+    """
+    out: dict[str, str] = {}
+    # Scan model.decls for declared Set universe elements.
+    for name in model.decls:
+        if ".Set<" not in name or "!val!" not in name:
+            continue
+        set_type = name.split("!val!")[0]      # e.g. `vstd!set.Set<usize.>.`
+        p = ev.eval([f"Poly%{set_type}", name])
+        if isinstance(p, str) and p not in out:
+            out[p] = name
+    return out
+
+
+def set_algebraic_facts(
+    model: Model,
+    ev: Evaluator,
+    target_set_name: str,
+) -> list[tuple[str, list[SExp], SExp]] | None:
+    """Find explicit algebraic relations for an opaque Set universe element.
+
+    Returns a list of `(op_name, args_polys, produces)` triples where the
+    model has committed `op(args) = target_set_name` as a concrete ite
+    entry. Each `args_polys[i]` is the Poly wrapper of the i-th argument
+    (set or element) as it appeared in the ite condition.
+
+    The returned list may be empty if the model assigned `target_set_name`
+    via the default fall-through branch of every operator (no concrete
+    relational fact). In that case, the caller should fall back to simply
+    naming the Set as opaque.
+    """
+    # Find the Poly encoding of the target set.
+    set_type_match = re.match(r"^(.+?)!val!\d+$", target_set_name)
+    if not set_type_match:
+        return None
+    set_type = set_type_match.group(1)
+    target_poly = ev.eval([f"Poly%{set_type}", target_set_name])
+    if not isinstance(target_poly, str):
+        return None
+
+    facts: list[tuple[str, list[SExp], SExp]] = []
+    for op_name, (n_set, n_elem, _) in _SET_POLY_OPS.items():
+        fn = model.fns.get(op_name)
+        if fn is None:
+            continue
+        for cond_map, branch_val in _ite_entries(fn.body):
+            # We only care about branches that equate the Poly output to
+            # our target_poly. Skip the default fall-through entry — its
+            # value has no committed algebraic meaning.
+            if not cond_map:
+                continue
+            if branch_val != target_poly:
+                # Try rendered equality in case branch_val is a list.
+                if render(branch_val) != target_poly:
+                    continue
+            # Extract per-param Poly args from cond_map; the arg names
+            # follow `x!2`, `x!3` (indices 2+ are the set-or-elem polys,
+            # x!0 is Dcr, x!1 is Type).
+            args: list[SExp] = []
+            ok = True
+            for i in range(2, 2 + n_set + n_elem):
+                key = f"x!{i}"
+                if key not in cond_map:
+                    ok = False
+                    break
+                args.append(cond_map[key])
+            if ok:
+                facts.append((op_name, args, target_poly))
+    return facts
+
+
+def friendly_op_name(smt_op: str) -> str:
+    """`vstd!set.Set.insert.?` → `Set::insert`."""
+    m = re.match(r"^vstd!(\w+)\.(\w+)\.(\w+)\.\?$", smt_op)
+    if m:
+        return f"{m.group(2)}::{m.group(3)}"
+    return smt_op
     """Return `value` as a Python int if it is a numeric literal, else None."""
     if isinstance(value, str):
         try:
