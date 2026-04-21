@@ -462,7 +462,12 @@ class SearchContext:
         if not model:
             return False
         from .z3_backend import witness_from_model
-        w = witness_from_model(self.det_spec, model, trace=self.trace)
+        transcript_path = ""
+        last = getattr(self.runner, "_last_result", None)
+        if last is not None:
+            transcript_path = getattr(last, "transcript_path", "") or ""
+        w = witness_from_model(self.det_spec, model, trace=self.trace,
+                               transcript_path=transcript_path)
         if w is None:
             return False
         self._round += 1
@@ -586,7 +591,12 @@ def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -
     if model:
         # Lazy import to avoid a hard cycle between the two modules.
         from .z3_backend import witness_from_model
-        shortcut = witness_from_model(det_spec, model, trace=ctx.trace)
+        transcript_path = ""
+        last = getattr(model_backend, "_last_result", None)
+        if last is not None:
+            transcript_path = getattr(last, "transcript_path", "") or ""
+        shortcut = witness_from_model(det_spec, model, trace=ctx.trace,
+                                      transcript_path=transcript_path)
         if shortcut is not None:
             ctx.trace.append({
                 "round": 0, "phase": "z3_shortcut",

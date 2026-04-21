@@ -44,6 +44,7 @@ from pathlib import Path
 
 from .types import VerifyResult, DetCheckSpec, Witness, ConcreteValue, Symbol
 from .verify import inject_proof_fn, restore_file, run_cargo_verus
+from . import model_eval
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +308,115 @@ _RE_RESULT_VARIANT = re.compile(r"\((\S+/(?:Ok|Err))\s+")
 _RE_INT = re.compile(r"^-?\d+$")
 
 
+def _expand_with_model(
+    transcript_path: str,
+    tracked_vals: dict[str, tuple[str, str]],
+) -> dict[str, str]:
+    """Use the model-eval interpreter to replace opaque `Sort!val!N` universe
+    constants inside each symbol's raw value with the concrete datatype
+    value they evaluate to (one level deep, constructor-preserving).
+
+    Example: `pre_self_` has raw
+      `(kernel!mm.kheap.Kheap./Kheap slab!Slab.!val!0 slab!Slab.!val!1 …)`.
+    After expansion, each opaque `slab!Slab.!val!N` is rewritten to
+    `(slab!SlabView./SlabView 8 128 144 Set!val!22 Set!val!23)` via
+    `view(Slab!val!N)`. The returned string is a nested s-expression that
+    is far more diagnostic than the raw skolem list.
+
+    On any failure (missing transcript, parse error, no applicable view
+    function) the original raw string is preserved — this is a best-effort
+    enrichment, not a hard dependency.
+    """
+    try:
+        text = model_eval.extract_model_response(transcript_path)
+        if text is None:
+            return {n: v for n, (_, v) in tracked_vals.items()}
+        m = model_eval.load_model(text)
+        ev = model_eval.Evaluator(m)
+    except Exception as exc:
+        logger.debug(f"model_eval load failed: {exc}")
+        return {n: v for n, (_, v) in tracked_vals.items()}
+
+    out: dict[str, str] = {}
+    for name, (sort, value) in tracked_vals.items():
+        try:
+            expanded = ev.eval(name)
+            out[name] = _stringify_with_views(ev, expanded)
+        except Exception as exc:
+            logger.debug(f"expand {name} failed: {exc}")
+            out[name] = value
+    return out
+
+
+def _stringify_with_views(ev: "model_eval.Evaluator", expr,
+                          _cache: dict | None = None,
+                          _seen: set | None = None) -> str:
+    """Render an expanded s-expression, but for any opaque universe-sort
+    element (`Foo!val!N`) that has a `View` interpretation in the model,
+    substitute in the concrete view value.
+    """
+    if _cache is None:
+        _cache = {}
+    if _seen is None:
+        _seen = set()
+    if isinstance(expr, list):
+        head = expr[0] if expr else ""
+        parts = [_stringify_with_views(ev, x, _cache, _seen) for x in expr[1:]]
+        return "(" + " ".join([str(head), *parts]) + ")"
+    if isinstance(expr, str):
+        if expr in _cache:
+            return _cache[expr]
+        m = re.match(r"^([A-Za-z][\w!<>%.&\-]*?)!val!\d+$", expr)
+        if m:
+            sort = m.group(1)
+            # Only try a view for datatype-like sorts that typically have a
+            # corresponding `View`. Heuristic: sort must look crate-qualified.
+            if "!" in sort and expr not in _seen:
+                _seen.add(expr)
+                try:
+                    viewed = ev.eval([model_eval.VIEW_FN,
+                                      model_eval.DCR_ZERO,
+                                      f"TYPE%{sort}",
+                                      ev.eval([f"Poly%{sort}", expr])])
+                    # Try decoders whose target-type name starts with the
+                    # crate prefix of `sort` (e.g. `slab!Slab.` → try
+                    # `%Poly%slab!...`). This is much tighter than scanning
+                    # all 40 decoders and avoids pathological cascades.
+                    crate_prefix = sort.split("!", 1)[0] + "!"
+                    for fname in ev.model.fns:
+                        if not (fname.startswith(f"%Poly%{crate_prefix}")
+                                and fname.endswith(".")):
+                            continue
+                        candidate = ev.eval([fname, viewed])
+                        if not (isinstance(candidate, list) and candidate
+                                and isinstance(candidate[0], str)
+                                and "/" in candidate[0]
+                                and not candidate[0].startswith("%Poly%")):
+                            continue
+                        # Round-trip: make sure `candidate` actually belongs
+                        # to the decoder's type by checking that wrapping it
+                        # back with the matching `Poly%T.` yields `viewed`.
+                        # `%Poly%slab!SlabView.` pairs with `Poly%slab!SlabView.`.
+                        tname = fname[len("%Poly%"):]
+                        wrapper = f"Poly%{tname}"
+                        if wrapper not in ev.model.fns:
+                            continue
+                        rewrapped = ev.eval([wrapper, candidate])
+                        if model_eval.render(rewrapped) != model_eval.render(viewed):
+                            continue
+                        rendered = _stringify_with_views(ev, candidate,
+                                                          _cache, _seen)
+                        _seen.discard(expr)
+                        _cache[expr] = rendered
+                        return rendered
+                except Exception:
+                    pass
+                _seen.discard(expr)
+        _cache[expr] = expr
+        return expr
+    return str(expr)
+
+
 def summarise_model(model: dict[str, tuple[str, str]]) -> dict[str, str]:
     """
     Compress the raw `{name: (sort, value)}` Z3 model into a human-readable
@@ -384,9 +494,14 @@ def witness_from_model(
     det_spec: DetCheckSpec,
     model: dict[str, tuple[str, str]],
     trace: list[dict] | None = None,
+    transcript_path: str | None = None,
 ) -> Witness | None:
     """Build a `Witness` from a Z3 model if it covers every top-level
     symbol in `det_spec`.
+
+    If `transcript_path` is provided, the raw opaque values in the model
+    are further enriched via `model_eval` — opaque `Sort!val!N` universe
+    constants are resolved to their concrete view values where possible.
 
     Returns None if the model is missing any tracked symbol — in that
     case the caller should fall back to binary-search narrowing so
@@ -402,6 +517,9 @@ def witness_from_model(
         return None
 
     pretty = summarise_model(model)
+    expanded: dict[str, str] = {}
+    if transcript_path:
+        expanded = _expand_with_model(transcript_path, model)
 
     inputs: dict[str, ConcreteValue] = {}
     output1: dict[str, ConcreteValue] = {}
@@ -415,7 +533,7 @@ def witness_from_model(
         if mv is None:
             continue
         sort, raw = mv
-        human = pretty.get(smt_name, raw)
+        human = expanded.get(smt_name) or pretty.get(smt_name, raw)
         cv = ConcreteValue(
             var_name=s.name,
             type_name=s.type.name,
