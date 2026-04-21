@@ -78,43 +78,56 @@ def build_a_prime_ctx(
     solver.from_string(body_clean)
     logger.info(f"APrime solver loaded: {len(solver.assertions())} assertions")
 
-    # Collect declared constants by replaying the body (which has the decls)
-    # via a side solver — we need handles on the exact z3 constants.
-    side = z3.Solver(ctx=z3_ctx)
-    side.from_string(prelude)
+    # (guard_consts and k_consts are also unused above; we need to delete
+    # the empty dict init that preceded batching.)
+
+    # Batched constant resolution: instead of re-parsing prelude+body per
+    # name (O(N²) in smt2 size), build ONE big assertion that references
+    # every guard/k constant, parse once, then split the And(...) children.
     guard_consts: dict[str, z3.BoolRef] = {}
     k_consts: dict[str, z3.ExprRef] = {}
 
-    # Strategy: for each schema, construct a lookup by parsing an equality
-    # assertion that names the constant. Verus emits `g_<id>!` and `k_<id>!`.
-    def _get_const(name: str, sort: str) -> Optional[z3.ExprRef]:
-        smt = f"(declare-const __probe Bool) (assert (= __probe (not (not (= {name} {name})))))"
-        # Simpler: use from_string parse trick.
-        try:
-            tmp = z3.Solver(ctx=z3_ctx)
-            tmp.from_string(prelude + "\n" + body_clean
-                            + f"\n(assert (= {name} {name}))")
-            last = tmp.assertions()[-1]
-            # last = (= c c); extract c.
-            return last.children()[0]
-        except z3.Z3Exception as e:
-            logger.warning(f"Could not resolve SMT const {name!r}: {e}")
-            return None
-
+    guard_names = [s.guard_name + "!" for s in schemas]
+    k_names: list[tuple[str, str]] = []  # (pname, smt_name)
     for s in schemas:
-        smt_guard = s.guard_name + "!"
-        c = _get_const(smt_guard, "Bool")
-        if c is not None:
-            guard_consts[s.guard_name] = c
-        else:
-            logger.warning(f"Missing guard const for schema {s.id}: {smt_guard}")
         for (pname, _pty) in s.k_params:
-            smt_k = pname + "!"
-            kc = _get_const(smt_k, "Int")
-            if kc is not None:
-                k_consts[pname] = kc
-            else:
-                logger.warning(f"Missing k const for schema {s.id}: {smt_k}")
+            k_names.append((pname, pname + "!"))
+
+    probe_bool = " ".join(f"(= {n} {n})" for n in guard_names) or "true"
+    probe_int = " ".join(f"(= {n} {n})" for n in (smt for _, smt in k_names)) or "true"
+    probe_smt = f"(assert (and {probe_bool} {probe_int}))"
+    try:
+        tmp = z3.Solver(ctx=z3_ctx)
+        tmp.from_string(prelude + "\n" + body_clean + "\n" + probe_smt)
+        big_and = tmp.assertions()[-1]
+        # big_and = And(eq_g_0, eq_g_1, ..., eq_k_0, ...).  Each child is
+        # (= c c); .children()[0] is the constant.
+        children = list(big_and.children())
+        pos = 0
+        for s in schemas:
+            eq = children[pos]; pos += 1
+            guard_consts[s.guard_name] = eq.children()[0]
+        for (pname, _smt) in k_names:
+            eq = children[pos]; pos += 1
+            k_consts[pname] = eq.children()[0]
+    except z3.Z3Exception as e:
+        logger.warning(f"Batched const resolution failed ({e}); falling back per-name")
+        for s in schemas:
+            try:
+                tmp = z3.Solver(ctx=z3_ctx)
+                tmp.from_string(prelude + "\n" + body_clean
+                                + f"\n(assert (= {s.guard_name}! {s.guard_name}!))")
+                guard_consts[s.guard_name] = tmp.assertions()[-1].children()[0]
+            except z3.Z3Exception:
+                logger.warning(f"Missing guard const for schema {s.id}")
+            for (pname, _pty) in s.k_params:
+                try:
+                    tmp = z3.Solver(ctx=z3_ctx)
+                    tmp.from_string(prelude + "\n" + body_clean
+                                    + f"\n(assert (= {pname}! {pname}!))")
+                    k_consts[pname] = tmp.assertions()[-1].children()[0]
+                except z3.Z3Exception:
+                    logger.warning(f"Missing k const for schema {s.id}: {pname}")
 
     logger.info(f"APrime resolved: {len(guard_consts)} guards, {len(k_consts)} k-params")
     return APrimeCtx(
