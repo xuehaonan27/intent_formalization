@@ -224,17 +224,13 @@ class APrimeSearchContext:
             logger.info(f"R{self._round} [{p}] {node.key}: {assume.expression} → pass (untranslatable)")
             return False
 
-        # z3-py check
-        self.a.solver.push()
-        try:
-            for b in bools:
-                self.a.solver.add(b)
-            t0 = time.monotonic()
-            r = self.a.solver.check()
-            dt_ms = (time.monotonic() - t0) * 1000
-            self.check_time_ms += dt_ms
-        finally:
-            self.a.solver.pop()
+        # z3-py check via assumption list: solver.check(*bools) uses them
+        # as unit assumptions, letting z3 keep learned clauses between
+        # rounds (push/pop discards clauses from that scope).
+        t0 = time.monotonic()
+        r = self.a.solver.check(*bools)
+        dt_ms = (time.monotonic() - t0) * 1000
+        self.check_time_ms += dt_ms
 
         # Interpretation:
         #   unsat  → goal (not det_equal) with these assumes is UNSAT

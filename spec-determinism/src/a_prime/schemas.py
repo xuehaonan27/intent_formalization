@@ -49,6 +49,13 @@ class SchemaKind(Enum):
     VARIANT_IS = "variant_is"
     BOOL_EQ = "bool_eq"
     STR_EQ = "str_eq"
+    SET_EMPTY = "set_empty"
+    SET_LEN_GT = "set_len_gt"           # set.len() > 0
+    SET_LEN_EQ = "set_len_eq"           # set.len() == k
+    SET_LEN_RANGE = "set_len_range"     # set.len() in [k_lo, k_hi]
+    SET_CONTAINS = "set_contains"       # set.contains(k)
+    SEQ_LEN_EQ = "seq_len_eq"
+    SEQ_LEN_RANGE = "seq_len_range"
     NOT_EQUAL_FN = "not_equal_fn"
 
 
@@ -192,7 +199,81 @@ def _emit(
             _emit(f"{accessor}.{fld.name}", fld.type, parent_chain, out, seen_tags)
         return
 
-    # Other kinds (Set/Seq/Unit/Unknown) — skipped in phase 2.
+    # --- Set ---
+    if ty.kind == TypeKind.SET:
+        elem_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
+        elem_ty_name = elem_ty.name or "int"
+
+        sid = _uniq(f"{tag_base}_empty")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SET_EMPTY, rust_var=var,
+            rust_expr_tmpl=f"{var} == Set::<{elem_ty_name}>::empty()",
+            guard_name=f"g_{sid}", parent_chain=list(parent_chain),
+        ))
+
+        sid = _uniq(f"{tag_base}_lengt")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SET_LEN_GT, rust_var=var,
+            rust_expr_tmpl=f"{var}.len() > 0",
+            guard_name=f"g_{sid}", parent_chain=list(parent_chain),
+        ))
+
+        sid = _uniq(f"{tag_base}_leneq")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SET_LEN_EQ, rust_var=var,
+            rust_expr_tmpl=f"{var}.len() == {{k}}",
+            guard_name=f"g_{sid}",
+            k_params=[(f"k_{sid}", "nat")],
+            parent_chain=list(parent_chain),
+        ))
+
+        sid = _uniq(f"{tag_base}_lenrng")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SET_LEN_RANGE, rust_var=var,
+            rust_expr_tmpl=f"{var}.len() >= {{k_lo}} && {var}.len() <= {{k_hi}}",
+            guard_name=f"g_{sid}",
+            k_params=[(f"k_{sid}_lo", "nat"), (f"k_{sid}_hi", "nat")],
+            parent_chain=list(parent_chain),
+        ))
+
+        sid = _uniq(f"{tag_base}_contains")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SET_CONTAINS, rust_var=var,
+            rust_expr_tmpl=f"{var}.contains({{k}})",
+            guard_name=f"g_{sid}",
+            k_params=[(f"k_{sid}", elem_ty_name)],
+            parent_chain=list(parent_chain),
+        ))
+        return
+
+    # --- Seq ---
+    if ty.kind == TypeKind.SEQ:
+        sid = _uniq(f"{tag_base}_leneq")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SEQ_LEN_EQ, rust_var=var,
+            rust_expr_tmpl=f"{var}.len() == {{k}}",
+            guard_name=f"g_{sid}",
+            k_params=[(f"k_{sid}", "nat")],
+            parent_chain=list(parent_chain),
+        ))
+        sid = _uniq(f"{tag_base}_lenrng")
+        out.append(SchemaBinding(
+            id=sid, kind=SchemaKind.SEQ_LEN_RANGE, rust_var=var,
+            rust_expr_tmpl=f"{var}.len() >= {{k_lo}} && {var}.len() <= {{k_hi}}",
+            guard_name=f"g_{sid}",
+            k_params=[(f"k_{sid}_lo", "nat"), (f"k_{sid}_hi", "nat")],
+            parent_chain=list(parent_chain),
+        ))
+        # Pre-enumerate element schemas for the first MAX_SEQ_LEN indices so
+        # narrow_seq's `{var}[i]` recursion has a schema to hit.
+        if ty.type_args:
+            MAX_SEQ_LEN = 8
+            elem_ty = ty.type_args[0]
+            for i in range(MAX_SEQ_LEN):
+                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags)
+        return
+
+    # Other kinds (Unit/Unknown) — skipped.
     return
 
 
@@ -305,6 +386,33 @@ def _match_str_eq(var: str, expr: str) -> Optional[str]:
     return m.group(1) if m else None
 
 
+def _match_set_empty(var: str, expr: str) -> bool:
+    return bool(re.fullmatch(rf"\s*{re.escape(var)}\s*==\s*Set::<[^>]+>::empty\(\)\s*", expr))
+
+
+def _match_set_len_gt(var: str, expr: str) -> bool:
+    return bool(re.fullmatch(rf"\s*{re.escape(var)}\.len\(\)\s*>\s*0\s*", expr))
+
+
+def _match_set_len_eq(var: str, expr: str) -> Optional[int]:
+    m = re.fullmatch(rf"\s*{re.escape(var)}\.len\(\)\s*==\s*({_INT_LIT})\s*", expr)
+    return int(m.group(1)) if m else None
+
+
+def _match_set_len_range(var: str, expr: str) -> Optional[tuple[int, int]]:
+    m = re.fullmatch(
+        rf"\s*{re.escape(var)}\.len\(\)\s*>=\s*({_INT_LIT})\s*&&\s*"
+        rf"{re.escape(var)}\.len\(\)\s*<=\s*({_INT_LIT})\s*",
+        expr,
+    )
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def _match_set_contains(var: str, expr: str) -> Optional[int]:
+    m = re.fullmatch(rf"\s*{re.escape(var)}\.contains\(\s*({_INT_LIT})\s*\)\s*", expr)
+    return int(m.group(1)) if m else None
+
+
 def translate_assume(
     rust_expr: str,
     schemas: list[SchemaBinding],
@@ -342,4 +450,23 @@ def translate_assume(
             sv = _match_str_eq(v, expr)
             if sv is not None and sv == s.str_value:
                 return (s.id, {})
+        elif s.kind == SchemaKind.SET_EMPTY:
+            if _match_set_empty(v, expr):
+                return (s.id, {})
+        elif s.kind == SchemaKind.SET_LEN_GT:
+            if _match_set_len_gt(v, expr):
+                return (s.id, {})
+        elif s.kind in (SchemaKind.SET_LEN_EQ, SchemaKind.SEQ_LEN_EQ):
+            n = _match_set_len_eq(v, expr)
+            if n is not None:
+                return (s.id, {s.k_params[0][0]: n})
+        elif s.kind in (SchemaKind.SET_LEN_RANGE, SchemaKind.SEQ_LEN_RANGE):
+            rng = _match_set_len_range(v, expr)
+            if rng is not None:
+                lo, hi = rng
+                return (s.id, {s.k_params[0][0]: lo, s.k_params[1][0]: hi})
+        elif s.kind == SchemaKind.SET_CONTAINS:
+            n = _match_set_contains(v, expr)
+            if n is not None:
+                return (s.id, {s.k_params[0][0]: n})
     return None
