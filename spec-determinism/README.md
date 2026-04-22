@@ -1,191 +1,163 @@
-# Spec Determinism — Project Documentation
+# spec-determinism
 
-## Big Picture
+A tool that decides whether a Verus `exec` function is *deterministic*
+— i.e. whether two valid runs on the same input are forced to produce
+the same result — and, when it is not, produces a **witness**: a set
+of Rust-level assumptions under which two runs can still diverge.
 
-**Goal:** Automatically detect specification incompleteness in Verus-verified code by checking whether specs are *deterministic* — i.e., whether they uniquely determine the output for each valid input.
+A deterministic spec (under equivalence `equal_fn`) is a sign of a
+sufficiently tight specification; a nondeterministic one points at a
+missing `ensures`-clause or an intentional underdetermination, and
+the witness makes that gap concrete.
 
-**Core insight:** A complete specification allows exactly one valid output for each input. If the same input admits two different valid outputs, the spec is incomplete (under-constrained). We detect this mechanically via SMT, then use type-guided binary search to construct a concrete witness.
+## TL;DR
 
-**No LLM required** for the core pipeline — pure SMT + type-guided search. LLM is only used as fallback when the parser/type system encounters unknown patterns.
+- **Input**: Verus `exec` function + its `requires`/`ensures` +
+  `equal_fn` (either auto-generated or chosen by a policy).
+- **Output**: either "deterministic" or a witness of the form
+  `{pre_self_.set_bits.contains(0), r1 is Ok, r2 is Ok,
+  post1_self_.set_bits.len() == 1, ...}`.
+- **How**: the current pipeline (`A'`, schema-driven) calls Verus
+  **once** to compile a guarded template, then runs all binary-search
+  rounds inside `z3-py` via assumption toggling.
+- **Cost** (14 `exec` functions across `bitmap`, `slab`, `kernel`):
+  ~187 s total, vs ~1756 s on the old per-round-subprocess pipeline
+  — ≈ 9.4× speedup with strictly richer witnesses.
 
-## What We Built
+See `JOURNEY.md` for the story of how we got here, and
+`ARCHITECTURE.md` for the detailed module-by-module walkthrough.
 
-### Tool: `spec-determinism`
-
-Location: `~/intent_formalization/spec-determinism/`
-
-**Architecture:** 6 modules, each with parser path + LLM fallback.
-
-```
-extract → gen_det → verify → binary_search → witness → reporter
-```
-
-| Module | What it does | Status |
-|--------|-------------|--------|
-| `extract` | Parse function sig + requires/ensures from Verus source | Basic (regex), needs tree-sitter |
-| `gen_det` | Generate `Q(x,y1) && Q(x,y2) ==> y1==y2` proof fn | Working |
-| `verify` | Inject proof fn, run cargo verus, parse result | Working |
-| `binary_search` | Type-guided narrowing with AssumeTree | Working |
-| `report` | Generate markdown/JSON reports | Basic |
-| `llm_fallback` | Unified LLM fallback interface | Scaffolded |
-
-### Key Data Structure: AssumeTree
-
-A tree where each node holds one assume constraint. Refinement (e.g. `[0,8] → [3,4] → 3`) replaces the node's assume in-place. Different nodes (e.g. `r1 is Ok` + `r1->Ok_0 == 0`) accumulate.
+## Repository layout
 
 ```
-root
-├── pre_self_ (Bitmap)
-│   ├── num_bits: == 8                    ← same-node replace during bisection
-│   └── set_bits: == Set::empty()
-├── r1 (Result)
-│   ├── variant: r1 is Ok                ← different node, kept
-│   └── Ok_0: == 0                       ← different node, kept
-├── r2 (Result)
-│   ├── variant: r2 is Ok
-│   └── Ok_0: == 1
-├── post1_self_ (Bitmap)
-│   ├── num_bits: == 8
-│   └── set_bits: == {}.insert(0)
-└── post2_self_ (Bitmap)
-    ├── num_bits: == 8
-    └── set_bits: == {}.insert(1)
-```
-
-Single operation: `test_and_set(node, assume)` — set node.assume, collect all tree assumes, run Verus, FAIL → keep, PASS → revert.
-
-### Binary Search Protocol
-
-**Phase 1: Narrow inputs (all input variables)**
-- `&mut self` → split into `pre` (input) + `post` (output)
-- `&mut param` → same split
-- Value params → input only
-
-**Phase 2: Narrow outputs (simple types first, then compound)**
-- Phase 2a: Result/Option/Enum variants + inner values (simple)
-- Phase 2b: Struct fields, Set elements (compound)
-- Heuristic: enum variants first → gives Z3 the match-branch context before narrowing dependent fields
-
-**Type strategies** (decorator-based registry):
-
-| Type | Strategy |
-|------|----------|
-| `Result<T,E>` | Binary: try Ok, FAIL → narrow inner, PASS → cross-variant gap |
-| `Option<T>` | Binary: try Some/None |
-| `Enum` | Try each variant |
-| `Struct` | Recurse into fields (use spec view `@` if available) |
-| `int/usize/...` | Small range first `[0,16]`/`[-8,8]`, FAIL → bisect, PASS → try full range → PASS → skip |
-| `bool` | Try true/false |
-| `Set<T>` | Empty → len bisection → element-by-element via `contains()` + full set expr |
-| `Seq<T>` | Len → element-by-element |
-| Unknown | LLM fallback |
-
-### Integer Bisection
-
-```
-_bisect_range(var, lo, hi):
-  if lo == hi: test_and_set(var == lo)
-  else:
-    mid = (lo + hi) // 2
-    test_and_set(var >= lo && var <= mid)
-    FAIL → recurse [lo, mid]
-    PASS → recurse [mid+1, hi]
-```
-
-Small range PASS → full range PASS → skip (not a nondeterminism source).
-Small range PASS → full range FAIL → bisect full range.
-
-### Set Element Narrowing
-
-Sets have no index operation. Strategy:
-1. Python-side maintains element list
-2. Find each element via `var.contains(val)` probing
-3. Confirm with full set expression: `var == Set::empty().insert(e1).insert(e2)...`
-
-## Case Study: `bitmap::alloc`
-
-**Function:** `pub fn alloc(&mut self) -> Result<usize, Error>`
-
-**Spec summary:** If bitmap is not full, allocate any free bit and return its index. If full, return error.
-
-**Result: NONDETERMINISTIC** — 60 Verus calls
-
-```
-INPUT:
-  pre = Bitmap { num_bits: 8, set_bits: {} }     // empty 8-bit bitmap
-
-OUTPUT 1:
-  result = Ok(0)
-  post = Bitmap { num_bits: 8, set_bits: {0} }   // allocated bit 0
-
-OUTPUT 2:
-  result = Ok(1)
-  post = Bitmap { num_bits: 8, set_bits: {1} }   // allocated bit 1
-```
-
-**Gap type:** Design choice — spec intentionally does not constrain which free bit is selected. This is **not a real bug** — it's intentional nondeterminism.
-
-**Filtering:** Use `custom_equality` (human/LLM written) to accept any Ok result as equivalent:
-```rust
-spec fn alloc_equal(r1, r2, post1, post2) -> bool {
-    match (r1, r2) {
-        (Ok(_), Ok(_)) => true,
-        (Err(e1), Err(e2)) => e1 == e2,
-        _ => false,
-    }
-}
-```
-
-## Design Decisions & Lessons Learned
-
-1. **`&mut` params are both input and output** — split ALL `&mut` (not just self) into pre/post
-2. **Input first, then output** — output depends on input
-3. **Simple outputs before compound outputs** — enum variants give Z3 match-branch context, making struct field narrowing much easier
-4. **Same-node replace, different-node accumulate** — the AssumeTree naturally handles this
-5. **Z3 can fail on valid constraints** — `closed spec fn` is visible in same crate, but complex Set/quantifier reasoning can still timeout. Output ordering mitigates this.
-6. **Small range PASS ≠ skip** — must also try full range before skipping (trigger could be at large value)
-7. **Set elements need full-set comparison** — no index access, use `contains()` to find elements then confirm with full set expr
-
-## Known Limitations / TODOs
-
-### Immediate
-- [ ] **Extract module**: currently requires manual `FunctionSpec` construction. Need to auto-parse `#[verus_spec(...)]` macros.
-- [ ] **Duplicate rounds**: R14/R15 both try `r1->Ok_0 == 0` (bisect reaches lo==hi then tries exact again). Minor cleanup.
-- [ ] **custom_equality**: add `FunctionSpec.equality_fn` field and `gen_det` support for `==> my_equal(...)` instead of `==> y1 == y2`.
-- [ ] **Witness completion**: derive exec-level fields from view fields (e.g. `usage` from `set_bits.len()`).
-
-### Next Steps
-- [ ] Run `bitmap::new` and `bitmap::set` through the tool
-- [ ] Run `slab` and `sorted-vec` modules
-- [ ] Implement auto-extraction from Verus source (tree-sitter or regex for `#[verus_spec]`)
-- [ ] Build reporter that generates human-readable witness docs (like `det_complete_witnesses.md`)
-- [ ] Integrate `custom_equality` — human/LLM writes `my_equal`, tool reruns with it
-
-### Future
-- [ ] Composition testing: multi-function traces (`alloc(); set(); free()`)
-- [ ] Z3 model extraction: when binary search is too slow, extract SMT model directly
-- [ ] Automation: given a crate, find all pub fns, extract specs, run det check, report
-- [ ] Publish as standalone tool / ClawHub skill
-
-## Repository Structure
-
-```
-~/intent_formalization/spec-determinism/
-├── DESIGN.md              # Architecture design doc
-├── test_bitmap.py         # Integration test on bitmap::alloc
+spec-determinism/
+├── README.md           ← this file
+├── JOURNEY.md          ← two challenges + resolution, narrative
+├── ARCHITECTURE.md     ← per-module walkthrough + code-review notes
+├── DESIGN.md / STATUS.md / CHANGES.md / RESULTS.md
+│                       ← older design docs, kept for context
+├── run_a_prime_all.py  ← primary driver (A', schema-driven)
+├── test_all.py         ← legacy driver (per-round subprocess pipeline)
 ├── results/
-│   └── bitmap_alloc.md    # Complete witness report
+│   ├── a_prime_full_run.json   ← latest per-function results + witness
+│   ├── artifacts/<crate>__<fn>/det_spec.json
+│   │                           ← DetCheckSpec inputs consumed by A'
+│   └── ...                     ← older run logs
+├── scripts/legacy/     ← earlier POCs / smoke tests (see its README)
 └── src/
-    ├── __init__.py
-    ├── types.py           # Shared data types
-    ├── extract.py         # Spec extraction (regex + LLM fallback)
-    ├── gen_det.py         # Det proof fn generator
-    ├── verify.py          # Verus runner (inject/restore/parse)
-    ├── binary_search.py   # AssumeTree + strategy registry + search driver
-    ├── report.py          # Witness completion + reporters
-    ├── llm_fallback.py    # Unified LLM fallback
-    └── orchestrator.py    # Pipeline driver + CLI
-
-~/.openclaw/workspace/skills/spec-determinism/
-└── SKILL.md               # Skill doc (theory + protocol)
+    ├── a_prime/        ← current search backend
+    │   ├── schemas.py  ← schema enumeration + template rendering
+    │   └── search.py   ← z3-py driven binary_search
+    ├── binary_search.py, gen_det.py, extract.py, verify.py,
+    │   types.py, equal_policy.py, equal_llm.py, report.py,
+    │   orchestrator.py, llm_fallback.py, llm_refine.py
+    │                   ← shared pipeline (extraction, template, etc.)
+    ├── z3_backend.py, model_eval.py, z3py_search.py
+    │                   ← earlier backends; still importable, used by
+    │                     scripts/legacy/ and for comparison
+    ├── legacy/, legacy_pre_z3py/
+    │                   ← frozen snapshots of pre-A' code
+    └── backend.py      ← `DetBackend` / `ModelProvidingBackend` Protocols
 ```
+
+## High-level pipeline
+
+```
+Verus source
+    │
+    ├─[extract.py]───────────→ FunctionSpec (types, requires, ensures)
+    │
+    ├─[equal_policy / equal_llm]──→ equal_fn   (what counts as "same result")
+    │
+    ├─[gen_det.py]──────────→ DetCheckSpec  (det_fn template + symbol table
+    │                                        + equal_fn def)
+    │                          → results/artifacts/<crate>__<fn>/det_spec.json
+    │
+    │      ┌── (A', current) ──┐
+    │      │ a_prime.schemas   │  enumerate (guard, k) schemas for each
+    │      │                   │  narrowing dimension, inject into template
+    │      │ verify.py         │  ONE cargo verus call → <module>.smt2
+    │      │ a_prime.search    │  load smt2 into z3-py;
+    │      │                   │  reuse existing binary_search narrow
+    │      │                   │  strategies but dispatch via
+    │      │                   │  solver.check(*assumptions)
+    │      └───────────────────┘
+    │
+    └─[report.py]──────────→ Witness (Rust-level assumes) + JSON trace
+```
+
+The two ideas that make A' work are spelled out in `JOURNEY.md`:
+
+1. Drive the whole search at the SMT / model level — one Verus call,
+   then add/remove assumes on the in-memory model via `z3-py`.
+2. Fuse binary search with witness generation — `unsat` records a
+   must-hold condition; `sat` / `unknown` / still-abstract value
+   keeps narrowing.
+
+## Running it
+
+Prerequisites:
+
+- Nanvix workspace at `~/nanvix` (Rust nightly-2025-12-08 + Verus
+  bundled at `toolchain/verus/`).
+- `z3-solver==4.12.5.0` (matching Verus's bundled Z3).
+- `tree-sitter-verus` (used by `src/extract.py`).
+
+```bash
+# Full A' run over all 15 exec functions (bitmap / slab / kernel)
+python run_a_prime_all.py
+
+# Single function
+python run_a_prime_all.py kernel::allocate
+
+# Old per-round pipeline (subprocess-Verus per round — slow, for
+# comparison only)
+python test_all.py
+```
+
+Results are appended to `results/a_prime_full_run.json` and printed as
+a per-function table:
+
+```
+fn                                  status    verus    ctx  search rounds  schemas
+bitmap::alloc                       ok         2561     64     665     65      280
+slab::allocate                      ok         2975     72    1991     94      303
+kernel::allocate                    ok         5151    104  175937   3567      395
+...
+```
+
+Each `results[i].assumes` is the Rust-level witness; see
+`JOURNEY.md` §"Results" or `results/a_prime_full_run.json` for
+concrete examples (e.g. the full slab-size ladder
+`slabs[0..6].block_size ∈ {8, 16, 32, 64, 128, 256, 512}` produced for
+`kernel::allocate`).
+
+## Current status (14 / 15 functions)
+
+| Crate · function | Rounds | Search (ms) | Notes |
+|---|---:|---:|---|
+| `bitmap::number_of_bits` | 1 | 152 | deterministic at R0 |
+| `bitmap::new` | 20 | 431 | Ok / Err branching |
+| `bitmap::from_raw_array` | 1 | 253 | deterministic at R0 |
+| `bitmap::alloc` | 65 | 665 | free-bit choice |
+| `bitmap::alloc_range` | 72 | 665 | free-range choice |
+| `bitmap::set / clear / test` | 1 | ~270 | deterministic at R0 |
+| `slab::from_raw_parts` | 67 | 910 | `free_addrs` population |
+| `slab::allocate` | 94 | 1991 | allocation order |
+| `slab::deallocate` | 1 | 286 | deterministic at R0 |
+| `kernel::from_raw_parts` | 65 | 4552 | `Err.reason` string |
+| `kernel::allocate` | 3567 | 175937 | full 7-slab witness |
+| `kernel::deallocate` | 1 | 508 | deterministic at R0 |
+| `kernel::layout_to_allocator` | — | — | stale `det_spec.json` (pre-existing, unrelated) |
+
+## Further reading
+
+- `JOURNEY.md` — two challenges we hit with raw `(get-model)` parsing
+  and the two-idea resolution (≤ 800 words).
+- `ARCHITECTURE.md` — every file in `src/` explained top-down, plus
+  code-review findings.
+- `DESIGN.md`, `STATUS.md`, `RESULTS.md`, `CHANGES.md` — older
+  iterations; kept for context, superseded by the above where they
+  disagree.
+- `scripts/legacy/README.md` — index of the prototypes that led to
+  A'.

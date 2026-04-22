@@ -17,7 +17,7 @@ from pathlib import Path
 
 import z3
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.z3py_search import (
     Z3PySearchContext, load_verus_prelude, find_top_level_constants,
 )

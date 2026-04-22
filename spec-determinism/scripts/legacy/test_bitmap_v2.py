@@ -6,7 +6,7 @@ Step 2: binary_search with DetCheckSpec
 """
 
 import sys, os, json, logging
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from src.types import *
 from src.extract import extract_spec

@@ -2,7 +2,7 @@
 """A/B compare binary_search() with VerusRunner vs Z3Backend on bitmap."""
 
 import logging, os, sys, time, json
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from src.types import *
 from src.extract import extract_spec
