@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run A' on all bitmap/slab/kheap exec functions, compare against old pipeline."""
+"""Run schema-driven determinism search on all bitmap/slab/kheap exec functions, compare against old pipeline."""
 import json
 import logging
 import os
@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from src.types import DetCheckSpec
 from src.verify import inject_proof_fn, restore_file, run_cargo_verus
-from src.a_prime import enumerate_schemas, render_guarded_template, binary_search_a_prime
-from src.a_prime.search import build_a_prime_ctx
+from src.schema_search import enumerate_schemas, render_guarded_template, run_schema_search
+from src.schema_search.search import build_schema_ctx
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("a_runner")
@@ -115,11 +115,11 @@ def run_one(crate: str, fn: str) -> dict:
 
     try:
         t_c = time.monotonic()
-        a_ctx = build_a_prime_ctx(smt2, fn_name, schemas, crate)
+        schema_ctx = build_schema_ctx(smt2, fn_name, schemas, crate)
         result["ctx_ms"] = int((time.monotonic() - t_c) * 1000)
 
         t_s = time.monotonic()
-        witness = binary_search_a_prime(det_spec, a_ctx)
+        witness = run_schema_search(det_spec, schema_ctx)
         result["search_ms"] = int((time.monotonic() - t_s) * 1000)
         result["n_rounds"] = len(witness.trace) if witness.trace else 0
         result["assumes"] = [a.expression for a in (witness.assumes or [])]
@@ -154,7 +154,7 @@ def main():
         results.append(r)
         log.info(f"RESULT: {json.dumps(r, default=str)[:500]}")
 
-    out = ROOT / "results" / "a_prime_full_run.json"
+    out = ROOT / "results" / "full_run.json"
     out.write_text(json.dumps(results, indent=2, default=str))
 
     print("\n\n" + "=" * 80)

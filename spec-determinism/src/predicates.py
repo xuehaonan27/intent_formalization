@@ -1,21 +1,55 @@
 """Structured predicates emitted by narrow strategies.
 
 Before the refactor, narrow_* strategies emitted ``Assume.expression`` as
-a Rust source string (``"var.contains(3)"``), and the A' backend
+a Rust source string (``"var.contains(3)"``), and the schema-search backend
 parsed those strings back with regex.  That made Step 2 (narrow) and
-Step 1 (A' schema translation) implicitly coupled through a small,
+Step 1 (schema translation) implicitly coupled through a small,
 brittle surface grammar.
 
 Now narrow emits a structured :data:`AssumePred` object.
 ``Assume.pred`` carries the structured form; ``Assume.expression`` is
 still populated via :meth:`to_rust`, so Verus-subprocess backends and
-the witness renderer keep working verbatim.  The A' backend matches on
-the pred type directly and never parses the Rust string.
+the witness renderer keep working verbatim.  The schema-search backend
+matches on the pred type directly and never parses the Rust string.
+
+Adding a new pred kind is a **one-place** change: define a frozen
+dataclass with two methods and add it to :data:`AssumePred`.
+
+    class MyPred:
+        var: str
+        ...
+        def to_rust(self) -> str:
+            ...                  # Rust rendering (used by Verus backends + reports)
+        def match_and_bind(self, schema) -> Optional[dict]:
+            ...                  # Return k-bindings if `schema` matches; else None
+
+The schema-search translator iterates over available schemas and calls
+``pred.match_and_bind(schema)`` on each; the first non-None wins.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
+from typing import Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .schema_search.schemas import SchemaBinding
+
+
+# Schema kind name strings (avoid importing SchemaKind to prevent layering
+# inversions — predicates is a leaf module).
+_SCALAR_EQ = "SCALAR_EQ"
+_SCALAR_RANGE = "SCALAR_RANGE"
+_VARIANT_IS = "VARIANT_IS"
+_BOOL_EQ = "BOOL_EQ"
+_STR_EQ = "STR_EQ"
+_SET_EMPTY = "SET_EMPTY"
+_SET_LEN_GT = "SET_LEN_GT"
+_SET_LEN_EQ = "SET_LEN_EQ"
+_SEQ_LEN_EQ = "SEQ_LEN_EQ"
+_SET_LEN_RANGE = "SET_LEN_RANGE"
+_SEQ_LEN_RANGE = "SEQ_LEN_RANGE"
+_SET_CONTAINS = "SET_CONTAINS"
+_NOT_EQUAL_FN = "NOT_EQUAL_FN"
 
 
 @dataclass(frozen=True)
@@ -25,6 +59,10 @@ class EqPred:
     value: int
     def to_rust(self) -> str:
         return f"{self.var} == {self.value}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _SCALAR_EQ and s.rust_var == self.var:
+            return {s.k_params[0][0]: self.value}
+        return None
 
 
 @dataclass(frozen=True)
@@ -35,6 +73,10 @@ class RangePred:
     hi: int
     def to_rust(self) -> str:
         return f"{self.var} >= {self.lo} && {self.var} <= {self.hi}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _SCALAR_RANGE and s.rust_var == self.var:
+            return {s.k_params[0][0]: self.lo, s.k_params[1][0]: self.hi}
+        return None
 
 
 @dataclass(frozen=True)
@@ -44,6 +86,11 @@ class VariantIsPred:
     variant: str
     def to_rust(self) -> str:
         return f"{self.var} is {self.variant}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if (s.kind.name == _VARIANT_IS and s.rust_var == self.var
+                and s.variant == self.variant):
+            return {}
+        return None
 
 
 @dataclass(frozen=True)
@@ -53,6 +100,11 @@ class BoolPred:
     value: bool
     def to_rust(self) -> str:
         return f"{self.var} == {'true' if self.value else 'false'}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if (s.kind.name == _BOOL_EQ and s.rust_var == self.var
+                and s.bool_value == self.value):
+            return {}
+        return None
 
 
 @dataclass(frozen=True)
@@ -62,6 +114,11 @@ class StrEqPred:
     value: str
     def to_rust(self) -> str:
         return f'{self.var} == "{self.value}"'
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if (s.kind.name == _STR_EQ and s.rust_var == self.var
+                and s.str_value == self.value):
+            return {}
+        return None
 
 
 @dataclass(frozen=True)
@@ -71,6 +128,10 @@ class SetEmptyPred:
     elem_ty_name: str
     def to_rust(self) -> str:
         return f"{self.var} == Set::<{self.elem_ty_name}>::empty()"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _SET_EMPTY and s.rust_var == self.var:
+            return {}
+        return None
 
 
 @dataclass(frozen=True)
@@ -79,6 +140,10 @@ class SetLenGtPred:
     var: str
     def to_rust(self) -> str:
         return f"{self.var}.len() > 0"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _SET_LEN_GT and s.rust_var == self.var:
+            return {}
+        return None
 
 
 @dataclass(frozen=True)
@@ -88,6 +153,11 @@ class LenEqPred:
     n: int
     def to_rust(self) -> str:
         return f"{self.var}.len() == {self.n}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if (s.kind.name in (_SET_LEN_EQ, _SEQ_LEN_EQ)
+                and s.rust_var == self.var):
+            return {s.k_params[0][0]: self.n}
+        return None
 
 
 @dataclass(frozen=True)
@@ -98,6 +168,11 @@ class LenRangePred:
     hi: int
     def to_rust(self) -> str:
         return f"{self.var}.len() >= {self.lo} && {self.var}.len() <= {self.hi}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if (s.kind.name in (_SET_LEN_RANGE, _SEQ_LEN_RANGE)
+                and s.rust_var == self.var):
+            return {s.k_params[0][0]: self.lo, s.k_params[1][0]: self.hi}
+        return None
 
 
 @dataclass(frozen=True)
@@ -107,12 +182,21 @@ class SetContainsPred:
     elem: int
     def to_rust(self) -> str:
         return f"{self.var}.contains({self.elem})"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _SET_CONTAINS and s.rust_var == self.var:
+            return {s.k_params[0][0]: self.elem}
+        return None
 
 
 @dataclass(frozen=True)
 class SetLiteralPred:
     """`var == Set::<T>::empty().insert(e1).insert(e2)...` — final
-    confirmation after contains-probing enumerated all elements."""
+    confirmation after contains-probing enumerated all elements.
+
+    No schema exists for full-set equality (it would need one schema per
+    cardinality); the schema-search translator treats this pred as
+    untranslatable and the caller passes the round.
+    """
     var: str
     elem_ty_name: str
     elements: tuple[int, ...]
@@ -121,6 +205,8 @@ class SetLiteralPred:
         for e in self.elements:
             expr += f".insert({e})"
         return f"{self.var} == {expr}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        return None
 
 
 @dataclass(frozen=True)
@@ -132,21 +218,15 @@ class NotEqualFnPred:
     call: str
     def to_rust(self) -> str:
         return f"!{self.call}"
-
-
-@dataclass(frozen=True)
-class OpaquePred:
-    """Escape hatch for narrow strategies that still produce free-form
-    Rust expressions (currently just the LLM fallback).  A' cannot
-    translate these — it falls through to ``pass_untranslatable``."""
-    var: str
-    expression: str
-    def to_rust(self) -> str:
-        return self.expression
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _NOT_EQUAL_FN:
+            return {}
+        return None
 
 
 AssumePred = Union[
     EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
     SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
-    SetContainsPred, SetLiteralPred, NotEqualFnPred, OpaquePred,
+    SetContainsPred, SetLiteralPred, NotEqualFnPred,
 ]
+

@@ -39,11 +39,6 @@ from typing import Optional
 from ..types import (
     DetCheckSpec, TypeInfo, TypeKind, VariantInfo, Assume,
 )
-from ..predicates import (
-    EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
-    SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
-    SetContainsPred, SetLiteralPred, NotEqualFnPred, OpaquePred,
-)
 
 
 # ---------------------------------------------------------------------------
@@ -359,97 +354,27 @@ def render_guarded_template(
 # ---------------------------------------------------------------------------
 # Translation: structured AssumePred -> schema activation
 # ---------------------------------------------------------------------------
-
-
-def _find(schemas, kind, rust_var):
-    for s in schemas:
-        if s.kind == kind and s.rust_var == rust_var:
-            return s
-    return None
+#
+# Generic dispatch: each pred class knows how to match itself against a
+# SchemaBinding (see predicates.py :: match_and_bind).  Adding a new pred
+# kind therefore requires ZERO edits to this file.
 
 
 def translate_assume(
     assume: Assume,
     schemas: list[SchemaBinding],
-    equal_fn_name: str = "",
+    equal_fn_name: str = "",  # kept for API compat; unused
 ) -> Optional[tuple[str, dict[str, int]]]:
-    """Match assume.pred to the first applicable schema, returning
-    (schema_id, k_bindings). Returns None if no schema applies (caller
-    treats this as pass_untranslatable).
+    """Match ``assume.pred`` to the first applicable schema.
+
+    Returns ``(schema_id, k_bindings)`` if a schema matches; ``None``
+    otherwise (caller treats that as pass-untranslatable).
     """
     pred = assume.pred
     if pred is None:
         return None
-
-    if isinstance(pred, EqPred):
-        s = _find(schemas, SchemaKind.SCALAR_EQ, pred.var)
-        if s is not None:
-            return (s.id, {s.k_params[0][0]: pred.value})
-        return None
-
-    if isinstance(pred, RangePred):
-        s = _find(schemas, SchemaKind.SCALAR_RANGE, pred.var)
-        if s is not None:
-            return (s.id, {s.k_params[0][0]: pred.lo, s.k_params[1][0]: pred.hi})
-        return None
-
-    if isinstance(pred, VariantIsPred):
-        for s in schemas:
-            if (s.kind == SchemaKind.VARIANT_IS
-                    and s.rust_var == pred.var
-                    and s.variant == pred.variant):
-                return (s.id, {})
-        return None
-
-    if isinstance(pred, BoolPred):
-        for s in schemas:
-            if (s.kind == SchemaKind.BOOL_EQ
-                    and s.rust_var == pred.var
-                    and s.bool_value == pred.value):
-                return (s.id, {})
-        return None
-
-    if isinstance(pred, StrEqPred):
-        for s in schemas:
-            if (s.kind == SchemaKind.STR_EQ
-                    and s.rust_var == pred.var
-                    and s.str_value == pred.value):
-                return (s.id, {})
-        return None
-
-    if isinstance(pred, SetEmptyPred):
-        s = _find(schemas, SchemaKind.SET_EMPTY, pred.var)
-        return (s.id, {}) if s is not None else None
-
-    if isinstance(pred, SetLenGtPred):
-        s = _find(schemas, SchemaKind.SET_LEN_GT, pred.var)
-        return (s.id, {}) if s is not None else None
-
-    if isinstance(pred, LenEqPred):
-        for kind in (SchemaKind.SET_LEN_EQ, SchemaKind.SEQ_LEN_EQ):
-            s = _find(schemas, kind, pred.var)
-            if s is not None:
-                return (s.id, {s.k_params[0][0]: pred.n})
-        return None
-
-    if isinstance(pred, LenRangePred):
-        for kind in (SchemaKind.SET_LEN_RANGE, SchemaKind.SEQ_LEN_RANGE):
-            s = _find(schemas, kind, pred.var)
-            if s is not None:
-                return (s.id, {s.k_params[0][0]: pred.lo, s.k_params[1][0]: pred.hi})
-        return None
-
-    if isinstance(pred, SetContainsPred):
-        s = _find(schemas, SchemaKind.SET_CONTAINS, pred.var)
-        if s is not None:
-            return (s.id, {s.k_params[0][0]: pred.elem})
-        return None
-
-    if isinstance(pred, NotEqualFnPred):
-        for s in schemas:
-            if s.kind == SchemaKind.NOT_EQUAL_FN:
-                return (s.id, {})
-        return None
-
-    # SetLiteralPred, OpaquePred, or any unknown pred kind: no schema.
+    for s in schemas:
+        kb = pred.match_and_bind(s)
+        if kb is not None:
+            return (s.id, kb)
     return None

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+results/full_run.json
+results/*_spec.json
+results/artifacts/
+results/full_test_*.json
+results/full_test_run.log

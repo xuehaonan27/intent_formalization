@@ -20,7 +20,7 @@ from .types import (
 from .predicates import (
     EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
     SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
-    SetContainsPred, SetLiteralPred, NotEqualFnPred, OpaquePred,
+    SetContainsPred, SetLiteralPred, NotEqualFnPred,
 )
 from .gen_det import render_template
 from .backend import DetBackend
@@ -100,9 +100,16 @@ def strategy_for(*type_kinds: TypeKind):
     return decorator
 
 
+def _no_strategy(ty: TypeInfo, var: str, node: "AssumeNode", ctx: "SearchContext"):
+    logger.warning(
+        f"No narrow strategy for {ty.kind}:{ty.name} (var={var}); "
+        f"witness will be partial for this dimension."
+    )
+
+
 def narrow(ty: TypeInfo, var: str, node: "AssumeNode", ctx: "SearchContext"):
     """Dispatch to the registered strategy. Each strategy gets its own tree node."""
-    handler = _registry.get(ty.kind, _llm_fallback)
+    handler = _registry.get(ty.kind, _no_strategy)
     handler(ty, var, node, ctx)
 
 
@@ -232,36 +239,18 @@ def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext
 
 
 def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext") -> int | None:
-    """Recursive bisection on [lo, hi] inclusive. Returns the exact value found, or None.
-
-    ``var`` is the Rust expression being narrowed; it may be either a
-    plain variable (integer field) or a ``<v>.len()`` expression when
-    called from :func:`_narrow_length`.  The predicate kind is chosen
-    from ``is_len`` so A' can dispatch to SET/SEQ_LEN_* vs SCALAR_*
-    schemas without parsing the string.
+    """Recursive bisection on an integer variable in [lo, hi]. Returns
+    the exact value found, or None.
     """
-    is_len = var.endswith(".len()")
-    base = var[: -len(".len()")] if is_len else var
-
-    def _eq(val: int, desc: str) -> Assume:
-        if is_len:
-            return Assume.from_pred(var, LenEqPred(base, val), desc)
-        return Assume.from_pred(var, EqPred(var, val), desc)
-
-    def _rng(lo_: int, hi_: int, desc: str) -> Assume:
-        if is_len:
-            return Assume.from_pred(var, LenRangePred(base, lo_, hi_), desc)
-        return Assume.from_pred(var, RangePred(var, lo_, hi_), desc)
-
     if lo == hi:
-        ctx.test_and_set(node, _eq(lo, f"exact: {lo}"))
+        ctx.test_and_set(node, Assume.from_pred(var, EqPred(var, lo), f"exact: {lo}"))
         return lo
 
     mid = (lo + hi) // 2
     if lo == mid:
-        left = _eq(lo, f"exact: {lo}")
+        left = Assume.from_pred(var, EqPred(var, lo), f"exact: {lo}")
     else:
-        left = _rng(lo, mid, f"range: [{lo}, {mid}]")
+        left = Assume.from_pred(var, RangePred(var, lo, mid), f"range: [{lo}, {mid}]")
 
     if ctx.test_and_set(node, left):
         if lo == mid:
@@ -271,17 +260,43 @@ def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchCont
         return _bisect_range(var, mid + 1, hi, node, ctx)
 
 
-def _narrow_length(var_len_expr: str, node: AssumeNode, ctx: "SearchContext",
-                   max_bound: int = 2 ** 20) -> int | None:
+def _bisect_len_range(base: str, lo: int, hi: int, node: AssumeNode,
+                      ctx: "SearchContext") -> int | None:
+    """Same shape as :func:`_bisect_range`, but emits LenEq/LenRange
+    preds — used for Set/Seq length narrowing where ``base`` is the
+    collection variable (not the ``.len()`` expression).
     """
-    Narrow collection length: exact probes for small values [0..4],
-    then bisect the full range if needed.
+    var_len_expr = f"{base}.len()"
 
+    if lo == hi:
+        ctx.test_and_set(node, Assume.from_pred(
+            var_len_expr, LenEqPred(base, lo), f"len: {lo}"))
+        return lo
+
+    mid = (lo + hi) // 2
+    if lo == mid:
+        left = Assume.from_pred(var_len_expr, LenEqPred(base, lo), f"len: {lo}")
+    else:
+        left = Assume.from_pred(
+            var_len_expr, LenRangePred(base, lo, mid),
+            f"len range: [{lo}, {mid}]")
+
+    if ctx.test_and_set(node, left):
+        if lo == mid:
+            return lo
+        return _bisect_len_range(base, lo, mid, node, ctx)
+    else:
+        return _bisect_len_range(base, mid + 1, hi, node, ctx)
+
+
+def _narrow_length(base: str, node: AssumeNode, ctx: "SearchContext",
+                   max_bound: int = 2 ** 20) -> int | None:
+    """Narrow collection length: exact probes for [0..4], then bisect.
+
+    ``base`` is the collection variable (NOT a ``.len()`` expression).
     Returns the exact length found, or None.
     """
-    assert var_len_expr.endswith(".len()"), \
-        f"_narrow_length expected '<var>.len()', got {var_len_expr!r}"
-    base = var_len_expr[: -len(".len()")]
+    var_len_expr = f"{base}.len()"
 
     # Phase 1: exact probes for common small values
     EXACT_LIMIT = 4
@@ -297,7 +312,7 @@ def _narrow_length(var_len_expr: str, node: AssumeNode, ctx: "SearchContext",
         f"len range: [{lo}, {max_bound}]",
     )
     if ctx.test_and_set(node, full_assume):
-        return _bisect_range(var_len_expr, lo, max_bound, node, ctx)
+        return _bisect_len_range(base, lo, max_bound, node, ctx)
 
     return None
 
@@ -337,7 +352,7 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     # Now narrow length. _narrow_length probes from small upward; its results
     # are meaningful because we've already committed to len() > 0.
     len_node = node.get_or_create("len")
-    length = _narrow_length(f"{var}.len()", len_node, ctx)
+    length = _narrow_length(var, len_node, ctx)
     if length is None or length == 0:
         return
 
@@ -362,14 +377,6 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         )
         if ctx.test_and_set(node, lit_assume):
             node.children.clear()  # len + elem children subsumed by full set expr
-
-
-def _build_set_expr(elem_ty_name: str, elements: list[int]) -> str:
-    """Build a Verus Set literal from a list of concrete elements."""
-    expr = f"Set::<{elem_ty_name}>::empty()"
-    for e in elements:
-        expr += f".insert({e})"
-    return expr
 
 
 def _bisect_set_element(
@@ -409,7 +416,7 @@ def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchC
 def narrow_seq(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """Narrow Seq<T>: length first, then elements."""
     len_node = node.get_or_create("len")
-    length = _narrow_length(f"{var}.len()", len_node, ctx)
+    length = _narrow_length(var, len_node, ctx)
 
     if length is None:
         return
@@ -445,27 +452,6 @@ def narrow_str(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
             return
 
 
-def _llm_fallback(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """LLM fallback for unknown types."""
-    logger.warning(f"No strategy for {ty.kind}:{ty.name} — using LLM fallback")
-    if ctx.llm_client:
-        prompt = (
-            f"Given a Verus type `{ty.name}` and variable `{var}`, "
-            f"suggest one assume() constraint to narrow its value. "
-            f"Current constraints: {[a.expression for a in ctx.tree.collect_assumes()]}. "
-            f"Return ONLY the Verus expression."
-        )
-        response = ctx.llm_client.chat(
-            system_prompt="You are a Verus verification expert.",
-            user_prompt=prompt,
-        )
-        expr = response.content.strip().strip("`")
-        ctx.test_and_set(node, Assume.from_pred(
-            var, OpaquePred(var, expr), f"LLM-suggested for {ty.name}"))
-    else:
-        logger.error(f"No LLM client and no strategy for type {ty.name}")
-
-
 # ===========================================================================
 # SearchContext
 # ===========================================================================
@@ -475,10 +461,9 @@ class SearchContext:
     Holds search state. Operates on DetCheckSpec (template + symbols).
     """
 
-    def __init__(self, det_spec: DetCheckSpec, runner: DetBackend, llm_client=None):
+    def __init__(self, det_spec: DetCheckSpec, runner: DetBackend):
         self.det_spec = det_spec
         self.runner = runner
-        self.llm_client = llm_client
         self.tree = AssumeNode(key="root")
         self.trace: list[dict] = []
         self._round = 0
@@ -582,7 +567,7 @@ class SearchContext:
 # Driver
 # ===========================================================================
 
-def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -> Witness:
+def binary_search(det_spec: DetCheckSpec, runner: DetBackend) -> Witness:
     """Run full binary search using a DetCheckSpec (template + symbol table).
 
     Fast path: if `runner` satisfies `ModelProvidingBackend`, the R0
@@ -598,7 +583,7 @@ def binary_search(det_spec: DetCheckSpec, runner: DetBackend, llm_client=None) -
     if model_backend is not None:
         model_backend.set_det_spec(det_spec)
 
-    ctx = SearchContext(det_spec, runner, llm_client)
+    ctx = SearchContext(det_spec, runner)
 
     # R0: initial determinism check (no assumes)
     code = render_template(det_spec, [])

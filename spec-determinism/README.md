@@ -17,7 +17,7 @@ the witness makes that gap concrete.
 - **Output**: either "deterministic" or a witness of the form
   `{pre_self_.set_bits.contains(0), r1 is Ok, r2 is Ok,
   post1_self_.set_bits.len() == 1, ...}`.
-- **How**: the current pipeline (`A'`, schema-driven) calls Verus
+- **How**: the pipeline calls Verus
   **once** to compile a guarded template, then runs all binary-search
   rounds inside `z3-py` via assumption toggling.
 - **Cost** (14 `exec` functions across `bitmap`, `slab`, `kernel`):
@@ -36,28 +36,22 @@ spec-determinism/
 ├── ARCHITECTURE.md     ← per-module walkthrough + code-review notes
 ├── DESIGN.md / STATUS.md / CHANGES.md / RESULTS.md
 │                       ← older design docs, kept for context
-├── run_a_prime_all.py  ← primary driver (A', schema-driven)
-├── test_all.py         ← legacy driver (per-round subprocess pipeline)
-├── results/
-│   ├── a_prime_full_run.json   ← latest per-function results + witness
+├── run_all.py  ← primary driver (the schema-search pipeline, schema-driven)
+├── ├── results/
+│   ├── full_run.json   ← latest per-function results + witness
 │   ├── artifacts/<crate>__<fn>/det_spec.json
-│   │                           ← DetCheckSpec inputs consumed by A'
+│   │                           ← DetCheckSpec inputs consumed by the schema-search pipeline
 │   └── ...                     ← older run logs
-├── scripts/legacy/     ← earlier POCs / smoke tests (see its README)
 └── src/
-    ├── a_prime/        ← current search backend
+    ├── schema_search/   ← schema-driven search backend
     │   ├── schemas.py  ← schema enumeration + template rendering
     │   └── search.py   ← z3-py driven binary_search
+    ├── predicates.py   ← structured AssumePred types (pred ↔ schema match lives here)
     ├── binary_search.py, gen_det.py, extract.py, verify.py,
-    │   types.py, equal_policy.py, equal_llm.py, report.py,
-    │   orchestrator.py, llm_fallback.py, llm_refine.py
-    │                   ← shared pipeline (extraction, template, etc.)
-    ├── z3_backend.py, model_eval.py, z3py_search.py
-    │                   ← earlier backends; still importable, used by
-    │                     scripts/legacy/ and for comparison
-    ├── legacy/, legacy_pre_z3py/
-    │                   ← frozen snapshots of pre-A' code
-    └── backend.py      ← `DetBackend` / `ModelProvidingBackend` Protocols
+    │   types.py, equal_policy.py, backend.py
+    │                   ← shared pipeline (extraction, template, narrow strategies)
+    └── z3_backend.py, model_eval.py
+                        ← SMT backend (Z3 oracle used by binary_search)
 ```
 
 ## High-level pipeline
@@ -73,11 +67,11 @@ Verus source
     │                                        + equal_fn def)
     │                          → results/artifacts/<crate>__<fn>/det_spec.json
     │
-    │      ┌── (A', current) ──┐
-    │      │ a_prime.schemas   │  enumerate (guard, k) schemas for each
+    │      ┌── (the schema-search pipeline, current) ──┐
+    │      │ schema_search.schemas   │  enumerate (guard, k) schemas for each
     │      │                   │  narrowing dimension, inject into template
     │      │ verify.py         │  ONE cargo verus call → <module>.smt2
-    │      │ a_prime.search    │  load smt2 into z3-py;
+    │      │ schema_search.search    │  load smt2 into z3-py;
     │      │                   │  reuse existing binary_search narrow
     │      │                   │  strategies but dispatch via
     │      │                   │  solver.check(*assumptions)
@@ -86,7 +80,7 @@ Verus source
     └─[report.py]──────────→ Witness (Rust-level assumes) + JSON trace
 ```
 
-The two ideas that make A' work are spelled out in `JOURNEY.md`:
+The two ideas that make schema search work are spelled out in `JOURNEY.md`:
 
 1. Drive the whole search at the SMT / model level — one Verus call,
    then add/remove assumes on the in-memory model via `z3-py`.
@@ -104,18 +98,14 @@ Prerequisites:
 - `tree-sitter-verus` (used by `src/extract.py`).
 
 ```bash
-# Full A' run over all 15 exec functions (bitmap / slab / kernel)
-python run_a_prime_all.py
+# Full the schema-search pipeline run over all 15 exec functions (bitmap / slab / kernel)
+python run_all.py
 
 # Single function
-python run_a_prime_all.py kernel::allocate
-
-# Old per-round pipeline (subprocess-Verus per round — slow, for
-# comparison only)
-python test_all.py
+python run_all.py kernel::allocate
 ```
 
-Results are appended to `results/a_prime_full_run.json` and printed as
+Results are appended to `results/full_run.json` and printed as
 a per-function table:
 
 ```
@@ -127,7 +117,7 @@ kernel::allocate                    ok         5151    104  175937   3567      3
 ```
 
 Each `results[i].assumes` is the Rust-level witness; see
-`JOURNEY.md` §"Results" or `results/a_prime_full_run.json` for
+`JOURNEY.md` §"Results" or `results/full_run.json` for
 concrete examples (e.g. the full slab-size ladder
 `slabs[0..6].block_size ∈ {8, 16, 32, 64, 128, 256, 512}` produced for
 `kernel::allocate`).
@@ -159,5 +149,4 @@ concrete examples (e.g. the full slab-size ladder
 - `DESIGN.md`, `STATUS.md`, `RESULTS.md`, `CHANGES.md` — older
   iterations; kept for context, superseded by the above where they
   disagree.
-- `scripts/legacy/README.md` — index of the prototypes that led to
-  A'.
+- `None — all earlier drivers have been retired.

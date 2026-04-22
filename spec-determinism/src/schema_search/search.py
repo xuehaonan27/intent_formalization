@@ -1,4 +1,4 @@
-"""A' search driver — replaces Verus-per-round with z3-py push/pop.
+"""Schema-driven search driver — replaces Verus-per-round with z3-py push/pop.
 
 This duck-types the SearchContext interface consumed by the existing
 narrow() strategies in binary_search.py, so we get full reuse.
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class APrimeCtx:
+class SchemaCtx:
     """Holds the loaded Z3 solver + schema SMT-name map.
 
     Built once per (det_spec, guarded-smt2) — shared across all search
@@ -36,12 +36,12 @@ class APrimeCtx:
     k_consts: dict[str, z3.ExprRef]
 
 
-def build_a_prime_ctx(
+def build_schema_ctx(
     smt2_path: Path,
     fn_name: str,
     schemas: list[SchemaBinding],
     crate_name: str,
-) -> APrimeCtx:
+) -> SchemaCtx:
     """Parse smt2, load prelude + det_<fn> body into a fresh solver,
     locate the guard/k constants that Verus emitted for each schema."""
     text = Path(smt2_path).read_text()
@@ -81,7 +81,7 @@ def build_a_prime_ctx(
     solver = z3.Solver(ctx=z3_ctx)
     solver.from_string(prelude)
     solver.from_string(body_clean)
-    logger.info(f"APrime solver loaded: {len(solver.assertions())} assertions")
+    logger.info(f"Schema solver loaded: {len(solver.assertions())} assertions")
 
     # (guard_consts and k_consts are also unused above; we need to delete
     # the empty dict init that preceded batching.)
@@ -134,8 +134,8 @@ def build_a_prime_ctx(
                 except z3.Z3Exception:
                     logger.warning(f"Missing k const for schema {s.id}: {pname}")
 
-    logger.info(f"APrime resolved: {len(guard_consts)} guards, {len(k_consts)} k-params")
-    return APrimeCtx(
+    logger.info(f"Schema resolved: {len(guard_consts)} guards, {len(k_consts)} k-params")
+    return SchemaCtx(
         z3_ctx=z3_ctx,
         solver=solver,
         schemas=schemas,
@@ -148,25 +148,23 @@ def build_a_prime_ctx(
 # SearchContext duck-type
 # ---------------------------------------------------------------------------
 
-class APrimeSearchContext:
+class SchemaSearchContext:
     """Duck-typed SearchContext that routes test_and_set to z3-py."""
 
     def __init__(
         self,
         det_spec: DetCheckSpec,
-        a_prime: APrimeCtx,
-        llm_client=None,
+        schema_ctx: SchemaCtx,
     ):
         self.det_spec = det_spec
-        self.a = a_prime
-        self.llm_client = llm_client
+        self.a = schema_ctx
         self.runner = None  # not used; distinctness phase reads this attr
         self.tree = AssumeNode(key="root")
         self.trace: list[dict] = []
         self._round = 0
         self.shortcut_witness = None
         self._is_model_backend = False
-        self._schema_by_id = {s.id: s for s in a_prime.schemas}
+        self._schema_by_id = {s.id: s for s in schema_ctx.schemas}
         # Per-round timing
         self.check_time_ms = 0.0
 
@@ -264,23 +262,22 @@ class APrimeSearchContext:
 # Driver
 # ---------------------------------------------------------------------------
 
-def binary_search_a_prime(
+def run_schema_search(
     det_spec: DetCheckSpec,
-    a_prime_ctx: APrimeCtx,
-    llm_client=None,
+    schema_ctx: SchemaCtx,
 ) -> Witness:
-    """Run A' binary search. Mirrors binary_search in shape."""
-    ctx = APrimeSearchContext(det_spec, a_prime_ctx, llm_client)
+    """Run schema-driven search. Mirrors binary_search in shape."""
+    ctx = SchemaSearchContext(det_spec, schema_ctx)
 
     # R0: check baseline (no assumes)
     t0 = time.monotonic()
-    r0 = a_prime_ctx.solver.check()
+    r0 = schema_ctx.solver.check()
     r0_ms = (time.monotonic() - t0) * 1000
     ctx.trace.append({
         "round": 0, "phase": "initial", "node_key": "root",
         "assumes": [], "new_assume": None,
         "result": "pass" if r0 == z3.unsat else "fail",
-        "description": "full determinism check (A' z3-py)",
+        "description": "full determinism check (schema-driven z3-py)",
         "z3_raw": str(r0), "z3_ms": round(r0_ms, 2),
     })
     ctx._round = 0  # initial doesn't count as a search round
@@ -289,7 +286,7 @@ def binary_search_a_prime(
         logger.info(f"{det_spec.function}: deterministic (R0 unsat)")
         return Witness(function=det_spec.function, trace=ctx.trace)
 
-    logger.info(f"{det_spec.function}: nondeterministic (R0 = {r0}), starting A' search")
+    logger.info(f"{det_spec.function}: nondeterministic (R0 = {r0}), starting schema search")
 
     # Narrow each symbol.
     for sym in det_spec.symbols:
