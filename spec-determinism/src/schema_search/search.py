@@ -158,19 +158,12 @@ class SchemaSearchContext:
     ):
         self.det_spec = det_spec
         self.a = schema_ctx
-        self.runner = None  # not used; distinctness phase reads this attr
         self.tree = AssumeNode(key="root")
         self.trace: list[dict] = []
         self._round = 0
-        self.shortcut_witness = None
-        self._is_model_backend = False
         self._schema_by_id = {s.id: s for s in schema_ctx.schemas}
         # Per-round timing
         self.check_time_ms = 0.0
-
-    # Required by binary_search.narrow flow
-    def try_model_shortcut(self, phase: str = "") -> bool:
-        return False
 
     def _assumes_to_z3(self, assumes: list[Assume]) -> Optional[list[z3.BoolRef]]:
         """Translate a list of Rust assumes to z3 Bool constraints.
@@ -292,8 +285,6 @@ def run_schema_search(
     for sym in det_spec.symbols:
         sym_node = ctx.tree.get_or_create(sym.name)
         narrow(sym.type, sym.name, sym_node, ctx)
-        if ctx.shortcut_witness is not None:
-            return ctx.shortcut_witness
 
     # Distinctness.
     try:

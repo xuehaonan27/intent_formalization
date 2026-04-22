@@ -10,7 +10,7 @@ LLM fallback for unknown types.
 
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Callable, Optional, Protocol
 
 from .types import (
     TypeKind, TypeInfo, FieldInfo, Param,
@@ -22,10 +22,24 @@ from .predicates import (
     SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
     SetContainsPred, SetLiteralPred, NotEqualFnPred,
 )
-from .gen_det import render_template
-from .backend import DetBackend
-
 logger = logging.getLogger(__name__)
+
+
+# ===========================================================================
+# SearchCtx — structural interface consumed by the narrow_* strategies
+# ===========================================================================
+#
+# The narrow_* functions below don't care which concrete search driver
+# is orchestrating them; they only need an object with `.tree`,
+# `.det_spec`, and a `.test_and_set(node, assume, phase="")` method
+# that returns True iff the new assume was kept. Today there is exactly
+# one implementation: `schema_search.SchemaSearchContext`.
+class SearchContext(Protocol):
+    tree: "AssumeNode"
+    det_spec: DetCheckSpec
+    trace: list[dict]
+
+    def test_and_set(self, node: "AssumeNode", assume: Assume, phase: str = "") -> bool: ...
 
 
 # ===========================================================================
@@ -452,226 +466,7 @@ def narrow_str(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
             return
 
 
-# ===========================================================================
-# SearchContext
-# ===========================================================================
-
-class SearchContext:
-    """
-    Holds search state. Operates on DetCheckSpec (template + symbols).
-    """
-
-    def __init__(self, det_spec: DetCheckSpec, runner: DetBackend):
-        self.det_spec = det_spec
-        self.runner = runner
-        self.tree = AssumeNode(key="root")
-        self.trace: list[dict] = []
-        self._round = 0
-        # Set by `_try_model_shortcut` when a ModelProvidingBackend's
-        # last_model happens to cover all tracked symbols. Main loop
-        # checks this after each narrowing step and exits early.
-        self.shortcut_witness: "Witness | None" = None
-        from .backend import ModelProvidingBackend
-        self._is_model_backend = isinstance(runner, ModelProvidingBackend)
-
-    def try_model_shortcut(self, phase: str = "z3_shortcut") -> bool:
-        """Check whether the backend's current model is a full witness.
-
-        Called opportunistically after each narrowing step that returned
-        `fail`. Returns True iff a shortcut witness was captured (caller
-        should stop narrowing). Safe to call on non-model backends
-        (no-op).
-        """
-        if not self._is_model_backend or self.shortcut_witness is not None:
-            return False
-        model = getattr(self.runner, "last_model", None)
-        if not model:
-            return False
-        from .z3_backend import witness_from_model
-        transcript_path = ""
-        last = getattr(self.runner, "_last_result", None)
-        if last is not None:
-            transcript_path = getattr(last, "transcript_path", "") or ""
-        w = witness_from_model(self.det_spec, model, trace=self.trace,
-                               transcript_path=transcript_path)
-        if w is None:
-            return False
-        self._round += 1
-        self.trace.append({
-            "round": self._round,
-            "phase": phase,
-            "node_key": "root",
-            "assumes": [a.expression for a in self.tree.collect_assumes()],
-            "new_assume": None,
-            "result": "fail",
-            "description": (
-                f"full witness extracted from Z3 model "
-                f"({len(model)} symbols); narrowing terminated early"
-            ),
-        })
-        logger.info(
-            f"{self.det_spec.function}: Z3 model now covers all tracked "
-            f"symbols ({len(model)}); stopping narrowing"
-        )
-        # Merge any assumes already pinned down into the witness.
-        w.assumes = self.tree.collect_assumes() + (w.assumes or [])
-        w.trace = self.trace
-        self.shortcut_witness = w
-        return True
-
-    def test_and_set(self, node: AssumeNode, assume: Assume, phase: str = "") -> bool:
-        """
-        Sets node.assume = assume, renders template with ALL tree assumes,
-        runs Verus. FAIL → keep. PASS → revert.
-        """
-        old_assume = node.assume
-        node.assume = assume
-
-        all_assumes = self.tree.collect_assumes()
-        code = render_template(self.det_spec, all_assumes)
-        fn_name = self.det_spec.check_fn_name or f"det_{self.det_spec.function}"
-        result = self.runner.check(code, fn_name)
-
-        self._round += 1
-        p = phase or "search"
-        self.trace.append({
-            "round": self._round,
-            "phase": p,
-            "node_key": node.key,
-            "assumes": [a.expression for a in all_assumes],
-            "new_assume": assume.expression,
-            "result": result.status,
-            "description": assume.description,
-        })
-        logger.info(f"R{self._round} [{p}] {node.key}: {assume.expression} → {result.status}")
-
-        if result.status == "fail":
-            # Keep: node.assume already set.
-            # Opportunistically check if the Z3 model now covers everything.
-            self.try_model_shortcut()
-            return True
-        else:
-            # Revert
-            node.assume = old_assume
-            if result.status == "pass":
-                return False
-            elif result.status == "timeout":
-                logger.warning(f"Timeout on {assume.expression}")
-                return False
-            else:
-                logger.error(f"Error: {result.stderr[:200]}")
-                return False
-
-
-# ===========================================================================
-# Driver
-# ===========================================================================
-
-def binary_search(det_spec: DetCheckSpec, runner: DetBackend) -> Witness:
-    """Run full binary search using a DetCheckSpec (template + symbol table).
-
-    Fast path: if `runner` satisfies `ModelProvidingBackend`, the R0
-    failure already comes with a Z3 model that may fully specify every
-    top-level symbol. If so, construct a Witness directly from the model
-    and skip narrowing entirely.
-    """
-    from .backend import ModelProvidingBackend
-
-    model_backend = runner if isinstance(runner, ModelProvidingBackend) else None
-
-    # Let a model-providing backend know which SMT symbols to read out.
-    if model_backend is not None:
-        model_backend.set_det_spec(det_spec)
-
-    ctx = SearchContext(det_spec, runner)
-
-    # R0: initial determinism check (no assumes)
-    code = render_template(det_spec, [])
-    fn_name = det_spec.check_fn_name or f"det_{det_spec.function}"
-    r0 = runner.check(code, fn_name)
-    ctx.trace.append({
-        "round": 0, "phase": "initial", "node_key": "root",
-        "assumes": [], "new_assume": None,
-        "result": r0.status, "description": "full determinism check",
-    })
-
-    if r0.status == "pass":
-        logger.info(f"{det_spec.function}: spec is deterministic")
-        return Witness(function=det_spec.function, trace=ctx.trace)
-
-    if r0.status != "fail":
-        # Smoke-test failure: the template itself didn't even parse/typecheck.
-        # Surface the stderr prominently — this is almost always a gen_det bug,
-        # not a real spec issue.
-        logger.error(
-            f"{det_spec.function}: SMOKE TEST FAILED — initial check returned "
-            f"{r0.status!r}. This usually means the generated det-check template "
-            f"is malformed (syntax/type error), not that the spec is indeterminate.\n"
-            f"Verus stderr:\n{r0.stderr[:4000]}"
-        )
-        ctx.trace[-1]["smoke_test_error"] = r0.stderr[:4000]
-        return Witness(function=det_spec.function, trace=ctx.trace)
-
-    # Fast path: a model-returning backend may already have a full witness.
-    model = model_backend.last_model if model_backend is not None else None
-    if model:
-        # Lazy import to avoid a hard cycle between the two modules.
-        from .z3_backend import witness_from_model
-        transcript_path = ""
-        last = getattr(model_backend, "_last_result", None)
-        if last is not None:
-            transcript_path = getattr(last, "transcript_path", "") or ""
-        shortcut = witness_from_model(det_spec, model, trace=ctx.trace,
-                                      transcript_path=transcript_path)
-        if shortcut is not None:
-            ctx.trace.append({
-                "round": 0, "phase": "z3_shortcut",
-                "node_key": "root", "assumes": [], "new_assume": None,
-                "result": "fail",
-                "description": (
-                    f"full witness extracted from Z3 model "
-                    f"({len(model)} symbols); skipping narrowing"
-                ),
-            })
-            logger.info(
-                f"{det_spec.function}: Z3 model covers all "
-                f"{len(model)} top-level symbols; skipping narrowing"
-            )
-            shortcut.trace = ctx.trace
-            return shortcut
-        logger.info(
-            f"{det_spec.function}: Z3 model incomplete; "
-            "falling back to binary-search narrowing"
-        )
-
-    logger.info(f"{det_spec.function}: nondeterminism detected, starting binary search")
-
-    # Narrow symbols in order (already sorted: input → output_simple → output_compound).
-    # After each symbol, opportunistically check whether the backend's updated
-    # model now covers all tracked symbols; if so, stop early.
-    for sym in det_spec.symbols:
-        sym_node = ctx.tree.get_or_create(sym.name)
-        narrow(sym.type, sym.name, sym_node, ctx)
-        if ctx.shortcut_witness is not None:
-            return ctx.shortcut_witness
-
-    # Final step: for each pair of output variables (r1/r2, post1_X/post2_X),
-    # try to add an explicit `!=` / `@ != @` assume. If this FAILs, we have a
-    # strong witness: the two outputs are provably distinct under current
-    # assumes. If it PASSes, the two outputs must be equal — narrowing below
-    # has already pinned them down, so we leave it alone.
-    _add_distinctness_witnesses(ctx, det_spec)
-    if ctx.shortcut_witness is not None:
-        return ctx.shortcut_witness
-
-    return Witness(
-        function=det_spec.function,
-        assumes=ctx.tree.collect_assumes(),
-        trace=ctx.trace,
-    )
-
-
-def _add_distinctness_witnesses(ctx: "SearchContext", det_spec: DetCheckSpec):
+def _add_distinctness_witnesses(ctx, det_spec: DetCheckSpec):
     """Final witness step: try to assume `!{fn_name}_equal(...)`. If FAIL, the
     spec provably admits two non-equivalent output tuples, i.e. the generated
     witness is a strong demonstration of nondeterminism.
