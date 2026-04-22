@@ -37,7 +37,12 @@ from enum import Enum
 from typing import Optional
 
 from ..types import (
-    DetCheckSpec, TypeInfo, TypeKind, VariantInfo,
+    DetCheckSpec, TypeInfo, TypeKind, VariantInfo, Assume,
+)
+from ..predicates import (
+    EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
+    SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
+    SetContainsPred, SetLiteralPred, NotEqualFnPred, OpaquePred,
 )
 
 
@@ -352,121 +357,99 @@ def render_guarded_template(
 
 
 # ---------------------------------------------------------------------------
-# Translation: Rust assume expression → schema activation
+# Translation: structured AssumePred -> schema activation
 # ---------------------------------------------------------------------------
 
-_INT_LIT = r"-?\d+"
 
-
-def _match_int_eq(var: str, expr: str) -> Optional[int]:
-    m = re.fullmatch(rf"\s*{re.escape(var)}\s*==\s*({_INT_LIT})\s*", expr)
-    return int(m.group(1)) if m else None
-
-
-def _match_int_range(var: str, expr: str) -> Optional[tuple[int, int]]:
-    m = re.fullmatch(
-        rf"\s*{re.escape(var)}\s*>=\s*({_INT_LIT})\s*&&\s*{re.escape(var)}\s*<=\s*({_INT_LIT})\s*",
-        expr,
-    )
-    return (int(m.group(1)), int(m.group(2))) if m else None
-
-
-def _match_variant_is(var: str, expr: str) -> Optional[str]:
-    m = re.fullmatch(rf"\s*{re.escape(var)}\s+is\s+(\w+)\s*", expr)
-    return m.group(1) if m else None
-
-
-def _match_bool_eq(var: str, expr: str) -> Optional[bool]:
-    m = re.fullmatch(rf"\s*{re.escape(var)}\s*==\s*(true|false)\s*", expr)
-    return (m.group(1) == "true") if m else None
-
-
-def _match_str_eq(var: str, expr: str) -> Optional[str]:
-    m = re.fullmatch(rf'\s*{re.escape(var)}\s*==\s*"([^"]*)"\s*', expr)
-    return m.group(1) if m else None
-
-
-def _match_set_empty(var: str, expr: str) -> bool:
-    return bool(re.fullmatch(rf"\s*{re.escape(var)}\s*==\s*Set::<[^>]+>::empty\(\)\s*", expr))
-
-
-def _match_set_len_gt(var: str, expr: str) -> bool:
-    return bool(re.fullmatch(rf"\s*{re.escape(var)}\.len\(\)\s*>\s*0\s*", expr))
-
-
-def _match_set_len_eq(var: str, expr: str) -> Optional[int]:
-    m = re.fullmatch(rf"\s*{re.escape(var)}\.len\(\)\s*==\s*({_INT_LIT})\s*", expr)
-    return int(m.group(1)) if m else None
-
-
-def _match_set_len_range(var: str, expr: str) -> Optional[tuple[int, int]]:
-    m = re.fullmatch(
-        rf"\s*{re.escape(var)}\.len\(\)\s*>=\s*({_INT_LIT})\s*&&\s*"
-        rf"{re.escape(var)}\.len\(\)\s*<=\s*({_INT_LIT})\s*",
-        expr,
-    )
-    return (int(m.group(1)), int(m.group(2))) if m else None
-
-
-def _match_set_contains(var: str, expr: str) -> Optional[int]:
-    m = re.fullmatch(rf"\s*{re.escape(var)}\.contains\(\s*({_INT_LIT})\s*\)\s*", expr)
-    return int(m.group(1)) if m else None
+def _find(schemas, kind, rust_var):
+    for s in schemas:
+        if s.kind == kind and s.rust_var == rust_var:
+            return s
+    return None
 
 
 def translate_assume(
-    rust_expr: str,
+    assume: Assume,
     schemas: list[SchemaBinding],
     equal_fn_name: str = "",
 ) -> Optional[tuple[str, dict[str, int]]]:
-    """Match rust_expr to the first applicable schema, returning
-    (schema_id, k_bindings). None if no schema applies."""
-    expr = rust_expr.strip()
+    """Match assume.pred to the first applicable schema, returning
+    (schema_id, k_bindings). Returns None if no schema applies (caller
+    treats this as pass_untranslatable).
+    """
+    pred = assume.pred
+    if pred is None:
+        return None
 
-    if equal_fn_name and expr.startswith(f"!{equal_fn_name}("):
+    if isinstance(pred, EqPred):
+        s = _find(schemas, SchemaKind.SCALAR_EQ, pred.var)
+        if s is not None:
+            return (s.id, {s.k_params[0][0]: pred.value})
+        return None
+
+    if isinstance(pred, RangePred):
+        s = _find(schemas, SchemaKind.SCALAR_RANGE, pred.var)
+        if s is not None:
+            return (s.id, {s.k_params[0][0]: pred.lo, s.k_params[1][0]: pred.hi})
+        return None
+
+    if isinstance(pred, VariantIsPred):
+        for s in schemas:
+            if (s.kind == SchemaKind.VARIANT_IS
+                    and s.rust_var == pred.var
+                    and s.variant == pred.variant):
+                return (s.id, {})
+        return None
+
+    if isinstance(pred, BoolPred):
+        for s in schemas:
+            if (s.kind == SchemaKind.BOOL_EQ
+                    and s.rust_var == pred.var
+                    and s.bool_value == pred.value):
+                return (s.id, {})
+        return None
+
+    if isinstance(pred, StrEqPred):
+        for s in schemas:
+            if (s.kind == SchemaKind.STR_EQ
+                    and s.rust_var == pred.var
+                    and s.str_value == pred.value):
+                return (s.id, {})
+        return None
+
+    if isinstance(pred, SetEmptyPred):
+        s = _find(schemas, SchemaKind.SET_EMPTY, pred.var)
+        return (s.id, {}) if s is not None else None
+
+    if isinstance(pred, SetLenGtPred):
+        s = _find(schemas, SchemaKind.SET_LEN_GT, pred.var)
+        return (s.id, {}) if s is not None else None
+
+    if isinstance(pred, LenEqPred):
+        for kind in (SchemaKind.SET_LEN_EQ, SchemaKind.SEQ_LEN_EQ):
+            s = _find(schemas, kind, pred.var)
+            if s is not None:
+                return (s.id, {s.k_params[0][0]: pred.n})
+        return None
+
+    if isinstance(pred, LenRangePred):
+        for kind in (SchemaKind.SET_LEN_RANGE, SchemaKind.SEQ_LEN_RANGE):
+            s = _find(schemas, kind, pred.var)
+            if s is not None:
+                return (s.id, {s.k_params[0][0]: pred.lo, s.k_params[1][0]: pred.hi})
+        return None
+
+    if isinstance(pred, SetContainsPred):
+        s = _find(schemas, SchemaKind.SET_CONTAINS, pred.var)
+        if s is not None:
+            return (s.id, {s.k_params[0][0]: pred.elem})
+        return None
+
+    if isinstance(pred, NotEqualFnPred):
         for s in schemas:
             if s.kind == SchemaKind.NOT_EQUAL_FN:
                 return (s.id, {})
+        return None
 
-    for s in schemas:
-        v = s.rust_var
-        if s.kind == SchemaKind.SCALAR_EQ:
-            val = _match_int_eq(v, expr)
-            if val is not None:
-                return (s.id, {s.k_params[0][0]: val})
-        elif s.kind == SchemaKind.SCALAR_RANGE:
-            rng = _match_int_range(v, expr)
-            if rng is not None:
-                lo, hi = rng
-                return (s.id, {s.k_params[0][0]: lo, s.k_params[1][0]: hi})
-        elif s.kind == SchemaKind.VARIANT_IS:
-            vname = _match_variant_is(v, expr)
-            if vname == s.variant:
-                return (s.id, {})
-        elif s.kind == SchemaKind.BOOL_EQ:
-            b = _match_bool_eq(v, expr)
-            if b is not None and b == s.bool_value:
-                return (s.id, {})
-        elif s.kind == SchemaKind.STR_EQ:
-            sv = _match_str_eq(v, expr)
-            if sv is not None and sv == s.str_value:
-                return (s.id, {})
-        elif s.kind == SchemaKind.SET_EMPTY:
-            if _match_set_empty(v, expr):
-                return (s.id, {})
-        elif s.kind == SchemaKind.SET_LEN_GT:
-            if _match_set_len_gt(v, expr):
-                return (s.id, {})
-        elif s.kind in (SchemaKind.SET_LEN_EQ, SchemaKind.SEQ_LEN_EQ):
-            n = _match_set_len_eq(v, expr)
-            if n is not None:
-                return (s.id, {s.k_params[0][0]: n})
-        elif s.kind in (SchemaKind.SET_LEN_RANGE, SchemaKind.SEQ_LEN_RANGE):
-            rng = _match_set_len_range(v, expr)
-            if rng is not None:
-                lo, hi = rng
-                return (s.id, {s.k_params[0][0]: lo, s.k_params[1][0]: hi})
-        elif s.kind == SchemaKind.SET_CONTAINS:
-            n = _match_set_contains(v, expr)
-            if n is not None:
-                return (s.id, {s.k_params[0][0]: n})
+    # SetLiteralPred, OpaquePred, or any unknown pred kind: no schema.
     return None

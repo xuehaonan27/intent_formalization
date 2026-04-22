@@ -17,6 +17,11 @@ from .types import (
     FunctionSpec, Assume, VerifyResult, Witness,
     Symbol, DetCheckSpec,
 )
+from .predicates import (
+    EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
+    SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
+    SetContainsPred, SetLiteralPred, NotEqualFnPred, OpaquePred,
+)
 from .gen_det import render_template
 from .backend import DetBackend
 
@@ -143,7 +148,7 @@ def _full_int_range(ty: TypeInfo) -> tuple[int, int]:
 def narrow_result(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """Narrow Result<T, E>: try Ok first, then Err if Ok PASS."""
     variant_node = node.get_or_create("variant")
-    ok_assume = Assume(var, f"{var} is Ok", "variant: Ok")
+    ok_assume = Assume.from_pred(var, VariantIsPred(var, "Ok"), "variant: Ok")
     if ctx.test_and_set(variant_node, ok_assume):
         # FAIL → nondeterminism with this var as Ok. Narrow Ok inner.
         if ty.type_args:
@@ -151,7 +156,7 @@ def narrow_result(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
             narrow(ty.type_args[0], f"{var}->Ok_0", inner_node, ctx)
     else:
         # PASS → Ok doesn't exhibit nondeterminism here. Try Err.
-        err_assume = Assume(var, f"{var} is Err", "variant: Err")
+        err_assume = Assume.from_pred(var, VariantIsPred(var, "Err"), "variant: Err")
         if ctx.test_and_set(variant_node, err_assume):
             if len(ty.type_args) > 1:
                 inner_node = node.get_or_create("Err_0")
@@ -162,14 +167,14 @@ def narrow_result(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
 def narrow_option(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """Narrow Option<T>: try Some first, then None if Some PASS."""
     variant_node = node.get_or_create("variant")
-    some_assume = Assume(var, f"{var} is Some", "variant: Some")
+    some_assume = Assume.from_pred(var, VariantIsPred(var, "Some"), "variant: Some")
     if ctx.test_and_set(variant_node, some_assume):
         if ty.type_args:
             inner_node = node.get_or_create("Some_0")
             narrow(ty.type_args[0], f"{var}->Some_0", inner_node, ctx)
     else:
         # PASS → Some doesn't exhibit nondeterminism. Try None.
-        none_assume = Assume(var, f"{var} is None", "variant: None")
+        none_assume = Assume.from_pred(var, VariantIsPred(var, "None"), "variant: None")
         ctx.test_and_set(variant_node, none_assume)
 
 
@@ -178,7 +183,8 @@ def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """Narrow a general enum: try each variant."""
     variant_node = node.get_or_create("variant")
     for variant in ty.variants:
-        assume = Assume(var, f"{var} is {variant.name}", f"variant: {variant.name}")
+        assume = Assume.from_pred(var, VariantIsPred(var, variant.name),
+                                  f"variant: {variant.name}")
         if ctx.test_and_set(variant_node, assume):
             if variant.inner:
                 inner_node = node.get_or_create(f"{variant.name}_0")
@@ -206,8 +212,10 @@ def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext
     """Narrow integer: small range first, then full type range, then bisect."""
     small_lo, small_hi = _int_range(ty)
     hi_inclusive = small_hi - 1
-    small_assume = Assume(var, f"{var} >= {small_lo} && {var} <= {hi_inclusive}",
-                          f"small range: [{small_lo}, {hi_inclusive}]")
+    small_assume = Assume.from_pred(
+        var, RangePred(var, small_lo, hi_inclusive),
+        f"small range: [{small_lo}, {hi_inclusive}]",
+    )
     if ctx.test_and_set(node, small_assume):
         _bisect_range(var, small_lo, hi_inclusive, node, ctx)
         return
@@ -215,23 +223,45 @@ def narrow_integer(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext
     # Small range PASS — rare case, just bisect full type range directly
     full_lo, full_hi = _full_int_range(ty)
     full_hi_inclusive = full_hi - 1
-    full_assume = Assume(var, f"{var} >= {full_lo} && {var} <= {full_hi_inclusive}",
-                         f"full range: [{full_lo}, {full_hi_inclusive}]")
+    full_assume = Assume.from_pred(
+        var, RangePred(var, full_lo, full_hi_inclusive),
+        f"full range: [{full_lo}, {full_hi_inclusive}]",
+    )
     if ctx.test_and_set(node, full_assume):
         _bisect_range(var, full_lo, full_hi_inclusive, node, ctx)
 
 
 def _bisect_range(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchContext") -> int | None:
-    """Recursive bisection on [lo, hi] inclusive. Returns the exact value found, or None."""
+    """Recursive bisection on [lo, hi] inclusive. Returns the exact value found, or None.
+
+    ``var`` is the Rust expression being narrowed; it may be either a
+    plain variable (integer field) or a ``<v>.len()`` expression when
+    called from :func:`_narrow_length`.  The predicate kind is chosen
+    from ``is_len`` so A' can dispatch to SET/SEQ_LEN_* vs SCALAR_*
+    schemas without parsing the string.
+    """
+    is_len = var.endswith(".len()")
+    base = var[: -len(".len()")] if is_len else var
+
+    def _eq(val: int, desc: str) -> Assume:
+        if is_len:
+            return Assume.from_pred(var, LenEqPred(base, val), desc)
+        return Assume.from_pred(var, EqPred(var, val), desc)
+
+    def _rng(lo_: int, hi_: int, desc: str) -> Assume:
+        if is_len:
+            return Assume.from_pred(var, LenRangePred(base, lo_, hi_), desc)
+        return Assume.from_pred(var, RangePred(var, lo_, hi_), desc)
+
     if lo == hi:
-        ctx.test_and_set(node, Assume(var, f"{var} == {lo}", f"exact: {lo}"))
+        ctx.test_and_set(node, _eq(lo, f"exact: {lo}"))
         return lo
 
     mid = (lo + hi) // 2
     if lo == mid:
-        left = Assume(var, f"{var} == {lo}", f"exact: {lo}")
+        left = _eq(lo, f"exact: {lo}")
     else:
-        left = Assume(var, f"{var} >= {lo} && {var} <= {mid}", f"range: [{lo}, {mid}]")
+        left = _rng(lo, mid, f"range: [{lo}, {mid}]")
 
     if ctx.test_and_set(node, left):
         if lo == mid:
@@ -249,18 +279,23 @@ def _narrow_length(var_len_expr: str, node: AssumeNode, ctx: "SearchContext",
 
     Returns the exact length found, or None.
     """
+    assert var_len_expr.endswith(".len()"), \
+        f"_narrow_length expected '<var>.len()', got {var_len_expr!r}"
+    base = var_len_expr[: -len(".len()")]
+
     # Phase 1: exact probes for common small values
     EXACT_LIMIT = 4
     for n in range(EXACT_LIMIT + 1):
-        assume = Assume(var_len_expr, f"{var_len_expr} == {n}", f"len: {n}")
+        assume = Assume.from_pred(var_len_expr, LenEqPred(base, n), f"len: {n}")
         if ctx.test_and_set(node, assume):
             return n
 
     # Phase 2: not in [0..4], bisect the full range
     lo = EXACT_LIMIT + 1
-    full_assume = Assume(var_len_expr,
-                         f"{var_len_expr} >= {lo} && {var_len_expr} <= {max_bound}",
-                         f"len range: [{lo}, {max_bound}]")
+    full_assume = Assume.from_pred(
+        var_len_expr, LenRangePred(base, lo, max_bound),
+        f"len range: [{lo}, {max_bound}]",
+    )
     if ctx.test_and_set(node, full_assume):
         return _bisect_range(var_len_expr, lo, max_bound, node, ctx)
 
@@ -269,16 +304,15 @@ def _narrow_length(var_len_expr: str, node: AssumeNode, ctx: "SearchContext",
 
 @strategy_for(TypeKind.BOOL)
 def narrow_bool(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    assume_true = Assume(var, f"{var} == true", "bool: true")
+    assume_true = Assume.from_pred(var, BoolPred(var, True), "bool: true")
     if not ctx.test_and_set(node, assume_true):
-        ctx.test_and_set(node, Assume(var, f"{var} == false", "bool: false"))
+        ctx.test_and_set(node, Assume.from_pred(var, BoolPred(var, False), "bool: false"))
 
 
 @strategy_for(TypeKind.SET)
 def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     elem_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
     elem_ty_name = elem_ty.name
-    empty_expr = f"Set::<{elem_ty_name}>::empty()"
 
     # Verus `Set::<T>::len()` returns 0 for BOTH empty and infinite sets, so
     # len-first probing is ambiguous. Instead, split into two disjoint finite
@@ -287,13 +321,13 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     # developer and cannot be printed concretely).
 
     # Case 1: empty set
-    empty = Assume(var, f"{var} == {empty_expr}", "set: empty")
+    empty = Assume.from_pred(var, SetEmptyPred(var, elem_ty_name), "set: empty")
     if ctx.test_and_set(node, empty):
         return
 
     # Case 2: finite non-empty. Establish len > 0 as a precondition; once that
     # sticks, len() is the true cardinality and we can enumerate elements.
-    pos_len = Assume(var, f"{var}.len() > 0", "set: non-empty (finite)")
+    pos_len = Assume.from_pred(var, SetLenGtPred(var), "set: non-empty (finite)")
     if not ctx.test_and_set(node, pos_len):
         # Spec admits neither empty nor any finite non-empty witness — the
         # only remaining nondeterminism is via infinite sets, which we don't
@@ -320,9 +354,13 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     # One final confirmation with full set expression; clears intermediate
     # children only if the confirmation sticks.
     if elements:
-        set_expr = _build_set_expr(elem_ty_name, sorted(elements))
-        desc = ", ".join(str(e) for e in sorted(elements))
-        if ctx.test_and_set(node, Assume(var, f"{var} == {set_expr}", f"set: {{{desc}}}")):
+        sorted_elems = tuple(sorted(elements))
+        desc = ", ".join(str(e) for e in sorted_elems)
+        lit_assume = Assume.from_pred(
+            var, SetLiteralPred(var, elem_ty_name, sorted_elems),
+            f"set: {{{desc}}}",
+        )
+        if ctx.test_and_set(node, lit_assume):
             node.children.clear()  # len + elem children subsumed by full set expr
 
 
@@ -361,7 +399,7 @@ def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchC
     for val in range(lo, min(lo + 17, hi + 1)):
         if val in skip:
             continue
-        assume = Assume(var, f"{var}.contains({val})", f"contains {val}")
+        assume = Assume.from_pred(var, SetContainsPred(var, val), f"contains {val}")
         if ctx.test_and_set(node, assume):
             return val
     return None
@@ -400,7 +438,9 @@ def narrow_str(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     equality) or distinguished by identity, not by content.
     """
     for lit in _STR_CANDIDATES:
-        assume = Assume(var, f'{var} == {lit}', f'str: {lit}')
+        # Strip the surrounding quotes to get the raw string value.
+        value = lit[1:-1]
+        assume = Assume.from_pred(var, StrEqPred(var, value), f'str: {lit}')
         if ctx.test_and_set(node, assume):
             return
 
@@ -420,7 +460,8 @@ def _llm_fallback(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
             user_prompt=prompt,
         )
         expr = response.content.strip().strip("`")
-        ctx.test_and_set(node, Assume(var, expr, f"LLM-suggested for {ty.name}"))
+        ctx.test_and_set(node, Assume.from_pred(
+            var, OpaquePred(var, expr), f"LLM-suggested for {ty.name}"))
     else:
         logger.error(f"No LLM client and no strategy for type {ty.name}")
 
@@ -662,9 +703,9 @@ def _add_distinctness_witnesses(ctx: "SearchContext", det_spec: DetCheckSpec):
         call_args.append(pair["rhs"])
     call = f"{det_spec.equal_fn_name}({', '.join(call_args)})"
     node = ctx.tree.get_or_create("tuple_not_equal")
-    assume = Assume(
+    assume = Assume.from_pred(
         "tuple",
-        f"!{call}",
+        NotEqualFnPred(call=call),
         f"distinctness: output tuple not equal under {det_spec.equal_fn_name}",
     )
     ctx.test_and_set(node, assume, phase="distinct")

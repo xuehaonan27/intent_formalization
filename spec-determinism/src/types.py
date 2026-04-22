@@ -224,6 +224,17 @@ class Assume:
     var_name: str
     expression: str
     description: str = ""
+    # Structured form of the predicate.  Narrow strategies populate
+    # this; A' dispatches on it.  Kept optional so legacy call sites
+    # passing a free-form Rust string still work (the A' translator
+    # falls through to ``pass_untranslatable`` for them, preserving
+    # previous behaviour).
+    pred: Optional["object"] = None
+
+    @classmethod
+    def from_pred(cls, var_name: str, pred, description: str = "") -> "Assume":
+        return cls(var_name=var_name, expression=pred.to_rust(),
+                   description=description, pred=pred)
 
 
 @dataclass

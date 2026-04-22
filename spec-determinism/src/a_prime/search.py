@@ -182,7 +182,7 @@ class APrimeSearchContext:
         """
         out: list[z3.BoolRef] = []
         for a in assumes:
-            tr = translate_assume(a.expression, self.a.schemas,
+            tr = translate_assume(a, self.a.schemas,
                                   self.det_spec.equal_fn_name)
             if tr is None:
                 return None

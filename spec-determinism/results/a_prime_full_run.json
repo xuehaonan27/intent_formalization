@@ -5,14 +5,14 @@
     "det_fn": "det_number_of_bits",
     "n_schemas": 12,
     "n_params": 25,
-    "verus_ms": 2139,
+    "verus_ms": 2163,
     "smt2_bytes": 607390,
-    "ctx_ms": 41,
-    "search_ms": 152,
+    "ctx_ms": 40,
+    "search_ms": 151,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2339
+    "total_ms": 2362
   },
   {
     "crate": "bitmap",
@@ -20,10 +20,10 @@
     "det_fn": "det_new",
     "n_schemas": 271,
     "n_params": 288,
-    "verus_ms": 2527,
+    "verus_ms": 2537,
     "smt2_bytes": 3933305,
-    "ctx_ms": 64,
-    "search_ms": 431,
+    "ctx_ms": 65,
+    "search_ms": 433,
     "n_rounds": 20,
     "assumes": [
       "number_of_bits == 8",
@@ -36,7 +36,7 @@
       "!det_new_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 3031
+    "total_ms": 3045
   },
   {
     "crate": "bitmap",
@@ -44,14 +44,14 @@
     "det_fn": "det_from_raw_array",
     "n_schemas": 269,
     "n_params": 283,
-    "verus_ms": 2605,
+    "verus_ms": 2622,
     "smt2_bytes": 2298431,
     "ctx_ms": 63,
-    "search_ms": 253,
+    "search_ms": 255,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2930
+    "total_ms": 2949
   },
   {
     "crate": "bitmap",
@@ -59,10 +59,10 @@
     "det_fn": "det_alloc",
     "n_schemas": 280,
     "n_params": 307,
-    "verus_ms": 2561,
+    "verus_ms": 2600,
     "smt2_bytes": 4329541,
-    "ctx_ms": 64,
-    "search_ms": 665,
+    "ctx_ms": 65,
+    "search_ms": 570,
     "n_rounds": 65,
     "assumes": [
       "pre_self_@.num_bits == 8",
@@ -82,7 +82,7 @@
       "!det_alloc_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 3299
+    "total_ms": 3245
   },
   {
     "crate": "bitmap",
@@ -90,10 +90,10 @@
     "det_fn": "det_alloc_range_chk",
     "n_schemas": 282,
     "n_params": 312,
-    "verus_ms": 2607,
+    "verus_ms": 2604,
     "smt2_bytes": 4454524,
-    "ctx_ms": 67,
-    "search_ms": 665,
+    "ctx_ms": 64,
+    "search_ms": 563,
     "n_rounds": 72,
     "assumes": [
       "pre_self_@.num_bits == 8",
@@ -114,7 +114,7 @@
       "!det_alloc_range_chk_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 3349
+    "total_ms": 3241
   },
   {
     "crate": "bitmap",
@@ -122,14 +122,14 @@
     "det_fn": "det_set",
     "n_schemas": 278,
     "n_params": 302,
-    "verus_ms": 2584,
+    "verus_ms": 2620,
     "smt2_bytes": 2467498,
-    "ctx_ms": 66,
-    "search_ms": 272,
+    "ctx_ms": 68,
+    "search_ms": 267,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2931
+    "total_ms": 2966
   },
   {
     "crate": "bitmap",
@@ -137,14 +137,14 @@
     "det_fn": "det_clear",
     "n_schemas": 278,
     "n_params": 302,
-    "verus_ms": 2664,
+    "verus_ms": 2651,
     "smt2_bytes": 2460598,
-    "ctx_ms": 65,
-    "search_ms": 291,
+    "ctx_ms": 66,
+    "search_ms": 290,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 3029
+    "total_ms": 3016
   },
   {
     "crate": "bitmap",
@@ -152,14 +152,14 @@
     "det_fn": "det_test",
     "n_schemas": 268,
     "n_params": 278,
-    "verus_ms": 2540,
+    "verus_ms": 2567,
     "smt2_bytes": 2187931,
-    "ctx_ms": 64,
-    "search_ms": 252,
+    "ctx_ms": 63,
+    "search_ms": 248,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2865
+    "total_ms": 2888
   },
   {
     "crate": "slab",
@@ -167,10 +167,10 @@
     "det_fn": "det_from_raw_parts",
     "n_schemas": 291,
     "n_params": 331,
-    "verus_ms": 5092,
+    "verus_ms": 5106,
     "smt2_bytes": 4622345,
-    "ctx_ms": 73,
-    "search_ms": 910,
+    "ctx_ms": 67,
+    "search_ms": 878,
     "n_rounds": 67,
     "assumes": [
       "len == 1",
@@ -192,7 +192,7 @@
       "!det_from_raw_parts_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 6089
+    "total_ms": 6065
   },
   {
     "crate": "slab",
@@ -200,10 +200,10 @@
     "det_fn": "det_allocate_chk",
     "n_schemas": 303,
     "n_params": 354,
-    "verus_ms": 2975,
+    "verus_ms": 2955,
     "smt2_bytes": 4781203,
-    "ctx_ms": 72,
-    "search_ms": 1991,
+    "ctx_ms": 70,
+    "search_ms": 1738,
     "n_rounds": 94,
     "assumes": [
       "pre_self_@.block_size == 1",
@@ -236,7 +236,7 @@
       "!det_allocate_chk_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 5051
+    "total_ms": 4777
   },
   {
     "crate": "slab",
@@ -244,14 +244,14 @@
     "det_fn": "det_deallocate",
     "n_schemas": 303,
     "n_params": 354,
-    "verus_ms": 2817,
+    "verus_ms": 2835,
     "smt2_bytes": 2677721,
-    "ctx_ms": 70,
-    "search_ms": 286,
+    "ctx_ms": 69,
+    "search_ms": 311,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 3186
+    "total_ms": 3228
   },
   {
     "crate": "kernel",
@@ -259,10 +259,10 @@
     "det_fn": "det_from_raw_parts",
     "n_schemas": 519,
     "n_params": 803,
-    "verus_ms": 9281,
+    "verus_ms": 9301,
     "smt2_bytes": 14807381,
-    "ctx_ms": 126,
-    "search_ms": 4552,
+    "ctx_ms": 127,
+    "search_ms": 4450,
     "n_rounds": 65,
     "assumes": [
       "addr == 0",
@@ -276,7 +276,7 @@
       "!det_from_raw_parts_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 13969
+    "total_ms": 13888
   },
   {
     "crate": "kernel",
@@ -284,10 +284,10 @@
     "det_fn": "det_allocate",
     "n_schemas": 395,
     "n_params": 812,
-    "verus_ms": 5151,
+    "verus_ms": 5141,
     "smt2_bytes": 9860697,
-    "ctx_ms": 104,
-    "search_ms": 175937,
+    "ctx_ms": 102,
+    "search_ms": 88566,
     "n_rounds": 3567,
     "assumes": [
       "pre_self_@.slabs.len() == 7",
@@ -408,7 +408,7 @@
       "!det_allocate_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 181199
+    "total_ms": 93817
   },
   {
     "crate": "kernel",
@@ -416,14 +416,14 @@
     "det_fn": "det_deallocate",
     "n_schemas": 395,
     "n_params": 812,
-    "verus_ms": 4599,
+    "verus_ms": 4552,
     "smt2_bytes": 5099058,
-    "ctx_ms": 102,
-    "search_ms": 508,
+    "ctx_ms": 100,
+    "search_ms": 504,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 5215
+    "total_ms": 5163
   },
   {
     "crate": "kernel",
@@ -431,7 +431,7 @@
     "det_fn": "det_layout_to_allocator",
     "n_schemas": 25,
     "n_params": 25,
-    "verus_ms": 1540,
+    "verus_ms": 1546,
     "status": "verus_error",
     "stderr_tail": "   Compiling kernel v0.12.355 (/home/chentianyu/nanvix/src/kernel)\nerror: no variant `Slab1024` for this datatype\n   --> src/kernel/src/mm/kheap.proof.rs:370:408\n    |\n370 | ... is Slab512) == (r2->Ok_0 is Slab512)) && ((r1->Ok_0 is Slab1024) == (r2->Ok_0 is Slab1024)) && ((r1->Ok_0 i...\n    |                                               ^^^^^^^^^^^^^^^^^^^^^^\n\nerror: no variant `Slab1024` for this datatype\n   --> src/kernel/src/mm/kheap.proof.rs:418:58\n    |\n418 |     if g_r1__Ok_0_is_Slab1024 { assume(r1 is Ok); assume(r1->Ok_0 is Slab1024); }\n    |                                                          ^^^^^^^^^^^^^^^^^^^^\n\nerror: could not compile `kernel` (bin \"kernel\") due to 2 previous errors\n"
   }
