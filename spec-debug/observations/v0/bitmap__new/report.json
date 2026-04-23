@@ -1,0 +1,58 @@
+{
+  "function": "bitmap::new",
+  "before": {
+    "assumes": [
+      "number_of_bits == 8",
+      "r1 is Ok",
+      "r1->Ok_0@.num_bits == 8",
+      "r1->Ok_0@.set_bits == Set::<int>::empty()",
+      "r2 is Err",
+      "r2->Err_0.code is OperationNotPermitted",
+      "r2->Err_0.reason == \"\"",
+      "!det_new_equal(r1, r2)"
+    ],
+    "n_rounds": 20,
+    "n_schemas": 271,
+    "status": "ok"
+  },
+  "llm": {
+    "source": "copilot-cli",
+    "raw_len": 17647
+  },
+  "verify": {
+    "rerun": {
+      "ok": true,
+      "returncode": 0,
+      "before_assumes": [
+        "number_of_bits == 8",
+        "r1 is Ok",
+        "r1->Ok_0@.num_bits == 8",
+        "r1->Ok_0@.set_bits == Set::<int>::empty()",
+        "r2 is Err",
+        "r2->Err_0.code is OperationNotPermitted",
+        "r2->Err_0.reason == \"\"",
+        "!det_new_equal(r1, r2)"
+      ],
+      "after_assumes": [
+        "number_of_bits == 8",
+        "r1 is Ok",
+        "r1->Ok_0@.num_bits == 8",
+        "r1->Ok_0@.set_bits == Set::<int>::empty()",
+        "r2 is Err",
+        "r2->Err_0.code is OperationNotPermitted",
+        "r2->Err_0.reason == \"\"",
+        "!det_new_equal(r1, r2)"
+      ],
+      "closed": [],
+      "added": [],
+      "n_rounds_after": 20,
+      "stderr_tail": "\n\n================================================================================\nfn                                  status           verus    ctx  search rounds  schemas\n================================================================================\nbitmap::new                         ok                2544     66     422     20      271\n\nFull results \u2192 /home/chentianyu/intent_formalization/spec-determinism/results/full_run.json\n2026-04-23 08:35:31,684 [INFO] \n======================================================================\n=== bitmap::new ===\n======================================================================\n2026-04-23 08:35:31,686 [INFO] Running: cargo +nightly-2025-12-08 verus build --fwd-verus-args-to roots -p bitmap --features std -- --verify-root --verify-function det_new --log-all --log-dir /tmp/specdet_bitmap_new_qa_corkm in /home/chentianyu/nanvix\n2026-04-23 08:35:34,268 [INFO] Schema solver loaded: 1026 assertions\n2026-04-23 08:35:34,297 [INFO] Schema resolved: 271 guards, 17 k-params\n2026-04-23 08:35:34,556 [INFO] new: nondeterministic (R0 = unknown), starting schema search\n2026-04-23 08:35:34,630 [INFO] R1 [search] number_of_bits: number_of_bits >= 0 && number_of_bits <= 16 \u2192 fail (73.6ms)\n2026-04-23 08:35:34,646 [INFO] R2 [search] number_of_bits: number_of_bits >= 0 && number_of_bits <= 8 \u2192 fail (16.3ms)\n2026-04-23 08:35:34,690 [INFO] R3 [search] number_of_bits: number_of_bits >= 0 && number_of_bits <= 4 \u2192 pass (43.4ms)\n2026-04-23 08:35:34,697 [INFO] R4 [search] number_of_bits: number_of_bits >= 5 && number_of_bits <= 6 \u2192 pass (7.3ms)\n2026-04-23 08:35:34,705 [INFO] R5 [search] number_of_bits: number_of_bits == 7 \u2192 pass (7.4ms)\n2026-04-23 08:35:34,706 [INFO] R6 [search] number_of_bits: number_of_bits == 8 \u2192 fail (1.5ms)\n2026-04-23 08:35:34,708 [INFO] R7 [search] variant: r1 is Ok \u2192 fail (1.2ms)\n2026-04-23 08:35:34,709 [INFO] R8 [search] num_bits: r1->Ok_0@.num_bits >= -8 && r1->Ok_0@.num_bits <= 8 \u2192 fail (1.2ms)\n2026-04-23 08:35:34,710 [INFO] R9 [search] num_bits: r1->Ok_0@.num_bits >= -8 && r1->Ok_0@.num_bits <= 0 \u2192 pass (0.7ms)\n2026-04-23 08:35:34,711 [INFO] R10 [search] num_bits: r1->Ok_0@.num_bits >= 1 && r1->Ok_0@.num_bits <= 4 \u2192 pass (0.5ms)\n2026-04-23 08:35:34,711 [INFO] R11 [search] num_bits: r1->Ok_0@.num_bits >= 5 && r1->Ok_0@.num_bits <= 6 \u2192 pass (0.5ms)\n2026-04-23 08:35:34,712 [INFO] R12 [search] num_bits: r1->Ok_0@.num_bits == 7 \u2192 pass (0.4ms)\n2026-04-23 08:35:34,713 [INFO] R13 [search] num_bits: r1->Ok_0@.num_bits == 8 \u2192 fail (0.9ms)\n2026-04-23 08:35:34,714 [INFO] R14 [search] set_bits: r1->Ok_0@.set_bits == Set::<int>::empty() \u2192 fail (1.1ms)\n2026-04-23 08:35:34,715 [INFO] R15 [search] variant: r2 is Ok \u2192 pass (0.8ms)\n2026-04-23 08:35:34,716 [INFO] R16 [search] variant: r2 is Err \u2192 fail (1.0ms)\n2026-04-23 08:35:34,718 [INFO] R17 [search] variant: r2->Err_0.code is OperationNotPermitted \u2192 fail (1.1ms)\n2026-04-23 08:35:34,719 [INFO] R18 [search] reason: r2->Err_0.reason == \"\" \u2192 fail (1.1ms)\n2026-04-23 08:35:34,721 [INFO] R19 [distinct] tuple_not_equal: !det_new_equal(r1, r2) \u2192 fail (1.1ms)\n2026-04-23 08:35:34,730 [INFO] RESULT: {\"crate\": \"bitmap\", \"function\": \"new\", \"det_fn\": \"det_new\", \"n_schemas\": 271, \"n_params\": 288, \"verus_ms\": 2544, \"smt2_bytes\": 3936329, \"ctx_ms\": 66, \"search_ms\": 422, \"n_rounds\": 20, \"assumes\": [\"number_of_bits == 8\", \"r1 is Ok\", \"r1->Ok_0@.num_bits == 8\", \"r1->Ok_0@.set_bits == Set::<int>::empty()\", \"r2 is Err\", \"r2->Err_0.code is OperationNotPermitted\", \"r2->Err_0.reason == \\\"\\\"\", \"!det_new_equal(r1, r2)\"], \"status\": \"ok\", \"total_ms\": 3041}\n",
+      "cmd": [
+        "spec-determinism-run",
+        "bitmap::new",
+        "-c",
+        "/home/chentianyu/intent_formalization/spec-determinism/configs/nanvix.toml"
+      ]
+    }
+  }
+}

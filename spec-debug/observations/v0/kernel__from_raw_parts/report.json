@@ -1,0 +1,61 @@
+{
+  "function": "kernel::from_raw_parts",
+  "before": {
+    "assumes": [
+      "addr == 0",
+      "size == 0",
+      "r1 is Err",
+      "r1->Err_0.code is InvalidArgument",
+      "r1->Err_0.reason == \"\"",
+      "r2 is Err",
+      "r2->Err_0.code is InvalidArgument",
+      "r2->Err_0.reason == \"string 1\"",
+      "!det_from_raw_parts_equal(r1, r2)"
+    ],
+    "n_rounds": 65,
+    "n_schemas": 519,
+    "status": "ok"
+  },
+  "llm": {
+    "source": "copilot-cli",
+    "raw_len": 13354
+  },
+  "verify": {
+    "rerun": {
+      "ok": true,
+      "returncode": 0,
+      "before_assumes": [
+        "addr == 0",
+        "size == 0",
+        "r1 is Err",
+        "r1->Err_0.code is InvalidArgument",
+        "r1->Err_0.reason == \"\"",
+        "r2 is Err",
+        "r2->Err_0.code is InvalidArgument",
+        "r2->Err_0.reason == \"string 1\"",
+        "!det_from_raw_parts_equal(r1, r2)"
+      ],
+      "after_assumes": [],
+      "closed": [
+        "!det_from_raw_parts_equal(r1, r2)",
+        "addr == 0",
+        "r1 is Err",
+        "r1->Err_0.code is InvalidArgument",
+        "r1->Err_0.reason == \"\"",
+        "r2 is Err",
+        "r2->Err_0.code is InvalidArgument",
+        "r2->Err_0.reason == \"string 1\"",
+        "size == 0"
+      ],
+      "added": [],
+      "n_rounds_after": 0,
+      "stderr_tail": "\n\n================================================================================\nfn                                  status           verus    ctx  search rounds  schemas\n================================================================================\nkernel::from_raw_parts              verus_error       2171      -       -      -      519\n\nFull results \u2192 /home/chentianyu/intent_formalization/spec-determinism/results/full_run.json\n2026-04-23 08:40:24,628 [INFO] \n======================================================================\n=== kernel::from_raw_parts ===\n======================================================================\n2026-04-23 08:40:24,632 [INFO] Running: cargo +nightly-2025-12-08 verus verify --fwd-verus-args-to roots -p kernel --features microvm,error -Z build-std=core,alloc,compiler_builtins -Z build-std-features=compiler-builtins-mem --target /home/chentianyu/nanvix/build/targets/x86-kernel.json -- --verify-only-module mm::kheap --verify-function det_from_raw_parts --log-all --log-dir /tmp/specdet_kernel_from_raw_parts_zwu7ivao in /home/chentianyu/nanvix\n2026-04-23 08:40:26,804 [INFO] RESULT: {\"crate\": \"kernel\", \"function\": \"from_raw_parts\", \"det_fn\": \"det_from_raw_parts\", \"n_schemas\": 519, \"n_params\": 803, \"verus_ms\": 2171, \"status\": \"verus_error\", \"stderr_tail\": \"   Compiling kernel v0.12.355 (/home/chentianyu/nanvix/src/kernel)\\nerror: duplicate specification for `kernel::mm::kheap::Kheap::from_raw_parts`\\n   --> src/kernel/src/mm/kheap.rs:122:5\\n    |\\n122 |       unsafe fn from_raw_parts(addr: usize, size: usize) -> (result: Result<Kheap, Error>)\\n    |       ^^^^^^^^^^^^^^^^^^^\n",
+      "cmd": [
+        "spec-determinism-run",
+        "kernel::from_raw_parts",
+        "-c",
+        "/home/chentianyu/intent_formalization/spec-determinism/configs/nanvix.toml"
+      ]
+    }
+  }
+}

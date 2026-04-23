@@ -1,0 +1,86 @@
+{
+  "function": "slab::from_raw_parts",
+  "before": {
+    "assumes": [
+      "len == 1",
+      "block_size == 1",
+      "r1 is Ok",
+      "r1->Ok_0@.block_size == 1",
+      "r1->Ok_0@.start_addr == 0",
+      "r1->Ok_0@.end_addr == 1",
+      "r1->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.free_addrs == Set::<usize>::empty()",
+      "r2 is Ok",
+      "r2->Ok_0@.block_size == 1",
+      "r2->Ok_0@.start_addr == 0",
+      "r2->Ok_0@.end_addr == 1",
+      "r2->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.free_addrs.len() > 0",
+      "r2->Ok_0@.free_addrs.len() == 1",
+      "r2->Ok_0@.free_addrs.contains(0)",
+      "!det_from_raw_parts_equal(r1, r2)"
+    ],
+    "n_rounds": 67,
+    "n_schemas": 291,
+    "status": "ok"
+  },
+  "llm": {
+    "source": "copilot-cli",
+    "raw_len": 3742
+  },
+  "verify": {
+    "rerun": {
+      "ok": true,
+      "returncode": 0,
+      "before_assumes": [
+        "len == 1",
+        "block_size == 1",
+        "r1 is Ok",
+        "r1->Ok_0@.block_size == 1",
+        "r1->Ok_0@.start_addr == 0",
+        "r1->Ok_0@.end_addr == 1",
+        "r1->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+        "r1->Ok_0@.free_addrs == Set::<usize>::empty()",
+        "r2 is Ok",
+        "r2->Ok_0@.block_size == 1",
+        "r2->Ok_0@.start_addr == 0",
+        "r2->Ok_0@.end_addr == 1",
+        "r2->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+        "r2->Ok_0@.free_addrs.len() > 0",
+        "r2->Ok_0@.free_addrs.len() == 1",
+        "r2->Ok_0@.free_addrs.contains(0)",
+        "!det_from_raw_parts_equal(r1, r2)"
+      ],
+      "after_assumes": [
+        "len == 1",
+        "block_size == 1",
+        "r1 is Ok",
+        "r1->Ok_0@.block_size == 1",
+        "r1->Ok_0@.start_addr == 0",
+        "r1->Ok_0@.end_addr == 1",
+        "r1->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+        "r1->Ok_0@.free_addrs == Set::<usize>::empty()",
+        "r2 is Ok",
+        "r2->Ok_0@.block_size == 1",
+        "r2->Ok_0@.start_addr == 0",
+        "r2->Ok_0@.end_addr == 1",
+        "r2->Ok_0@.allocated_addrs == Set::<usize>::empty()",
+        "r2->Ok_0@.free_addrs.len() > 0",
+        "r2->Ok_0@.free_addrs.len() == 1",
+        "!det_from_raw_parts_equal(r1, r2)"
+      ],
+      "closed": [
+        "r2->Ok_0@.free_addrs.contains(0)"
+      ],
+      "added": [],
+      "n_rounds_after": 99,
+      "stderr_tail": "_addrs.contains(0) \u2192 pass (2.2ms)\n2026-04-23 08:37:46,877 [INFO] R65 [search] elem_0: r2->Ok_0@.free_addrs.contains(1) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,879 [INFO] R66 [search] elem_0: r2->Ok_0@.free_addrs.contains(2) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,882 [INFO] R67 [search] elem_0: r2->Ok_0@.free_addrs.contains(3) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,884 [INFO] R68 [search] elem_0: r2->Ok_0@.free_addrs.contains(4) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,886 [INFO] R69 [search] elem_0: r2->Ok_0@.free_addrs.contains(5) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,889 [INFO] R70 [search] elem_0: r2->Ok_0@.free_addrs.contains(6) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,891 [INFO] R71 [search] elem_0: r2->Ok_0@.free_addrs.contains(7) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,893 [INFO] R72 [search] elem_0: r2->Ok_0@.free_addrs.contains(8) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,896 [INFO] R73 [search] elem_0: r2->Ok_0@.free_addrs.contains(9) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,898 [INFO] R74 [search] elem_0: r2->Ok_0@.free_addrs.contains(10) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,900 [INFO] R75 [search] elem_0: r2->Ok_0@.free_addrs.contains(11) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,903 [INFO] R76 [search] elem_0: r2->Ok_0@.free_addrs.contains(12) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,905 [INFO] R77 [search] elem_0: r2->Ok_0@.free_addrs.contains(13) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,908 [INFO] R78 [search] elem_0: r2->Ok_0@.free_addrs.contains(14) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,910 [INFO] R79 [search] elem_0: r2->Ok_0@.free_addrs.contains(15) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,912 [INFO] R80 [search] elem_0: r2->Ok_0@.free_addrs.contains(16) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,915 [INFO] R81 [search] elem_0: r2->Ok_0@.free_addrs.contains(0) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,917 [INFO] R82 [search] elem_0: r2->Ok_0@.free_addrs.contains(1) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,919 [INFO] R83 [search] elem_0: r2->Ok_0@.free_addrs.contains(2) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,922 [INFO] R84 [search] elem_0: r2->Ok_0@.free_addrs.contains(3) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,924 [INFO] R85 [search] elem_0: r2->Ok_0@.free_addrs.contains(4) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,926 [INFO] R86 [search] elem_0: r2->Ok_0@.free_addrs.contains(5) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,929 [INFO] R87 [search] elem_0: r2->Ok_0@.free_addrs.contains(6) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,931 [INFO] R88 [search] elem_0: r2->Ok_0@.free_addrs.contains(7) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,934 [INFO] R89 [search] elem_0: r2->Ok_0@.free_addrs.contains(8) \u2192 pass (2.3ms)\n2026-04-23 08:37:46,936 [INFO] R90 [search] elem_0: r2->Ok_0@.free_addrs.contains(9) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,939 [INFO] R91 [search] elem_0: r2->Ok_0@.free_addrs.contains(10) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,941 [INFO] R92 [search] elem_0: r2->Ok_0@.free_addrs.contains(11) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,943 [INFO] R93 [search] elem_0: r2->Ok_0@.free_addrs.contains(12) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,946 [INFO] R94 [search] elem_0: r2->Ok_0@.free_addrs.contains(13) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,948 [INFO] R95 [search] elem_0: r2->Ok_0@.free_addrs.contains(14) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,950 [INFO] R96 [search] elem_0: r2->Ok_0@.free_addrs.contains(15) \u2192 pass (1.9ms)\n2026-04-23 08:37:46,953 [INFO] R97 [search] elem_0: r2->Ok_0@.free_addrs.contains(16) \u2192 pass (1.8ms)\n2026-04-23 08:37:46,956 [INFO] R98 [distinct] tuple_not_equal: !det_from_raw_parts_equal(r1, r2) \u2192 fail (2.5ms)\n2026-04-23 08:37:46,969 [INFO] RESULT: {\"crate\": \"slab\", \"function\": \"from_raw_parts\", \"det_fn\": \"det_from_raw_parts\", \"n_schemas\": 291, \"n_params\": 331, \"verus_ms\": 3063, \"smt2_bytes\": 4623924, \"ctx_ms\": 69, \"search_ms\": 881, \"n_rounds\": 99, \"assumes\": [\"len == 1\", \"block_size == 1\", \"r1 is Ok\", \"r1->Ok_0@.block_size == 1\", \"r1->Ok_0@.start_addr == 0\", \"r1->Ok_0@.end_addr == 1\", \"r1->Ok_0@.allocated_addrs == Set::<usize>::empty()\", \"r1->Ok_0@.free_addrs == Set::<usize>::empty()\", \"r2 is Ok\", \"r2->Ok_0@.block_size == 1\", \"r2->Ok_0@.s\n",
+      "cmd": [
+        "spec-determinism-run",
+        "slab::from_raw_parts",
+        "-c",
+        "/home/chentianyu/intent_formalization/spec-determinism/configs/nanvix.toml"
+      ]
+    }
+  }
+}
