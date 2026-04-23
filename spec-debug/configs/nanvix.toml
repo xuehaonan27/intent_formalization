@@ -1,0 +1,12 @@
+# spec-debug corpus config.
+#
+# v0 piggy-backs on spec-determinism's corpus config: we point at the same
+# nanvix.toml file and reuse its loader. spec-debug's own settings live under
+# [spec_debug].
+
+spec_determinism_config = "~/intent_formalization/spec-determinism/configs/nanvix.toml"
+
+[spec_debug]
+# Where to persist per-run artifacts (prompt, response, patch, report).
+# Relative paths are resolved against the spec-debug repo root.
+runs_dir = "runs"
