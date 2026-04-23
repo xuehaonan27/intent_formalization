@@ -30,20 +30,33 @@ def _nanvix(p): return os.path.join(NANVIX, p)
 
 CRATES = {
     "bitmap": {
+        "src": _nanvix("src/libs/bitmap/src/lib.rs"),
+        "spec": _nanvix("src/libs/bitmap/src/lib.spec.rs"),
         "proof": _nanvix("src/libs/bitmap/src/lib.proof.rs"),
+        "extra_type_sources": [_nanvix("src/libs/error/src/lib.rs")],
         "features": ["std"], "extra_args": [], "use_build": True, "timeout": 180,
         "functions": ["number_of_bits", "new", "from_raw_array",
                       "alloc", "alloc_range", "set", "clear", "test"],
         "check_overrides": {"alloc_range": "det_alloc_range_chk"},
     },
     "slab": {
+        "src": _nanvix("src/libs/slab/src/lib.rs"),
+        "spec": _nanvix("src/libs/slab/src/lib.spec.rs"),
         "proof": _nanvix("src/libs/slab/src/lib.proof.rs"),
+        "extra_type_sources": [_nanvix("src/libs/error/src/lib.rs")],
         "features": ["std"], "extra_args": [], "use_build": True, "timeout": 180,
         "functions": ["from_raw_parts", "allocate", "deallocate"],
         "check_overrides": {"allocate": "det_allocate_chk"},
     },
     "kernel": {
+        "src": _nanvix("src/kernel/src/mm/kheap.rs"),
+        "spec": _nanvix("src/kernel/src/mm/kheap.spec.rs"),
         "proof": _nanvix("src/kernel/src/mm/kheap.proof.rs"),
+        "extra_type_sources": [
+            _nanvix("src/libs/error/src/lib.rs"),
+            _nanvix("src/libs/slab/src/lib.rs"),
+            _nanvix("src/libs/slab/src/lib.spec.rs"),
+        ],
         "features": ["microvm", "error"],
         "extra_args": ["-Z", "build-std=core,alloc,compiler_builtins",
                        "-Z", "build-std-features=compiler-builtins-mem",

@@ -42,15 +42,6 @@
                 },
                 {
                   "name": "Slab512"
-                },
-                {
-                  "name": "Slab1024"
-                },
-                {
-                  "name": "Slab2048"
-                },
-                {
-                  "name": "Slab4096"
                 }
               ]
             }
@@ -88,15 +79,6 @@
               },
               {
                 "name": "Slab512"
-              },
-              {
-                "name": "Slab1024"
-              },
-              {
-                "name": "Slab2048"
-              },
-              {
-                "name": "Slab4096"
               }
             ]
           },
@@ -140,15 +122,6 @@
                 },
                 {
                   "name": "Slab512"
-                },
-                {
-                  "name": "Slab1024"
-                },
-                {
-                  "name": "Slab2048"
-                },
-                {
-                  "name": "Slab4096"
                 }
               ]
             }
@@ -186,15 +159,6 @@
               },
               {
                 "name": "Slab512"
-              },
-              {
-                "name": "Slab1024"
-              },
-              {
-                "name": "Slab2048"
-              },
-              {
-                "name": "Slab4096"
               }
             ]
           },
@@ -208,7 +172,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_layout_to_allocator_equal(r1: Result<SlabSize, AllocError>, r2: Result<SlabSize, AllocError>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (((r1->Ok_0 is Slab8) == (r2->Ok_0 is Slab8)) && ((r1->Ok_0 is Slab16) == (r2->Ok_0 is Slab16)) && ((r1->Ok_0 is Slab32) == (r2->Ok_0 is Slab32)) && ((r1->Ok_0 is Slab64) == (r2->Ok_0 is Slab64)) && ((r1->Ok_0 is Slab128) == (r2->Ok_0 is Slab128)) && ((r1->Ok_0 is Slab256) == (r2->Ok_0 is Slab256)) && ((r1->Ok_0 is Slab512) == (r2->Ok_0 is Slab512)) && ((r1->Ok_0 is Slab1024) == (r2->Ok_0 is Slab1024)) && ((r1->Ok_0 is Slab2048) == (r2->Ok_0 is Slab2048)) && ((r1->Ok_0 is Slab4096) == (r2->Ok_0 is Slab4096)))))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_layout_to_allocator_equal(r1: Result<SlabSize, AllocError>, r2: Result<SlabSize, AllocError>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (((r1->Ok_0 is Slab8) == (r2->Ok_0 is Slab8)) && ((r1->Ok_0 is Slab16) == (r2->Ok_0 is Slab16)) && ((r1->Ok_0 is Slab32) == (r2->Ok_0 is Slab32)) && ((r1->Ok_0 is Slab64) == (r2->Ok_0 is Slab64)) && ((r1->Ok_0 is Slab128) == (r2->Ok_0 is Slab128)) && ((r1->Ok_0 is Slab256) == (r2->Ok_0 is Slab256)) && ((r1->Ok_0 is Slab512) == (r2->Ok_0 is Slab512)))))\n}",
   "equal_fn_name": "det_layout_to_allocator_equal",
   "equal_arg_pairs": [
     {

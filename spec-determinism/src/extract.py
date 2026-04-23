@@ -450,6 +450,56 @@ def _extract_from_verus_spec_attr_node(
     return None
 
 
+def _parse_cfg_feature_req(attr_node: ts.Node) -> Optional[str]:
+    """
+    If `attr_node` is `#[cfg(feature = "X")]`, return "X". Otherwise None
+    (including for cfg expressions we don't understand — caller treats
+    None conservatively, i.e. does NOT drop the guarded item).
+    """
+    if attr_node.type != "attribute_item":
+        return None
+    attr = _child_by_type(attr_node, "attribute")
+    if attr is None:
+        return None
+    ident = _child_by_type(attr, "identifier")
+    if ident is None or _text(ident) != "cfg":
+        return None
+    tt = _child_by_type(attr, "token_tree")
+    if tt is None:
+        return None
+    # Expect shape: ( feature = "X" )
+    inner = [c for c in tt.children if c.type not in ("(", ")")]
+    if len(inner) != 3:
+        return None
+    if inner[0].type != "identifier" or _text(inner[0]) != "feature":
+        return None
+    if inner[1].type != "=":
+        return None
+    if inner[2].type != "string_literal":
+        return None
+    sc = _child_by_type(inner[2], "string_content")
+    return _text(sc) if sc is not None else None
+
+
+def _is_cfg_excluded(
+    preceding_attrs: list[ts.Node],
+    active_features: Optional[set[str]],
+) -> bool:
+    """
+    True iff any of the preceding `#[cfg(feature = "X")]` attributes is
+    for a feature not in active_features. active_features=None disables
+    filtering entirely (back-compat). Unrecognized cfg shapes are treated
+    conservatively (not excluded).
+    """
+    if active_features is None:
+        return False
+    for a in preceding_attrs:
+        req = _parse_cfg_feature_req(a)
+        if req is not None and req not in active_features:
+            return True
+    return False
+
+
 def _find_all_nodes(node: ts.Node, target_type: str) -> list[ts.Node]:
     """Find all nodes of a given type in the tree."""
     results = []
@@ -464,7 +514,11 @@ def _find_all_nodes(node: ts.Node, target_type: str) -> list[ts.Node]:
 # Struct / enum extraction
 # ---------------------------------------------------------------------------
 
-def _find_struct(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
+def _find_struct(
+    tree: ts.Tree,
+    name: str,
+    active_features: Optional[set[str]] = None,
+) -> Optional[TypeInfo]:
     """Find a struct definition by name and extract its fields."""
     def walk(node: ts.Node) -> Optional[TypeInfo]:
         if node.type == "struct_item":
@@ -473,15 +527,29 @@ def _find_struct(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
                 fields = []
                 fdl = _child_by_type(node, "field_declaration_list")
                 if fdl:
-                    for fd in _children_by_type(fdl, "field_declaration"):
+                    pending_attrs: list[ts.Node] = []
+                    for c in fdl.children:
+                        if c.type == "attribute_item":
+                            pending_attrs.append(c)
+                            continue
+                        if c.type != "field_declaration":
+                            # punctuation ({, }, ,) — reset attrs only on siblings
+                            if c.type in ("{", "}", ","):
+                                pass
+                            continue
+                        fd = c
+                        excluded = _is_cfg_excluded(pending_attrs, active_features)
+                        pending_attrs = []
+                        if excluded:
+                            continue
                         fname_node = _child_by_type(fd, "field_identifier")
                         ftype_node = None
                         after_colon = False
-                        for c in fd.children:
-                            if c.type == ":":
+                        for cc in fd.children:
+                            if cc.type == ":":
                                 after_colon = True
                             elif after_colon:
-                                ftype_node = c
+                                ftype_node = cc
                                 break
                         if fname_node and ftype_node:
                             fields.append(FieldInfo(
@@ -499,7 +567,11 @@ def _find_struct(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
     return walk(tree.root_node)
 
 
-def _find_enum(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
+def _find_enum(
+    tree: ts.Tree,
+    name: str,
+    active_features: Optional[set[str]] = None,
+) -> Optional[TypeInfo]:
     """Find an enum definition by name and extract its variants."""
     def walk(node: ts.Node) -> Optional[TypeInfo]:
         if node.type == "enum_item":
@@ -508,15 +580,26 @@ def _find_enum(tree: ts.Tree, name: str) -> Optional[TypeInfo]:
                 variants = []
                 vl = _child_by_type(node, "enum_variant_list")
                 if vl:
-                    for v in _children_by_type(vl, "enum_variant"):
+                    pending_attrs: list[ts.Node] = []
+                    for c in vl.children:
+                        if c.type == "attribute_item":
+                            pending_attrs.append(c)
+                            continue
+                        if c.type != "enum_variant":
+                            continue
+                        v = c
+                        excluded = _is_cfg_excluded(pending_attrs, active_features)
+                        pending_attrs = []
+                        if excluded:
+                            continue
                         vname = _child_by_type(v, "identifier")
                         # Check for tuple inner type
                         inner = None
                         ofl = _child_by_type(v, "ordered_field_declaration_list")
                         if ofl:
-                            for c in ofl.children:
-                                if c.type not in ("(", ")", ","):
-                                    inner = _parse_type_node(c)
+                            for cc in ofl.children:
+                                if cc.type not in ("(", ")", ","):
+                                    inner = _parse_type_node(cc)
                                     break
                         if vname:
                             variants.append(VariantInfo(
@@ -558,6 +641,7 @@ def extract_spec(
     source: str,
     fn_name: str,
     type_sources: list[str] | None = None,
+    active_features: Optional[set[str]] = None,
 ) -> FunctionSpec:
     """
     Extract function spec from source code using tree-sitter-verus.
@@ -635,7 +719,7 @@ def extract_spec(
 
     # Resolve type definitions from all sources
     all_sources = [source] + (type_sources or [])
-    type_defs = _resolve_types(params, return_type, all_sources)
+    type_defs = _resolve_types(params, return_type, all_sources, active_features)
 
     return FunctionSpec(
         name=fn_name,
@@ -651,6 +735,7 @@ def _resolve_types(
     params: list[Param],
     return_type: TypeInfo,
     sources: list[str],
+    active_features: Optional[set[str]] = None,
 ) -> dict[str, TypeInfo]:
     """Resolve unknown types by searching source files for struct/enum definitions.
 
@@ -674,7 +759,7 @@ def _resolve_types(
         if name in PRIMITIVE_MAP:
             return None
         for t in trees:
-            resolved = _find_struct(t, name) or _find_enum(t, name)
+            resolved = _find_struct(t, name, active_features) or _find_enum(t, name, active_features)
             if resolved:
                 type_defs[name] = resolved
                 return resolved

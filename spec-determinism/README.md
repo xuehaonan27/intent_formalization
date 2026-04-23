@@ -188,7 +188,7 @@ regex parsing, no string sniffing, no changes elsewhere.
 - [`JOURNEY.md`](JOURNEY.md) — the two Z3-model challenges and the
   resolution (≤ 800 words).
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — per-module walkthrough of `src/`.
-- [`FINDINGS.md`](FINDINGS.md) — what the witnesses on the 14 target
+- [`FINDINGS.md`](FINDINGS.md) — what the witnesses on the 15 target
   functions actually say: three real spec gaps, seven tight specs,
   four loose-by-design allocator patterns.
 - [`docs/archive/`](docs/archive/) — older design / status / changes

@@ -1,6 +1,6 @@
 # Findings — what the witnesses tell us about nanvix's specs
 
-This document walks through each of the 14 target functions and
+This document walks through each of the 15 target functions and
 classifies its determinism result as one of:
 
 - **Tight** — the spec genuinely pins down the output; R0-deterministic
@@ -41,11 +41,11 @@ field of every error must match).
 | 12 | `kernel::from_raw_parts`     |   65 | **Missing ensures** (Err reason string unconstrained) |
 | 13 | `kernel::allocate`           | 3567 | **Loose-by-design** (allocator picks free addr; huge context) |
 | 14 | `kernel::deallocate`         |    1 | **Tight** |
-| 15 | `kernel::layout_to_allocator` |   — | **Unverified** (pre-existing stale `Slab1024` artifact; tool cannot compile the module) |
+| 15 | `kernel::layout_to_allocator` |    1 | **Tight** |
 
-**Tight: 7.  Loose-by-design: 4.  Missing ensures: 3.  Unverified: 1.**
+**Tight: 8.  Loose-by-design: 4.  Missing ensures: 3.**
 
-Three of the 14 functions have real, actionable spec gaps that a
+Three of the 15 functions have real, actionable spec gaps that a
 future tightening of the spec could close. The other nondeterminism
 results match the author's intent (allocators).
 
@@ -258,20 +258,24 @@ dimension *except* "which free slot" — which is intentional.
 R0 unsat. `post@ == pre@.spec_deallocate(idx, ptr)` on `Ok`;
 `post@ == pre@` on `Err`. Exact.
 
-### 15. `kernel::layout_to_allocator` — **Unverified**
+### 15. `kernel::layout_to_allocator` — **Tight**
 
-Pre-existing issue: `src/kernel/src/mm/kheap.proof.rs:370` references
-a `Slab1024` variant that no longer exists in `AllocSlabIndex` (see
-the `verus_error` stderr in `results/full_run.json`). The `det_fn`
-never compiles, so the tool cannot run a determinism check. Nothing
-to conclude about the spec itself. Recommended action: remove
-`Slab1024` references from the proof module, then re-run the tool.
+Previously flagged unverified because the extractor was cfg-blind: the
+`SlabSize` enum has `Slab1024 / 2048 / 4096` variants gated behind
+`#[cfg(feature = "hyperlight")]`, and the same feature gates three
+`Kheap.slab_N_bytes` fields. We run Verus with `--features microvm,error`
+so those do not exist at compile time, but tree-sitter extraction saw
+them regardless, producing a `det_fn` that referenced nonexistent
+variants. After teaching `extract.py` about `#[cfg(feature = "…")]`
+attributes on enum variants and struct fields (filtered against the
+crate's active feature set from `run_all.py`), `layout_to_allocator`
+verifies deterministic in 1 round with no assumes (19 schemas).
 
 ---
 
 ## What this tells us
 
-- **The tool finds real gaps.** Three of the 14 functions have spec
+- **The tool finds real gaps.** Three of the 15 functions have spec
   bugs that a determinism check surfaced — `bitmap::new`'s error code
   being unconstrained, `slab::from_raw_parts`'s `start_addr` /
   `end_addr` / `free_addrs` being unconstrained, and
