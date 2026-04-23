@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run schema-driven determinism search on all bitmap/slab/kheap exec functions, compare against old pipeline."""
+"""Run schema-driven determinism search over every function in a corpus config."""
+import argparse
 import json
 import logging
-import os
 import shutil
 import sys
 import tempfile
@@ -10,77 +10,33 @@ import time
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(__file__))
-
-from src.types import DetCheckSpec
-from src.verify import inject_proof_fn, restore_file, run_cargo_verus
-from src.schema_search import enumerate_schemas, render_guarded_template, run_schema_search
-from src.schema_search.search import build_schema_ctx
+from spec_determinism.config import CorpusConfig, CrateConfig, default_config_path, load_config
+from spec_determinism.schema_search import (
+    enumerate_schemas,
+    render_guarded_template,
+    run_schema_search,
+)
+from spec_determinism.schema_search.search import build_schema_ctx
+from spec_determinism.types import DetCheckSpec
+from spec_determinism.verify import inject_proof_fn, restore_file, run_cargo_verus
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-log = logging.getLogger("a_runner")
-
-NANVIX = os.path.expanduser("~/nanvix")
-VERUS_PATH = os.path.join(NANVIX, "toolchain/verus")
-ROOT = Path(__file__).parent
+log = logging.getLogger("spec_determinism.run_all")
 
 
-def _nanvix(p): return os.path.join(NANVIX, p)
-
-
-CRATES = {
-    "bitmap": {
-        "src": _nanvix("src/libs/bitmap/src/lib.rs"),
-        "spec": _nanvix("src/libs/bitmap/src/lib.spec.rs"),
-        "proof": _nanvix("src/libs/bitmap/src/lib.proof.rs"),
-        "extra_type_sources": [_nanvix("src/libs/error/src/lib.rs")],
-        "features": ["std"], "extra_args": [], "use_build": True, "timeout": 180,
-        "functions": ["number_of_bits", "new", "from_raw_array",
-                      "alloc", "alloc_range", "set", "clear", "test"],
-        "check_overrides": {"alloc_range": "det_alloc_range_chk"},
-    },
-    "slab": {
-        "src": _nanvix("src/libs/slab/src/lib.rs"),
-        "spec": _nanvix("src/libs/slab/src/lib.spec.rs"),
-        "proof": _nanvix("src/libs/slab/src/lib.proof.rs"),
-        "extra_type_sources": [_nanvix("src/libs/error/src/lib.rs")],
-        "features": ["std"], "extra_args": [], "use_build": True, "timeout": 180,
-        "functions": ["from_raw_parts", "allocate", "deallocate"],
-        "check_overrides": {"allocate": "det_allocate_chk"},
-    },
-    "kernel": {
-        "src": _nanvix("src/kernel/src/mm/kheap.rs"),
-        "spec": _nanvix("src/kernel/src/mm/kheap.spec.rs"),
-        "proof": _nanvix("src/kernel/src/mm/kheap.proof.rs"),
-        "extra_type_sources": [
-            _nanvix("src/libs/error/src/lib.rs"),
-            _nanvix("src/libs/slab/src/lib.rs"),
-            _nanvix("src/libs/slab/src/lib.spec.rs"),
-        ],
-        "features": ["microvm", "error"],
-        "extra_args": ["-Z", "build-std=core,alloc,compiler_builtins",
-                       "-Z", "build-std-features=compiler-builtins-mem",
-                       "--target", _nanvix("build/targets/x86-kernel.json")],
-        "use_build": False, "timeout": 600,
-        "functions": ["from_raw_parts", "allocate", "deallocate", "layout_to_allocator"],
-        "check_overrides": {},
-        "verify_module": "mm::kheap",
-    },
-}
-
-
-def artifact_key(crate, fn):
+def artifact_key(crate: str, fn: str) -> str:
     return f"{crate}__{fn}"
 
 
-def run_one(crate: str, fn: str) -> dict:
-    cfg = CRATES[crate]
-    fn_name = cfg["check_overrides"].get(fn, f"det_{fn}")
-    art = ROOT / "results" / "artifacts" / artifact_key(crate, fn) / "det_spec.json"
+def run_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
+    cfg: CrateConfig = corpus.crates[crate]
+    fn_name = cfg.check_overrides.get(fn, f"det_{fn}")
+    art = corpus.artifacts_dir / artifact_key(crate, fn) / "det_spec.json"
 
     result = {"crate": crate, "function": fn, "det_fn": fn_name}
     if not art.exists():
-        result.update({"status": "no_artifact"}); return result
+        result.update({"status": "no_artifact"})
+        return result
 
     det_spec = DetCheckSpec.from_dict(json.loads(art.read_text()))
     t0 = time.monotonic()
@@ -90,16 +46,16 @@ def run_one(crate: str, fn: str) -> dict:
     result["n_schemas"] = len(schemas)
     result["n_params"] = sum(1 + len(s.k_params) for s in schemas)
 
-    log_dir = Path(tempfile.mkdtemp(prefix=f"aprime_{crate}_{fn}_"))
-    original = inject_proof_fn(cfg["proof"], code)
+    log_dir = Path(tempfile.mkdtemp(prefix=f"specdet_{crate}_{fn}_"))
+    original = inject_proof_fn(cfg.proof, code)
     try:
         t_v = time.monotonic()
         raw = run_cargo_verus(
-            NANVIX, crate, VERUS_PATH,
-            features=cfg["features"], timeout=cfg["timeout"],
-            verify_function=fn_name, use_build=cfg["use_build"],
-            verify_module=cfg.get("verify_module"),
-            extra_args=cfg.get("extra_args", []),
+            corpus.nanvix, crate, corpus.verus_path,
+            features=cfg.features, timeout=cfg.timeout,
+            verify_function=fn_name, use_build=cfg.use_build,
+            verify_module=cfg.verify_module,
+            extra_args=cfg.extra_args,
             verus_extra_args=["--log-all", "--log-dir", str(log_dir)],
         )
         result["verus_ms"] = int((time.monotonic() - t_v) * 1000)
@@ -116,14 +72,14 @@ def run_one(crate: str, fn: str) -> dict:
         result["error"] = f"{type(e).__name__}: {e}\n{traceback.format_exc()[-800:]}"
         return result
     finally:
-        restore_file(cfg["proof"], original)
+        restore_file(cfg.proof, original)
 
     smt2_candidates = list(log_dir.rglob("*.smt2"))
-    # Prefer the module-specific one (e.g. mm__kheap.smt2) if present
     smt2_candidates.sort(key=lambda p: (p.name == "root.smt2", p.stat().st_size))
     if not smt2_candidates:
-        result["status"] = "no_smt2"; return result
-    smt2 = smt2_candidates[-1]  # largest / most specific
+        result["status"] = "no_smt2"
+        return result
+    smt2 = smt2_candidates[-1]
     result["smt2_bytes"] = smt2.stat().st_size
 
     try:
@@ -148,10 +104,20 @@ def run_one(crate: str, fn: str) -> dict:
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--config", "-c", type=Path, default=None,
+                    help="Path to corpus config TOML (default: configs/nanvix.toml)")
+    ap.add_argument("targets", nargs="*",
+                    help="Optional crate::fn filter (e.g. kernel::layout_to_allocator)")
+    args = ap.parse_args()
+
+    cfg_path = args.config or default_config_path()
+    corpus = load_config(cfg_path)
+    only = set(args.targets) if args.targets else None
+
     targets: list[tuple[str, str]] = []
-    only = sys.argv[1:] if len(sys.argv) > 1 else None
-    for crate, cfg in CRATES.items():
-        for fn in cfg["functions"]:
+    for crate, cc in corpus.crates.items():
+        for fn in cc.functions:
             if only and f"{crate}::{fn}" not in only:
                 continue
             targets.append((crate, fn))
@@ -160,14 +126,15 @@ def main():
     for crate, fn in targets:
         log.info(f"\n{'='*70}\n=== {crate}::{fn} ===\n{'='*70}")
         try:
-            r = run_one(crate, fn)
+            r = run_one(corpus, crate, fn)
         except Exception as e:
             r = {"crate": crate, "function": fn, "status": "runner_crash",
                  "error": f"{type(e).__name__}: {e}"}
         results.append(r)
         log.info(f"RESULT: {json.dumps(r, default=str)[:500]}")
 
-    out = ROOT / "results" / "full_run.json"
+    out = corpus.full_run_path
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(results, indent=2, default=str))
 
     print("\n\n" + "=" * 80)

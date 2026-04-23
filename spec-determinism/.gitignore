@@ -1,5 +1,8 @@
 __pycache__/
 *.pyc
+*.egg-info/
+build/
+dist/
 results/full_run.json
 results/*_spec.json
 results/artifacts/

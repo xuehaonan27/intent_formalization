@@ -41,14 +41,21 @@ spec-determinism/
 ├── README.md              ← this file
 ├── JOURNEY.md             ← two challenges with raw (get-model) and how we solved them
 ├── ARCHITECTURE.md        ← module walkthrough
+├── FINDINGS.md            ← per-function witness classification (15 targets)
 ├── docs/archive/          ← superseded docs kept for history
-├── run_all.py             ← primary driver (schema-search pipeline)
+├── pyproject.toml         ← installable package (pip install -e .)
+├── configs/
+│   └── nanvix.toml        ← corpus config (paths, features, functions)
 ├── results/
 │   ├── full_run.json      ← latest per-function results + witnesses (gitignored)
 │   └── artifacts/<crate>__<fn>/det_spec.json
 │                          ← DetCheckSpec inputs, one per target function
-└── src/
-    ├── extract.py         ← tree-sitter-verus: source → FunctionSpec
+└── spec_determinism/      ← Python package
+    ├── run_all.py         ← primary driver (schema-search pipeline)
+    ├── regen_artifacts.py ← regenerate det_spec.json / template.rs from source
+    ├── config.py          ← TOML corpus config loader
+    ├── cli.py             ← entry-point wrappers for console_scripts
+    ├── extract.py         ← tree-sitter-verus: source → FunctionSpec (cfg-aware)
     ├── equal_policy.py    ← equal_fn selection policy
     ├── gen_det.py         ← det_fn template synthesis
     ├── verify.py          ← single cargo-verus invocation + SMT capture
@@ -117,16 +124,30 @@ The two ideas that make this work are detailed in `JOURNEY.md`:
 Prerequisites:
 
 - Nanvix workspace at `~/nanvix` (Rust `nightly-2025-12-08` + Verus
-  bundled at `toolchain/verus/`).
+  bundled at `toolchain/verus/`). Paths configurable via `configs/nanvix.toml`.
 - `z3-solver==4.12.5.0` (matching Verus's bundled Z3).
-- `tree-sitter-verus` Python binding (consumed by `src/extract.py`).
+- `tree-sitter-verus` Python binding (consumed by `spec_determinism/extract.py`).
+
+Install once:
+
+```bash
+pip install -e .
+```
+
+Then:
 
 ```bash
 # All target functions (bitmap / slab / kernel)
-python run_all.py
+spec-determinism-run
 
 # Single function
-python run_all.py kernel::allocate
+spec-determinism-run kernel::allocate
+
+# Different corpus
+spec-determinism-run -c configs/my_corpus.toml
+
+# Regenerate Step-1 artifacts after changing the extractor / a .spec.rs
+spec-determinism-regen
 ```
 
 Results land in `results/full_run.json` and are printed as a table:
@@ -165,7 +186,7 @@ kernel::allocate                    ok         5161    103   95057   3567      3
 
 ## Adding a new pred kind
 
-Everything lives in one place: `src/predicates.py`. Define
+Everything lives in one place: `spec_determinism/predicates.py`. Define
 
 ```python
 @dataclass(frozen=True)
@@ -187,7 +208,7 @@ regex parsing, no string sniffing, no changes elsewhere.
 
 - [`JOURNEY.md`](JOURNEY.md) — the two Z3-model challenges and the
   resolution (≤ 800 words).
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) — per-module walkthrough of `src/`.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — per-module walkthrough of `spec_determinism/`.
 - [`FINDINGS.md`](FINDINGS.md) — what the witnesses on the 15 target
   functions actually say: three real spec gaps, seven tight specs,
   four loose-by-design allocator patterns.

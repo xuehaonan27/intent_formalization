@@ -97,7 +97,7 @@ abstract universe element.
 
 ## How it's implemented today
 
-1. **Schema enumeration** (`src/schema_search/schemas.py`). For every
+1. **Schema enumeration** (`spec_determinism/schema_search/schemas.py`). For every
    spec-level symbol we emit a small, type-directed set of schemas:
    - Int: `SCALAR_EQ`, `SCALAR_RANGE`
    - Bool: `BOOL_EQ`
@@ -122,7 +122,7 @@ abstract universe element.
    `AssumePred` subclass has a `match_and_bind(schema) -> Optional[k_bindings]`
    method. Adding a new pred kind is a one-place extension.
 
-4. **z3-py search** (`src/schema_search/search.py`). `build_schema_ctx`
+4. **z3-py search** (`spec_determinism/schema_search/search.py`). `build_schema_ctx`
    parses the `.smt2` into an in-memory solver and resolves each
    schema's guard / k constants by name. `SchemaSearchContext.test_and_set`
    then drives rounds:

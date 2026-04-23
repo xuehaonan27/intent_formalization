@@ -1,6 +1,6 @@
 # Architecture
 
-This document walks through every file in `src/` and explains how they
+This document walks through every file in `spec_determinism/` and explains how they
 fit together. The pipeline is a straight line with one fork; there are
 no legacy branches — everything described here is reachable from
 `run_all.py`.
@@ -8,14 +8,14 @@ no legacy branches — everything described here is reachable from
 ## One-line per module
 
 ```
-src/extract.py         Verus source → FunctionSpec (tree-sitter-verus)
-src/equal_policy.py    Choose which equal_fn to use for a given function
-src/gen_det.py         Synthesize the det_fn proof template
-src/verify.py          One cargo-verus invocation; capture .smt2 transcript
-src/types.py           FunctionSpec / DetCheckSpec / Assume / Witness dataclasses
-src/predicates.py      Structured AssumePred classes; pred ↔ schema match
-src/binary_search.py   AssumeTree + narrow_* strategies + SearchContext Protocol
-src/schema_search/
+spec_determinism/extract.py         Verus source → FunctionSpec (tree-sitter-verus)
+spec_determinism/equal_policy.py    Choose which equal_fn to use for a given function
+spec_determinism/gen_det.py         Synthesize the det_fn proof template
+spec_determinism/verify.py          One cargo-verus invocation; capture .smt2 transcript
+spec_determinism/types.py           FunctionSpec / DetCheckSpec / Assume / Witness dataclasses
+spec_determinism/predicates.py      Structured AssumePred classes; pred ↔ schema match
+spec_determinism/binary_search.py   AssumeTree + narrow_* strategies + SearchContext Protocol
+spec_determinism/schema_search/
     schemas.py         Schema enumeration, guarded template, assume translation
     search.py          z3.Solver-driven search loop (the only driver today)
 ```
