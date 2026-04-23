@@ -1,7 +1,7 @@
 """Schema-driven search driver — replaces Verus-per-round with z3-py push/pop.
 
 This duck-types the SearchContext interface consumed by the existing
-narrow() strategies in binary_search.py, so we get full reuse.
+narrow() strategies in narrow.py, so we get full reuse.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Optional
 import z3
 
 from ..types import Assume, DetCheckSpec, Witness
-from ..binary_search import AssumeNode, narrow, _add_distinctness_witnesses
+from ..narrow import AssumeNode, narrow, _add_distinctness_witnesses
 from .schemas import SchemaBinding, SchemaKind, translate_assume
 
 logger = logging.getLogger(__name__)
@@ -259,7 +259,7 @@ def run_schema_search(
     det_spec: DetCheckSpec,
     schema_ctx: SchemaCtx,
 ) -> Witness:
-    """Run schema-driven search. Mirrors binary_search in shape."""
+    """Run schema-driven search. Drives narrow() on an AssumeNode tree."""
     ctx = SchemaSearchContext(det_spec, schema_ctx)
 
     # R0: check baseline (no assumes)

@@ -61,7 +61,7 @@ spec-determinism/
     ├── verify.py          ← single cargo-verus invocation + SMT capture
     ├── types.py           ← FunctionSpec / DetCheckSpec / Assume / Witness
     ├── predicates.py      ← structured AssumePred classes (pred ↔ schema match)
-    ├── binary_search.py   ← AssumeTree + narrow_* strategies + SearchContext Protocol
+    ├── narrow.py          ← AssumeTree + narrow_* strategies + SearchContext Protocol
     └── schema_search/
         ├── schemas.py     ← schema enumeration + guarded template rendering +
         │                    Rust-assume → (schema_id, k_bindings) translation
@@ -98,7 +98,7 @@ Verus source
     │                         (prelude + det_fn), guard/k Z3 constants resolved
     │
     ├─[schema_search.search.run_schema_search]
-    │         ──────────────→ drive binary_search.narrow() on an
+    │         ──────────────→ drive narrow() on an
     │                         `AssumeNode` tree; per round:
     │                           1. translate candidate Rust assume → (schema_id, k)
     │                           2. r = solver.check(*current_guards_and_ks)

@@ -14,7 +14,7 @@ spec_determinism/gen_det.py         Synthesize the det_fn proof template
 spec_determinism/verify.py          One cargo-verus invocation; capture .smt2 transcript
 spec_determinism/types.py           FunctionSpec / DetCheckSpec / Assume / Witness dataclasses
 spec_determinism/predicates.py      Structured AssumePred classes; pred ↔ schema match
-spec_determinism/binary_search.py   AssumeTree + narrow_* strategies + SearchContext Protocol
+spec_determinism/narrow.py   AssumeTree + narrow_* strategies + SearchContext Protocol
 spec_determinism/schema_search/
     schemas.py         Schema enumeration, guarded template, assume translation
     search.py          z3.Solver-driven search loop (the only driver today)
@@ -120,7 +120,7 @@ and path filters. The side effect is a `mm__<module>.smt2` dumped
 under `/tmp/aprime_<crate>_<fn>_XXXX/`. Returns a `VerifyResult` with
 status, stdout, stderr, and the smt2 path.
 
-### 8. `binary_search.py` — AssumeTree + narrow_* strategies
+### 8. `narrow.py` — AssumeTree + narrow_* strategies
 
 #### `AssumeNode` (the tree)
 
@@ -201,7 +201,7 @@ strong distinctness assertion.
 
 - R0 baseline check with no assumes (detects "deterministic at R0")
 - for each tracked symbol: `narrow(sym.type, sym.name, sym_node, ctx)`
-- `_add_distinctness_witnesses(ctx, det_spec)` (from `binary_search`)
+- `_add_distinctness_witnesses(ctx, det_spec)` (from `narrow`)
 - return `Witness(assumes=tree.collect_assumes(), trace=..., ...)`
 
 ## Design invariants

@@ -1,11 +1,10 @@
 """
-Module 4: binary_search — Type-Guided Witness Narrowing
+Module 4: narrow — Type-Guided Witness Narrowing
 
 Core data structure: AssumeTree — a tree where each node holds one assume.
 Same-node refinement replaces; different nodes accumulate.
 
 Decorator-based strategy registry. Each strategy is recursive.
-LLM fallback for unknown types.
 """
 
 import logging
