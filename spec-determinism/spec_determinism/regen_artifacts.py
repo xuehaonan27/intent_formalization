@@ -7,6 +7,7 @@ If an existing det_spec.json is present, its equal_policy is preserved
 """
 import argparse
 import json
+import logging
 from pathlib import Path
 
 from spec_determinism.config import CorpusConfig, default_config_path, load_config
@@ -14,6 +15,9 @@ from spec_determinism.equal_policy import EqualPolicy
 from spec_determinism.extract import extract_spec
 from spec_determinism.gen_det import build_det_check_spec, render_template
 from spec_determinism.workspace import discover_workspace_rs_files, read_source
+
+
+logger = logging.getLogger(__name__)
 
 
 def artifact_key(crate: str, fn: str) -> str:
@@ -52,7 +56,16 @@ def _collect_type_sources(corpus: CorpusConfig, cfg) -> list[str]:
     return out
 
 
-def regen_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
+def regen_one(
+    corpus: CorpusConfig,
+    crate: str,
+    fn: str,
+    *,
+    use_llm_policy: bool = False,
+    force_llm_policy: bool = False,
+    llm_model: str | None = None,
+    llm_run_root: Path | None = None,
+) -> dict:
     cfg = corpus.crates[crate]
     with open(cfg.src) as f:
         src = f.read()
@@ -66,7 +79,7 @@ def regen_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
     art_dir.mkdir(parents=True, exist_ok=True)
     det_json = art_dir / "det_spec.json"
 
-    policy = None
+    policy: EqualPolicy | None = None
     if det_json.exists():
         try:
             existing = json.loads(det_json.read_text())
@@ -76,7 +89,26 @@ def regen_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
         except Exception:
             policy = None
 
+    # LLM policy hook: only overwrite when the stored policy is the
+    # structural default (or missing entirely). Non-default stored policies
+    # — whether from a human edit or a previous LLM run — are preserved
+    # for reproducibility. Use --force-llm-policy to override.
+    if use_llm_policy:
+        should_call = force_llm_policy or policy is None or policy.is_default()
+        if should_call:
+            policy = _call_llm_policy(
+                spec, crate, fn, art_dir, llm_run_root, llm_model
+            )
+        else:
+            logger.info("skip LLM policy for %s::%s (existing policy source=%s)",
+                        crate, fn, policy.source)
+
     check_name = cfg.check_overrides.get(fn)
+    # We need to call build_det_check_spec twice if we want the LLM to see
+    # the extracted symbols: the first call gives us `det_spec.symbols`
+    # (needed in the prompt); the second bakes the final policy into the
+    # persisted spec. To keep it simple, we do a pre-build only when using
+    # LLM, then re-build with the chosen policy.
     det_spec = build_det_check_spec(spec, check_name=check_name,
                                      equal_policy=policy)
 
@@ -85,13 +117,46 @@ def regen_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
     return {"crate": crate, "fn": fn, "n_symbols": len(det_spec.symbols)}
 
 
+def _call_llm_policy(
+    fn_spec, crate: str, fn: str, art_dir: Path,
+    llm_run_root: Path | None, llm_model: str | None,
+) -> EqualPolicy:
+    """Query LLM for EqualPolicy; log failures and fall back to default."""
+    from spec_determinism.policy_llm import (
+        CopilotPolicyLLM, generate_policy_with_llm,
+    )
+    # For the prompt we need the det_spec's symbol list; build once with
+    # default policy to get symbols, then rebuild outside this function.
+    tmp_det = build_det_check_spec(fn_spec, check_name=None, equal_policy=None)
+    run_dir = (llm_run_root or art_dir) / "llm_policy"
+    try:
+        client = CopilotPolicyLLM(model=llm_model)
+        return generate_policy_with_llm(
+            fn_spec, tmp_det, run_dir, crate_name=crate, client=client
+        )
+    except Exception as e:
+        logger.warning("LLM policy generation failed for %s::%s: %s — "
+                       "falling back to default policy", crate, fn, e)
+        return EqualPolicy()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", "-c", type=Path, default=None,
                     help="Path to corpus config TOML (default: configs/nanvix.toml)")
     ap.add_argument("targets", nargs="*",
                     help="Optional crate or crate::fn filter")
+    ap.add_argument("--use-llm-policy", action="store_true",
+                    help="Query an LLM to generate EqualPolicy for functions "
+                         "whose stored policy is default/missing.")
+    ap.add_argument("--force-llm-policy", action="store_true",
+                    help="With --use-llm-policy, overwrite non-default stored "
+                         "policies too (use sparingly — discards prior decisions).")
+    ap.add_argument("--llm-model", default=None,
+                    help="Pass `--model <x>` to the Copilot CLI.")
     args = ap.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
     corpus = load_config(args.config or default_config_path())
 
@@ -108,7 +173,12 @@ def main():
 
     for crate, fn in pairs:
         try:
-            r = regen_one(corpus, crate, fn)
+            r = regen_one(
+                corpus, crate, fn,
+                use_llm_policy=args.use_llm_policy,
+                force_llm_policy=args.force_llm_policy,
+                llm_model=args.llm_model,
+            )
             print(f"  ok  {crate}::{fn}  ({r['n_symbols']} symbols)")
         except Exception as e:
             print(f"  FAIL {crate}::{fn}  {type(e).__name__}: {e}")

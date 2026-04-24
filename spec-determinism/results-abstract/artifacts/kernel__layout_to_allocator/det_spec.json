@@ -187,6 +187,8 @@
     "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],
-    "custom_body": null
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
   }
 }

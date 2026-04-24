@@ -55,6 +55,8 @@ class EqualPolicy:
     ignore_fields: set[str] = field(default_factory=set)
     opaque_types: set[str] = field(default_factory=set)
     custom_body: str | None = None
+    rationale: str | None = None  # human-readable explanation (e.g. from LLM)
+    source: str = "default"  # "default" | "manual" | "llm"
 
     def to_dict(self) -> dict:
         return {
@@ -64,6 +66,8 @@ class EqualPolicy:
             "ignore_fields": sorted(self.ignore_fields),
             "opaque_types": sorted(self.opaque_types),
             "custom_body": self.custom_body,
+            "rationale": self.rationale,
+            "source": self.source,
         }
 
     @staticmethod
@@ -77,6 +81,24 @@ class EqualPolicy:
             ignore_fields=set(d.get("ignore_fields") or []),
             opaque_types=set(d.get("opaque_types") or []),
             custom_body=d.get("custom_body"),
+            rationale=d.get("rationale"),
+            source=d.get("source", "default"),
+        )
+
+    def is_default(self) -> bool:
+        """Whether this policy is structurally the project-wide default.
+
+        Used by the LLM hook to decide whether to overwrite (default / never
+        customised) or skip (human or LLM has already chosen something).
+        """
+        return (
+            self.errs_equivalent is True
+            and self.opaque_ok is False
+            and self.compare_raw_pointers is False
+            and not self.ignore_fields
+            and not self.opaque_types
+            and not (self.custom_body and self.custom_body.strip())
+            and self.source == "default"
         )
 
 
