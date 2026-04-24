@@ -31,6 +31,7 @@ class TypeKind(Enum):
     STRUCT = "struct"
     SET = "Set"
     SEQ = "Seq"
+    MAP = "Map"
     RESULT = "Result"
     OPTION = "Option"
     UNKNOWN = "unknown"

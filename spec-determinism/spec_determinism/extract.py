@@ -59,7 +59,7 @@ PRIMITIVE_MAP = {
 
 _KNOWN_GENERICS = {
     "Result": TypeKind.RESULT, "Option": TypeKind.OPTION,
-    "Set": TypeKind.SET, "Seq": TypeKind.SEQ,
+    "Set": TypeKind.SET, "Seq": TypeKind.SEQ, "Map": TypeKind.MAP,
 }
 
 

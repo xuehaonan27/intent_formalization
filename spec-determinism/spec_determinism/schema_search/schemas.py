@@ -246,6 +246,34 @@ def _emit(
         ))
         return
 
+    # --- Map ---
+    # Map<K,V> reuses Set schemas on m.dom() and value-at-key schemas on m[i].
+    # No new SchemaKind needed — narrow_map emits SetEmptyPred/SetContainsPred
+    # on the virtual .dom() var and EqPred/... on m[k] slots.
+    if ty.kind == TypeKind.MAP:
+        k_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
+        v_ty = ty.type_args[1] if len(ty.type_args) > 1 else TypeInfo(kind=TypeKind.INT, name="int")
+
+        # Dom as Set<K>: emits SET_EMPTY/SET_LEN_GT/SET_LEN_EQ/SET_LEN_RANGE/SET_CONTAINS.
+        dom_var = f"{var}.dom()"
+        dom_set_ty = TypeInfo(kind=TypeKind.SET, name=f"Set<{k_ty.name}>", type_args=[k_ty])
+        _emit(dom_var, dom_set_ty, parent_chain, out, seen_tags)
+
+        # Value slots: pre-enumerate `{var}[{i}]` for small integer keys so
+        # recursive narrow on V has schemas to hit. For non-integer key types
+        # we currently skip — narrow_map will still assert `.dom().contains(k)`
+        # but can't pin down values (graceful degradation, like Seq > MAX_SEQ_LEN).
+        if k_ty.kind in _INT_KINDS:
+            # Mirror narrow's _SMALL_UNSIGNED/_SMALL_SIGNED ranges so every
+            # key the set-element probing may find has a matching value schema.
+            unsigned = k_ty.kind in {
+                TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64, TypeKind.USIZE,
+            }
+            key_range = range(0, 17) if unsigned else range(-8, 9)
+            for i in key_range:
+                _emit(f"{var}[{i}]", v_ty, parent_chain, out, seen_tags)
+        return
+
     # --- Seq ---
     if ty.kind == TypeKind.SEQ:
         sid = _uniq(f"{tag_base}_leneq")

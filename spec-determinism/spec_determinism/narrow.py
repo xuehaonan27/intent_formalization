@@ -148,6 +148,13 @@ _FULL_RANGE: dict[TypeKind, tuple[int, int]] = {
 }
 
 
+_INT_RANGE_KINDS = frozenset({
+    TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
+    TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
+    TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
+})
+
+
 def _int_range(ty: TypeInfo) -> tuple[int, int]:
     """Small initial range (lo inclusive, hi exclusive)."""
     if ty.kind in (TypeKind.U8, TypeKind.U16, TypeKind.U32,
@@ -438,6 +445,66 @@ def narrow_seq(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         for i in range(length):
             elem_node = node.get_or_create(f"elem_{i}")
             narrow(ty.type_args[0], f"{var}[{i}]", elem_node, ctx)
+
+
+@strategy_for(TypeKind.MAP)
+def narrow_map(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
+    """Narrow Map<K, V>.
+
+    Dimension-separated (NOT <k,v> paired), finite by default (no infinite
+    case split — per user decision):
+      1. Empty: `m.dom() == Set::<K>::empty()` (implies m is empty).
+      2. Domain length: probe `m.dom().len() == n`.
+      3. Keys: probe `m.dom().contains(k)` for n keys via Set-element bisect.
+      4. Values: for each found key k, recurse narrow on V with var `m[k]`.
+         `m.dom().contains(k)` stays in the global assume set, so the value
+         narrow runs under that precondition automatically.
+
+    Reuses `SetEmptyPred`/`LenEqPred`/`SetContainsPred` on the virtual
+    `{var}.dom()` — no Map-specific predicates needed.
+    """
+    k_ty = ty.type_args[0] if ty.type_args else TypeInfo(kind=TypeKind.INT, name="int")
+    v_ty = ty.type_args[1] if len(ty.type_args) > 1 else TypeInfo(kind=TypeKind.INT, name="int")
+    k_ty_name = k_ty.name or "int"
+
+    dom_var = f"{var}.dom()"
+    dom_node = node.get_or_create("dom")
+
+    # --- Step 1: empty dom (⇔ empty map) ---
+    empty = Assume.from_pred(
+        dom_var, SetEmptyPred(dom_var, k_ty_name), "map: empty (dom)")
+    if ctx.test_and_set(dom_node, empty):
+        return
+
+    # --- Step 2: length probe ---
+    # Map is assumed finite by default; skip the SetLenGt case split and go
+    # straight to length narrowing.
+    len_node = dom_node.get_or_create("len")
+    length = _narrow_length(dom_var, len_node, ctx)
+    if length is None or length == 0:
+        return
+
+    # --- Step 3: key probing (reuse Set element bisect) ---
+    if k_ty.kind not in _INT_RANGE_KINDS:
+        # Non-integer key types: can still assert dom() length but can't
+        # bisect concrete keys. Graceful degradation.
+        return
+
+    keys: list[int] = []
+    for i in range(length):
+        k = _bisect_set_element(dom_var, k_ty, dom_node, i, ctx,
+                                skip_vals=frozenset(keys))
+        if k is None:
+            break
+        keys.append(k)
+
+    # --- Step 4: value at each found key ---
+    # `m.dom().contains(k)` is already in the global assume conjunction from
+    # step 3, so narrow(v_ty, f"{var}[{k}]", ...) emits value assumes under
+    # that precondition without us having to thread a prefix.
+    for k in keys:
+        val_node = node.get_or_create(f"val_{k}")
+        narrow(v_ty, f"{var}[{k}]", val_node, ctx)
 
 
 @strategy_for(TypeKind.UNIT)

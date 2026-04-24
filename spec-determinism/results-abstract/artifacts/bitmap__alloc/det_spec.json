@@ -1,0 +1,1841 @@
+{
+  "function": "alloc",
+  "det_check_template": "proof fn det_alloc(pre_self_: Bitmap, post1_self_: Bitmap, r1: Result<usize, Error>, post2_self_: Bitmap, r2: Result<usize, Error>)\n    requires (pre_self_.inv()),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(index) => {\n                    &&& 0 <= index < post1_self_@.num_bits\n                    &&& post1_self_@.num_bits == pre_self_@.num_bits\n                    &&& !pre_self_@.is_bit_set(index as int)\n                    &&& post1_self_@.is_bit_set(index as int)\n                    &&& forall|i: int|\n                        0 <= i < post1_self_@.num_bits && i != index ==> post1_self_@.is_bit_set(i) == pre_self_@.is_bit_set(i)\n                    &&& post1_self_@.set_bits == pre_self_@.set_bits.insert(index as int)\n                    &&& post1_self_@.usage() == pre_self_@.usage() + 1\n                },\n                Err(_) => {\n                    &&& pre_self_@.is_full()\n                    &&& post1_self_@ == pre_self_@\n                },\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(index) => {\n                    &&& 0 <= index < post2_self_@.num_bits\n                    &&& post2_self_@.num_bits == pre_self_@.num_bits\n                    &&& !pre_self_@.is_bit_set(index as int)\n                    &&& post2_self_@.is_bit_set(index as int)\n                    &&& forall|i: int|\n                        0 <= i < post2_self_@.num_bits && i != index ==> post2_self_@.is_bit_set(i) == pre_self_@.is_bit_set(i)\n                    &&& post2_self_@.set_bits == pre_self_@.set_bits.insert(index as int)\n                    &&& post2_self_@.usage() == pre_self_@.usage() + 1\n                },\n                Err(_) => {\n                    &&& pre_self_@.is_full()\n                    &&& post2_self_@ == pre_self_@\n                },\n            })\n        }) ==> det_alloc_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<usize, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "struct",
+              "name": "Error",
+              "fields": [
+                {
+                  "name": "code",
+                  "type": {
+                    "kind": "enum",
+                    "name": "ErrorCode",
+                    "variants": [
+                      {
+                        "name": "OperationNotPermitted"
+                      },
+                      {
+                        "name": "NoSuchEntry"
+                      },
+                      {
+                        "name": "NoSuchProcess"
+                      },
+                      {
+                        "name": "Interrupted"
+                      },
+                      {
+                        "name": "IoErr"
+                      },
+                      {
+                        "name": "NoSuchDeviceOrAddress"
+                      },
+                      {
+                        "name": "TooBig"
+                      },
+                      {
+                        "name": "InvalidExecutableFormat"
+                      },
+                      {
+                        "name": "BadFile"
+                      },
+                      {
+                        "name": "NoChildProcess"
+                      },
+                      {
+                        "name": "TryAgain"
+                      },
+                      {
+                        "name": "OutOfMemory"
+                      },
+                      {
+                        "name": "PermissionDenied"
+                      },
+                      {
+                        "name": "BadAddress"
+                      },
+                      {
+                        "name": "NotBlockDevice"
+                      },
+                      {
+                        "name": "ResourceBusy"
+                      },
+                      {
+                        "name": "EntryExists"
+                      },
+                      {
+                        "name": "CrossDeviceLink"
+                      },
+                      {
+                        "name": "NoSuchDevice"
+                      },
+                      {
+                        "name": "InvalidDirectory"
+                      },
+                      {
+                        "name": "IsDirectory"
+                      },
+                      {
+                        "name": "InvalidArgument"
+                      },
+                      {
+                        "name": "FileTableOVerflow"
+                      },
+                      {
+                        "name": "TooManyOpenFiles"
+                      },
+                      {
+                        "name": "NotTerminal"
+                      },
+                      {
+                        "name": "TextFileBusy"
+                      },
+                      {
+                        "name": "FileTooLarge"
+                      },
+                      {
+                        "name": "NoSpaceOnDevice"
+                      },
+                      {
+                        "name": "IllegalSeek"
+                      },
+                      {
+                        "name": "ReadOnlyFileSystem"
+                      },
+                      {
+                        "name": "TooManyLinks"
+                      },
+                      {
+                        "name": "BrokenPipe"
+                      },
+                      {
+                        "name": "MathArgDomainErr"
+                      },
+                      {
+                        "name": "ValueOutOfRange"
+                      },
+                      {
+                        "name": "NoMessageAvailable"
+                      },
+                      {
+                        "name": "IdentifierRemoved"
+                      },
+                      {
+                        "name": "OutOfRangeChannel"
+                      },
+                      {
+                        "name": "Level2NotSynchronized"
+                      },
+                      {
+                        "name": "Level3Halted"
+                      },
+                      {
+                        "name": "Level3Reset"
+                      },
+                      {
+                        "name": "InvalidLinkNumber"
+                      },
+                      {
+                        "name": "InvalidProtocolDriver"
+                      },
+                      {
+                        "name": "NoStructAvailable"
+                      },
+                      {
+                        "name": "Level2Halted"
+                      },
+                      {
+                        "name": "Deadlock"
+                      },
+                      {
+                        "name": "LockNotAvailable"
+                      },
+                      {
+                        "name": "InvalidExchange"
+                      },
+                      {
+                        "name": "InvalidRequestDescriptor"
+                      },
+                      {
+                        "name": "ExchangeFull"
+                      },
+                      {
+                        "name": "InvalidAnode"
+                      },
+                      {
+                        "name": "InvalidRequestCode"
+                      },
+                      {
+                        "name": "InvalidSlot"
+                      },
+                      {
+                        "name": "DeadlockWouldOccur"
+                      },
+                      {
+                        "name": "BadFontFormat"
+                      },
+                      {
+                        "name": "NoStreamDeviceAvailable"
+                      },
+                      {
+                        "name": "NoDataAvailable"
+                      },
+                      {
+                        "name": "TimerExpired"
+                      },
+                      {
+                        "name": "NoStreamResources"
+                      },
+                      {
+                        "name": "NoNetwork"
+                      },
+                      {
+                        "name": "MissingPackage"
+                      },
+                      {
+                        "name": "RemoteObject"
+                      },
+                      {
+                        "name": "NoLink"
+                      },
+                      {
+                        "name": "AdvertiseErr"
+                      },
+                      {
+                        "name": "MountErr"
+                      },
+                      {
+                        "name": "CommunicationErr"
+                      },
+                      {
+                        "name": "ProtocolErr"
+                      },
+                      {
+                        "name": "MultipleHopAttemped"
+                      },
+                      {
+                        "name": "InodeRemote"
+                      },
+                      {
+                        "name": "RfsErr"
+                      },
+                      {
+                        "name": "InvalidMessage"
+                      },
+                      {
+                        "name": "InvalidFileType"
+                      },
+                      {
+                        "name": "NonUniqueName"
+                      },
+                      {
+                        "name": "InvalidFileDescriptor"
+                      },
+                      {
+                        "name": "RemoteAddressChanged"
+                      },
+                      {
+                        "name": "LibraryAccessErr"
+                      },
+                      {
+                        "name": "InvalidLibraryAccess"
+                      },
+                      {
+                        "name": "CorruptedLibSection"
+                      },
+                      {
+                        "name": "ExcessiveLibraryLinkCount"
+                      },
+                      {
+                        "name": "InvalidExecSharedLibrary"
+                      },
+                      {
+                        "name": "InvalidSysCall"
+                      },
+                      {
+                        "name": "DirectoryNotEmpty"
+                      },
+                      {
+                        "name": "NameTooLong"
+                      },
+                      {
+                        "name": "SymbolicLinkLoop"
+                      },
+                      {
+                        "name": "OperationNotSupportedOnSocket"
+                      },
+                      {
+                        "name": "ProtocolFamilyNotSupported"
+                      },
+                      {
+                        "name": "ConnectionReset"
+                      },
+                      {
+                        "name": "NoBufferSpace"
+                      },
+                      {
+                        "name": "AddressFamilyNotSupported"
+                      },
+                      {
+                        "name": "BadProtocolType"
+                      },
+                      {
+                        "name": "NotSocketFile"
+                      },
+                      {
+                        "name": "ProtocolOptionNotAvailable"
+                      },
+                      {
+                        "name": "TransportEndpointShutdown"
+                      },
+                      {
+                        "name": "ConnectionRefused"
+                      },
+                      {
+                        "name": "AddressInUse"
+                      },
+                      {
+                        "name": "ConnectionAborted"
+                      },
+                      {
+                        "name": "NetworkUnreachable"
+                      },
+                      {
+                        "name": "NetworkDown"
+                      },
+                      {
+                        "name": "OperationTimedOut"
+                      },
+                      {
+                        "name": "HostDown"
+                      },
+                      {
+                        "name": "HostUnreachable"
+                      },
+                      {
+                        "name": "OperationInProgress"
+                      },
+                      {
+                        "name": "OperationAlreadyInProgress"
+                      },
+                      {
+                        "name": "DestinationAddressRequired"
+                      },
+                      {
+                        "name": "MessageTooLong"
+                      },
+                      {
+                        "name": "ProtocolNotSupported"
+                      },
+                      {
+                        "name": "SocketTypeNotSupported"
+                      },
+                      {
+                        "name": "AddressNotAvailable"
+                      },
+                      {
+                        "name": "NetworkReset"
+                      },
+                      {
+                        "name": "TransportEndpointConnected"
+                      },
+                      {
+                        "name": "TransportEndpointNotConnected"
+                      },
+                      {
+                        "name": "TooManyReferences"
+                      },
+                      {
+                        "name": "TooManyUsers"
+                      },
+                      {
+                        "name": "QuotaExceeded"
+                      },
+                      {
+                        "name": "StaleHandle"
+                      },
+                      {
+                        "name": "OperationNotSupported"
+                      },
+                      {
+                        "name": "MediumNotFound"
+                      },
+                      {
+                        "name": "IllegalByteSequence"
+                      },
+                      {
+                        "name": "ValueOverflow"
+                      },
+                      {
+                        "name": "OperationCanceled"
+                      },
+                      {
+                        "name": "UnrecoverableState"
+                      },
+                      {
+                        "name": "DeadOwner"
+                      },
+                      {
+                        "name": "StreamPipeErr"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "reason",
+                  "type": {
+                    "kind": "str",
+                    "name": "str"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "usize",
+            "name": "usize"
+          },
+          {
+            "kind": "struct",
+            "name": "Error",
+            "fields": [
+              {
+                "name": "code",
+                "type": {
+                  "kind": "enum",
+                  "name": "ErrorCode",
+                  "variants": [
+                    {
+                      "name": "OperationNotPermitted"
+                    },
+                    {
+                      "name": "NoSuchEntry"
+                    },
+                    {
+                      "name": "NoSuchProcess"
+                    },
+                    {
+                      "name": "Interrupted"
+                    },
+                    {
+                      "name": "IoErr"
+                    },
+                    {
+                      "name": "NoSuchDeviceOrAddress"
+                    },
+                    {
+                      "name": "TooBig"
+                    },
+                    {
+                      "name": "InvalidExecutableFormat"
+                    },
+                    {
+                      "name": "BadFile"
+                    },
+                    {
+                      "name": "NoChildProcess"
+                    },
+                    {
+                      "name": "TryAgain"
+                    },
+                    {
+                      "name": "OutOfMemory"
+                    },
+                    {
+                      "name": "PermissionDenied"
+                    },
+                    {
+                      "name": "BadAddress"
+                    },
+                    {
+                      "name": "NotBlockDevice"
+                    },
+                    {
+                      "name": "ResourceBusy"
+                    },
+                    {
+                      "name": "EntryExists"
+                    },
+                    {
+                      "name": "CrossDeviceLink"
+                    },
+                    {
+                      "name": "NoSuchDevice"
+                    },
+                    {
+                      "name": "InvalidDirectory"
+                    },
+                    {
+                      "name": "IsDirectory"
+                    },
+                    {
+                      "name": "InvalidArgument"
+                    },
+                    {
+                      "name": "FileTableOVerflow"
+                    },
+                    {
+                      "name": "TooManyOpenFiles"
+                    },
+                    {
+                      "name": "NotTerminal"
+                    },
+                    {
+                      "name": "TextFileBusy"
+                    },
+                    {
+                      "name": "FileTooLarge"
+                    },
+                    {
+                      "name": "NoSpaceOnDevice"
+                    },
+                    {
+                      "name": "IllegalSeek"
+                    },
+                    {
+                      "name": "ReadOnlyFileSystem"
+                    },
+                    {
+                      "name": "TooManyLinks"
+                    },
+                    {
+                      "name": "BrokenPipe"
+                    },
+                    {
+                      "name": "MathArgDomainErr"
+                    },
+                    {
+                      "name": "ValueOutOfRange"
+                    },
+                    {
+                      "name": "NoMessageAvailable"
+                    },
+                    {
+                      "name": "IdentifierRemoved"
+                    },
+                    {
+                      "name": "OutOfRangeChannel"
+                    },
+                    {
+                      "name": "Level2NotSynchronized"
+                    },
+                    {
+                      "name": "Level3Halted"
+                    },
+                    {
+                      "name": "Level3Reset"
+                    },
+                    {
+                      "name": "InvalidLinkNumber"
+                    },
+                    {
+                      "name": "InvalidProtocolDriver"
+                    },
+                    {
+                      "name": "NoStructAvailable"
+                    },
+                    {
+                      "name": "Level2Halted"
+                    },
+                    {
+                      "name": "Deadlock"
+                    },
+                    {
+                      "name": "LockNotAvailable"
+                    },
+                    {
+                      "name": "InvalidExchange"
+                    },
+                    {
+                      "name": "InvalidRequestDescriptor"
+                    },
+                    {
+                      "name": "ExchangeFull"
+                    },
+                    {
+                      "name": "InvalidAnode"
+                    },
+                    {
+                      "name": "InvalidRequestCode"
+                    },
+                    {
+                      "name": "InvalidSlot"
+                    },
+                    {
+                      "name": "DeadlockWouldOccur"
+                    },
+                    {
+                      "name": "BadFontFormat"
+                    },
+                    {
+                      "name": "NoStreamDeviceAvailable"
+                    },
+                    {
+                      "name": "NoDataAvailable"
+                    },
+                    {
+                      "name": "TimerExpired"
+                    },
+                    {
+                      "name": "NoStreamResources"
+                    },
+                    {
+                      "name": "NoNetwork"
+                    },
+                    {
+                      "name": "MissingPackage"
+                    },
+                    {
+                      "name": "RemoteObject"
+                    },
+                    {
+                      "name": "NoLink"
+                    },
+                    {
+                      "name": "AdvertiseErr"
+                    },
+                    {
+                      "name": "MountErr"
+                    },
+                    {
+                      "name": "CommunicationErr"
+                    },
+                    {
+                      "name": "ProtocolErr"
+                    },
+                    {
+                      "name": "MultipleHopAttemped"
+                    },
+                    {
+                      "name": "InodeRemote"
+                    },
+                    {
+                      "name": "RfsErr"
+                    },
+                    {
+                      "name": "InvalidMessage"
+                    },
+                    {
+                      "name": "InvalidFileType"
+                    },
+                    {
+                      "name": "NonUniqueName"
+                    },
+                    {
+                      "name": "InvalidFileDescriptor"
+                    },
+                    {
+                      "name": "RemoteAddressChanged"
+                    },
+                    {
+                      "name": "LibraryAccessErr"
+                    },
+                    {
+                      "name": "InvalidLibraryAccess"
+                    },
+                    {
+                      "name": "CorruptedLibSection"
+                    },
+                    {
+                      "name": "ExcessiveLibraryLinkCount"
+                    },
+                    {
+                      "name": "InvalidExecSharedLibrary"
+                    },
+                    {
+                      "name": "InvalidSysCall"
+                    },
+                    {
+                      "name": "DirectoryNotEmpty"
+                    },
+                    {
+                      "name": "NameTooLong"
+                    },
+                    {
+                      "name": "SymbolicLinkLoop"
+                    },
+                    {
+                      "name": "OperationNotSupportedOnSocket"
+                    },
+                    {
+                      "name": "ProtocolFamilyNotSupported"
+                    },
+                    {
+                      "name": "ConnectionReset"
+                    },
+                    {
+                      "name": "NoBufferSpace"
+                    },
+                    {
+                      "name": "AddressFamilyNotSupported"
+                    },
+                    {
+                      "name": "BadProtocolType"
+                    },
+                    {
+                      "name": "NotSocketFile"
+                    },
+                    {
+                      "name": "ProtocolOptionNotAvailable"
+                    },
+                    {
+                      "name": "TransportEndpointShutdown"
+                    },
+                    {
+                      "name": "ConnectionRefused"
+                    },
+                    {
+                      "name": "AddressInUse"
+                    },
+                    {
+                      "name": "ConnectionAborted"
+                    },
+                    {
+                      "name": "NetworkUnreachable"
+                    },
+                    {
+                      "name": "NetworkDown"
+                    },
+                    {
+                      "name": "OperationTimedOut"
+                    },
+                    {
+                      "name": "HostDown"
+                    },
+                    {
+                      "name": "HostUnreachable"
+                    },
+                    {
+                      "name": "OperationInProgress"
+                    },
+                    {
+                      "name": "OperationAlreadyInProgress"
+                    },
+                    {
+                      "name": "DestinationAddressRequired"
+                    },
+                    {
+                      "name": "MessageTooLong"
+                    },
+                    {
+                      "name": "ProtocolNotSupported"
+                    },
+                    {
+                      "name": "SocketTypeNotSupported"
+                    },
+                    {
+                      "name": "AddressNotAvailable"
+                    },
+                    {
+                      "name": "NetworkReset"
+                    },
+                    {
+                      "name": "TransportEndpointConnected"
+                    },
+                    {
+                      "name": "TransportEndpointNotConnected"
+                    },
+                    {
+                      "name": "TooManyReferences"
+                    },
+                    {
+                      "name": "TooManyUsers"
+                    },
+                    {
+                      "name": "QuotaExceeded"
+                    },
+                    {
+                      "name": "StaleHandle"
+                    },
+                    {
+                      "name": "OperationNotSupported"
+                    },
+                    {
+                      "name": "MediumNotFound"
+                    },
+                    {
+                      "name": "IllegalByteSequence"
+                    },
+                    {
+                      "name": "ValueOverflow"
+                    },
+                    {
+                      "name": "OperationCanceled"
+                    },
+                    {
+                      "name": "UnrecoverableState"
+                    },
+                    {
+                      "name": "DeadOwner"
+                    },
+                    {
+                      "name": "StreamPipeErr"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "reason",
+                "type": {
+                  "kind": "str",
+                  "name": "str"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<usize, Error>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "struct",
+              "name": "Error",
+              "fields": [
+                {
+                  "name": "code",
+                  "type": {
+                    "kind": "enum",
+                    "name": "ErrorCode",
+                    "variants": [
+                      {
+                        "name": "OperationNotPermitted"
+                      },
+                      {
+                        "name": "NoSuchEntry"
+                      },
+                      {
+                        "name": "NoSuchProcess"
+                      },
+                      {
+                        "name": "Interrupted"
+                      },
+                      {
+                        "name": "IoErr"
+                      },
+                      {
+                        "name": "NoSuchDeviceOrAddress"
+                      },
+                      {
+                        "name": "TooBig"
+                      },
+                      {
+                        "name": "InvalidExecutableFormat"
+                      },
+                      {
+                        "name": "BadFile"
+                      },
+                      {
+                        "name": "NoChildProcess"
+                      },
+                      {
+                        "name": "TryAgain"
+                      },
+                      {
+                        "name": "OutOfMemory"
+                      },
+                      {
+                        "name": "PermissionDenied"
+                      },
+                      {
+                        "name": "BadAddress"
+                      },
+                      {
+                        "name": "NotBlockDevice"
+                      },
+                      {
+                        "name": "ResourceBusy"
+                      },
+                      {
+                        "name": "EntryExists"
+                      },
+                      {
+                        "name": "CrossDeviceLink"
+                      },
+                      {
+                        "name": "NoSuchDevice"
+                      },
+                      {
+                        "name": "InvalidDirectory"
+                      },
+                      {
+                        "name": "IsDirectory"
+                      },
+                      {
+                        "name": "InvalidArgument"
+                      },
+                      {
+                        "name": "FileTableOVerflow"
+                      },
+                      {
+                        "name": "TooManyOpenFiles"
+                      },
+                      {
+                        "name": "NotTerminal"
+                      },
+                      {
+                        "name": "TextFileBusy"
+                      },
+                      {
+                        "name": "FileTooLarge"
+                      },
+                      {
+                        "name": "NoSpaceOnDevice"
+                      },
+                      {
+                        "name": "IllegalSeek"
+                      },
+                      {
+                        "name": "ReadOnlyFileSystem"
+                      },
+                      {
+                        "name": "TooManyLinks"
+                      },
+                      {
+                        "name": "BrokenPipe"
+                      },
+                      {
+                        "name": "MathArgDomainErr"
+                      },
+                      {
+                        "name": "ValueOutOfRange"
+                      },
+                      {
+                        "name": "NoMessageAvailable"
+                      },
+                      {
+                        "name": "IdentifierRemoved"
+                      },
+                      {
+                        "name": "OutOfRangeChannel"
+                      },
+                      {
+                        "name": "Level2NotSynchronized"
+                      },
+                      {
+                        "name": "Level3Halted"
+                      },
+                      {
+                        "name": "Level3Reset"
+                      },
+                      {
+                        "name": "InvalidLinkNumber"
+                      },
+                      {
+                        "name": "InvalidProtocolDriver"
+                      },
+                      {
+                        "name": "NoStructAvailable"
+                      },
+                      {
+                        "name": "Level2Halted"
+                      },
+                      {
+                        "name": "Deadlock"
+                      },
+                      {
+                        "name": "LockNotAvailable"
+                      },
+                      {
+                        "name": "InvalidExchange"
+                      },
+                      {
+                        "name": "InvalidRequestDescriptor"
+                      },
+                      {
+                        "name": "ExchangeFull"
+                      },
+                      {
+                        "name": "InvalidAnode"
+                      },
+                      {
+                        "name": "InvalidRequestCode"
+                      },
+                      {
+                        "name": "InvalidSlot"
+                      },
+                      {
+                        "name": "DeadlockWouldOccur"
+                      },
+                      {
+                        "name": "BadFontFormat"
+                      },
+                      {
+                        "name": "NoStreamDeviceAvailable"
+                      },
+                      {
+                        "name": "NoDataAvailable"
+                      },
+                      {
+                        "name": "TimerExpired"
+                      },
+                      {
+                        "name": "NoStreamResources"
+                      },
+                      {
+                        "name": "NoNetwork"
+                      },
+                      {
+                        "name": "MissingPackage"
+                      },
+                      {
+                        "name": "RemoteObject"
+                      },
+                      {
+                        "name": "NoLink"
+                      },
+                      {
+                        "name": "AdvertiseErr"
+                      },
+                      {
+                        "name": "MountErr"
+                      },
+                      {
+                        "name": "CommunicationErr"
+                      },
+                      {
+                        "name": "ProtocolErr"
+                      },
+                      {
+                        "name": "MultipleHopAttemped"
+                      },
+                      {
+                        "name": "InodeRemote"
+                      },
+                      {
+                        "name": "RfsErr"
+                      },
+                      {
+                        "name": "InvalidMessage"
+                      },
+                      {
+                        "name": "InvalidFileType"
+                      },
+                      {
+                        "name": "NonUniqueName"
+                      },
+                      {
+                        "name": "InvalidFileDescriptor"
+                      },
+                      {
+                        "name": "RemoteAddressChanged"
+                      },
+                      {
+                        "name": "LibraryAccessErr"
+                      },
+                      {
+                        "name": "InvalidLibraryAccess"
+                      },
+                      {
+                        "name": "CorruptedLibSection"
+                      },
+                      {
+                        "name": "ExcessiveLibraryLinkCount"
+                      },
+                      {
+                        "name": "InvalidExecSharedLibrary"
+                      },
+                      {
+                        "name": "InvalidSysCall"
+                      },
+                      {
+                        "name": "DirectoryNotEmpty"
+                      },
+                      {
+                        "name": "NameTooLong"
+                      },
+                      {
+                        "name": "SymbolicLinkLoop"
+                      },
+                      {
+                        "name": "OperationNotSupportedOnSocket"
+                      },
+                      {
+                        "name": "ProtocolFamilyNotSupported"
+                      },
+                      {
+                        "name": "ConnectionReset"
+                      },
+                      {
+                        "name": "NoBufferSpace"
+                      },
+                      {
+                        "name": "AddressFamilyNotSupported"
+                      },
+                      {
+                        "name": "BadProtocolType"
+                      },
+                      {
+                        "name": "NotSocketFile"
+                      },
+                      {
+                        "name": "ProtocolOptionNotAvailable"
+                      },
+                      {
+                        "name": "TransportEndpointShutdown"
+                      },
+                      {
+                        "name": "ConnectionRefused"
+                      },
+                      {
+                        "name": "AddressInUse"
+                      },
+                      {
+                        "name": "ConnectionAborted"
+                      },
+                      {
+                        "name": "NetworkUnreachable"
+                      },
+                      {
+                        "name": "NetworkDown"
+                      },
+                      {
+                        "name": "OperationTimedOut"
+                      },
+                      {
+                        "name": "HostDown"
+                      },
+                      {
+                        "name": "HostUnreachable"
+                      },
+                      {
+                        "name": "OperationInProgress"
+                      },
+                      {
+                        "name": "OperationAlreadyInProgress"
+                      },
+                      {
+                        "name": "DestinationAddressRequired"
+                      },
+                      {
+                        "name": "MessageTooLong"
+                      },
+                      {
+                        "name": "ProtocolNotSupported"
+                      },
+                      {
+                        "name": "SocketTypeNotSupported"
+                      },
+                      {
+                        "name": "AddressNotAvailable"
+                      },
+                      {
+                        "name": "NetworkReset"
+                      },
+                      {
+                        "name": "TransportEndpointConnected"
+                      },
+                      {
+                        "name": "TransportEndpointNotConnected"
+                      },
+                      {
+                        "name": "TooManyReferences"
+                      },
+                      {
+                        "name": "TooManyUsers"
+                      },
+                      {
+                        "name": "QuotaExceeded"
+                      },
+                      {
+                        "name": "StaleHandle"
+                      },
+                      {
+                        "name": "OperationNotSupported"
+                      },
+                      {
+                        "name": "MediumNotFound"
+                      },
+                      {
+                        "name": "IllegalByteSequence"
+                      },
+                      {
+                        "name": "ValueOverflow"
+                      },
+                      {
+                        "name": "OperationCanceled"
+                      },
+                      {
+                        "name": "UnrecoverableState"
+                      },
+                      {
+                        "name": "DeadOwner"
+                      },
+                      {
+                        "name": "StreamPipeErr"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "reason",
+                  "type": {
+                    "kind": "str",
+                    "name": "str"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "usize",
+            "name": "usize"
+          },
+          {
+            "kind": "struct",
+            "name": "Error",
+            "fields": [
+              {
+                "name": "code",
+                "type": {
+                  "kind": "enum",
+                  "name": "ErrorCode",
+                  "variants": [
+                    {
+                      "name": "OperationNotPermitted"
+                    },
+                    {
+                      "name": "NoSuchEntry"
+                    },
+                    {
+                      "name": "NoSuchProcess"
+                    },
+                    {
+                      "name": "Interrupted"
+                    },
+                    {
+                      "name": "IoErr"
+                    },
+                    {
+                      "name": "NoSuchDeviceOrAddress"
+                    },
+                    {
+                      "name": "TooBig"
+                    },
+                    {
+                      "name": "InvalidExecutableFormat"
+                    },
+                    {
+                      "name": "BadFile"
+                    },
+                    {
+                      "name": "NoChildProcess"
+                    },
+                    {
+                      "name": "TryAgain"
+                    },
+                    {
+                      "name": "OutOfMemory"
+                    },
+                    {
+                      "name": "PermissionDenied"
+                    },
+                    {
+                      "name": "BadAddress"
+                    },
+                    {
+                      "name": "NotBlockDevice"
+                    },
+                    {
+                      "name": "ResourceBusy"
+                    },
+                    {
+                      "name": "EntryExists"
+                    },
+                    {
+                      "name": "CrossDeviceLink"
+                    },
+                    {
+                      "name": "NoSuchDevice"
+                    },
+                    {
+                      "name": "InvalidDirectory"
+                    },
+                    {
+                      "name": "IsDirectory"
+                    },
+                    {
+                      "name": "InvalidArgument"
+                    },
+                    {
+                      "name": "FileTableOVerflow"
+                    },
+                    {
+                      "name": "TooManyOpenFiles"
+                    },
+                    {
+                      "name": "NotTerminal"
+                    },
+                    {
+                      "name": "TextFileBusy"
+                    },
+                    {
+                      "name": "FileTooLarge"
+                    },
+                    {
+                      "name": "NoSpaceOnDevice"
+                    },
+                    {
+                      "name": "IllegalSeek"
+                    },
+                    {
+                      "name": "ReadOnlyFileSystem"
+                    },
+                    {
+                      "name": "TooManyLinks"
+                    },
+                    {
+                      "name": "BrokenPipe"
+                    },
+                    {
+                      "name": "MathArgDomainErr"
+                    },
+                    {
+                      "name": "ValueOutOfRange"
+                    },
+                    {
+                      "name": "NoMessageAvailable"
+                    },
+                    {
+                      "name": "IdentifierRemoved"
+                    },
+                    {
+                      "name": "OutOfRangeChannel"
+                    },
+                    {
+                      "name": "Level2NotSynchronized"
+                    },
+                    {
+                      "name": "Level3Halted"
+                    },
+                    {
+                      "name": "Level3Reset"
+                    },
+                    {
+                      "name": "InvalidLinkNumber"
+                    },
+                    {
+                      "name": "InvalidProtocolDriver"
+                    },
+                    {
+                      "name": "NoStructAvailable"
+                    },
+                    {
+                      "name": "Level2Halted"
+                    },
+                    {
+                      "name": "Deadlock"
+                    },
+                    {
+                      "name": "LockNotAvailable"
+                    },
+                    {
+                      "name": "InvalidExchange"
+                    },
+                    {
+                      "name": "InvalidRequestDescriptor"
+                    },
+                    {
+                      "name": "ExchangeFull"
+                    },
+                    {
+                      "name": "InvalidAnode"
+                    },
+                    {
+                      "name": "InvalidRequestCode"
+                    },
+                    {
+                      "name": "InvalidSlot"
+                    },
+                    {
+                      "name": "DeadlockWouldOccur"
+                    },
+                    {
+                      "name": "BadFontFormat"
+                    },
+                    {
+                      "name": "NoStreamDeviceAvailable"
+                    },
+                    {
+                      "name": "NoDataAvailable"
+                    },
+                    {
+                      "name": "TimerExpired"
+                    },
+                    {
+                      "name": "NoStreamResources"
+                    },
+                    {
+                      "name": "NoNetwork"
+                    },
+                    {
+                      "name": "MissingPackage"
+                    },
+                    {
+                      "name": "RemoteObject"
+                    },
+                    {
+                      "name": "NoLink"
+                    },
+                    {
+                      "name": "AdvertiseErr"
+                    },
+                    {
+                      "name": "MountErr"
+                    },
+                    {
+                      "name": "CommunicationErr"
+                    },
+                    {
+                      "name": "ProtocolErr"
+                    },
+                    {
+                      "name": "MultipleHopAttemped"
+                    },
+                    {
+                      "name": "InodeRemote"
+                    },
+                    {
+                      "name": "RfsErr"
+                    },
+                    {
+                      "name": "InvalidMessage"
+                    },
+                    {
+                      "name": "InvalidFileType"
+                    },
+                    {
+                      "name": "NonUniqueName"
+                    },
+                    {
+                      "name": "InvalidFileDescriptor"
+                    },
+                    {
+                      "name": "RemoteAddressChanged"
+                    },
+                    {
+                      "name": "LibraryAccessErr"
+                    },
+                    {
+                      "name": "InvalidLibraryAccess"
+                    },
+                    {
+                      "name": "CorruptedLibSection"
+                    },
+                    {
+                      "name": "ExcessiveLibraryLinkCount"
+                    },
+                    {
+                      "name": "InvalidExecSharedLibrary"
+                    },
+                    {
+                      "name": "InvalidSysCall"
+                    },
+                    {
+                      "name": "DirectoryNotEmpty"
+                    },
+                    {
+                      "name": "NameTooLong"
+                    },
+                    {
+                      "name": "SymbolicLinkLoop"
+                    },
+                    {
+                      "name": "OperationNotSupportedOnSocket"
+                    },
+                    {
+                      "name": "ProtocolFamilyNotSupported"
+                    },
+                    {
+                      "name": "ConnectionReset"
+                    },
+                    {
+                      "name": "NoBufferSpace"
+                    },
+                    {
+                      "name": "AddressFamilyNotSupported"
+                    },
+                    {
+                      "name": "BadProtocolType"
+                    },
+                    {
+                      "name": "NotSocketFile"
+                    },
+                    {
+                      "name": "ProtocolOptionNotAvailable"
+                    },
+                    {
+                      "name": "TransportEndpointShutdown"
+                    },
+                    {
+                      "name": "ConnectionRefused"
+                    },
+                    {
+                      "name": "AddressInUse"
+                    },
+                    {
+                      "name": "ConnectionAborted"
+                    },
+                    {
+                      "name": "NetworkUnreachable"
+                    },
+                    {
+                      "name": "NetworkDown"
+                    },
+                    {
+                      "name": "OperationTimedOut"
+                    },
+                    {
+                      "name": "HostDown"
+                    },
+                    {
+                      "name": "HostUnreachable"
+                    },
+                    {
+                      "name": "OperationInProgress"
+                    },
+                    {
+                      "name": "OperationAlreadyInProgress"
+                    },
+                    {
+                      "name": "DestinationAddressRequired"
+                    },
+                    {
+                      "name": "MessageTooLong"
+                    },
+                    {
+                      "name": "ProtocolNotSupported"
+                    },
+                    {
+                      "name": "SocketTypeNotSupported"
+                    },
+                    {
+                      "name": "AddressNotAvailable"
+                    },
+                    {
+                      "name": "NetworkReset"
+                    },
+                    {
+                      "name": "TransportEndpointConnected"
+                    },
+                    {
+                      "name": "TransportEndpointNotConnected"
+                    },
+                    {
+                      "name": "TooManyReferences"
+                    },
+                    {
+                      "name": "TooManyUsers"
+                    },
+                    {
+                      "name": "QuotaExceeded"
+                    },
+                    {
+                      "name": "StaleHandle"
+                    },
+                    {
+                      "name": "OperationNotSupported"
+                    },
+                    {
+                      "name": "MediumNotFound"
+                    },
+                    {
+                      "name": "IllegalByteSequence"
+                    },
+                    {
+                      "name": "ValueOverflow"
+                    },
+                    {
+                      "name": "OperationCanceled"
+                    },
+                    {
+                      "name": "UnrecoverableState"
+                    },
+                    {
+                      "name": "DeadOwner"
+                    },
+                    {
+                      "name": "StreamPipeErr"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "reason",
+                "type": {
+                  "kind": "str",
+                  "name": "str"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Bitmap",
+        "fields": [
+          {
+            "name": "number_of_bits",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "usage",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "bits",
+            "type": {
+              "kind": "unknown",
+              "name": "RawArray<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          },
+          {
+            "name": "next_free",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "struct",
+          "name": "BitmapView",
+          "fields": [
+            {
+              "name": "num_bits",
+              "type": {
+                "kind": "int",
+                "name": "int"
+              }
+            },
+            {
+              "name": "set_bits",
+              "type": {
+                "kind": "Set",
+                "name": "Set<int>",
+                "type_args": [
+                  {
+                    "kind": "int",
+                    "name": "int"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_alloc_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits == post2_self_.set_bits))\n}",
+  "equal_fn_name": "det_alloc_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_@",
+      "rhs": "post2_self_@"
+    }
+  ],
+  "check_fn_name": "det_alloc",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null
+  }
+}

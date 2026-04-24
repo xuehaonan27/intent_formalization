@@ -1101,7 +1101,7 @@
                     "name": "Ghost<Map<int, nat>>",
                     "type_args": [
                       {
-                        "kind": "unknown",
+                        "kind": "Map",
                         "name": "Map<int, nat>",
                         "type_args": [
                           {
@@ -1125,7 +1125,7 @@
                   {
                     "name": "allocations",
                     "type": {
-                      "kind": "unknown",
+                      "kind": "Map",
                       "name": "Map<int, nat>",
                       "type_args": [
                         {
@@ -2611,7 +2611,7 @@
                   "name": "Ghost<Map<int, nat>>",
                   "type_args": [
                     {
-                      "kind": "unknown",
+                      "kind": "Map",
                       "name": "Map<int, nat>",
                       "type_args": [
                         {
@@ -2635,7 +2635,7 @@
                 {
                   "name": "allocations",
                   "type": {
-                    "kind": "unknown",
+                    "kind": "Map",
                     "name": "Map<int, nat>",
                     "type_args": [
                       {
@@ -4127,7 +4127,7 @@
                     "name": "Ghost<Map<int, nat>>",
                     "type_args": [
                       {
-                        "kind": "unknown",
+                        "kind": "Map",
                         "name": "Map<int, nat>",
                         "type_args": [
                           {
@@ -4151,7 +4151,7 @@
                   {
                     "name": "allocations",
                     "type": {
-                      "kind": "unknown",
+                      "kind": "Map",
                       "name": "Map<int, nat>",
                       "type_args": [
                         {
@@ -5637,7 +5637,7 @@
                   "name": "Ghost<Map<int, nat>>",
                   "type_args": [
                     {
-                      "kind": "unknown",
+                      "kind": "Map",
                       "name": "Map<int, nat>",
                       "type_args": [
                         {
@@ -5661,7 +5661,7 @@
                 {
                   "name": "allocations",
                   "type": {
-                    "kind": "unknown",
+                    "kind": "Map",
                     "name": "Map<int, nat>",
                     "type_args": [
                       {
