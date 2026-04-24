@@ -14,6 +14,7 @@ from spec_determinism.config import CorpusConfig, default_config_path, load_conf
 from spec_determinism.equal_policy import EqualPolicy
 from spec_determinism.extract import extract_spec
 from spec_determinism.gen_det import build_det_check_spec, render_template
+from spec_determinism.types import TypeKind, TypeProjections
 from spec_determinism.workspace import discover_workspace_rs_files, read_source
 
 
@@ -63,6 +64,8 @@ def regen_one(
     *,
     use_llm_policy: bool = False,
     force_llm_policy: bool = False,
+    use_llm_projections: bool = False,
+    force_llm_projections: bool = False,
     llm_model: str | None = None,
     llm_run_root: Path | None = None,
 ) -> dict:
@@ -80,14 +83,20 @@ def regen_one(
     det_json = art_dir / "det_spec.json"
 
     policy: EqualPolicy | None = None
+    stored_projections: dict[str, TypeProjections] = {}
     if det_json.exists():
         try:
             existing = json.loads(det_json.read_text())
             ep = existing.get("equal_policy")
             if ep is not None:
                 policy = EqualPolicy.from_dict(ep)
+            raw_projs = existing.get("type_projections") or {}
+            stored_projections = {
+                k: TypeProjections.from_dict(v) for k, v in raw_projs.items()
+            }
         except Exception:
             policy = None
+            stored_projections = {}
 
     # LLM policy hook: only overwrite when the stored policy is the
     # structural default (or missing entirely). Non-default stored policies
@@ -104,17 +113,77 @@ def regen_one(
                         crate, fn, policy.source)
 
     check_name = cfg.check_overrides.get(fn)
-    # We need to call build_det_check_spec twice if we want the LLM to see
-    # the extracted symbols: the first call gives us `det_spec.symbols`
-    # (needed in the prompt); the second bakes the final policy into the
-    # persisted spec. To keep it simple, we do a pre-build only when using
-    # LLM, then re-build with the chosen policy.
     det_spec = build_det_check_spec(spec, check_name=check_name,
                                      equal_policy=policy)
+
+    # Carry forward any previously-discovered projections.
+    det_spec.type_projections = dict(stored_projections)
+
+    if use_llm_projections:
+        opaque_names = _opaque_type_names_needing_projections(
+            det_spec, stored_projections, force=force_llm_projections,
+        )
+        if opaque_names:
+            new_projs = _call_llm_projections(
+                opaque_names, corpus, crate, fn, type_sources,
+                art_dir, llm_run_root, llm_model,
+            )
+            det_spec.type_projections.update(new_projs)
 
     det_json.write_text(det_spec.to_json())
     (art_dir / "template.rs").write_text(render_template(det_spec, []))
     return {"crate": crate, "fn": fn, "n_symbols": len(det_spec.symbols)}
+
+
+def _opaque_type_names_needing_projections(
+    det_spec,
+    stored: dict[str, TypeProjections],
+    *,
+    force: bool,
+) -> list[str]:
+    """Collect distinct opaque-type names among det_spec.symbols whose
+    projections have not yet been attempted (or all, if force)."""
+    names: list[str] = []
+    seen: set[str] = set()
+    for sym in det_spec.symbols:
+        t = sym.type
+        if t.kind != TypeKind.UNKNOWN:
+            continue
+        if not t.name or t.name in seen:
+            continue
+        if not force and t.name in stored:
+            continue
+        seen.add(t.name)
+        names.append(t.name)
+    return names
+
+
+def _call_llm_projections(
+    opaque_type_names: list[str],
+    corpus: CorpusConfig,
+    crate: str,
+    fn: str,
+    type_sources: list[str],
+    art_dir: Path,
+    llm_run_root: Path | None,
+    llm_model: str | None,
+) -> dict[str, TypeProjections]:
+    """Query LLM for opaque-type projections; log failures and return empty."""
+    from spec_determinism.policy_llm import (
+        CopilotPolicyLLM, generate_projections_with_llm,
+    )
+    run_dir = (llm_run_root or art_dir) / "llm_projections"
+    blob = "\n".join(type_sources)
+    try:
+        client = CopilotPolicyLLM(model=llm_model)
+        return generate_projections_with_llm(
+            opaque_type_names, corpus.nanvix, run_dir, blob,
+            crate_name=crate, client=client,
+        )
+    except Exception as e:
+        logger.warning("LLM projection discovery failed for %s::%s: %s — "
+                       "leaving opaque types as-is", crate, fn, e)
+        return {}
 
 
 def _call_llm_policy(
@@ -152,6 +221,12 @@ def main():
     ap.add_argument("--force-llm-policy", action="store_true",
                     help="With --use-llm-policy, overwrite non-default stored "
                          "policies too (use sparingly — discards prior decisions).")
+    ap.add_argument("--use-llm-projections", action="store_true",
+                    help="Query an LLM to discover projection spec-fns for "
+                         "opaque (unresolved) input/output types.")
+    ap.add_argument("--force-llm-projections", action="store_true",
+                    help="With --use-llm-projections, re-query even for types "
+                         "with stored projections (status=ok/empty).")
     ap.add_argument("--llm-model", default=None,
                     help="Pass `--model <x>` to the Copilot CLI.")
     args = ap.parse_args()
@@ -177,6 +252,8 @@ def main():
                 corpus, crate, fn,
                 use_llm_policy=args.use_llm_policy,
                 force_llm_policy=args.force_llm_policy,
+                use_llm_projections=args.use_llm_projections,
+                force_llm_projections=args.force_llm_projections,
                 llm_model=args.llm_model,
             )
             print(f"  ok  {crate}::{fn}  ({r['n_symbols']} symbols)")

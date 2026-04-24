@@ -122,6 +122,67 @@ class VariantInfo:
 
 
 @dataclass
+class ProjectionInfo:
+    """One spec-fn projection of an opaque type, e.g. `spec_layout_size(layout) -> usize`.
+
+    Only used to narrow variables whose type the extractor could not
+    resolve structurally (``TypeKind.UNKNOWN``). The spec fn must be
+    unary (one argument of the opaque type) and return a scalar kind.
+    """
+    spec_fn: str
+    return_type: TypeInfo
+    rationale: Optional[str] = None
+
+    def call_expr(self, var: str) -> str:
+        return f"{self.spec_fn}({var})"
+
+    def to_dict(self) -> dict:
+        d: dict = {"spec_fn": self.spec_fn,
+                   "return_type": self.return_type.to_dict()}
+        if self.rationale is not None:
+            d["rationale"] = self.rationale
+        return d
+
+    @staticmethod
+    def from_dict(d: dict) -> "ProjectionInfo":
+        return ProjectionInfo(
+            spec_fn=d["spec_fn"],
+            return_type=TypeInfo.from_dict(d["return_type"]),
+            rationale=d.get("rationale"),
+        )
+
+
+@dataclass
+class TypeProjections:
+    """All projections known for one opaque type, plus discovery status.
+
+    Status values:
+      - ``"ok"``    : LLM/manual discovery returned at least one projection.
+      - ``"empty"`` : discovery ran and returned nothing (so we won't retry).
+    A missing map entry means "never attempted" (the LLM hook will fire).
+    """
+    status: str                              # "ok" | "empty"
+    projections: list[ProjectionInfo] = field(default_factory=list)
+    source: str = "llm"                       # "llm" | "manual"
+
+    def to_dict(self) -> dict:
+        return {
+            "status": self.status,
+            "source": self.source,
+            "projections": [p.to_dict() for p in self.projections],
+        }
+
+    @staticmethod
+    def from_dict(d: dict) -> "TypeProjections":
+        return TypeProjections(
+            status=d.get("status", "empty"),
+            source=d.get("source", "llm"),
+            projections=[ProjectionInfo.from_dict(p)
+                         for p in d.get("projections", [])],
+        )
+
+
+@dataclass
 class Param:
     name: str
     type: TypeInfo
@@ -202,6 +263,10 @@ class DetCheckSpec:
     equal_arg_pairs: list[dict] = field(default_factory=list)  # [{"lhs":"r1","rhs":"r2"}, ...]
     check_fn_name: str = ""           # actual `proof fn <name>` emitted; default `det_{function}`
     equal_policy: dict = field(default_factory=dict)  # EqualPolicy.to_dict() — coarsening rules used
+    # Projections of opaque (TypeKind.UNKNOWN) types discovered by the
+    # LLM hook or configured manually. Keyed by the exact TypeInfo.name
+    # string seen in the symbol table (e.g. "Layout").
+    type_projections: dict[str, TypeProjections] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -214,10 +279,13 @@ class DetCheckSpec:
             "equal_arg_pairs": list(self.equal_arg_pairs),
             "check_fn_name": self.check_fn_name,
             "equal_policy": dict(self.equal_policy),
+            "type_projections": {k: v.to_dict()
+                                  for k, v in self.type_projections.items()},
         }
 
     @staticmethod
     def from_dict(d: dict) -> "DetCheckSpec":
+        raw_projs = d.get("type_projections") or {}
         return DetCheckSpec(
             function=d["function"],
             det_check_template=d["det_check_template"],
@@ -228,6 +296,8 @@ class DetCheckSpec:
             equal_arg_pairs=list(d.get("equal_arg_pairs", [])),
             check_fn_name=d.get("check_fn_name", ""),
             equal_policy=dict(d.get("equal_policy") or {}),
+            type_projections={k: TypeProjections.from_dict(v)
+                              for k, v in raw_projs.items()},
         )
 
     def to_json(self) -> str:

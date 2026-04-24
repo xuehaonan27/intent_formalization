@@ -37,9 +37,13 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from .equal_policy import EqualPolicy
-from .types import DetCheckSpec, FunctionSpec, Symbol, TypeInfo
+from .types import (
+    DetCheckSpec, FunctionSpec, ProjectionInfo, Symbol, TypeInfo,
+    TypeKind, TypeProjections,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -318,3 +322,242 @@ def generate_policy_with_llm(
     logger.info("LLM policy for %s::%s: %s",
                 crate_name or "?", fn_spec.name, policy.to_dict())
     return policy
+
+
+# ---------------------------------------------------------------------------
+# Opaque-type projection discovery (LLM-driven)
+# ---------------------------------------------------------------------------
+#
+# We supply the LLM only with (a) the opaque type name(s), (b) a repo root
+# path where it can grep/read spec files itself, and (c) an output schema.
+# We validate the returned projections against the full type-source corpus
+# before persisting — so a hallucinated spec-fn name never reaches the
+# generated Verus template.
+
+_SUPPORTED_SCALAR_KINDS = {
+    TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
+    TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
+    TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
+    TypeKind.BOOL,
+}
+
+_SCALAR_NAME_TO_KIND: dict[str, TypeKind] = {
+    "int": TypeKind.INT, "nat": TypeKind.INT,
+    "usize": TypeKind.USIZE, "isize": TypeKind.ISIZE,
+    "u8": TypeKind.U8, "u16": TypeKind.U16,
+    "u32": TypeKind.U32, "u64": TypeKind.U64,
+    "i8": TypeKind.I8, "i16": TypeKind.I16,
+    "i32": TypeKind.I32, "i64": TypeKind.I64,
+    "bool": TypeKind.BOOL,
+}
+
+
+_PROJ_PROMPT_HEADER = """\
+You are helping a Verus-based determinism checker narrow opaque input
+types down to concrete integer/bool witnesses. The tool cannot inspect
+the internals of **foreign opaque types** (e.g. `core::alloc::Layout`),
+but the spec in the repo may define **projection spec functions** —
+unary `uninterp spec fn` or `pub spec fn` declarations taking that
+opaque type and returning a primitive scalar (usize/nat/int/bool/...)
+— that expose the semantically relevant integer/bool dimensions.
+
+Your job: for each opaque type name given, grep the repo for such
+projection spec functions and list the ones whose return type is a
+primitive scalar.
+"""
+
+
+_PROJ_SCHEMA_DOC = """\
+## Output format
+
+Emit a single fenced ```json block. Top-level object keys are the
+opaque type names given below. Values are arrays of projections.
+
+```json
+{
+  "<TypeName>": [
+    {
+      "spec_fn": "<unqualified_spec_fn_name>",
+      "return_type": "<usize|nat|int|bool|u8|u16|u32|u64|i8|i16|i32|i64|isize>",
+      "rationale": "<1 short sentence: what dimension this captures>"
+    }
+  ]
+}
+```
+
+Rules:
+- Include ONLY unary spec fns (one parameter) whose single argument is
+  the opaque type (by reference or by value).
+- The spec fn must have a primitive scalar return type from the list
+  above. Do NOT include projections that return composite types.
+- Prefer projections actually referenced by `ensures` / `requires` /
+  `open spec fn` / `assume_specification` clauses elsewhere in the
+  repo — those are the dimensions that drive the function's behavior.
+- If no projections exist for a type, emit an empty array `[]` for it.
+- Use the UNQUALIFIED name for `spec_fn` (e.g. `spec_layout_size`, not
+  `alloc::spec_layout_size`), as it would appear inside a `verus!{}`
+  block after the usual `use` imports.
+- Output the JSON block and nothing else (no prose before or after).
+"""
+
+
+_PROJ_FEW_SHOT = """\
+## Example
+
+Given: opaque type `Layout`, repo root `/home/alice/nanvix`
+
+After grep: you find in `src/kernel/src/mm/kheap.spec.rs`:
+```
+pub uninterp spec fn spec_layout_size(layout: core::alloc::Layout) -> usize;
+pub uninterp spec fn spec_layout_align(layout: core::alloc::Layout) -> usize;
+```
+
+Correct output:
+```json
+{
+  "Layout": [
+    {"spec_fn": "spec_layout_size", "return_type": "usize", "rationale": "Drives allocator size-class selection in ensures."},
+    {"spec_fn": "spec_layout_align", "return_type": "usize", "rationale": "Required alignment; referenced by layout_ok_for_kheap."}
+  ]
+}
+```
+"""
+
+
+def build_projections_prompt(
+    opaque_type_names: list[str],
+    repo_root: Path,
+    crate_name: str = "",
+) -> str:
+    """Build the projection-discovery prompt."""
+    type_list = ", ".join(f"`{n}`" for n in opaque_type_names)
+    ctx_lines = [f"- Repo root: `{repo_root}`"]
+    if crate_name:
+        ctx_lines.append(f"- Originating crate: `{crate_name}`")
+    ctx_lines.append(
+        "- Spec files typically have the suffix `.spec.rs`; also check "
+        "any `*.rs` file with a `verus!{}` block."
+    )
+    ctx = "\n".join(ctx_lines)
+    return (
+        _PROJ_PROMPT_HEADER
+        + "\n## Your task\n\n"
+        + f"Opaque types to analyse: {type_list}\n\n"
+        + f"Context:\n{ctx}\n\n"
+        + _PROJ_SCHEMA_DOC
+        + "\n"
+        + _PROJ_FEW_SHOT
+    )
+
+
+def parse_projections_response(text: str) -> dict:
+    """Extract the JSON block from the projection-LLM response.
+
+    Shape: ``{type_name: [{spec_fn, return_type, rationale?}, ...]}``.
+    """
+    m = _JSON_FENCE_RE.search(text)
+    blob = m.group(1) if m else text.strip()
+    try:
+        obj = json.loads(blob)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"LLM projection response was not valid JSON:\n{text}") from e
+    if not isinstance(obj, dict):
+        raise ValueError("LLM projection response is not a JSON object")
+    return obj
+
+
+_SPEC_FN_DECL_RE_TMPL = (
+    # Matches `spec fn NAME(` / `uninterp spec fn NAME(` with optional
+    # `pub` / `open` / `closed` / `broadcast` modifiers before.
+    r"(?:pub\s+)?(?:open\s+|closed\s+)?(?:broadcast\s+)?"
+    r"(?:uninterp\s+)?spec\s+fn\s+{name}\s*\("
+)
+
+
+def _validate_projection(
+    raw: dict,
+    type_source_blob: str,
+) -> Optional[ProjectionInfo]:
+    """Validate one projection dict from the LLM. Returns None if invalid."""
+    spec_fn = (raw.get("spec_fn") or "").strip()
+    rt_raw = (raw.get("return_type") or "").strip()
+    rationale = raw.get("rationale")
+    if not spec_fn or not rt_raw:
+        logger.warning("projection missing spec_fn/return_type: %r", raw)
+        return None
+    if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", spec_fn):
+        logger.warning("projection spec_fn %r is not a bare identifier", spec_fn)
+        return None
+    kind = _SCALAR_NAME_TO_KIND.get(rt_raw)
+    if kind is None:
+        logger.warning("projection %s has unsupported return_type %r",
+                       spec_fn, rt_raw)
+        return None
+    # Must find a declaration in the corpus.
+    pattern = _SPEC_FN_DECL_RE_TMPL.format(name=re.escape(spec_fn))
+    if not re.search(pattern, type_source_blob):
+        logger.warning("projection spec fn %s not found in type source corpus",
+                       spec_fn)
+        return None
+    return ProjectionInfo(
+        spec_fn=spec_fn,
+        return_type=TypeInfo(kind=kind, name=rt_raw),
+        rationale=rationale if isinstance(rationale, str) else None,
+    )
+
+
+def projections_from_llm_dict(
+    d: dict,
+    opaque_type_names: list[str],
+    type_source_blob: str,
+) -> dict[str, TypeProjections]:
+    """Validate and normalize the LLM response into a ``type_projections``
+    mapping suitable for ``DetCheckSpec.type_projections``.
+
+    Types present in ``opaque_type_names`` but absent from ``d`` (or with
+    an empty/invalid list) receive a ``status="empty"`` entry so future
+    runs don't re-query.
+    """
+    result: dict[str, TypeProjections] = {}
+    for name in opaque_type_names:
+        entries = d.get(name)
+        validated: list[ProjectionInfo] = []
+        if isinstance(entries, list):
+            for raw in entries:
+                if not isinstance(raw, dict):
+                    continue
+                proj = _validate_projection(raw, type_source_blob)
+                if proj is not None:
+                    validated.append(proj)
+        status = "ok" if validated else "empty"
+        result[name] = TypeProjections(
+            status=status, projections=validated, source="llm"
+        )
+    return result
+
+
+def generate_projections_with_llm(
+    opaque_type_names: list[str],
+    repo_root: Path,
+    run_dir: Path,
+    type_source_blob: str,
+    crate_name: str = "",
+    client: CopilotPolicyLLM | None = None,
+) -> dict[str, TypeProjections]:
+    """Query the LLM for projections of the given opaque types.
+
+    ``type_source_blob`` is the concatenated spec-source text used to
+    validate that each returned ``spec_fn`` actually exists.
+    """
+    if client is None:
+        client = CopilotPolicyLLM()
+    prompt = build_projections_prompt(opaque_type_names, repo_root,
+                                      crate_name=crate_name)
+    raw = client.query(prompt, run_dir)
+    parsed = parse_projections_response(raw)
+    out = projections_from_llm_dict(parsed, opaque_type_names, type_source_blob)
+    for name, tp in out.items():
+        logger.info("LLM projections for %s: status=%s, %d fns",
+                    name, tp.status, len(tp.projections))
+    return out
+

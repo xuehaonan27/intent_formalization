@@ -538,6 +538,34 @@ def narrow_unit(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     pass
 
 
+@strategy_for(TypeKind.UNKNOWN)
+def narrow_unknown(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
+    """Narrow an opaque / unresolved type via its registered projections.
+
+    When the extractor couldn't resolve a type structurally (external
+    core/std types like ``core::alloc::Layout``) we leave it as
+    ``TypeKind.UNKNOWN``. If the det_spec records spec-fn projections
+    for this type name (``spec_layout_size(layout) -> usize``, etc.)
+    we narrow on each projection's return value. The projection
+    expression (``spec_layout_size(layout)``) must be byte-identical
+    to what ``schema_search.schemas._emit`` enumerates so the assume
+    can match a schema; the ProjectionInfo.call_expr helper guarantees
+    this.
+    """
+    projs = ctx.det_spec.type_projections.get(ty.name)
+    if projs is None or not projs.projections:
+        logger.warning(
+            f"No narrow strategy for {ty.kind}:{ty.name} (var={var}); "
+            f"witness will be partial for this dimension."
+        )
+        return
+
+    for proj in projs.projections:
+        proj_var = proj.call_expr(var)
+        child_node = node.get_or_create(proj.spec_fn)
+        narrow(proj.return_type, proj_var, child_node, ctx)
+
+
 _STR_CANDIDATES = ('""', '"string 1"', '"string 2"')
 
 

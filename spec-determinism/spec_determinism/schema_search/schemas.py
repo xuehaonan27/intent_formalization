@@ -37,7 +37,7 @@ from enum import Enum
 from typing import Optional
 
 from ..types import (
-    DetCheckSpec, TypeInfo, TypeKind, VariantInfo, Assume,
+    DetCheckSpec, TypeInfo, TypeKind, VariantInfo, Assume, ProjectionInfo,
 )
 
 
@@ -100,6 +100,7 @@ def _emit(
     parent_chain: list[tuple[str, str]],
     out: list[SchemaBinding],
     seen_tags: set[str],
+    projections_by_type: Optional[dict[str, list[ProjectionInfo]]] = None,
 ) -> None:
     """Emit all schemas for (var, ty), recursing through the type tree."""
     tag_base = _sanitize(var)
@@ -113,6 +114,8 @@ def _emit(
             tag = f"{base}_{i}"
         seen_tags.add(tag)
         return tag
+
+    projections_by_type = projections_by_type or {}
 
     # --- Integers ---
     if ty.kind in _INT_KINDS:
@@ -189,7 +192,7 @@ def _emit(
             if inner_ty is not None:
                 inner_var = f"{var}->{vname}_0"
                 child_chain = parent_chain + [(var, vname)]
-                _emit(inner_var, inner_ty, child_chain, out, seen_tags)
+                _emit(inner_var, inner_ty, child_chain, out, seen_tags, projections_by_type)
 
         # C-like enums (all unit variants with explicit discriminants, e.g.
         # `enum SlabSize { Slab8 = 8, ... }`) get an additional SCALAR_EQ
@@ -213,7 +216,7 @@ def _emit(
         view = ty.spec_view or ty
         accessor = f"{var}@" if ty.spec_view else var
         for fld in view.fields:
-            _emit(f"{accessor}.{fld.name}", fld.type, parent_chain, out, seen_tags)
+            _emit(f"{accessor}.{fld.name}", fld.type, parent_chain, out, seen_tags, projections_by_type)
         return
 
     # --- Set ---
@@ -274,7 +277,7 @@ def _emit(
         # Dom as Set<K>: emits SET_EMPTY/SET_LEN_GT/SET_LEN_EQ/SET_LEN_RANGE/SET_CONTAINS.
         dom_var = f"{var}.dom()"
         dom_set_ty = TypeInfo(kind=TypeKind.SET, name=f"Set<{k_ty.name}>", type_args=[k_ty])
-        _emit(dom_var, dom_set_ty, parent_chain, out, seen_tags)
+        _emit(dom_var, dom_set_ty, parent_chain, out, seen_tags, projections_by_type)
 
         # Value slots: pre-enumerate `{var}[{i}]` for small integer keys so
         # recursive narrow on V has schemas to hit. For non-integer key types
@@ -288,7 +291,7 @@ def _emit(
             }
             key_range = range(0, 17) if unsigned else range(-8, 9)
             for i in key_range:
-                _emit(f"{var}[{i}]", v_ty, parent_chain, out, seen_tags)
+                _emit(f"{var}[{i}]", v_ty, parent_chain, out, seen_tags, projections_by_type)
         return
 
     # --- Seq ---
@@ -315,10 +318,21 @@ def _emit(
             MAX_SEQ_LEN = 8
             elem_ty = ty.type_args[0]
             for i in range(MAX_SEQ_LEN):
-                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags)
+                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags, projections_by_type)
         return
 
-    # Other kinds (Unit/Unknown) — skipped.
+    # Other kinds (Unit/Unknown) — skipped, except UNKNOWN with registered
+    # projections, which we route through the projection's spec-fn call.
+    if ty.kind == TypeKind.UNKNOWN and ty.name in projections_by_type:
+        for proj in projections_by_type[ty.name]:
+            proj_var = proj.call_expr(var)
+            # Emit schemas for the projection return value. We reuse the
+            # same parent_chain — projections are total over the opaque
+            # type (no variant guard needed to call them).
+            _emit(proj_var, proj.return_type, parent_chain, out, seen_tags,
+                  projections_by_type)
+        return
+
     return
 
 
@@ -327,11 +341,20 @@ def enumerate_schemas(det_spec: DetCheckSpec) -> list[SchemaBinding]:
     schemas: list[SchemaBinding] = []
     seen_tags: set[str] = set()
     seen_vars: set[str] = set()
+    # Flatten det_spec.type_projections into a name->list[ProjectionInfo]
+    # dict keyed by TypeInfo.name, dropping "empty" entries (they have no
+    # projections to offer). Missing entries mean "not attempted" — the
+    # schema layer treats them identically to "empty" for schema emission.
+    projections_by_type: dict[str, list[ProjectionInfo]] = {
+        name: tp.projections
+        for name, tp in det_spec.type_projections.items()
+        if tp.projections
+    }
     for sym in det_spec.symbols:
         if sym.name in seen_vars:
             continue
         seen_vars.add(sym.name)
-        _emit(sym.name, sym.type, [], schemas, seen_tags)
+        _emit(sym.name, sym.type, [], schemas, seen_tags, projections_by_type)
 
     schemas.append(SchemaBinding(
         id="neq_tuple",

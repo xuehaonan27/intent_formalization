@@ -2089,5 +2089,6 @@
     "custom_body": null,
     "rationale": null,
     "source": "default"
-  }
+  },
+  "type_projections": {}
 }
