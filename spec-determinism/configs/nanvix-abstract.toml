@@ -1,0 +1,60 @@
+# Corpus config for spec-determinism.
+#
+# Paths beginning with "~" are expanded. Paths may also contain
+# "{nanvix}" which is substituted with the `nanvix` setting below.
+
+nanvix = "~/nanvix-verus-abstract"
+verus_path = "~/nanvix/toolchain/verus"
+
+# Where to write artifacts and full-run results. Relative paths are
+# resolved against the repo root (the directory containing pyproject.toml).
+artifacts_dir = "results-abstract/artifacts"
+full_run_path = "results-abstract/full_run.json"
+
+[crates.bitmap]
+src = "{nanvix}/src/libs/bitmap/src/lib.rs"
+spec = "{nanvix}/src/libs/bitmap/src/lib.spec.rs"
+proof = "{nanvix}/src/libs/bitmap/src/lib.proof.rs"
+extra_type_sources = ["{nanvix}/src/libs/error/src/lib.rs"]
+features = ["std"]
+extra_args = []
+use_build = true
+timeout = 180
+functions = [
+    "number_of_bits", "new", "from_raw_array",
+    "alloc", "alloc_range", "set", "clear", "test",
+]
+check_overrides = { alloc_range = "det_alloc_range_chk" }
+
+[crates.slab]
+src = "{nanvix}/src/libs/slab/src/lib.rs"
+spec = "{nanvix}/src/libs/slab/src/lib.spec.rs"
+proof = "{nanvix}/src/libs/slab/src/lib.proof.rs"
+extra_type_sources = ["{nanvix}/src/libs/error/src/lib.rs"]
+features = ["std"]
+extra_args = []
+use_build = true
+timeout = 180
+functions = ["from_raw_parts", "allocate", "deallocate"]
+check_overrides = { allocate = "det_allocate_chk" }
+
+[crates.kernel]
+src = "{nanvix}/src/kernel/src/mm/kheap.rs"
+spec = "{nanvix}/src/kernel/src/mm/kheap.spec.rs"
+proof = "{nanvix}/src/kernel/src/mm/kheap.proof.rs"
+extra_type_sources = [
+    "{nanvix}/src/libs/error/src/lib.rs",
+    "{nanvix}/src/libs/slab/src/lib.rs",
+    "{nanvix}/src/libs/slab/src/lib.spec.rs",
+]
+features = ["microvm", "error"]
+extra_args = [
+    "-Z", "build-std=core,alloc,compiler_builtins",
+    "-Z", "build-std-features=compiler-builtins-mem",
+    "--target", "{nanvix}/build/targets/x86-kernel.json",
+]
+use_build = false
+timeout = 600
+functions = ["from_raw_parts", "allocate", "deallocate", "layout_to_allocator"]
+check_overrides = {}
+verify_module = "mm::kheap"

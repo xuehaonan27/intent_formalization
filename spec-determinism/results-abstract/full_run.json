@@ -1,0 +1,83 @@
+[
+  {
+    "crate": "kernel",
+    "function": "from_raw_parts",
+    "det_fn": "det_from_raw_parts",
+    "n_schemas": 259,
+    "n_params": 265,
+    "verus_ms": 3330,
+    "smt2_bytes": 3563563,
+    "ctx_ms": 62,
+    "search_ms": 452,
+    "n_rounds": 41,
+    "assumes": [
+      "addr == 1",
+      "size == 0",
+      "r1 is Ok",
+      "r2 is Err",
+      "r2->Err_0.code is InvalidArgument",
+      "r2->Err_0.reason == \"\"",
+      "!det_from_raw_parts_equal(r1, r2)"
+    ],
+    "status": "ok",
+    "total_ms": 3854
+  },
+  {
+    "crate": "kernel",
+    "function": "allocate",
+    "det_fn": "det_allocate",
+    "n_schemas": 5,
+    "n_params": 5,
+    "verus_ms": 2920,
+    "smt2_bytes": 608108,
+    "ctx_ms": 34,
+    "search_ms": 225,
+    "n_rounds": 4,
+    "assumes": [
+      "r1 is Ok",
+      "r2 is Ok",
+      "!det_allocate_equal(r1, r2, post1_self_@, post2_self_@)"
+    ],
+    "status": "ok",
+    "total_ms": 3186
+  },
+  {
+    "crate": "kernel",
+    "function": "deallocate",
+    "det_fn": "det_deallocate",
+    "n_schemas": 5,
+    "n_params": 5,
+    "verus_ms": 2793,
+    "smt2_bytes": 580849,
+    "ctx_ms": 34,
+    "search_ms": 179,
+    "n_rounds": 5,
+    "assumes": [
+      "r1 is Ok",
+      "r2 is Err",
+      "!det_deallocate_equal(r1, r2, post1_self_@, post2_self_@)"
+    ],
+    "status": "ok",
+    "total_ms": 3013
+  },
+  {
+    "crate": "kernel",
+    "function": "layout_to_allocator",
+    "det_fn": "det_layout_to_allocator",
+    "n_schemas": 19,
+    "n_params": 19,
+    "verus_ms": 2857,
+    "smt2_bytes": 859011,
+    "ctx_ms": 35,
+    "search_ms": 280,
+    "n_rounds": 6,
+    "assumes": [
+      "r1 is Ok",
+      "r1->Ok_0 is Slab8",
+      "r2 is Err",
+      "!det_layout_to_allocator_equal(r1, r2)"
+    ],
+    "status": "ok",
+    "total_ms": 3180
+  }
+]

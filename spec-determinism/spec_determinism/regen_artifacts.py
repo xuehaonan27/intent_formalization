@@ -13,24 +13,50 @@ from spec_determinism.config import CorpusConfig, default_config_path, load_conf
 from spec_determinism.equal_policy import EqualPolicy
 from spec_determinism.extract import extract_spec
 from spec_determinism.gen_det import build_det_check_spec, render_template
+from spec_determinism.workspace import discover_workspace_rs_files, read_source
 
 
 def artifact_key(crate: str, fn: str) -> str:
     return f"{crate}__{fn}"
 
 
+def _collect_type_sources(corpus: CorpusConfig, cfg) -> list[str]:
+    """Build the type-definition corpus for refine_types.
+
+    Order (priority: earlier entries win on name collision inside refine_types):
+      1. This crate's own .spec.rs (type view defs live here).
+      2. cfg.extra_type_sources — explicit per-crate overrides.
+      3. Every .rs under any Cargo workspace member rooted at `corpus.nanvix`.
+
+    All file reads are cached, so calling this per artifact is cheap after
+    the first pass.
+    """
+    seen: set[str] = set()
+    out: list[str] = []
+
+    def _push(path_str: str) -> None:
+        p = str(Path(path_str).resolve())
+        if p in seen:
+            return
+        if not Path(p).exists():
+            return
+        seen.add(p)
+        out.append(read_source(p))
+
+    if Path(cfg.spec).exists():
+        _push(cfg.spec)
+    for extra in cfg.extra_type_sources:
+        _push(extra)
+    for ws in discover_workspace_rs_files(corpus.nanvix):
+        _push(str(ws))
+    return out
+
+
 def regen_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
     cfg = corpus.crates[crate]
     with open(cfg.src) as f:
         src = f.read()
-    type_sources: list[str] = []
-    if Path(cfg.spec).exists():
-        with open(cfg.spec) as f:
-            type_sources.append(f.read())
-    for extra in cfg.extra_type_sources:
-        if Path(extra).exists():
-            with open(extra) as f:
-                type_sources.append(f.read())
+    type_sources = _collect_type_sources(corpus, cfg)
 
     active_features = set(cfg.features)
     spec = extract_spec(src, fn, type_sources=type_sources,

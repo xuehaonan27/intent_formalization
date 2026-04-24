@@ -1,0 +1,191 @@
+{
+  "function": "layout_to_allocator",
+  "det_check_template": "proof fn det_layout_to_allocator(layout: Layout, r1: Result<SlabSize, AllocError>, r2: Result<SlabSize, AllocError>)\n    ensures\n        ({\n            &&& (match r1 {\n                Ok(slab_size) => {\n                    &&& (slab_size as usize == 8\n                        || slab_size as usize == 16\n                        || slab_size as usize == 32\n                        || slab_size as usize == 64\n                        || slab_size as usize == 128\n                        || slab_size as usize == 256\n                        || slab_size as usize == 512)\n                    &&& slab_size as usize >= spec_layout_size(layout)\n                    &&& (slab_size as usize == 16 ==> spec_layout_size(layout) > 8)\n                    &&& (slab_size as usize == 32 ==> spec_layout_size(layout) > 16)\n                    &&& (slab_size as usize == 64 ==> spec_layout_size(layout) > 32)\n                    &&& (slab_size as usize == 128 ==> spec_layout_size(layout) > 64)\n                    &&& (slab_size as usize == 256 ==> spec_layout_size(layout) > 128)\n                    &&& (slab_size as usize == 512 ==> spec_layout_size(layout) > 256)\n                },\n                Err(_) => {\n                    spec_layout_size(layout) == 0\n                        || spec_layout_size(layout) > 512\n                },\n            })\n            &&& (match r2 {\n                Ok(slab_size) => {\n                    &&& (slab_size as usize == 8\n                        || slab_size as usize == 16\n                        || slab_size as usize == 32\n                        || slab_size as usize == 64\n                        || slab_size as usize == 128\n                        || slab_size as usize == 256\n                        || slab_size as usize == 512)\n                    &&& slab_size as usize >= spec_layout_size(layout)\n                    &&& (slab_size as usize == 16 ==> spec_layout_size(layout) > 8)\n                    &&& (slab_size as usize == 32 ==> spec_layout_size(layout) > 16)\n                    &&& (slab_size as usize == 64 ==> spec_layout_size(layout) > 32)\n                    &&& (slab_size as usize == 128 ==> spec_layout_size(layout) > 64)\n                    &&& (slab_size as usize == 256 ==> spec_layout_size(layout) > 128)\n                    &&& (slab_size as usize == 512 ==> spec_layout_size(layout) > 256)\n                },\n                Err(_) => {\n                    spec_layout_size(layout) == 0\n                        || spec_layout_size(layout) > 512\n                },\n            })\n        }) ==> det_layout_to_allocator_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "layout",
+      "type": {
+        "kind": "unknown",
+        "name": "Layout"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<SlabSize, AllocError>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "enum",
+              "name": "SlabSize",
+              "variants": [
+                {
+                  "name": "Slab8"
+                },
+                {
+                  "name": "Slab16"
+                },
+                {
+                  "name": "Slab32"
+                },
+                {
+                  "name": "Slab64"
+                },
+                {
+                  "name": "Slab128"
+                },
+                {
+                  "name": "Slab256"
+                },
+                {
+                  "name": "Slab512"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "AllocError"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "enum",
+            "name": "SlabSize",
+            "variants": [
+              {
+                "name": "Slab8"
+              },
+              {
+                "name": "Slab16"
+              },
+              {
+                "name": "Slab32"
+              },
+              {
+                "name": "Slab64"
+              },
+              {
+                "name": "Slab128"
+              },
+              {
+                "name": "Slab256"
+              },
+              {
+                "name": "Slab512"
+              }
+            ]
+          },
+          {
+            "kind": "unknown",
+            "name": "AllocError"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<SlabSize, AllocError>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "enum",
+              "name": "SlabSize",
+              "variants": [
+                {
+                  "name": "Slab8"
+                },
+                {
+                  "name": "Slab16"
+                },
+                {
+                  "name": "Slab32"
+                },
+                {
+                  "name": "Slab64"
+                },
+                {
+                  "name": "Slab128"
+                },
+                {
+                  "name": "Slab256"
+                },
+                {
+                  "name": "Slab512"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "unknown",
+              "name": "AllocError"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "enum",
+            "name": "SlabSize",
+            "variants": [
+              {
+                "name": "Slab8"
+              },
+              {
+                "name": "Slab16"
+              },
+              {
+                "name": "Slab32"
+              },
+              {
+                "name": "Slab64"
+              },
+              {
+                "name": "Slab128"
+              },
+              {
+                "name": "Slab256"
+              },
+              {
+                "name": "Slab512"
+              }
+            ]
+          },
+          {
+            "kind": "unknown",
+            "name": "AllocError"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_layout_to_allocator_equal(r1: Result<SlabSize, AllocError>, r2: Result<SlabSize, AllocError>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (((r1->Ok_0 is Slab8) == (r2->Ok_0 is Slab8)) && ((r1->Ok_0 is Slab16) == (r2->Ok_0 is Slab16)) && ((r1->Ok_0 is Slab32) == (r2->Ok_0 is Slab32)) && ((r1->Ok_0 is Slab64) == (r2->Ok_0 is Slab64)) && ((r1->Ok_0 is Slab128) == (r2->Ok_0 is Slab128)) && ((r1->Ok_0 is Slab256) == (r2->Ok_0 is Slab256)) && ((r1->Ok_0 is Slab512) == (r2->Ok_0 is Slab512)))))\n}",
+  "equal_fn_name": "det_layout_to_allocator_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_layout_to_allocator",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null
+  }
+}

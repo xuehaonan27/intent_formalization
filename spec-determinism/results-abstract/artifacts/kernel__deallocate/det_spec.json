@@ -1,6 +1,6 @@
 {
   "function": "deallocate",
-  "det_check_template": "proof fn det_deallocate(pre_self_: Kheap, ptr: *mut u8, layout: Layout, post1_self_: Kheap, r1: Result<(), AllocError>, post2_self_: Kheap, r2: Result<(), AllocError>)\n    requires (pre_self_.inv()),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(()) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-4b: pointer was allocated in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].allocated_addrs.contains(ptr as usize)\n                    // FN-4c: exact state transition\n                    &&& post1_self_@ == pre_self_@.spec_deallocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-4f: state preserved on error\n                    &&& post1_self_@ == pre_self_@\n                    // FN-4e: error iff size unsupported or ptr not allocated\n                    &&& (opt_idx.is_none()\n                        || !pre_self_@.slabs[opt_idx.unwrap()].allocated_addrs\n                            .contains(ptr as usize))\n                }\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(()) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-4b: pointer was allocated in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].allocated_addrs.contains(ptr as usize)\n                    // FN-4c: exact state transition\n                    &&& post2_self_@ == pre_self_@.spec_deallocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-4f: state preserved on error\n                    &&& post2_self_@ == pre_self_@\n                    // FN-4e: error iff size unsupported or ptr not allocated\n                    &&& (opt_idx.is_none()\n                        || !pre_self_@.slabs[opt_idx.unwrap()].allocated_addrs\n                            .contains(ptr as usize))\n                }\n            })\n        }) ==> det_deallocate_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
+  "det_check_template": "proof fn det_deallocate(pre_self_: Kheap, ptr: *mut u8, layout: Layout, post1_self_: Kheap, r1: Result<(), AllocError>, post2_self_: Kheap, r2: Result<(), AllocError>)\n    requires (pre_self_.inv()), (spec_layout_size(layout) > 0),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(()) => {\n                    &&& pre_self_@.allocations.dom().contains(ptr as int)\n                    &&& post1_self_@ =~= pre_self_@.spec_deallocate(ptr as int)\n                },\n                Err(_) => post1_self_@ == pre_self_@,\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(()) => {\n                    &&& pre_self_@.allocations.dom().contains(ptr as int)\n                    &&& post2_self_@ =~= pre_self_@.spec_deallocate(ptr as int)\n                },\n                Err(_) => post2_self_@ == pre_self_@,\n            })\n        }) ==> det_deallocate_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
   "symbols": [
     {
       "name": "pre_self_",
@@ -17,70 +17,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -169,70 +107,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -321,70 +197,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -473,70 +287,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -625,70 +377,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -777,70 +467,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -929,70 +557,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -1071,6 +637,29 @@
                 ]
               }
             }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ],
         "spec_view": {
@@ -1078,63 +667,18 @@
           "name": "KheapView",
           "fields": [
             {
-              "name": "slabs",
+              "name": "allocations",
               "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
+                "kind": "unknown",
+                "name": "Map<int, nat>",
                 "type_args": [
                   {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
+                    "kind": "int",
+                    "name": "int"
+                  },
+                  {
+                    "kind": "int",
+                    "name": "nat"
                   }
                 ]
               }
@@ -1243,70 +787,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -1395,70 +877,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -1547,70 +967,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -1699,70 +1057,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -1851,70 +1147,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2003,70 +1237,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2155,70 +1327,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2297,6 +1407,29 @@
                 ]
               }
             }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ],
         "spec_view": {
@@ -2304,63 +1437,18 @@
           "name": "KheapView",
           "fields": [
             {
-              "name": "slabs",
+              "name": "allocations",
               "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
+                "kind": "unknown",
+                "name": "Map<int, nat>",
                 "type_args": [
                   {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
+                    "kind": "int",
+                    "name": "int"
+                  },
+                  {
+                    "kind": "int",
+                    "name": "nat"
                   }
                 ]
               }
@@ -2385,70 +1473,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2537,70 +1563,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2689,70 +1653,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2841,70 +1743,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -2993,70 +1833,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -3145,70 +1923,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -3297,70 +2013,8 @@
                 {
                   "name": "index",
                   "type": {
-                    "kind": "struct",
-                    "name": "Bitmap",
-                    "fields": [
-                      {
-                        "name": "number_of_bits",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "usage",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "bits",
-                        "type": {
-                          "kind": "unknown",
-                          "name": "RawArray<u8>",
-                          "type_args": [
-                            {
-                              "kind": "u8",
-                              "name": "u8"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "next_free",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      }
-                    ],
-                    "spec_view": {
-                      "kind": "struct",
-                      "name": "BitmapView",
-                      "fields": [
-                        {
-                          "name": "num_bits",
-                          "type": {
-                            "kind": "int",
-                            "name": "int"
-                          }
-                        },
-                        {
-                          "name": "set_bits",
-                          "type": {
-                            "kind": "Set",
-                            "name": "Set<int>",
-                            "type_args": [
-                              {
-                                "kind": "int",
-                                "name": "int"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
+                    "kind": "unknown",
+                    "name": "Bitmap"
                   }
                 },
                 {
@@ -3439,6 +2093,29 @@
                 ]
               }
             }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ],
         "spec_view": {
@@ -3446,63 +2123,18 @@
           "name": "KheapView",
           "fields": [
             {
-              "name": "slabs",
+              "name": "allocations",
               "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
+                "kind": "unknown",
+                "name": "Map<int, nat>",
                 "type_args": [
                   {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
+                    "kind": "int",
+                    "name": "int"
+                  },
+                  {
+                    "kind": "int",
+                    "name": "nat"
                   }
                 ]
               }
@@ -3514,7 +2146,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_deallocate_equal(r1: Result<(), AllocError>, r2: Result<(), AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.slabs == post2_self_.slabs))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_deallocate_equal(r1: Result<(), AllocError>, r2: Result<(), AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.allocations == post2_self_.allocations))\n}",
   "equal_fn_name": "det_deallocate_equal",
   "equal_arg_pairs": [
     {
