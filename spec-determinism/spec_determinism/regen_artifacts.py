@@ -141,20 +141,38 @@ def _opaque_type_names_needing_projections(
     *,
     force: bool,
 ) -> list[str]:
-    """Collect distinct opaque-type names among det_spec.symbols whose
-    projections have not yet been attempted (or all, if force)."""
+    """Collect distinct opaque-type names reachable through det_spec.symbols.
+
+    Walks every symbol's full TypeInfo tree (fields, variants, type_args,
+    spec_view) so opaque types that appear only in nested positions —
+    e.g. ``AllocError`` as the ``Err`` arm of a ``Result<SlabSize,
+    AllocError>`` return value, or an opaque field inside a struct — are
+    also surfaced. With ``force=False`` types already present in
+    ``stored`` (either status=ok or status=empty) are skipped.
+    """
     names: list[str] = []
     seen: set[str] = set()
+
+    def _visit(t) -> None:
+        if t is None:
+            return
+        if t.kind == TypeKind.UNKNOWN and t.name:
+            n = t.name
+            if n not in seen and (force or n not in stored):
+                seen.add(n)
+                names.append(n)
+            # UNKNOWN leaves have no further structure to recurse into.
+            return
+        for f in t.fields:
+            _visit(f.type)
+        for v in t.variants:
+            _visit(v.inner)
+        for a in t.type_args:
+            _visit(a)
+        _visit(t.spec_view)
+
     for sym in det_spec.symbols:
-        t = sym.type
-        if t.kind != TypeKind.UNKNOWN:
-            continue
-        if not t.name or t.name in seen:
-            continue
-        if not force and t.name in stored:
-            continue
-        seen.add(t.name)
-        names.append(t.name)
+        _visit(sym.type)
     return names
 
 

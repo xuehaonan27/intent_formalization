@@ -12,7 +12,7 @@ primitive scalar.
 
 ## Your task
 
-Opaque types to analyse: `Layout`
+Opaque types to analyse: `AllocError`
 
 Context:
 - Repo root: `/home/chentianyu/nanvix-verus-abstract`

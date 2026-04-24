@@ -241,6 +241,11 @@
           "rationale": "Alignment dimension referenced by layout_ok_for_kheap to constrain the returned pointer."
         }
       ]
+    },
+    "AllocError": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
     }
   }
 }
