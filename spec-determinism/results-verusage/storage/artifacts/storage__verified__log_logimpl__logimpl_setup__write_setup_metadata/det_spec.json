@@ -1,0 +1,101 @@
+{
+  "function": "write_setup_metadata",
+  "det_check_template": "proof fn det_write_setup_metadata(pre_pm_region: PMRegion, region_size: u64, ?: Ghost<u64>, log_id: u128, post1_pm_region: PMRegion, r1: (), post2_pm_region: PMRegion, r2: ())\n    requires (pre_pm_region.inv()), (pre_pm_region@.len() == region_size), (pre_pm_region@.len() >= ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE), (pre_pm_region@.len() == log_capacity + ABSOLUTE_POS_OF_LOG_AREA), (pre_pm_region@.no_outstanding_writes()),\n    ensures\n        ({\n            &&& (post1_pm_region.inv())\n            &&& (post1_pm_region.constants() == pre_pm_region.constants())\n            &&& (post1_pm_region@.len() == pre_pm_region@.len())\n            &&& (post1_pm_region@.no_outstanding_writes())\n            &&& (recover_state(post1_pm_region@.committed(), log_id) == Some(\n            AbstractLogState::initialize(log_capacity as int),\n        ))\n            &&& (metadata_types_set(post1_pm_region@.committed()))\n            &&& (post2_pm_region.inv())\n            &&& (post2_pm_region.constants() == pre_pm_region.constants())\n            &&& (post2_pm_region@.len() == pre_pm_region@.len())\n            &&& (post2_pm_region@.no_outstanding_writes())\n            &&& (recover_state(post2_pm_region@.committed(), log_id) == Some(\n            AbstractLogState::initialize(log_capacity as int),\n        ))\n            &&& (metadata_types_set(post2_pm_region@.committed()))\n        }) ==> det_write_setup_metadata_equal(r1, r2, post1_pm_region, post2_pm_region),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_pm_region",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegion"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "region_size",
+      "type": {
+        "kind": "u64",
+        "name": "u64"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<u64>",
+        "type_args": [
+          {
+            "kind": "u64",
+            "name": "u64"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "log_id",
+      "type": {
+        "kind": "unknown",
+        "name": "u128"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_pm_region",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegion"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_pm_region",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegion"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_write_setup_metadata_equal(r1: (), r2: (), post1_pm_region: PMRegion, post2_pm_region: PMRegion) -> bool {\n    (r1 == r2)\n    && (post1_pm_region == post2_pm_region)\n}",
+  "equal_fn_name": "det_write_setup_metadata_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_pm_region",
+      "rhs": "post2_pm_region"
+    }
+  ],
+  "check_fn_name": "det_write_setup_metadata",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

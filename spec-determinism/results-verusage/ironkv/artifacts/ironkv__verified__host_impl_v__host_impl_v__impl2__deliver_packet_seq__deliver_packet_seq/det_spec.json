@@ -1,0 +1,944 @@
+{
+  "function": "deliver_packet_seq",
+  "det_check_template": "proof fn det_deliver_packet_seq(self_: HostState, pre_netc: NetClient, packets: Vec<CPacket>, post1_netc: NetClient, r1: (rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>)), post2_netc: NetClient, r2: (rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>)))\n    requires (pre_netc.ok()), (outbound_packet_seq_is_valid(packets@)), (outbound_packet_seq_has_correct_srcs(packets@, pre_netc.my_end_point())),\n    ensures\n        ({\n            &&& (post1_netc.my_end_point() == pre_netc.my_end_point())\n            &&& (({\n                let (ok, Ghost(net_events), Ghost(ios)) = r1;\n                {\n                    &&& post1_netc.ok() <==> ok\n                    &&& ok ==> {\n                        &&& all_ios_are_sends(ios)\n                        &&& (forall |i: int| 0 <= i && i < net_events.len() ==> net_events[i] is Send)\n                        &&& ios == map_sent_packet_seq_to_ios(packets@)\n                        &&& abstractify_outbound_packets_to_seq_of_lsht_packets(packets@) ==\n                                extract_sent_packets_from_ios(ios)\n                        &&& abstractify_seq_of_cpackets_to_set_of_sht_packets(packets@) ==\n                                extract_packets_from_abstract_ios(ios)\n                        &&& no_invalid_sends(ios)\n                        &&& raw_io_consistent_with_spec_io(net_events, ios)\n                        &&& only_sent_marshalable_data(net_events)\n                        &&& post1_netc.history() == pre_netc.history() + net_events\n                    }\n                }\n            }))\n            &&& (post2_netc.my_end_point() == pre_netc.my_end_point())\n            &&& (({\n                let (ok, Ghost(net_events), Ghost(ios)) = r2;\n                {\n                    &&& post2_netc.ok() <==> ok\n                    &&& ok ==> {\n                        &&& all_ios_are_sends(ios)\n                        &&& (forall |i: int| 0 <= i && i < net_events.len() ==> net_events[i] is Send)\n                        &&& ios == map_sent_packet_seq_to_ios(packets@)\n                        &&& abstractify_outbound_packets_to_seq_of_lsht_packets(packets@) ==\n                                extract_sent_packets_from_ios(ios)\n                        &&& abstractify_seq_of_cpackets_to_set_of_sht_packets(packets@) ==\n                                extract_packets_from_abstract_ios(ios)\n                        &&& no_invalid_sends(ios)\n                        &&& raw_io_consistent_with_spec_io(net_events, ios)\n                        &&& only_sent_marshalable_data(net_events)\n                        &&& post2_netc.history() == pre_netc.history() + net_events\n                    }\n                }\n            }))\n        }) ==> det_deliver_packet_seq_equal(r1, r2, post1_netc, post2_netc),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "HostState",
+        "fields": [
+          {
+            "name": "next_action_index",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "resend_count",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "constants",
+            "type": {
+              "kind": "struct",
+              "name": "Constants",
+              "fields": [
+                {
+                  "name": "root_identity",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "host_ids",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<EndPoint>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "params",
+                  "type": {
+                    "kind": "struct",
+                    "name": "Parameters",
+                    "fields": [
+                      {
+                        "name": "max_seqno",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      },
+                      {
+                        "name": "max_delegations",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "me",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "delegation_map",
+            "type": {
+              "kind": "unknown",
+              "name": "DelegationMap<CKey>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "CKey"
+                }
+              ]
+            }
+          },
+          {
+            "name": "h",
+            "type": {
+              "kind": "struct",
+              "name": "CKeyHashMap",
+              "fields": [
+                {
+                  "name": "m",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<CKey, Vec<u8>>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "CKey"
+                      },
+                      {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "sd",
+            "type": {
+              "kind": "struct",
+              "name": "CSingleDelivery",
+              "fields": [
+                {
+                  "name": "receive_state",
+                  "type": {
+                    "kind": "struct",
+                    "name": "CTombstoneTable",
+                    "fields": [
+                      {
+                        "name": "epmap",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "HashMap<u64>",
+                          "type_args": [
+                            {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "send_state",
+                  "type": {
+                    "kind": "struct",
+                    "name": "CSendState",
+                    "fields": [
+                      {
+                        "name": "epmap",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "HashMap<CAckState>",
+                          "type_args": [
+                            {
+                              "kind": "struct",
+                              "name": "CAckState",
+                              "fields": [
+                                {
+                                  "name": "num_packets_acked",
+                                  "type": {
+                                    "kind": "u64",
+                                    "name": "u64"
+                                  }
+                                },
+                                {
+                                  "name": "un_acked",
+                                  "type": {
+                                    "kind": "unknown",
+                                    "name": "Vec<CSingleMessage>",
+                                    "type_args": [
+                                      {
+                                        "kind": "unknown",
+                                        "name": "CSingleMessage"
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "received_packet",
+            "type": {
+              "kind": "Option",
+              "name": "Option<CPacket>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "struct",
+                    "name": "CPacket",
+                    "fields": [
+                      {
+                        "name": "dst",
+                        "type": {
+                          "kind": "struct",
+                          "name": "EndPoint",
+                          "fields": [
+                            {
+                              "name": "id",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Vec<u8>",
+                                "type_args": [
+                                  {
+                                    "kind": "u8",
+                                    "name": "u8"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "src",
+                        "type": {
+                          "kind": "struct",
+                          "name": "EndPoint",
+                          "fields": [
+                            {
+                              "name": "id",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Vec<u8>",
+                                "type_args": [
+                                  {
+                                    "kind": "u8",
+                                    "name": "u8"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "msg",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "CSingleMessage"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "CPacket",
+                  "fields": [
+                    {
+                      "name": "dst",
+                      "type": {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "src",
+                      "type": {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "msg",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "CSingleMessage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "num_delegations",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "received_requests",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<Seq<AppRequest>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<AppRequest>",
+                  "type_args": [
+                    {
+                      "kind": "enum",
+                      "name": "AppRequest",
+                      "variants": [
+                        {
+                          "name": "AppGetRequest"
+                        },
+                        {
+                          "name": "AppSetRequest"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_netc",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "packets",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<CPacket>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "CPacket",
+            "fields": [
+              {
+                "name": "dst",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "src",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "msg",
+                "type": {
+                  "kind": "unknown",
+                  "name": "CSingleMessage"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>))"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>))"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_netc",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_netc",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_deliver_packet_seq_equal(r1: (rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>)), r2: (rc: (bool, Ghost<Seq<NetEvent>>, Ghost<Seq<LSHTIo>>)), post1_netc: NetClient, post2_netc: NetClient) -> bool {\n    (r1 == r2)\n    && ((post1_netc.state == post2_netc.state) && (post1_netc.history == post2_netc.history) && ((post1_netc.end_point.id == post2_netc.end_point.id)) && ((post1_netc.c_pointers.get_time_func == post2_netc.c_pointers.get_time_func) && (post1_netc.c_pointers.receive_func == post2_netc.c_pointers.receive_func) && (post1_netc.c_pointers.send_func == post2_netc.c_pointers.send_func)) && ((post1_netc.profiler.last_event == post2_netc.profiler.last_event) && (post1_netc.profiler.last_report == post2_netc.profiler.last_report) && (post1_netc.profiler.event_counter == post2_netc.profiler.event_counter)))\n}",
+  "equal_fn_name": "det_deliver_packet_seq_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_netc",
+      "rhs": "post2_netc"
+    }
+  ],
+  "check_fn_name": "det_deliver_packet_seq",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

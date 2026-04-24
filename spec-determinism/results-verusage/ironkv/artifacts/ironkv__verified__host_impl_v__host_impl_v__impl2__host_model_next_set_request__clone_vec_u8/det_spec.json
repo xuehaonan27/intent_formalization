@@ -1,0 +1,69 @@
+{
+  "function": "clone_vec_u8",
+  "det_check_template": "proof fn det_clone_vec_u8(v: Vec<u8>, r1: Vec<u8>, r2: Vec<u8>)\n    ensures\n        ({\n            &&& (r1@ == v@)\n            &&& (r2@ == v@)\n        }) ==> det_clone_vec_u8_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "v",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_clone_vec_u8_equal(r1: Vec<u8>, r2: Vec<u8>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_clone_vec_u8_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_clone_vec_u8",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

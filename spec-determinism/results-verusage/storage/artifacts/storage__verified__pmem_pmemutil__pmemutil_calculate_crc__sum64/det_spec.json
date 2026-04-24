@@ -1,0 +1,94 @@
+{
+  "function": "sum64",
+  "det_check_template": "proof fn det_sum64(self_: CrcDigest, r1: u64, r2: u64)\n    requires (self_.bytes_in_digest().len() != 0),\n    ensures\n        ({\n            &&& (({\n                let all_bytes_seq = self_.bytes_in_digest().flatten();\n                &&& r1 == spec_crc_u64(all_bytes_seq)\n                &&& r1.spec_to_bytes() == spec_crc_bytes(all_bytes_seq)\n            }))\n            &&& (({\n                let all_bytes_seq = self_.bytes_in_digest().flatten();\n                &&& r2 == spec_crc_u64(all_bytes_seq)\n                &&& r2.spec_to_bytes() == spec_crc_bytes(all_bytes_seq)\n            }))\n        }) ==> det_sum64_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "CrcDigest",
+        "fields": [
+          {
+            "name": "digest",
+            "type": {
+              "kind": "struct",
+              "name": "ExternalDigest",
+              "fields": [
+                {
+                  "name": "digest",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Digest"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "bytes_in_digest",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<Seq<Seq<u8>>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<Seq<u8>>",
+                  "type_args": [
+                    {
+                      "kind": "Seq",
+                      "name": "Seq<u8>",
+                      "type_args": [
+                        {
+                          "kind": "u8",
+                          "name": "u8"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "u64",
+        "name": "u64"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "u64",
+        "name": "u64"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_sum64_equal(r1: u64, r2: u64) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_sum64_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_sum64",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

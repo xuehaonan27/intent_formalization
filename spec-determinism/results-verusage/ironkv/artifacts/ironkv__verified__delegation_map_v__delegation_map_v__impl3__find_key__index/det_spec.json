@@ -1,0 +1,59 @@
+{
+  "function": "index",
+  "det_check_template": "proof fn det_index(self_: Self, i: usize, r1: K, r2: K)\n    requires (i < self_@.len()),\n    ensures\n        ({\n            &&& (r1 == self_@[i as int])\n            &&& (r2 == self_@[i as int])\n        }) ==> det_index_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "i",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_index_equal(r1: K, r2: K) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_index_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_index",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

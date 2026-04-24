@@ -1,0 +1,87 @@
+{
+  "function": "erase",
+  "det_check_template": "proof fn det_erase(pre_self_: Self, start: usize, end: usize, post1_self_: Self, r1: (), post2_self_: Self, r2: ())\n    requires (pre_self_.valid()), (start <= end <= pre_self_@.len()),\n    ensures\n        ({\n            &&& (post1_self_.valid())\n            &&& (post1_self_@ == pre_self_@.subrange(0, start as int) + pre_self_@.subrange(end as int, pre_self_@.len() as int))\n            &&& (pre_self_@.to_set() == post1_self_@.to_set() + pre_self_@.subrange(start as int, end as int).to_set())\n            &&& (post2_self_.valid())\n            &&& (post2_self_@ == pre_self_@.subrange(0, start as int) + pre_self_@.subrange(end as int, pre_self_@.len() as int))\n            &&& (pre_self_@.to_set() == post2_self_@.to_set() + pre_self_@.subrange(start as int, end as int).to_set())\n        }) ==> det_erase_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "start",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "end",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_erase_equal(r1: (), r2: (), post1_self_: Self, post2_self_: Self) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_erase_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_erase",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

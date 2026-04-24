@@ -1,0 +1,419 @@
+{
+  "function": "read_log_variables",
+  "det_check_template": "proof fn det_read_log_variables(pm_region: PMRegion, log_id: u128, cdb: bool, r1: Result<LogInfo, LogErr>, r2: Result<LogInfo, LogErr>)\n    requires (pm_region.inv()), (pm_region@.no_outstanding_writes()), (metadata_types_set(pm_region@.committed())), (cdb == deserialize_and_check_log_cdb(pm_region@.committed()).unwrap()),\n    ensures\n        ({\n            &&& (({\n            let state = recover_given_cdb(pm_region@.committed(), log_id, cdb);\n            match r1 {\n                Ok(info) => state.is_Some() ==> {\n                    &&& metadata_consistent_with_info(pm_region@, log_id, cdb, info)\n                    &&& info_consistent_with_log_area_in_region(pm_region@, info, state.unwrap())\n                },\n                Err(LogErr::CRCMismatch) => state.is_Some()\n                    ==> !pm_region.constants().impervious_to_corruption,\n                Err(LogErr::StartFailedDueToInvalidMemoryContents) => {\n                    ||| pm_region@.len() < ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE\n                    ||| state is None\n                },\n                Err(\n                    LogErr::StartFailedDueToProgramVersionNumberUnsupported {\n                        version_number,\n                        max_supported,\n                    },\n                ) => {\n                    &&& state is None\n                    &&& version_number != max_supported\n                },\n                Err(LogErr::StartFailedDueToLogIDMismatch { log_id_expected, log_id_read }) => {\n                    &&& state is None\n                    &&& log_id_expected != log_id_read\n                },\n                Err(\n                    LogErr::StartFailedDueToRegionSizeMismatch {\n                        region_size_expected,\n                        region_size_read,\n                    },\n                ) => {\n                    &&& state is None\n                    &&& region_size_expected != region_size_read\n                },\n                _ => false,\n            }\n        }))\n            &&& (({\n            let state = recover_given_cdb(pm_region@.committed(), log_id, cdb);\n            match r2 {\n                Ok(info) => state.is_Some() ==> {\n                    &&& metadata_consistent_with_info(pm_region@, log_id, cdb, info)\n                    &&& info_consistent_with_log_area_in_region(pm_region@, info, state.unwrap())\n                },\n                Err(LogErr::CRCMismatch) => state.is_Some()\n                    ==> !pm_region.constants().impervious_to_corruption,\n                Err(LogErr::StartFailedDueToInvalidMemoryContents) => {\n                    ||| pm_region@.len() < ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE\n                    ||| state is None\n                },\n                Err(\n                    LogErr::StartFailedDueToProgramVersionNumberUnsupported {\n                        version_number,\n                        max_supported,\n                    },\n                ) => {\n                    &&& state is None\n                    &&& version_number != max_supported\n                },\n                Err(LogErr::StartFailedDueToLogIDMismatch { log_id_expected, log_id_read }) => {\n                    &&& state is None\n                    &&& log_id_expected != log_id_read\n                },\n                Err(\n                    LogErr::StartFailedDueToRegionSizeMismatch {\n                        region_size_expected,\n                        region_size_read,\n                    },\n                ) => {\n                    &&& state is None\n                    &&& region_size_expected != region_size_read\n                },\n                _ => false,\n            }\n        }))\n        }) ==> det_read_log_variables_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pm_region",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegion"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "log_id",
+      "type": {
+        "kind": "unknown",
+        "name": "u128"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "cdb",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<LogInfo, LogErr>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "struct",
+              "name": "LogInfo",
+              "fields": [
+                {
+                  "name": "log_area_len",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "head",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "u128"
+                  }
+                },
+                {
+                  "name": "head_log_area_offset",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "log_length",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "log_plus_pending_length",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "enum",
+              "name": "LogErr",
+              "variants": [
+                {
+                  "name": "InsufficientSpaceForSetup"
+                },
+                {
+                  "name": "StartFailedDueToLogIDMismatch"
+                },
+                {
+                  "name": "StartFailedDueToRegionSizeMismatch"
+                },
+                {
+                  "name": "StartFailedDueToProgramVersionNumberUnsupported"
+                },
+                {
+                  "name": "StartFailedDueToInvalidMemoryContents"
+                },
+                {
+                  "name": "CRCMismatch"
+                },
+                {
+                  "name": "InsufficientSpaceForAppend"
+                },
+                {
+                  "name": "CantReadBeforeHead"
+                },
+                {
+                  "name": "CantReadPastTail"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeforeHead"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeyondTail"
+                },
+                {
+                  "name": "PmemErr"
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "LogInfo",
+            "fields": [
+              {
+                "name": "log_area_len",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "head",
+                "type": {
+                  "kind": "unknown",
+                  "name": "u128"
+                }
+              },
+              {
+                "name": "head_log_area_offset",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "log_length",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "log_plus_pending_length",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "enum",
+            "name": "LogErr",
+            "variants": [
+              {
+                "name": "InsufficientSpaceForSetup"
+              },
+              {
+                "name": "StartFailedDueToLogIDMismatch"
+              },
+              {
+                "name": "StartFailedDueToRegionSizeMismatch"
+              },
+              {
+                "name": "StartFailedDueToProgramVersionNumberUnsupported"
+              },
+              {
+                "name": "StartFailedDueToInvalidMemoryContents"
+              },
+              {
+                "name": "CRCMismatch"
+              },
+              {
+                "name": "InsufficientSpaceForAppend"
+              },
+              {
+                "name": "CantReadBeforeHead"
+              },
+              {
+                "name": "CantReadPastTail"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeforeHead"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeyondTail"
+              },
+              {
+                "name": "PmemErr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<LogInfo, LogErr>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "struct",
+              "name": "LogInfo",
+              "fields": [
+                {
+                  "name": "log_area_len",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "head",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "u128"
+                  }
+                },
+                {
+                  "name": "head_log_area_offset",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "log_length",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                },
+                {
+                  "name": "log_plus_pending_length",
+                  "type": {
+                    "kind": "u64",
+                    "name": "u64"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "enum",
+              "name": "LogErr",
+              "variants": [
+                {
+                  "name": "InsufficientSpaceForSetup"
+                },
+                {
+                  "name": "StartFailedDueToLogIDMismatch"
+                },
+                {
+                  "name": "StartFailedDueToRegionSizeMismatch"
+                },
+                {
+                  "name": "StartFailedDueToProgramVersionNumberUnsupported"
+                },
+                {
+                  "name": "StartFailedDueToInvalidMemoryContents"
+                },
+                {
+                  "name": "CRCMismatch"
+                },
+                {
+                  "name": "InsufficientSpaceForAppend"
+                },
+                {
+                  "name": "CantReadBeforeHead"
+                },
+                {
+                  "name": "CantReadPastTail"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeforeHead"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeyondTail"
+                },
+                {
+                  "name": "PmemErr"
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "LogInfo",
+            "fields": [
+              {
+                "name": "log_area_len",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "head",
+                "type": {
+                  "kind": "unknown",
+                  "name": "u128"
+                }
+              },
+              {
+                "name": "head_log_area_offset",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "log_length",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              },
+              {
+                "name": "log_plus_pending_length",
+                "type": {
+                  "kind": "u64",
+                  "name": "u64"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "enum",
+            "name": "LogErr",
+            "variants": [
+              {
+                "name": "InsufficientSpaceForSetup"
+              },
+              {
+                "name": "StartFailedDueToLogIDMismatch"
+              },
+              {
+                "name": "StartFailedDueToRegionSizeMismatch"
+              },
+              {
+                "name": "StartFailedDueToProgramVersionNumberUnsupported"
+              },
+              {
+                "name": "StartFailedDueToInvalidMemoryContents"
+              },
+              {
+                "name": "CRCMismatch"
+              },
+              {
+                "name": "InsufficientSpaceForAppend"
+              },
+              {
+                "name": "CantReadBeforeHead"
+              },
+              {
+                "name": "CantReadPastTail"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeforeHead"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeyondTail"
+              },
+              {
+                "name": "PmemErr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_read_log_variables_equal(r1: Result<LogInfo, LogErr>, r2: Result<LogInfo, LogErr>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> ((r1->Ok_0.log_area_len == r2->Ok_0.log_area_len) && (r1->Ok_0.head == r2->Ok_0.head) && (r1->Ok_0.head_log_area_offset == r2->Ok_0.head_log_area_offset) && (r1->Ok_0.log_length == r2->Ok_0.log_length) && (r1->Ok_0.log_plus_pending_length == r2->Ok_0.log_plus_pending_length))))\n}",
+  "equal_fn_name": "det_read_log_variables_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_read_log_variables",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

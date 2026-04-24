@@ -1,0 +1,68 @@
+{
+  "function": "next_run",
+  "det_check_template": "proof fn det_next_run(self_: CommitMask, idx: usize, r1: (res: (usize, usize)), r2: (res: (usize, usize)))\n    requires (0 <= idx < COMMIT_MASK_BITS),\n    ensures\n        ({\n            &&& (({ let (next_idx, count) = r1;\n            next_idx + count <= COMMIT_MASK_BITS\n            && (forall |t| next_idx <= t < next_idx + count ==> self_@.contains(t))\n        }))\n            &&& (({ let (next_idx, count) = r2;\n            next_idx + count <= COMMIT_MASK_BITS\n            && (forall |t| next_idx <= t < next_idx + count ==> self_@.contains(t))\n        }))\n        }) ==> det_next_run_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "idx",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(res: (usize, usize))"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(res: (usize, usize))"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_next_run_equal(r1: (res: (usize, usize)), r2: (res: (usize, usize))) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_next_run_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_next_run",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

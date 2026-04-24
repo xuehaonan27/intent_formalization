@@ -1,0 +1,63 @@
+{
+  "function": "get_region_sizes",
+  "det_check_template": "proof fn det_get_region_sizes(pm_regions: PMRegions, r1: Vec<\n    u64,\n>, r2: Vec<\n    u64,\n>)\n    requires (pm_regions.inv()),\n    ensures\n        ({\n            &&& (r1@.len() == pm_regions@.len())\n            &&& (forall|i: int| 0 <= i < pm_regions@.len() ==> r1@[i] == #[trigger] pm_regions@[i].len())\n            &&& (r2@.len() == pm_regions@.len())\n            &&& (forall|i: int| 0 <= i < pm_regions@.len() ==> r2@[i] == #[trigger] pm_regions@[i].len())\n        }) ==> det_get_region_sizes_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pm_regions",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegions"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<\n    u64,\n>",
+        "type_args": [
+          {
+            "kind": "u64",
+            "name": "u64"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<\n    u64,\n>",
+        "type_args": [
+          {
+            "kind": "u64",
+            "name": "u64"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_region_sizes_equal(r1: Vec<\n    u64,\n>, r2: Vec<\n    u64,\n>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_get_region_sizes_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_region_sizes",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

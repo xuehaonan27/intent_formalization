@@ -1,0 +1,428 @@
+{
+  "function": "maybe_ack_packet_impl",
+  "det_check_template": "proof fn det_maybe_ack_packet_impl(self_: CSingleDelivery, pkt: CPacket, r1: Option<CPacket>, r2: Option<CPacket>)\n    requires (self_.valid()), (pkt.abstractable()), (pkt.msg is Message),\n    ensures\n        ({\n            &&& (SingleDelivery::maybe_ack_packet(self_@, pkt@, r1.unwrap()@, Self::option_cpacket_to_set_packet(r1)))\n            &&& (r1 is Some ==> valid_ack(r1.unwrap(), pkt))\n            &&& (SingleDelivery::maybe_ack_packet(self_@, pkt@, r2.unwrap()@, Self::option_cpacket_to_set_packet(r2)))\n            &&& (r2 is Some ==> valid_ack(r2.unwrap(), pkt))\n        }) ==> det_maybe_ack_packet_impl_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSingleDelivery",
+        "fields": [
+          {
+            "name": "receive_state",
+            "type": {
+              "kind": "struct",
+              "name": "CTombstoneTable",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<u64>",
+                    "type_args": [
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "send_state",
+            "type": {
+              "kind": "struct",
+              "name": "CSendState",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<CAckState>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "CAckState",
+                        "fields": [
+                          {
+                            "name": "num_packets_acked",
+                            "type": {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          },
+                          {
+                            "name": "un_acked",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<CSingleMessage>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "CSingleMessage"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pkt",
+      "type": {
+        "kind": "struct",
+        "name": "CPacket",
+        "fields": [
+          {
+            "name": "dst",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "src",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "msg",
+            "type": {
+              "kind": "unknown",
+              "name": "CSingleMessage"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<CPacket>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "CPacket",
+              "fields": [
+                {
+                  "name": "dst",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "src",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "msg",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "CSingleMessage"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "CPacket",
+            "fields": [
+              {
+                "name": "dst",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "src",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "msg",
+                "type": {
+                  "kind": "unknown",
+                  "name": "CSingleMessage"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<CPacket>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "CPacket",
+              "fields": [
+                {
+                  "name": "dst",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "src",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "msg",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "CSingleMessage"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "CPacket",
+            "fields": [
+              {
+                "name": "dst",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "src",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "msg",
+                "type": {
+                  "kind": "unknown",
+                  "name": "CSingleMessage"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_maybe_ack_packet_impl_equal(r1: Option<CPacket>, r2: Option<CPacket>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (((r1->Some_0.dst.id == r2->Some_0.dst.id)) && ((r1->Some_0.src.id == r2->Some_0.src.id)) && (r1->Some_0.msg == r2->Some_0.msg))))\n}",
+  "equal_fn_name": "det_maybe_ack_packet_impl_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_maybe_ack_packet_impl",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

@@ -1,0 +1,498 @@
+{
+  "function": "parse_command_line_configuration",
+  "det_check_template": "proof fn det_parse_command_line_configuration(args: Args, me: EndPoint, r1: Option<Constants>, r2: Option<Constants>)\n    ensures\n        ({\n            &&& (({\n        let abstract_end_points = parse_args(abstractify_args(args));\n        match r1 {\n            None => {\n                ||| abstract_end_points.is_None()\n                ||| abstract_end_points.unwrap().len()==0\n                ||| !seq_is_unique(abstract_end_points.unwrap())\n            },\n            Some(c) => {\n                &&& abstract_end_points.is_some()\n                &&& abstract_end_points.unwrap().len() > 0\n                &&& seq_is_unique(abstract_end_points.unwrap())\n                &&& c@ == AbstractConstants{\n                    root_identity: abstract_end_points.unwrap()[0],\n                    host_ids: abstract_end_points.unwrap(),\n                    params: AbstractParameters::static_params(),\n                    me: me@ }\n            }\n        }\n    }))\n            &&& (({\n        let abstract_end_points = parse_args(abstractify_args(args));\n        match r2 {\n            None => {\n                ||| abstract_end_points.is_None()\n                ||| abstract_end_points.unwrap().len()==0\n                ||| !seq_is_unique(abstract_end_points.unwrap())\n            },\n            Some(c) => {\n                &&& abstract_end_points.is_some()\n                &&& abstract_end_points.unwrap().len() > 0\n                &&& seq_is_unique(abstract_end_points.unwrap())\n                &&& c@ == AbstractConstants{\n                    root_identity: abstract_end_points.unwrap()[0],\n                    host_ids: abstract_end_points.unwrap(),\n                    params: AbstractParameters::static_params(),\n                    me: me@ }\n            }\n        }\n    }))\n        }) ==> det_parse_command_line_configuration_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "args",
+      "type": {
+        "kind": "unknown",
+        "name": "Args"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "me",
+      "type": {
+        "kind": "struct",
+        "name": "EndPoint",
+        "fields": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "unknown",
+              "name": "Vec<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Constants>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "Constants",
+              "fields": [
+                {
+                  "name": "root_identity",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "host_ids",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<EndPoint>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "params",
+                  "type": {
+                    "kind": "struct",
+                    "name": "Parameters",
+                    "fields": [
+                      {
+                        "name": "max_seqno",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      },
+                      {
+                        "name": "max_delegations",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "me",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "Constants",
+            "fields": [
+              {
+                "name": "root_identity",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "host_ids",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Vec<EndPoint>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "EndPoint",
+                      "fields": [
+                        {
+                          "name": "id",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "Vec<u8>",
+                            "type_args": [
+                              {
+                                "kind": "u8",
+                                "name": "u8"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "params",
+                "type": {
+                  "kind": "struct",
+                  "name": "Parameters",
+                  "fields": [
+                    {
+                      "name": "max_seqno",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    },
+                    {
+                      "name": "max_delegations",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "me",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Constants>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "Constants",
+              "fields": [
+                {
+                  "name": "root_identity",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "host_ids",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<EndPoint>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "params",
+                  "type": {
+                    "kind": "struct",
+                    "name": "Parameters",
+                    "fields": [
+                      {
+                        "name": "max_seqno",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      },
+                      {
+                        "name": "max_delegations",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "me",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "Constants",
+            "fields": [
+              {
+                "name": "root_identity",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "host_ids",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Vec<EndPoint>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "EndPoint",
+                      "fields": [
+                        {
+                          "name": "id",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "Vec<u8>",
+                            "type_args": [
+                              {
+                                "kind": "u8",
+                                "name": "u8"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "params",
+                "type": {
+                  "kind": "struct",
+                  "name": "Parameters",
+                  "fields": [
+                    {
+                      "name": "max_seqno",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    },
+                    {
+                      "name": "max_delegations",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "me",
+                "type": {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_parse_command_line_configuration_equal(r1: Option<Constants>, r2: Option<Constants>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (((r1->Some_0.root_identity.id == r2->Some_0.root_identity.id)) && (r1->Some_0.host_ids == r2->Some_0.host_ids) && ((r1->Some_0.params.max_seqno == r2->Some_0.params.max_seqno) && (r1->Some_0.params.max_delegations == r2->Some_0.params.max_delegations)) && ((r1->Some_0.me.id == r2->Some_0.me.id)))))\n}",
+  "equal_fn_name": "det_parse_command_line_configuration_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_parse_command_line_configuration",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

@@ -1,0 +1,73 @@
+{
+  "function": "address",
+  "det_check_template": "proof fn det_address(self_: PDE, r1: usize, r2: usize)\n    requires (self_.layer() <= 3), (self_@ is Page ==> 0 < self_.layer()), (self_.hp_pat_is_zero()), (self_.all_mb0_bits_are_zero()), (!(self_@ is Invalid)),\n    ensures\n        ({\n            &&& (r1 == match self_@ {\n                GPDE::Page { addr, .. }      => addr,\n                GPDE::Directory { addr, .. } => addr,\n                GPDE::Invalid                  => arbitrary(),\n            })\n            &&& (r2 == match self_@ {\n                GPDE::Page { addr, .. }      => addr,\n                GPDE::Directory { addr, .. } => addr,\n                GPDE::Invalid                  => arbitrary(),\n            })\n        }) ==> det_address_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "PDE",
+        "fields": [
+          {
+            "name": "entry",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "layer",
+            "type": {
+              "kind": "unknown",
+              "name": "Ghost<nat>",
+              "type_args": [
+                {
+                  "kind": "int",
+                  "name": "nat"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_address_equal(r1: usize, r2: usize) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_address_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_address",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

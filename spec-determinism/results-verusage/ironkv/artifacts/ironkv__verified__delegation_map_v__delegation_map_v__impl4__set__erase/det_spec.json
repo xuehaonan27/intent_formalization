@@ -1,0 +1,99 @@
+{
+  "function": "erase",
+  "det_check_template": "proof fn det_erase(pre_self_: Self, lo: KeyIterator<K>, hi: KeyIterator<K>, post1_self_: Self, r1: (), post2_self_: Self, r2: ())\n    requires (pre_self_.valid()),\n    ensures\n        ({\n            &&& (post1_self_.valid())\n            &&& (forall |k| {\n                let ki = KeyIterator::new_spec(k);\n                (if ki.geq_spec(lo) && ki.lt_spec(hi) {\n                    !(#[trigger] post1_self_@.contains_key(k))\n                } else {\n                    (pre_self_@.contains_key(k) ==>\n                         post1_self_@.contains_key(k) && post1_self_@[k] == pre_self_@[k])\n                    && (post1_self_@.contains_key(k) ==> pre_self_@.contains_key(k))\n                })})\n            &&& (forall |x, y| post1_self_.gap(x, y) <==> ({\n                         ||| pre_self_.gap(x, y)\n                         ||| (pre_self_.gap(x, lo) &&\n                              pre_self_.gap(hi, y) &&\n                              (hi.geq_spec(y) || hi.is_end_spec() || !post1_self_@.contains_key(hi.get())))\n            }))\n            &&& (post2_self_.valid())\n            &&& (forall |k| {\n                let ki = KeyIterator::new_spec(k);\n                (if ki.geq_spec(lo) && ki.lt_spec(hi) {\n                    !(#[trigger] post2_self_@.contains_key(k))\n                } else {\n                    (pre_self_@.contains_key(k) ==>\n                         post2_self_@.contains_key(k) && post2_self_@[k] == pre_self_@[k])\n                    && (post2_self_@.contains_key(k) ==> pre_self_@.contains_key(k))\n                })})\n            &&& (forall |x, y| post2_self_.gap(x, y) <==> ({\n                         ||| pre_self_.gap(x, y)\n                         ||| (pre_self_.gap(x, lo) &&\n                              pre_self_.gap(hi, y) &&\n                              (hi.geq_spec(y) || hi.is_end_spec() || !post2_self_@.contains_key(hi.get())))\n            }))\n        }) ==> det_erase_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "lo",
+      "type": {
+        "kind": "unknown",
+        "name": "KeyIterator<K>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "K"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "hi",
+      "type": {
+        "kind": "unknown",
+        "name": "KeyIterator<K>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "K"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_erase_equal(r1: (), r2: (), post1_self_: Self, post2_self_: Self) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_erase_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_erase",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

@@ -1,0 +1,235 @@
+{
+  "function": "put",
+  "det_check_template": "proof fn det_put(pre_self_: CSendState, src: EndPoint, value: CAckState, post1_self_: CSendState, r1: (), post2_self_: CSendState, r2: ())\n    ensures\n        ({\n            &&& (HashMap::put_spec(pre_self_.epmap@, post1_self_.epmap@, src@, value))\n            &&& (HashMap::put_spec(pre_self_.epmap@, post2_self_.epmap@, src@, value))\n        }) ==> det_put_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSendState",
+        "fields": [
+          {
+            "name": "epmap",
+            "type": {
+              "kind": "unknown",
+              "name": "HashMap<CAckState>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "CAckState",
+                  "fields": [
+                    {
+                      "name": "num_packets_acked",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    },
+                    {
+                      "name": "un_acked",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<CSingleMessage>",
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "CSingleMessage"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "src",
+      "type": {
+        "kind": "struct",
+        "name": "EndPoint",
+        "fields": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "unknown",
+              "name": "Vec<u8>",
+              "type_args": [
+                {
+                  "kind": "u8",
+                  "name": "u8"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "value",
+      "type": {
+        "kind": "struct",
+        "name": "CAckState",
+        "fields": [
+          {
+            "name": "num_packets_acked",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "un_acked",
+            "type": {
+              "kind": "unknown",
+              "name": "Vec<CSingleMessage>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "CSingleMessage"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSendState",
+        "fields": [
+          {
+            "name": "epmap",
+            "type": {
+              "kind": "unknown",
+              "name": "HashMap<CAckState>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "CAckState",
+                  "fields": [
+                    {
+                      "name": "num_packets_acked",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    },
+                    {
+                      "name": "un_acked",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<CSingleMessage>",
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "CSingleMessage"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSendState",
+        "fields": [
+          {
+            "name": "epmap",
+            "type": {
+              "kind": "unknown",
+              "name": "HashMap<CAckState>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "CAckState",
+                  "fields": [
+                    {
+                      "name": "num_packets_acked",
+                      "type": {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    },
+                    {
+                      "name": "un_acked",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<CSingleMessage>",
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "CSingleMessage"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_put_equal(r1: (), r2: (), post1_self_: CSendState, post2_self_: CSendState) -> bool {\n    (r1 == r2)\n    && ((post1_self_.epmap == post2_self_.epmap))\n}",
+  "equal_fn_name": "det_put_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_put",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

@@ -1,0 +1,87 @@
+{
+  "function": "set",
+  "det_check_template": "proof fn det_set(pre_self_: Self, k: K, v: ID, post1_self_: Self, r1: (), post2_self_: Self, r2: ())\n    requires (pre_self_.valid()),\n    ensures\n        ({\n            &&& (post1_self_.valid())\n            &&& (post1_self_@ == pre_self_@.insert(k, v))\n            &&& (forall |lo, hi| post1_self_.gap(lo, hi) <==>\n                            pre_self_.gap(lo, hi)\n                        && !(lo.lt_spec(KeyIterator::new_spec(k))\n                          && KeyIterator::new_spec(k).lt_spec(hi)))\n            &&& (post2_self_.valid())\n            &&& (post2_self_@ == pre_self_@.insert(k, v))\n            &&& (forall |lo, hi| post2_self_.gap(lo, hi) <==>\n                            pre_self_.gap(lo, hi)\n                        && !(lo.lt_spec(KeyIterator::new_spec(k))\n                          && KeyIterator::new_spec(k).lt_spec(hi)))\n        }) ==> det_set_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "v",
+      "type": {
+        "kind": "unknown",
+        "name": "ID"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Self"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_set_equal(r1: (), r2: (), post1_self_: Self, post2_self_: Self) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_set_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_set",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

@@ -1,0 +1,133 @@
+{
+  "function": "check_crc",
+  "det_check_template": "proof fn det_check_crc(data_c: &[u8], crc_c: &[u8], ?: Ghost<Seq<u8>>, ?: Ghost<bool>, ?: Ghost<Seq<int>>, ?: Ghost<Seq<int>>, r1: bool, r2: bool)\n    requires (data_addrs.len() <= mem.len()), (crc_addrs.len() <= mem.len()), (crc_c@.len() == u64::spec_size_of()), (all_elements_unique(data_addrs)), (all_elements_unique(crc_addrs)), (({\n            let true_data_bytes = Seq::new(data_addrs.len(), |i: int| mem[data_addrs[i] as int]);\n            let true_crc_bytes = Seq::new(crc_addrs.len(), |i: int| mem[crc_addrs[i]]);\n            &&& if impervious_to_corruption {\n                &&& data_c@ == true_data_bytes\n                &&& crc_c@ == true_crc_bytes\n            } else {\n                &&& maybe_corrupted(data_c@, true_data_bytes, data_addrs)\n                &&& maybe_corrupted(crc_c@, true_crc_bytes, crc_addrs)\n            }\n        })),\n    ensures\n        ({\n            &&& (({\n            let true_data_bytes = Seq::new(data_addrs.len(), |i: int| mem[data_addrs[i] as int]);\n            let true_crc_bytes = Seq::new(crc_addrs.len(), |i: int| mem[crc_addrs[i]]);\n            true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {\n                if r1 {\n                    &&& data_c@ == true_data_bytes\n                    &&& crc_c@ == true_crc_bytes\n                } else {\n                    !impervious_to_corruption\n                }\n            }\n        }))\n            &&& (({\n            let true_data_bytes = Seq::new(data_addrs.len(), |i: int| mem[data_addrs[i] as int]);\n            let true_crc_bytes = Seq::new(crc_addrs.len(), |i: int| mem[crc_addrs[i]]);\n            true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {\n                if r2 {\n                    &&& data_c@ == true_data_bytes\n                    &&& crc_c@ == true_crc_bytes\n                } else {\n                    !impervious_to_corruption\n                }\n            }\n        }))\n        }) ==> det_check_crc_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "data_c",
+      "type": {
+        "kind": "unknown",
+        "name": "[u8]"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "crc_c",
+      "type": {
+        "kind": "unknown",
+        "name": "[u8]"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<Seq<u8>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<u8>",
+            "type_args": [
+              {
+                "kind": "u8",
+                "name": "u8"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<bool>",
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<Seq<int>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<int>",
+            "type_args": [
+              {
+                "kind": "int",
+                "name": "int"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<Seq<int>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<int>",
+            "type_args": [
+              {
+                "kind": "int",
+                "name": "int"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_check_crc_equal(r1: bool, r2: bool) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_check_crc_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_check_crc",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

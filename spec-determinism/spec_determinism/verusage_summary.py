@@ -1,0 +1,158 @@
+"""Aggregate verusage batch results into a single summary.
+
+Usage:
+    python -m spec_determinism.verusage_summary \\
+        --results results-verusage \\
+        --out results-verusage/SUMMARY.md
+
+Reads every ``results-verusage/<proj>/full_run.json`` and produces a
+Markdown report with:
+  * per-project status breakdown table
+  * per-project witness-bearing target listing
+  * per-status failure-mode samples (first N stderr tails) so the
+    most common breakages surface without a manual grep
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+
+
+def load_per_project(results_root: Path) -> dict[str, list[dict]]:
+    out: dict[str, list[dict]] = {}
+    for proj_dir in sorted(results_root.iterdir()):
+        if not proj_dir.is_dir():
+            continue
+        fr = proj_dir / "full_run.json"
+        if not fr.exists():
+            continue
+        try:
+            out[proj_dir.name] = json.loads(fr.read_text())
+        except Exception as e:
+            out[proj_dir.name] = [{"status": "load_error", "error": str(e)}]
+    return out
+
+
+def render(per_project: dict[str, list[dict]]) -> str:
+    lines: list[str] = []
+    lines.append("# verusage spec-determinism — batch summary")
+    lines.append("")
+
+    # --- Overview table ---
+    lines.append("## Per-project overview")
+    lines.append("")
+    lines.append("| project | n | ok | ok-with-witness | search_error | verus_error | extract_error | other |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|")
+    total = Counter()
+    with_witness_total = 0
+    for proj, results in per_project.items():
+        c = Counter(r.get("status", "?") for r in results)
+        ok = c.get("ok", 0)
+        se = c.get("search_error", 0)
+        ve = c.get("verus_error", 0)
+        ee = c.get("extract_error", 0)
+        other = sum(v for k, v in c.items() if k not in {"ok", "search_error", "verus_error", "extract_error"})
+        ww = sum(1 for r in results if r.get("status") == "ok" and r.get("assumes"))
+        total.update(c)
+        with_witness_total += ww
+        lines.append(f"| {proj} | {len(results)} | {ok} | {ww} | {se} | {ve} | {ee} | {other} |")
+    lines.append(f"| **TOTAL** | **{sum(len(r) for r in per_project.values())}** | **{total.get('ok',0)}** | **{with_witness_total}** | **{total.get('search_error',0)}** | **{total.get('verus_error',0)}** | **{total.get('extract_error',0)}** | — |")
+    lines.append("")
+
+    # --- Witness-bearing targets ---
+    lines.append("## Targets with determinism witnesses")
+    lines.append("")
+    any_witness = False
+    for proj, results in per_project.items():
+        ww = [r for r in results if r.get("status") == "ok" and r.get("assumes")]
+        if not ww:
+            continue
+        any_witness = True
+        lines.append(f"### {proj} ({len(ww)} witness-bearing)")
+        lines.append("")
+        for r in ww:
+            key = r.get("artifact_key", r.get("file", "?"))
+            fn = r.get("function", "?")
+            rounds = r.get("n_rounds", "?")
+            assumes = r.get("assumes", [])
+            lines.append(f"- `{key}`  (rounds={rounds})")
+            for a in assumes:
+                # single line, trim long
+                al = a if len(a) < 180 else a[:180] + "…"
+                lines.append(f"  - `{al}`")
+        lines.append("")
+    if not any_witness:
+        lines.append("*(none)*")
+        lines.append("")
+
+    # --- Failure-mode samples ---
+    lines.append("## Failure-mode samples")
+    lines.append("")
+    by_status: dict[str, list[dict]] = defaultdict(list)
+    for proj, results in per_project.items():
+        for r in results:
+            s = r.get("status", "?")
+            if s in {"ok", "no_ensures"}:
+                continue
+            r2 = dict(r)
+            r2["_project"] = proj
+            by_status[s].append(r2)
+    if not by_status:
+        lines.append("*(no non-ok non-trivial statuses)*")
+        lines.append("")
+    for status, items in sorted(by_status.items(), key=lambda kv: -len(kv[1])):
+        lines.append(f"### status=`{status}`  ({len(items)} cases)")
+        lines.append("")
+        for r in items[:5]:
+            key = r.get("artifact_key", r.get("file", "?"))
+            fn = r.get("function", "?")
+            lines.append(f"**{r['_project']} / {key}**")
+            lines.append("")
+            err_tail = r.get("stderr_tail") or r.get("error") or "(no message)"
+            err_tail = err_tail.strip()
+            if len(err_tail) > 1400:
+                err_tail = err_tail[-1400:]
+            lines.append("```")
+            lines.append(err_tail)
+            lines.append("```")
+            lines.append("")
+        if len(items) > 5:
+            lines.append(f"_...and {len(items)-5} more_")
+            lines.append("")
+
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--results", type=Path, required=True,
+                    help="results-verusage root")
+    ap.add_argument("--out", type=Path, required=True,
+                    help="Output markdown file")
+    args = ap.parse_args()
+    root = args.results.expanduser().resolve()
+    per_project = load_per_project(root)
+    md = render(per_project)
+    args.out.write_text(md)
+    # Also write JSON summary for programmatic use
+    summary_json = {
+        proj: {
+            "n": len(results),
+            "by_status": dict(Counter(r.get("status", "?") for r in results)),
+            "ok_with_witness": sum(1 for r in results
+                                   if r.get("status") == "ok" and r.get("assumes")),
+        }
+        for proj, results in per_project.items()
+    }
+    (args.out.with_suffix(".json")).write_text(
+        json.dumps(summary_json, indent=2, sort_keys=True)
+    )
+    print(f"wrote {args.out} + {args.out.with_suffix('.json')}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

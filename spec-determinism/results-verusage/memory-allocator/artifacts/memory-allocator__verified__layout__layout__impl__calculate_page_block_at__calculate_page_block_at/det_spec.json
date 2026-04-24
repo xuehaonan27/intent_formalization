@@ -1,0 +1,120 @@
+{
+  "function": "calculate_page_block_at",
+  "det_check_template": "proof fn det_calculate_page_block_at(page_start: usize, block_size: usize, idx: usize, ?: Ghost<PageId>, r1: usize, r2: usize)\n    requires (page_start == block_start_at(page_id, block_size as int, 0)), (block_start_at(page_id, block_size as int, 0)\n            + idx as int * block_size as int <= segment_start(page_id.segment_id) + SEGMENT_SIZE), (segment_start(page_id.segment_id) + SEGMENT_SIZE < usize::MAX),\n    ensures\n        ({\n            &&& (r1 == block_start_at(page_id, block_size as int, idx as int))\n            &&& (r1 == page_start + idx as int * block_size as int)\n            &&& (r2 == block_start_at(page_id, block_size as int, idx as int))\n            &&& (r2 == page_start + idx as int * block_size as int)\n        }) ==> det_calculate_page_block_at_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_start",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "block_size",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "idx",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "unknown",
+        "name": "Ghost<PageId>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "PageId",
+            "fields": [
+              {
+                "name": "segment_id",
+                "type": {
+                  "kind": "struct",
+                  "name": "SegmentId",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "int",
+                        "name": "nat"
+                      }
+                    },
+                    {
+                      "name": "provenance",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Provenance"
+                      }
+                    },
+                    {
+                      "name": "uniq",
+                      "type": {
+                        "kind": "int",
+                        "name": "int"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "idx",
+                "type": {
+                  "kind": "int",
+                  "name": "nat"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_calculate_page_block_at_equal(r1: usize, r2: usize) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_calculate_page_block_at_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_calculate_page_block_at",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}

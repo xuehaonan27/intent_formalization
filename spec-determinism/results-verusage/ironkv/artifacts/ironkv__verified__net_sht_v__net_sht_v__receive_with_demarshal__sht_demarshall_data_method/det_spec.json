@@ -1,0 +1,57 @@
+{
+  "function": "sht_demarshall_data_method",
+  "det_check_template": "proof fn det_sht_demarshall_data_method(buffer: Vec<u8>, r1: CSingleMessage, r2: CSingleMessage)\n    ensures\n        ({\n            &&& (!(r1 is InvalidMessage) ==> {\n        &&& r1.is_marshalable()\n        &&& r1@ == sht_demarshal_data(buffer@)@\n        &&& r1.abstractable()\n    })\n            &&& (!(r2 is InvalidMessage) ==> {\n        &&& r2.is_marshalable()\n        &&& r2@ == sht_demarshal_data(buffer@)@\n        &&& r2.abstractable()\n    })\n        }) ==> det_sht_demarshall_data_method_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "buffer",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "CSingleMessage"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "CSingleMessage"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_sht_demarshall_data_method_equal(r1: CSingleMessage, r2: CSingleMessage) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_sht_demarshall_data_method_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_sht_demarshall_data_method",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {}
+}
