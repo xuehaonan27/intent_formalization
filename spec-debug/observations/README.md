@@ -152,6 +152,128 @@ trusting `closed=N`.
    an obvious way (smallest closed the least; biggest did nothing;
    medium-sized closed everything).
 
+## 5. Policy lens — which witness assumes actually drive `!equal`
+
+`spec-determinism` attaches an `EqualPolicy` to each determinism-
+checked function (persisted in `det_spec.json`). The same witness
+assumes can mean very different things depending on the policy:
+
+| knob | default | effect when True |
+|---|---|---|
+| `errs_equivalent` | **True** | `equal_fn` does NOT inspect `Err(_)` — any two `Err`s compare equal regardless of `.code` / `.reason`. |
+| `opaque_ok` | **False** | When True, `equal_fn` does NOT inspect `Ok(_)` — any two `Ok`s compare equal; only post-state `&mut self` view fields matter. |
+
+Across our 15 nanvix artifacts:
+- `opaque_ok=True` (4): `bitmap::alloc`, `bitmap::alloc_range`,
+  `slab::allocate`, `kernel::allocate`. All allocator-style returning
+  a handle.
+- `errs_equivalent=False` (1): **only** `kernel::from_raw_parts`.
+- Neither flag is ever set by code; both are manual edits preserved
+  across `spec-determinism-regen`.
+
+### 5.1 `bitmap::new` — most of the witness is collateral
+
+Default policy `(errs_equivalent=True, opaque_ok=False)` generates:
+
+```rust
+spec fn det_new_equal(r1, r2) -> bool {
+    (r1 is Ok) == (r2 is Ok)
+ && (r1 is Ok) ==> ((r1->Ok_0)@ == (r2->Ok_0)@)
+}
+```
+
+Mapped against the 8-assume witness:
+
+| Assume | Role |
+|---|---|
+| `number_of_bits == 8` | input narrowing |
+| `r1 is Ok` | **driving** (discriminant) |
+| `r2 is Err` | **driving** (discriminant) |
+| `r1->Ok_0@.num_bits == 8` | collateral — Ok branch not taken once r2 is Err |
+| `r1->Ok_0@.set_bits == ...` | collateral, same reason |
+| `r2->Err_0.code is OperationNotPermitted` | **collateral** — Err branch erased by `errs_equivalent=True` |
+| `r2->Err_0.reason == ""` | **collateral**, same reason |
+| `!det_new_equal(r1, r2)` | assertion |
+
+**The gap is just `r1 is Ok && r2 is Err`.** Everything else is
+search-loop residue. Case #1's Copilot patch pinned validity-⇒-Ok in a
+helper, which is actually the right direction — it just wasn't wired
+into `fn new`'s `ensures`.
+
+### 5.2 `kernel::from_raw_parts` — the `reason` assume is genuinely driving
+
+With `errs_equivalent=False`, the generated `equal_fn` expands into a
+~400-line body: for every variant `V` of `ErrorCode` it emits
+`(r1.code is V) == (r2.code is V)`, plus `r1.reason == r2.reason`.
+
+```rust
+spec fn det_from_raw_parts_equal(r1, r2) -> bool {
+    (r1 is Ok) == (r2 is Ok)
+ && (r1 is Ok) ==> ((r1->Ok_0)@ == (r2->Ok_0)@)
+ && (r1 is Err) ==> (
+        /* ~120 variant-discriminant pairs */
+     && (r1->Err_0.reason == r2->Err_0.reason)
+   )
+}
+```
+
+Mapped against the 9-assume witness (both `r1 is Err && r2 is Err`,
+same `.code`, differing `.reason`):
+
+| Assume | Role |
+|---|---|
+| `addr == 0`, `size == 0` | input narrowing |
+| `r1 is Err`, `r2 is Err` | discriminant (aligned — not the driver) |
+| `r1.code is InvalidArgument`, `r2.code is InvalidArgument` | **driving** (enter Err branch, code must agree — and it does) |
+| `r1.reason == ""` | **driving** — the real driver |
+| `r2.reason == "string 1"` | **driving** — the real driver |
+| `!det_..._equal(r1, r2)` | assertion |
+
+**Rehabilitation of case #3**: Copilot's decision to pin
+`Err.reason` to a canonical string was directionally correct — the
+policy **requires** Err content to agree, so the gap really is in
+`reason`. The remaining concern is orthogonal: the patch introduced a
+parallel `assume_specification` block shadowing the inline `impl
+Kheap` contract, and `rounds=0` afterwards could indicate either a
+genuinely tight spec or an instrumentation bypass.
+
+### 5.3 `slab::from_raw_parts` — gap shape is about Ok-view fields
+
+Same default policy as bitmap, but the witness has both results as
+`Ok(_)` with differing `@.free_addrs` / `@.allocated_addrs` sets. So
+the driver is in the Ok branch's `view == view` comparison — i.e.,
+ensures must pin these sets as functions of `(start_addr, size)`.
+Copilot's strengthening of `SlabView::inv()` was at the wrong layer
+(invariant restricts the *type's legal states*, not the *function's
+output*).
+
+### 5.4 Implications for prompting
+
+- Pass the LLM **the rendered `equal_fn_def`**, not just the policy flags.
+- **Split witness assumes** into driving / input / collateral before
+  displaying them. Telling the LLM "these assumes are policy-ignored;
+  don't pin them" removes the main source of over-specification noise
+  from cases like bitmap::new.
+- Add a **layer directive** to the prompt: "strengthen `ensures` of
+  `fn <name>` in place; helpers must be referenced; do not add parallel
+  `assume_specification` blocks." This directly targets the three
+  observed failure modes.
+
+All three changes are pure prompt-engineering against data already
+emitted by `spec-determinism`; no extraction changes needed. Landed in
+`spec-debug/spec_debug/prompt.py` and `gap.classify_assumes` as of
+v0.1.
+
+### 5.5 Open question on `errs_equivalent=False` for kernel::from_raw_parts
+
+The policy forces callers to distinguish every distinct
+`Error::reason` string. Realistic callers of `Kheap::from_raw_parts`
+probably branch on `.code` alone (e.g., retry on `OutOfMemory`, give up
+on `InvalidArgument`) — the reason is diagnostic text. If so, this
+policy entry is over-specification and flipping it to True would make
+case #3's witness vacuous by construction. Worth asking the nanvix
+author before we treat case #3 as a "real" incompleteness bug.
+
 ## What v0 rules out / in
 
 These observations already rule out several metric designs:
