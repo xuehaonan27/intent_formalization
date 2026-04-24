@@ -200,6 +200,11 @@ class FunctionSpec:
     requires: list[str]
     ensures: list[str]
     type_defs: dict[str, TypeInfo] = field(default_factory=dict)
+    # The name Verus binds the return value to in ensures clauses. Comes
+    # from either `(name: T)` on the signature or `#[verus_spec(name => ...)]`.
+    # Defaults to "result" which matches Verus's implicit binding when the
+    # user writes no explicit name (nanvix convention).
+    result_binding: str = "result"
 
     def input_vars(self) -> list[Param]:
         return list(self.params)

@@ -748,6 +748,7 @@ def extract_spec(
         requires=requires_raw,
         ensures=ensures_raw,
         type_defs=type_defs,
+        result_binding=result_binding or "result",
     )
 
 

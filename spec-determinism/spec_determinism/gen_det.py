@@ -55,6 +55,23 @@ def _type_name(param: Param) -> str:
     return param.type.name
 
 
+def _is_unsized_ty(ty: str) -> bool:
+    """Heuristic: does this type need to stay behind `&` to be Sized?
+
+    Slice `[T]`, str, and `dyn Trait` are the common unsized forms in
+    Verus corpora. Fixed-size arrays `[T; N]` are Sized. Anything else
+    (structs, enums, raw pointers, primitives) is Sized.
+    """
+    t = ty.strip()
+    if t == "str":
+        return True
+    if t.startswith("dyn "):
+        return True
+    if t.startswith("[") and t.endswith("]") and ";" not in t:
+        return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Symbol table construction
 # ---------------------------------------------------------------------------
@@ -163,7 +180,15 @@ def _build_template(
             output1_params.append((post1_name, ty))
             output2_params.append((post2_name, ty))
         elif p.is_ref:
-            input_params.append((_var_name(p), ty))
+            # For shared refs, proof-fn params are ghost values (no
+            # ownership concerns), so we typically drop the `&` — ensures
+            # clauses reference the param by name as if it were the
+            # pointee. That only fails for unsized pointees (slices,
+            # str, dyn Trait), which must keep the `&` to be Sized.
+            if _is_unsized_ty(ty):
+                input_params.append((_var_name(p), f"&{ty}"))
+            else:
+                input_params.append((_var_name(p), ty))
         else:
             input_params.append((_var_name(p), ty))
 
@@ -343,6 +368,23 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
                 target = vn
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', target, result)
             result = re.sub(r'\bself\b', target, result)
+        elif p.is_mut_ref:
+            # Non-self `&mut T` param: in requires, `old(p)` refers to
+            # the pre-state value, which in the det-check fn is the
+            # synthesised `pre_<p>` parameter.
+            vn = _var_name(p)
+            result = re.sub(
+                rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)',
+                f'pre_{vn}', result,
+            )
+            result = re.sub(
+                rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)',
+                f'pre_{vn}', result,
+            )
+            # A bare `p` in requires (rarely seen, since requires
+            # typically talk about the pre-state) also maps to pre_.
+            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', f'pre_{vn}', result)
+            result = re.sub(rf'\b{re.escape(p.name)}\b', f'pre_{vn}', result)
         elif p.is_ref and not p.is_mut_ref:
             # Shared reference param passed by value in det-check fn:
             # strip `*p` dereferences.
@@ -382,7 +424,15 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             # In det-check fn it's passed by value, so strip the deref.
             result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
 
-    result = re.sub(r'\bresult\b', f'r{run_id}', result)
+    # Honour the function's actual return-value binding (from `(name: T)`
+    # in the signature or `#[verus_spec(name => ...)]`). Nanvix always
+    # uses `result`; verusage corpora use e.g. `res`, `v`, etc.
+    if spec.result_binding and spec.result_binding != f"r{run_id}":
+        result = re.sub(
+            rf'\b{re.escape(spec.result_binding)}\b',
+            f'r{run_id}',
+            result,
+        )
     result = result.replace('__RESULT__', f'r{run_id}')
 
     return result
