@@ -386,8 +386,12 @@ opaque type names given below. Values are arrays of projections.
 ```
 
 Rules:
-- Include ONLY unary spec fns (one parameter) whose single argument is
-  the opaque type (by reference or by value).
+- Include ONLY unary **free** spec fns — i.e. declared at module scope
+  as `spec fn <name>(<ident>: <OpaqueType>) -> <scalar>` (possibly
+  `uninterp`, possibly with `pub`/`open`/`closed`). Do NOT include
+  methods (`impl { spec fn <name>(self, ...) }`): the generator emits
+  `<name>(<var>)` as a free call and method projections would produce
+  an unresolved-name build error.
 - The spec fn must have a primitive scalar return type from the list
   above. Do NOT include projections that return composite types.
 - Prefer projections actually referenced by `ensures` / `requires` /
@@ -466,19 +470,22 @@ def parse_projections_response(text: str) -> dict:
     return obj
 
 
-_SPEC_FN_DECL_RE_TMPL = (
-    # Matches `spec fn NAME(` / `uninterp spec fn NAME(` with optional
-    # `pub` / `open` / `closed` / `broadcast` modifiers before.
-    r"(?:pub\s+)?(?:open\s+|closed\s+)?(?:broadcast\s+)?"
-    r"(?:uninterp\s+)?spec\s+fn\s+{name}\s*\("
-)
-
-
 def _validate_projection(
     raw: dict,
     type_source_blob: str,
+    type_name: str,
 ) -> Optional[ProjectionInfo]:
-    """Validate one projection dict from the LLM. Returns None if invalid."""
+    """Validate one projection dict from the LLM. Returns None if invalid.
+
+    A projection is accepted iff the corpus contains a **free** spec-fn
+    declaration ``[pub] [open|closed] [broadcast] [uninterp] spec fn
+    <name>(<ident>: [&]...<TypeBase>...) -> <scalar>`` where ``<TypeBase>``
+    is the unqualified base of ``type_name`` (e.g. ``RawArray`` for
+    ``RawArray<u8>``). Method-style declarations whose first parameter is
+    ``self`` / ``&self`` / ``&mut self`` are rejected because the
+    generated Verus template invokes projections as free calls
+    ``<spec_fn>(<var>)``, which does not work on methods.
+    """
     spec_fn = (raw.get("spec_fn") or "").strip()
     rt_raw = (raw.get("return_type") or "").strip()
     rationale = raw.get("rationale")
@@ -493,11 +500,35 @@ def _validate_projection(
         logger.warning("projection %s has unsupported return_type %r",
                        spec_fn, rt_raw)
         return None
-    # Must find a declaration in the corpus.
-    pattern = _SPEC_FN_DECL_RE_TMPL.format(name=re.escape(spec_fn))
-    if not re.search(pattern, type_source_blob):
-        logger.warning("projection spec fn %s not found in type source corpus",
-                       spec_fn)
+
+    # Unqualified base type name — strip generic args and any path prefix.
+    base_type = type_name.split("<", 1)[0].split("::")[-1].strip()
+    if not base_type:
+        logger.warning("projection %s: could not extract base type name from %r",
+                       spec_fn, type_name)
+        return None
+
+    decl_re = re.compile(
+        r"(?:pub\s+)?(?:open\s+|closed\s+)?(?:broadcast\s+)?"
+        r"(?:uninterp\s+)?spec\s+fn\s+" + re.escape(spec_fn) +
+        r"\s*\(([^)]*)\)"
+    )
+    self_re = re.compile(r"^\s*(?:&\s*(?:mut\s+)?)?self\b")
+    base_re = re.compile(r"\b" + re.escape(base_type) + r"\b")
+    found = False
+    for m in decl_re.finditer(type_source_blob):
+        params = m.group(1)
+        if self_re.search(params):
+            continue  # method, not a free projection
+        if not base_re.search(params):
+            continue  # unrelated spec fn of the same name
+        found = True
+        break
+    if not found:
+        logger.warning(
+            "projection spec fn %s not found as a free spec fn taking %s in the "
+            "type source corpus", spec_fn, base_type,
+        )
         return None
     return ProjectionInfo(
         spec_fn=spec_fn,
@@ -526,7 +557,7 @@ def projections_from_llm_dict(
             for raw in entries:
                 if not isinstance(raw, dict):
                     continue
-                proj = _validate_projection(raw, type_source_blob)
+                proj = _validate_projection(raw, type_source_blob, name)
                 if proj is not None:
                     validated.append(proj)
         status = "ok" if validated else "empty"

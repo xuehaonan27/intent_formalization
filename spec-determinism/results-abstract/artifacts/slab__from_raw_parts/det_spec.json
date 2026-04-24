@@ -2231,5 +2231,21 @@
     "rationale": null,
     "source": "default"
   },
-  "type_projections": {}
+  "type_projections": {
+    "*mut u8": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    },
+    "RawArray<u8>": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    },
+    "*const u8": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    }
+  }
 }

@@ -12,7 +12,7 @@ primitive scalar.
 
 ## Your task
 
-Opaque types to analyse: `AllocError`
+Opaque types to analyse: `Layout`, `AllocError`
 
 Context:
 - Repo root: `/home/chentianyu/nanvix-verus-abstract`
@@ -37,8 +37,12 @@ opaque type names given below. Values are arrays of projections.
 ```
 
 Rules:
-- Include ONLY unary spec fns (one parameter) whose single argument is
-  the opaque type (by reference or by value).
+- Include ONLY unary **free** spec fns — i.e. declared at module scope
+  as `spec fn <name>(<ident>: <OpaqueType>) -> <scalar>` (possibly
+  `uninterp`, possibly with `pub`/`open`/`closed`). Do NOT include
+  methods (`impl { spec fn <name>(self, ...) }`): the generator emits
+  `<name>(<var>)` as a free call and method projections would produce
+  an unresolved-name build error.
 - The spec fn must have a primitive scalar return type from the list
   above. Do NOT include projections that return composite types.
 - Prefer projections actually referenced by `ensures` / `requires` /

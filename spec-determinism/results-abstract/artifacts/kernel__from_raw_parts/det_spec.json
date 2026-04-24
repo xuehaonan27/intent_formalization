@@ -6091,5 +6091,26 @@
     "rationale": null,
     "source": "default"
   },
-  "type_projections": {}
+  "type_projections": {
+    "RawArray<u8>": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    },
+    "*mut u8": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    },
+    "*const u8": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    },
+    "Ghost<Map<int, nat>>": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    }
+  }
 }

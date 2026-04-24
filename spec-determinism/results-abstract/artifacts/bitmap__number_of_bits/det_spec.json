@@ -109,5 +109,11 @@
     "rationale": null,
     "source": "default"
   },
-  "type_projections": {}
+  "type_projections": {
+    "RawArray<u8>": {
+      "status": "empty",
+      "source": "llm",
+      "projections": []
+    }
+  }
 }

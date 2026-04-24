@@ -230,7 +230,7 @@
             "kind": "usize",
             "name": "usize"
           },
-          "rationale": "Size dimension referenced by layout_ok_for_kheap to bound the requested allocation."
+          "rationale": "Size dimension of the layout; drives slab tier selection in layout_ok_for_kheap."
         },
         {
           "spec_fn": "spec_layout_align",
@@ -238,7 +238,7 @@
             "kind": "usize",
             "name": "usize"
           },
-          "rationale": "Alignment dimension referenced by layout_ok_for_kheap to constrain the returned pointer."
+          "rationale": "Alignment dimension of the layout; referenced by layout_ok_for_kheap."
         }
       ]
     },

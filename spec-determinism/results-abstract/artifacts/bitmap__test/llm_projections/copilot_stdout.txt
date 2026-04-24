@@ -1,0 +1,25 @@
+● Read prompt.md
+  │ results-abstract/artifacts/bitmap__test/llm_projections/prompt.md
+  └ 75 lines read
+
+● Search for RawArray (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn "RawArray"
+  │ --include="*.rs" | head -50
+  └ 51 lines...
+
+● Read lib.spec.rs
+  │ ~/nanvix-verus-abstract/src/libs/raw-array/src/lib.spec.rs
+  └ 80 lines read
+
+● Search spec fns with RawArray (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn "spec fn.*RawArray"
+  │ --include="*.rs"
+  └ 2 lines...
+
+No free-standing unary spec fns taking `RawArray<u8>` → scalar. All projections are methods. Output empty array.
+
+● Create response.md +6
+  └ results-abstract/artifacts/bitmap__test/llm_projections/response.md
+
+Done.
+

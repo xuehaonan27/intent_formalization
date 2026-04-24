@@ -1,0 +1,27 @@
+● Read prompt.md
+  │ results-abstract/artifacts/bitmap__from_raw_array/llm_projections/prompt.md
+  └ 75 lines read
+
+● search RawArray (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn "RawArray"
+  │ --include="*.rs" | head -50
+  └ 51 lines...
+
+● Read lib.spec.rs
+  │ ~/nanvix-verus-abstract/src/libs/raw-array/src/lib.spec.rs
+  └ 80 lines read
+
+● search spec fns on RawArray (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn "RawArray"
+  │ --include="*.spec.rs" && echo "---" && grep -rn "spec fn.*RawArray"
+  │ --include="*.rs"
+  └ 13 lines...
+
+No free unary spec fns on `RawArray<T>` returning primitive scalars exist — all projections are inside `impl` blocks (methods).
+
+● Create response.md +6
+  └ results-abstract/artifacts/bitmap__from_raw_array/llm_projections/response.m
+    d
+
+Done.
+

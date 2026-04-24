@@ -1,0 +1,45 @@
+● Read prompt.md
+  │ results-abstract/artifacts/slab__from_raw_parts/llm_projections/prompt.md
+  └ 75 lines read
+
+● Search for projections (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn "spec fn"
+  │ --include="*.rs" | grep -iE "(\*mut u8|\*const u8|RawArray)" | head -50
+  └ 2 lines...
+
+● Search unary spec fns (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn -E "spec fn
+  │ [a-zA-Z_]+\s*\([a-zA-Z_]+\s*:\s*(\*mut u8|\*const u8|RawArray)"
+  │ --include="*.rs" | head -50
+  └ 1 line...
+
+● Broader search (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -rn -E "spec fn"
+  │ --include="*.rs" | grep -E "\*(mut|const) u8|RawArray" | head -80
+  └ 2 lines...
+
+● List spec files (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && ls src/libs/raw-array/src/ &&
+  │ grep -rn "uninterp" --include="*.rs" | head -40
+  └ 8 lines...
+
+● Read lib.spec.rs
+  │ ~/nanvix-verus-abstract/src/libs/raw-array/src/lib.spec.rs
+  └ 80 lines read
+
+● Find spec files (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && find . -path ./target -prune -o
+  │ -name "*.spec.rs" -print 2>/dev/null | xargs grep -l
+  │ "slab\|RawArray\|\*mut\|\*const" 2>/dev/null | head -20
+  └ 4 lines...
+
+● slab spec (shell)
+  │ cd /home/chentianyu/nanvix-verus-abstract && grep -n "spec fn\|uninterp"
+  │ src/libs/slab/src/lib.spec.rs | head -40
+  └ 2 lines...
+
+● Create response.md +8
+  └ results-abstract/artifacts/slab__from_raw_parts/llm_projections/response.md
+
+Done. No free unary projection spec fns exist for these opaque types in the repo — the only relevant spec fns (`view`, `inv`, `len`, `index`, `update`) are methods on `self`, which the task rules exclude.
+
