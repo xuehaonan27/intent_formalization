@@ -714,11 +714,18 @@ def build_equal_expr(
         )
 
     if k == TypeKind.ENUM:
-        # For each variant, require both sides to be that variant and inner
-        # fields to match. The discriminators must agree first.
         if not ty.variants:
             # No variant info — fall back to `==` (may or may not work)
             return f"{lhs} == {rhs}"
+        # C-like enums (unit variants with integer discriminants) collapse
+        # to a single integer comparison. This matches how the spec
+        # typically talks about them (`x as usize == N`), avoids
+        # enumerating every variant, and keeps the equal-fn valid even
+        # when some variants are cfg-gated out of the active build.
+        if ty.is_c_like_enum():
+            return f"({lhs} as int) == ({rhs} as int)"
+        # For each variant, require both sides to be that variant and inner
+        # fields to match. The discriminators must agree first.
         parts = []
         for v in ty.variants:
             disc = f"(({lhs} is {v.name}) == ({rhs} is {v.name}))"

@@ -207,18 +207,34 @@ def narrow_option(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
 
 @strategy_for(TypeKind.ENUM)
 def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow a general enum: first pin the variant tag, then (for
-    C-like enums with integer discriminants) pin the discriminant value
-    as a separate assume on a child node.
+    """Narrow an enum.
 
-    The two-step form mirrors other narrow strategies: variant tag first
-    (``r1->Ok_0 is Slab8``), then the value (``r1->Ok_0 as int == 8``).
-    Both assumes are kept so the witness trace reads as a progressive
-    refinement, matching how Set/Map dimensions are narrowed
-    (``len() > 0`` → ``len() == 1`` → ``contains(0)``).
+    For **C-like enums** (unit variants with explicit integer
+    discriminants, e.g. ``enum SlabSize { Slab8 = 8, ... }``) we narrow
+    on the discriminant integer in a single step. Variant tag
+    (``x is Slab8``) and discriminant (``x as int == 8``) are
+    equivalent information for C enums; the integer form is closer to
+    how the spec's ensures use them (``slab_size as usize == 8``), and
+    stays valid across cfg gates that may remove individual variants
+    from the active build.
+
+    For general enums (variants with inner data) we pin the variant
+    tag, then recursively narrow the inner data.
     """
+    if ty.is_c_like_enum():
+        disc_node = node.get_or_create("discriminant")
+        for variant in ty.variants:
+            dv = variant.discriminant
+            assert dv is not None  # guaranteed by is_c_like_enum()
+            assume = Assume.from_pred(
+                var, DiscEqPred(var, dv),
+                f"discriminant: {variant.name} = {dv}",
+            )
+            if ctx.test_and_set(disc_node, assume):
+                return
+        return
+
     variant_node = node.get_or_create("variant")
-    c_like = ty.is_c_like_enum()
     for variant in ty.variants:
         assume = Assume.from_pred(var, VariantIsPred(var, variant.name),
                                   f"variant: {variant.name}")
@@ -226,15 +242,6 @@ def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
             if variant.inner:
                 inner_node = node.get_or_create(f"{variant.name}_0")
                 narrow(variant.inner, f"{var}->{variant.name}_0", inner_node, ctx)
-            elif c_like and variant.discriminant is not None:
-                # Variant tag pinned; now pin the discriminant integer
-                # as a separate refinement step.
-                disc_node = node.get_or_create("discriminant")
-                disc_assume = Assume.from_pred(
-                    var, DiscEqPred(var, variant.discriminant),
-                    f"discriminant: {variant.name} = {variant.discriminant}",
-                )
-                ctx.test_and_set(disc_node, disc_assume)
             return
 
 
