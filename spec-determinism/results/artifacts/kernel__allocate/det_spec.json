@@ -3506,7 +3506,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=True\nspec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> true))\n    && ((post1_self_.slabs == post2_self_.slabs))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))\n    && ((post1_self_.slabs == post2_self_.slabs))\n}",
   "equal_fn_name": "det_allocate_equal",
   "equal_arg_pairs": [
     {
@@ -3521,7 +3521,7 @@
   "check_fn_name": "det_allocate",
   "equal_policy": {
     "errs_equivalent": true,
-    "opaque_ok": true,
+    "opaque_ok": false,
     "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],

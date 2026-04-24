@@ -23,25 +23,32 @@
               "name": "SlabSize",
               "variants": [
                 {
-                  "name": "Slab8"
+                  "name": "Slab8",
+                  "discriminant": 8
                 },
                 {
-                  "name": "Slab16"
+                  "name": "Slab16",
+                  "discriminant": 16
                 },
                 {
-                  "name": "Slab32"
+                  "name": "Slab32",
+                  "discriminant": 32
                 },
                 {
-                  "name": "Slab64"
+                  "name": "Slab64",
+                  "discriminant": 64
                 },
                 {
-                  "name": "Slab128"
+                  "name": "Slab128",
+                  "discriminant": 128
                 },
                 {
-                  "name": "Slab256"
+                  "name": "Slab256",
+                  "discriminant": 256
                 },
                 {
-                  "name": "Slab512"
+                  "name": "Slab512",
+                  "discriminant": 512
                 }
               ]
             }
@@ -60,25 +67,32 @@
             "name": "SlabSize",
             "variants": [
               {
-                "name": "Slab8"
+                "name": "Slab8",
+                "discriminant": 8
               },
               {
-                "name": "Slab16"
+                "name": "Slab16",
+                "discriminant": 16
               },
               {
-                "name": "Slab32"
+                "name": "Slab32",
+                "discriminant": 32
               },
               {
-                "name": "Slab64"
+                "name": "Slab64",
+                "discriminant": 64
               },
               {
-                "name": "Slab128"
+                "name": "Slab128",
+                "discriminant": 128
               },
               {
-                "name": "Slab256"
+                "name": "Slab256",
+                "discriminant": 256
               },
               {
-                "name": "Slab512"
+                "name": "Slab512",
+                "discriminant": 512
               }
             ]
           },
@@ -103,25 +117,32 @@
               "name": "SlabSize",
               "variants": [
                 {
-                  "name": "Slab8"
+                  "name": "Slab8",
+                  "discriminant": 8
                 },
                 {
-                  "name": "Slab16"
+                  "name": "Slab16",
+                  "discriminant": 16
                 },
                 {
-                  "name": "Slab32"
+                  "name": "Slab32",
+                  "discriminant": 32
                 },
                 {
-                  "name": "Slab64"
+                  "name": "Slab64",
+                  "discriminant": 64
                 },
                 {
-                  "name": "Slab128"
+                  "name": "Slab128",
+                  "discriminant": 128
                 },
                 {
-                  "name": "Slab256"
+                  "name": "Slab256",
+                  "discriminant": 256
                 },
                 {
-                  "name": "Slab512"
+                  "name": "Slab512",
+                  "discriminant": 512
                 }
               ]
             }
@@ -140,25 +161,32 @@
             "name": "SlabSize",
             "variants": [
               {
-                "name": "Slab8"
+                "name": "Slab8",
+                "discriminant": 8
               },
               {
-                "name": "Slab16"
+                "name": "Slab16",
+                "discriminant": 16
               },
               {
-                "name": "Slab32"
+                "name": "Slab32",
+                "discriminant": 32
               },
               {
-                "name": "Slab64"
+                "name": "Slab64",
+                "discriminant": 64
               },
               {
-                "name": "Slab128"
+                "name": "Slab128",
+                "discriminant": 128
               },
               {
-                "name": "Slab256"
+                "name": "Slab256",
+                "discriminant": 256
               },
               {
-                "name": "Slab512"
+                "name": "Slab512",
+                "discriminant": 512
               }
             ]
           },

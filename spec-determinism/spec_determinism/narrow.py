@@ -17,7 +17,7 @@ from .types import (
     Symbol, DetCheckSpec,
 )
 from .predicates import (
-    EqPred, RangePred, VariantIsPred, BoolPred, StrEqPred,
+    EqPred, RangePred, VariantIsPred, DiscEqPred, BoolPred, StrEqPred,
     SetEmptyPred, SetLenGtPred, LenEqPred, LenRangePred,
     SetContainsPred, SetLiteralPred, NotEqualFnPred,
 )
@@ -207,7 +207,28 @@ def narrow_option(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"
 
 @strategy_for(TypeKind.ENUM)
 def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow a general enum: try each variant."""
+    """Narrow a general enum: try each variant.
+
+    For **C-like enums** (unit variants with explicit integer
+    discriminants, e.g. ``enum SlabSize { Slab8 = 8, Slab16 = 16, ... }``)
+    we narrow on the discriminant integer instead of the variant tag.
+    This matches how the spec's ensures typically use them
+    (``slab_size as usize == 8``) and produces witnesses in integer form,
+    which the user can cross-reference directly against the spec.
+    """
+    if ty.is_c_like_enum():
+        disc_node = node.get_or_create("discriminant")
+        for variant in ty.variants:
+            dv = variant.discriminant
+            assert dv is not None  # guaranteed by is_c_like_enum()
+            assume = Assume.from_pred(
+                var, DiscEqPred(var, dv),
+                f"discriminant: {variant.name} = {dv}",
+            )
+            if ctx.test_and_set(disc_node, assume):
+                return
+        return
+
     variant_node = node.get_or_create("variant")
     for variant in ty.variants:
         assume = Assume.from_pred(var, VariantIsPred(var, variant.name),

@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 _SCALAR_EQ = "SCALAR_EQ"
 _SCALAR_RANGE = "SCALAR_RANGE"
 _VARIANT_IS = "VARIANT_IS"
+_ENUM_DISC_EQ = "ENUM_DISC_EQ"
 _BOOL_EQ = "BOOL_EQ"
 _STR_EQ = "STR_EQ"
 _SET_EMPTY = "SET_EMPTY"
@@ -76,6 +77,26 @@ class RangePred:
     def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
         if s.kind.name == _SCALAR_RANGE and s.rust_var == self.var:
             return {s.k_params[0][0]: self.lo, s.k_params[1][0]: self.hi}
+        return None
+
+
+@dataclass(frozen=True)
+class DiscEqPred:
+    """`var as int == value` for a C-like enum variable.
+
+    Matches a ``SCALAR_EQ`` schema whose template already contains the
+    ``as int`` cast (emitted by the schema enumerator for C-like enums).
+    Rendering includes the cast so the logged/witness form is
+    Verus-valid (``r1->Ok_0 as int == 8``) rather than the raw form
+    ``r1->Ok_0 == 8`` which would be ill-typed.
+    """
+    var: str
+    value: int
+    def to_rust(self) -> str:
+        return f"{self.var} as int == {self.value}"
+    def match_and_bind(self, s: "SchemaBinding") -> Optional[dict]:
+        if s.kind.name == _ENUM_DISC_EQ and s.rust_var == self.var:
+            return {s.k_params[0][0]: self.value}
         return None
 
 

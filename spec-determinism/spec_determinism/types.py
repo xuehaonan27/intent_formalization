@@ -69,6 +69,21 @@ class TypeInfo:
             spec_view=TypeInfo.from_dict(d["spec_view"]) if d.get("spec_view") else None,
         )
 
+    def is_c_like_enum(self) -> bool:
+        """True iff this is a unit-only enum where every variant has an
+        explicit integer discriminant (e.g. ``enum SlabSize { Slab8 = 8, ... }``).
+
+        Witnesses for such enums should be emitted as integer equalities on
+        ``x as int`` rather than as ``x is Variant``, because the spec-level
+        reasoning the ensures clauses use is the discriminant value.
+        """
+        if self.kind != TypeKind.ENUM or not self.variants:
+            return False
+        return all(
+            v.inner is None and v.discriminant is not None
+            for v in self.variants
+        )
+
 
 @dataclass
 class FieldInfo:
@@ -87,11 +102,14 @@ class FieldInfo:
 class VariantInfo:
     name: str
     inner: Optional[TypeInfo] = None
+    discriminant: Optional[int] = None  # explicit `= N` literal on unit variants
 
     def to_dict(self) -> dict:
-        d = {"name": self.name}
+        d: dict = {"name": self.name}
         if self.inner:
             d["inner"] = self.inner.to_dict()
+        if self.discriminant is not None:
+            d["discriminant"] = self.discriminant
         return d
 
     @staticmethod
@@ -99,6 +117,7 @@ class VariantInfo:
         return VariantInfo(
             name=d["name"],
             inner=TypeInfo.from_dict(d["inner"]) if d.get("inner") else None,
+            discriminant=d.get("discriminant"),
         )
 
 

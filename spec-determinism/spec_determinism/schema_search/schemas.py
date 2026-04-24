@@ -47,6 +47,7 @@ class SchemaKind(Enum):
     SCALAR_EQ = "scalar_eq"
     SCALAR_RANGE = "scalar_range"
     VARIANT_IS = "variant_is"
+    ENUM_DISC_EQ = "enum_disc_eq"        # C-like enum: `var as int == k`
     BOOL_EQ = "bool_eq"
     STR_EQ = "str_eq"
     SET_EMPTY = "set_empty"
@@ -189,6 +190,22 @@ def _emit(
                 inner_var = f"{var}->{vname}_0"
                 child_chain = parent_chain + [(var, vname)]
                 _emit(inner_var, inner_ty, child_chain, out, seen_tags)
+
+        # C-like enums (all unit variants with explicit discriminants, e.g.
+        # `enum SlabSize { Slab8 = 8, ... }`) get an additional SCALAR_EQ
+        # schema on `{var} as int == k`. Narrowing via this schema produces
+        # witnesses framed in the integer representation the spec actually
+        # uses (`slab_size as usize == 8`), which is more useful to humans
+        # than `var is Slab8`.
+        if ty.kind == TypeKind.ENUM and ty.is_c_like_enum():
+            sid = _uniq(f"{tag_base}_disc_eq")
+            out.append(SchemaBinding(
+                id=sid, kind=SchemaKind.ENUM_DISC_EQ, rust_var=var,
+                rust_expr_tmpl=f"{var} as int == {{k}}",
+                guard_name=f"g_{sid}",
+                k_params=[(f"k_{sid}", "int")],
+                parent_chain=list(parent_chain),
+            ))
         return
 
     # --- Struct ---

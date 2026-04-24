@@ -601,10 +601,30 @@ def _find_enum(
                                 if cc.type not in ("(", ")", ","):
                                     inner = _parse_type_node(cc)
                                     break
+                        # Explicit discriminant: `Slab8 = 8` — parse the
+                        # integer literal that follows '='. This turns the
+                        # enum into a C-like int enum so narrow can emit
+                        # `x as int == 8` witnesses instead of `x is Slab8`.
+                        discriminant = None
+                        kids = list(v.children)
+                        for i, cc in enumerate(kids):
+                            if cc.type == "=" and i + 1 < len(kids):
+                                lit = kids[i + 1]
+                                if lit.type == "integer_literal":
+                                    txt = _text(lit).replace("_", "")
+                                    # Strip any numeric suffix like i32/u64
+                                    m = re.match(r"-?\d+", txt)
+                                    if m:
+                                        try:
+                                            discriminant = int(m.group(0))
+                                        except ValueError:
+                                            pass
+                                break
                         if vname:
                             variants.append(VariantInfo(
                                 name=_text(vname),
                                 inner=inner,
+                                discriminant=discriminant,
                             ))
                 return TypeInfo(kind=TypeKind.ENUM, name=name, variants=variants)
         for child in node.children:

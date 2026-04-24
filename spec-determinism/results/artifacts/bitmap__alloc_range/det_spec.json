@@ -1826,7 +1826,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=True\nspec fn det_alloc_range_chk_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> true))\n    && ((post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits == post2_self_.set_bits))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_alloc_range_chk_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits == post2_self_.set_bits))\n}",
   "equal_fn_name": "det_alloc_range_chk_equal",
   "equal_arg_pairs": [
     {
@@ -1841,7 +1841,7 @@
   "check_fn_name": "det_alloc_range_chk",
   "equal_policy": {
     "errs_equivalent": true,
-    "opaque_ok": true,
+    "opaque_ok": false,
     "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],

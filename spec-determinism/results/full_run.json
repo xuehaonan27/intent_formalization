@@ -5,14 +5,14 @@
     "det_fn": "det_number_of_bits",
     "n_schemas": 12,
     "n_params": 25,
-    "verus_ms": 2156,
+    "verus_ms": 2171,
     "smt2_bytes": 607390,
     "ctx_ms": 39,
-    "search_ms": 151,
+    "search_ms": 152,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2353
+    "total_ms": 2369
   },
   {
     "crate": "bitmap",
@@ -20,10 +20,10 @@
     "det_fn": "det_new",
     "n_schemas": 271,
     "n_params": 288,
-    "verus_ms": 2545,
+    "verus_ms": 2537,
     "smt2_bytes": 3933305,
-    "ctx_ms": 63,
-    "search_ms": 425,
+    "ctx_ms": 65,
+    "search_ms": 427,
     "n_rounds": 20,
     "assumes": [
       "number_of_bits == 8",
@@ -36,7 +36,7 @@
       "!det_new_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 3043
+    "total_ms": 3039
   },
   {
     "crate": "bitmap",
@@ -44,14 +44,14 @@
     "det_fn": "det_from_raw_array",
     "n_schemas": 269,
     "n_params": 283,
-    "verus_ms": 2625,
+    "verus_ms": 2590,
     "smt2_bytes": 2298431,
-    "ctx_ms": 62,
+    "ctx_ms": 61,
     "search_ms": 255,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2950
+    "total_ms": 2915
   },
   {
     "crate": "bitmap",
@@ -59,10 +59,10 @@
     "det_fn": "det_alloc",
     "n_schemas": 280,
     "n_params": 307,
-    "verus_ms": 2646,
-    "smt2_bytes": 4329541,
-    "ctx_ms": 64,
-    "search_ms": 575,
+    "verus_ms": 2580,
+    "smt2_bytes": 4329872,
+    "ctx_ms": 63,
+    "search_ms": 551,
     "n_rounds": 65,
     "assumes": [
       "pre_self_@.num_bits == 8",
@@ -82,7 +82,7 @@
       "!det_alloc_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 3294
+    "total_ms": 3203
   },
   {
     "crate": "bitmap",
@@ -90,10 +90,10 @@
     "det_fn": "det_alloc_range_chk",
     "n_schemas": 282,
     "n_params": 312,
-    "verus_ms": 2713,
-    "smt2_bytes": 4454524,
+    "verus_ms": 2624,
+    "smt2_bytes": 4454855,
     "ctx_ms": 64,
-    "search_ms": 576,
+    "search_ms": 552,
     "n_rounds": 72,
     "assumes": [
       "pre_self_@.num_bits == 8",
@@ -114,7 +114,7 @@
       "!det_alloc_range_chk_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 3362
+    "total_ms": 3250
   },
   {
     "crate": "bitmap",
@@ -122,14 +122,14 @@
     "det_fn": "det_set",
     "n_schemas": 278,
     "n_params": 302,
-    "verus_ms": 2608,
+    "verus_ms": 2622,
     "smt2_bytes": 2467498,
     "ctx_ms": 68,
-    "search_ms": 267,
+    "search_ms": 271,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2951
+    "total_ms": 2970
   },
   {
     "crate": "bitmap",
@@ -137,14 +137,14 @@
     "det_fn": "det_clear",
     "n_schemas": 278,
     "n_params": 302,
-    "verus_ms": 2627,
+    "verus_ms": 2625,
     "smt2_bytes": 2460598,
-    "ctx_ms": 65,
-    "search_ms": 290,
+    "ctx_ms": 64,
+    "search_ms": 286,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2990
+    "total_ms": 2984
   },
   {
     "crate": "bitmap",
@@ -152,14 +152,14 @@
     "det_fn": "det_test",
     "n_schemas": 268,
     "n_params": 278,
-    "verus_ms": 2529,
+    "verus_ms": 2556,
     "smt2_bytes": 2187931,
-    "ctx_ms": 62,
-    "search_ms": 248,
+    "ctx_ms": 60,
+    "search_ms": 247,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 2847
+    "total_ms": 2872
   },
   {
     "crate": "slab",
@@ -167,10 +167,10 @@
     "det_fn": "det_from_raw_parts",
     "n_schemas": 291,
     "n_params": 331,
-    "verus_ms": 5027,
+    "verus_ms": 5052,
     "smt2_bytes": 4622345,
-    "ctx_ms": 67,
-    "search_ms": 881,
+    "ctx_ms": 65,
+    "search_ms": 843,
     "n_rounds": 67,
     "assumes": [
       "len == 1",
@@ -192,7 +192,7 @@
       "!det_from_raw_parts_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 5986
+    "total_ms": 5972
   },
   {
     "crate": "slab",
@@ -200,10 +200,10 @@
     "det_fn": "det_allocate_chk",
     "n_schemas": 303,
     "n_params": 354,
-    "verus_ms": 2965,
+    "verus_ms": 2964,
     "smt2_bytes": 4781203,
-    "ctx_ms": 70,
-    "search_ms": 1754,
+    "ctx_ms": 73,
+    "search_ms": 1678,
     "n_rounds": 94,
     "assumes": [
       "pre_self_@.block_size == 1",
@@ -236,7 +236,7 @@
       "!det_allocate_chk_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 4801
+    "total_ms": 4728
   },
   {
     "crate": "slab",
@@ -244,14 +244,14 @@
     "det_fn": "det_deallocate",
     "n_schemas": 303,
     "n_params": 354,
-    "verus_ms": 2797,
+    "verus_ms": 2814,
     "smt2_bytes": 2677721,
-    "ctx_ms": 69,
-    "search_ms": 287,
+    "ctx_ms": 68,
+    "search_ms": 284,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 3164
+    "total_ms": 3178
   },
   {
     "crate": "kernel",
@@ -259,24 +259,92 @@
     "det_fn": "det_from_raw_parts",
     "n_schemas": 519,
     "n_params": 803,
-    "verus_ms": 9283,
-    "smt2_bytes": 14807381,
-    "ctx_ms": 124,
-    "search_ms": 4446,
-    "n_rounds": 65,
+    "verus_ms": 9077,
+    "smt2_bytes": 14687086,
+    "ctx_ms": 128,
+    "search_ms": 43129,
+    "n_rounds": 2461,
     "assumes": [
       "addr == 0",
-      "size == 0",
-      "r1 is Err",
-      "r1->Err_0.code is InvalidArgument",
-      "r1->Err_0.reason == \"\"",
-      "r2 is Err",
-      "r2->Err_0.code is InvalidArgument",
-      "r2->Err_0.reason == \"string 1\"",
+      "size == 917504",
+      "r1 is Ok",
+      "r1->Ok_0@.slabs.len() == 7",
+      "r1->Ok_0@.slabs[0].block_size == 8",
+      "r1->Ok_0@.slabs[0].start_addr == 0",
+      "r1->Ok_0@.slabs[0].end_addr == 1",
+      "r1->Ok_0@.slabs[0].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[0].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[1].block_size == 16",
+      "r1->Ok_0@.slabs[1].start_addr == 131072",
+      "r1->Ok_0@.slabs[1].end_addr == 131073",
+      "r1->Ok_0@.slabs[1].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[1].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[2].block_size == 32",
+      "r1->Ok_0@.slabs[2].start_addr == 262144",
+      "r1->Ok_0@.slabs[2].end_addr == 262145",
+      "r1->Ok_0@.slabs[2].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[2].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[3].block_size == 64",
+      "r1->Ok_0@.slabs[3].start_addr == 393216",
+      "r1->Ok_0@.slabs[3].end_addr == 393217",
+      "r1->Ok_0@.slabs[3].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[3].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[4].block_size == 128",
+      "r1->Ok_0@.slabs[4].start_addr == 524288",
+      "r1->Ok_0@.slabs[4].end_addr == 524289",
+      "r1->Ok_0@.slabs[4].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[4].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[5].block_size == 256",
+      "r1->Ok_0@.slabs[5].start_addr == 655360",
+      "r1->Ok_0@.slabs[5].end_addr == 655361",
+      "r1->Ok_0@.slabs[5].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[5].free_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[6].block_size == 512",
+      "r1->Ok_0@.slabs[6].start_addr == 786432",
+      "r1->Ok_0@.slabs[6].end_addr == 786433",
+      "r1->Ok_0@.slabs[6].allocated_addrs == Set::<usize>::empty()",
+      "r1->Ok_0@.slabs[6].free_addrs == Set::<usize>::empty()",
+      "r2 is Ok",
+      "r2->Ok_0@.slabs.len() == 7",
+      "r2->Ok_0@.slabs[0].block_size == 8",
+      "r2->Ok_0@.slabs[0].start_addr == 0",
+      "r2->Ok_0@.slabs[0].end_addr == 8",
+      "r2->Ok_0@.slabs[0].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[0].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[1].block_size == 16",
+      "r2->Ok_0@.slabs[1].start_addr == 131072",
+      "r2->Ok_0@.slabs[1].end_addr == 131073",
+      "r2->Ok_0@.slabs[1].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[1].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[2].block_size == 32",
+      "r2->Ok_0@.slabs[2].start_addr == 262144",
+      "r2->Ok_0@.slabs[2].end_addr == 262145",
+      "r2->Ok_0@.slabs[2].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[2].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[3].block_size == 64",
+      "r2->Ok_0@.slabs[3].start_addr == 393216",
+      "r2->Ok_0@.slabs[3].end_addr == 393217",
+      "r2->Ok_0@.slabs[3].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[3].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[4].block_size == 128",
+      "r2->Ok_0@.slabs[4].start_addr == 524288",
+      "r2->Ok_0@.slabs[4].end_addr == 524289",
+      "r2->Ok_0@.slabs[4].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[4].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[5].block_size == 256",
+      "r2->Ok_0@.slabs[5].start_addr == 655360",
+      "r2->Ok_0@.slabs[5].end_addr == 655361",
+      "r2->Ok_0@.slabs[5].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[5].free_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[6].block_size == 512",
+      "r2->Ok_0@.slabs[6].start_addr == 786432",
+      "r2->Ok_0@.slabs[6].end_addr == 786433",
+      "r2->Ok_0@.slabs[6].allocated_addrs == Set::<usize>::empty()",
+      "r2->Ok_0@.slabs[6].free_addrs == Set::<usize>::empty()",
       "!det_from_raw_parts_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 13862
+    "total_ms": 52342
   },
   {
     "crate": "kernel",
@@ -284,10 +352,10 @@
     "det_fn": "det_allocate",
     "n_schemas": 395,
     "n_params": 812,
-    "verus_ms": 5152,
+    "verus_ms": 5184,
     "smt2_bytes": 9860697,
-    "ctx_ms": 104,
-    "search_ms": 94032,
+    "ctx_ms": 102,
+    "search_ms": 92231,
     "n_rounds": 3567,
     "assumes": [
       "pre_self_@.slabs.len() == 7",
@@ -408,7 +476,7 @@
       "!det_allocate_equal(r1, r2, post1_self_@, post2_self_@)"
     ],
     "status": "ok",
-    "total_ms": 99295
+    "total_ms": 97524
   },
   {
     "crate": "kernel",
@@ -416,28 +484,28 @@
     "det_fn": "det_deallocate",
     "n_schemas": 395,
     "n_params": 812,
-    "verus_ms": 4589,
+    "verus_ms": 4562,
     "smt2_bytes": 5099058,
-    "ctx_ms": 99,
-    "search_ms": 502,
+    "ctx_ms": 97,
+    "search_ms": 496,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 5196
+    "total_ms": 5162
   },
   {
     "crate": "kernel",
     "function": "layout_to_allocator",
     "det_fn": "det_layout_to_allocator",
-    "n_schemas": 19,
-    "n_params": 19,
-    "verus_ms": 3256,
-    "smt2_bytes": 464703,
-    "ctx_ms": 30,
-    "search_ms": 228,
+    "n_schemas": 21,
+    "n_params": 23,
+    "verus_ms": 3347,
+    "smt2_bytes": 470734,
+    "ctx_ms": 29,
+    "search_ms": 245,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 3517
+    "total_ms": 3625
   }
 ]
