@@ -2067,7 +2067,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.block_size == post2_self_.block_size) && (post1_self_.start_addr == post2_self_.start_addr) && (post1_self_.end_addr == post2_self_.end_addr) && (post1_self_.allocated_addrs == post2_self_.allocated_addrs) && (post1_self_.free_addrs == post2_self_.free_addrs))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))\n    && ((post1_self_.block_size == post2_self_.block_size) && (post1_self_.start_addr == post2_self_.start_addr) && (post1_self_.end_addr == post2_self_.end_addr) && (post1_self_.allocated_addrs == post2_self_.allocated_addrs) && (post1_self_.free_addrs == post2_self_.free_addrs))\n}",
   "equal_fn_name": "det_allocate_chk_equal",
   "equal_arg_pairs": [
     {
@@ -2083,6 +2083,7 @@
   "equal_policy": {
     "errs_equivalent": true,
     "opaque_ok": false,
+    "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],
     "custom_body": null

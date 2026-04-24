@@ -35,6 +35,11 @@ class EqualPolicy:
         opaque_ok: if True, any two ``Ok`` values are considered equal —
             useful when the Ok payload is an opaque handle / index (e.g.
             allocator returning an address).
+        compare_raw_pointers: if False (default), raw pointer types
+            (``*mut T`` / ``*const T``) are treated as opaque — their
+            addresses are allocator-nondeterministic so structural
+            equality carries no meaningful semantic. Set to True only
+            if you genuinely want to pin down pointer identity (rare).
         ignore_fields: set of struct/view field names to omit from the
             comparison. Applied by *unqualified* field name.
         opaque_types: set of type *names* treated as opaque — any value
@@ -46,6 +51,7 @@ class EqualPolicy:
     """
     errs_equivalent: bool = True
     opaque_ok: bool = False
+    compare_raw_pointers: bool = False
     ignore_fields: set[str] = field(default_factory=set)
     opaque_types: set[str] = field(default_factory=set)
     custom_body: str | None = None
@@ -54,6 +60,7 @@ class EqualPolicy:
         return {
             "errs_equivalent": self.errs_equivalent,
             "opaque_ok": self.opaque_ok,
+            "compare_raw_pointers": self.compare_raw_pointers,
             "ignore_fields": sorted(self.ignore_fields),
             "opaque_types": sorted(self.opaque_types),
             "custom_body": self.custom_body,
@@ -66,6 +73,7 @@ class EqualPolicy:
         return EqualPolicy(
             errs_equivalent=bool(d.get("errs_equivalent", True)),
             opaque_ok=bool(d.get("opaque_ok", False)),
+            compare_raw_pointers=bool(d.get("compare_raw_pointers", False)),
             ignore_fields=set(d.get("ignore_fields") or []),
             opaque_types=set(d.get("opaque_types") or []),
             custom_body=d.get("custom_body"),

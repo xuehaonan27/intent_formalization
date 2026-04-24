@@ -1,7 +1,7 @@
 // Generated equal-fn for determinism check.
 // Policy: errs_equivalent=True, opaque_ok=False
 spec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {
-    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))
+    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))
     && ((post1_self_.allocations == post2_self_.allocations))
 }
 

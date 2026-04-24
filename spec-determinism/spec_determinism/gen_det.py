@@ -34,6 +34,23 @@ def _var_name(param: Param, prefix: str = "") -> str:
     return f"{prefix}{name}" if prefix else name
 
 
+# Raw-pointer detection: recognised by TypeInfo.name prefix because tree-sitter
+# parses `*mut T` / `*const T` as pointer_type nodes and the extractor records
+# the full source text as `name`.
+_RAW_POINTER_PREFIXES = ("*mut ", "*const ", "*mut\t", "*const\t")
+
+
+def _is_raw_pointer_type(ty: TypeInfo) -> bool:
+    """Return True iff `ty` is a raw-pointer type (`*mut T` / `*const T`).
+
+    Raw pointers are matched only on syntactic form because the extractor
+    classifies them as TypeKind.UNKNOWN (they have no interesting spec
+    structure) — all we have to key off is the original source text.
+    """
+    name = (ty.name or "").lstrip()
+    return any(name.startswith(p) for p in _RAW_POINTER_PREFIXES)
+
+
 def _type_name(param: Param) -> str:
     return param.type.name
 
@@ -645,6 +662,15 @@ def build_equal_expr(
     # Whole-type opacity (policy override)
     if ty.name and ty.name in policy.opaque_types:
         return "true"
+
+    # Raw-pointer opacity (mechanical default).
+    # `*mut T` / `*const T` addresses are allocator-nondeterministic at the
+    # Verus/Z3 level — structural `==` compares abstract heap addresses and
+    # always admits spurious "different pointer" witnesses (see observations).
+    # Gated by `compare_raw_pointers` for the rare case a spec genuinely
+    # pins pointer identity through ghost state.
+    if _is_raw_pointer_type(ty) and not policy.compare_raw_pointers:
+        return "true /* raw pointer: opaque by default */"
 
     # Primitive / value types where structural `==` is safe
     if k in (

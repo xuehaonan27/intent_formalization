@@ -3530,6 +3530,7 @@
   "equal_policy": {
     "errs_equivalent": true,
     "opaque_ok": false,
+    "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],
     "custom_body": null
