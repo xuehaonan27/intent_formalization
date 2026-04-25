@@ -206,6 +206,19 @@ class FunctionSpec:
     # user writes no explicit name (nanvix convention).
     result_binding: str = "result"
 
+    # --- Generic / impl context (for fns inside generic impls) ----------------
+    # When the source fn lives inside an `impl<...>` block (or has its own
+    # `fn<...>` type parameters / where clause), gen_det needs to lift those
+    # onto the synthesized det fn. These fields hold the *raw text* directly
+    # from the AST (e.g. "<K: KeyTrait + VerusClone, V: Clone>" /
+    # "where K: Ord") so we don't reinvent bound parsing. Empty string means
+    # "no generics" / "no where clause"; ``self_type`` is the impl target
+    # type as it appears in the source (e.g. "StrictlyOrderedVec<K>") and is
+    # ``None`` for free fns.
+    generics_decl: str = ""
+    where_decl: str = ""
+    self_type: Optional[str] = None
+
     def input_vars(self) -> list[Param]:
         return list(self.params)
 
@@ -272,6 +285,12 @@ class DetCheckSpec:
     # LLM hook or configured manually. Keyed by the exact TypeInfo.name
     # string seen in the symbol table (e.g. "Layout").
     type_projections: dict[str, TypeProjections] = field(default_factory=dict)
+    # Generic / impl context lifted from the source fn so rebuild_equal_fn
+    # (post llm_refine) can keep emitting valid Rust signatures. Empty
+    # strings / None mean "no generic context" (free fn, default).
+    generics_decl: str = ""
+    where_decl: str = ""
+    self_type: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -286,6 +305,9 @@ class DetCheckSpec:
             "equal_policy": dict(self.equal_policy),
             "type_projections": {k: v.to_dict()
                                   for k, v in self.type_projections.items()},
+            "generics_decl": self.generics_decl,
+            "where_decl": self.where_decl,
+            "self_type": self.self_type,
         }
 
     @staticmethod
@@ -303,6 +325,9 @@ class DetCheckSpec:
             equal_policy=dict(d.get("equal_policy") or {}),
             type_projections={k: TypeProjections.from_dict(v)
                               for k, v in raw_projs.items()},
+            generics_decl=d.get("generics_decl", ""),
+            where_decl=d.get("where_decl", ""),
+            self_type=d.get("self_type"),
         )
 
     def to_json(self) -> str:

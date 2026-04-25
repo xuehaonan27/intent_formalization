@@ -392,6 +392,44 @@ def _render_body(schemas: list[SchemaBinding], equal_fn_call: str) -> str:
     return "\n".join(lines)
 
 
+def _inject_extra_params(tmpl: str, extra_str: str) -> str:
+    """Insert ``extra_str`` at the start of the proof fn's parameter list.
+
+    Walks the template manually so generics (``proof fn det_x<T: Foo<U>>(...)``)
+    don't trip up the matcher — we balance angle brackets to find the real
+    opening ``(`` of the params list.
+    """
+    if not extra_str:
+        return tmpl
+    m = re.search(r"\bproof\s+fn\s+\w+", tmpl)
+    if not m:
+        return tmpl
+    pos = m.end()
+    while pos < len(tmpl) and tmpl[pos].isspace():
+        pos += 1
+    if pos < len(tmpl) and tmpl[pos] == "<":
+        depth = 0
+        while pos < len(tmpl):
+            c = tmpl[pos]
+            if c == "<":
+                depth += 1
+            elif c == ">":
+                depth -= 1
+                if depth == 0:
+                    pos += 1
+                    break
+            pos += 1
+    while pos < len(tmpl) and tmpl[pos].isspace():
+        pos += 1
+    if pos >= len(tmpl) or tmpl[pos] != "(":
+        return tmpl
+    after = pos + 1
+    while after < len(tmpl) and tmpl[after].isspace():
+        after += 1
+    sep = "" if (after < len(tmpl) and tmpl[after] == ")") else ", "
+    return tmpl[:pos + 1] + extra_str + sep + tmpl[pos + 1:]
+
+
 def render_guarded_template(
     det_spec: DetCheckSpec,
     schemas: list[SchemaBinding],
@@ -411,11 +449,7 @@ def render_guarded_template(
     body = _render_body(schemas, equal_call)
 
     tmpl = det_spec.det_check_template
-    new_tmpl = re.sub(
-        r"(proof fn \w+)\(",
-        lambda m: f"{m.group(1)}({extra_str}, ",
-        tmpl, count=1,
-    )
+    new_tmpl = _inject_extra_params(tmpl, extra_str)
     return new_tmpl.replace("{ASSUMES}", body + "\n")
 
 

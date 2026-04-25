@@ -9,6 +9,7 @@ Handles both:
 
 import logging
 import re
+from dataclasses import dataclass
 from typing import Optional
 
 import tree_sitter as ts
@@ -669,16 +670,136 @@ class Unsupported(Exception):
     pass
 
 
-def _resolve_self_in_type(ty: TypeInfo, impl_name: str):
-    """Replace Self references in a TypeInfo with the concrete impl type name."""
+def _resolve_self_in_type(ty: TypeInfo, impl_text: str):
+    """Replace ``Self`` references in a TypeInfo with the impl target text.
+
+    ``impl_text`` may include type arguments (e.g. ``Foo<K>``); we use a
+    word-boundary regex so substring identifiers like ``MySelfType`` are
+    untouched.
+    """
+    pattern = re.compile(r'\bSelf\b')
     if ty.name == "Self":
-        ty.name = impl_name
-    ty.name = ty.name.replace("Self", impl_name)
+        ty.name = impl_text
+    else:
+        ty.name = pattern.sub(impl_text, ty.name)
     for ta in ty.type_args:
-        _resolve_self_in_type(ta, impl_name)
+        _resolve_self_in_type(ta, impl_text)
     for v in ty.variants:
         if v.inner:
-            _resolve_self_in_type(v.inner, impl_name)
+            _resolve_self_in_type(v.inner, impl_text)
+
+
+# ---------------------------------------------------------------------------
+# Impl / generic context — kept entirely text-based (we copy the AST text of
+# `type_parameters` / `where_clause` verbatim into the synthesized det fn).
+# ---------------------------------------------------------------------------
+
+# Tree-sitter-verus emits a variety of node kinds for the type position. We
+# enumerate the common ones; other kinds fall through to the fallback in
+# _impl_target_node.
+_IMPL_TYPE_REF_KINDS = (
+    "generic_type", "type_identifier", "scoped_type_identifier",
+    "scoped_identifier", "reference_type", "tuple_type", "array_type",
+)
+
+
+@dataclass
+class _ImplContext:
+    """Generic / impl-block context lifted as raw AST text."""
+    self_type: Optional[str] = None       # impl target, e.g. "Foo<K>"
+    generics_decl: str = ""                # e.g. "<K: KeyTrait, V: Clone>"
+    where_decl: str = ""                    # e.g. "where K: Ord"
+
+
+def _find_impl_node(fn_node: ts.Node, tree: ts.Tree) -> Optional[ts.Node]:
+    """Locate the enclosing ``impl_item`` AST node for ``fn_node``.
+
+    Tries (1) parent chain walk and (2) byte-range containment over all
+    impl_item nodes in the tree. Returns ``None`` if the fn lives at module
+    scope or the parser couldn't recover the impl structure (in which case
+    the caller falls back to the older flat-token strategy via
+    ``_find_impl_type``).
+    """
+    node = fn_node.parent
+    while node is not None:
+        if node.type == "impl_item":
+            return node
+        node = node.parent
+
+    fn_start, fn_end = fn_node.start_byte, fn_node.end_byte
+    best = None
+    for impl_node in _find_all_nodes(tree.root_node, "impl_item"):
+        if impl_node.start_byte <= fn_start and impl_node.end_byte >= fn_end:
+            if best is None or (impl_node.end_byte - impl_node.start_byte) < (best.end_byte - best.start_byte):
+                best = impl_node
+    return best
+
+
+def _impl_target_node(impl_node: ts.Node) -> Optional[ts.Node]:
+    """Return the type-reference child that names the impl target.
+
+    For trait impls (``impl<T> Trait<T> for Foo<T>``) the target is the type
+    ref *after* the ``for`` token; for inherent impls it's the first type ref
+    after ``impl`` / type-parameters.
+    """
+    children = impl_node.children
+    for_idx = None
+    for i, c in enumerate(children):
+        if c.type == "for":
+            for_idx = i
+            break
+    candidates = children[for_idx + 1:] if for_idx is not None else children
+    for c in candidates:
+        if c.type in _IMPL_TYPE_REF_KINDS:
+            return c
+    return None
+
+
+def _extract_impl_context(impl_node: Optional[ts.Node]) -> _ImplContext:
+    if impl_node is None:
+        return _ImplContext()
+    tp = _child_by_type(impl_node, "type_parameters")
+    target = _impl_target_node(impl_node)
+    wc = _child_by_type(impl_node, "where_clause")
+    return _ImplContext(
+        self_type=_text(target) if target else None,
+        generics_decl=_text(tp) if tp else "",
+        where_decl=_text(wc) if wc else "",
+    )
+
+
+def _extract_fn_generics_decl(fn_node: ts.Node) -> str:
+    tp = _child_by_type(fn_node, "type_parameters")
+    return _text(tp) if tp else ""
+
+
+def _extract_fn_where_decl(fn_node: ts.Node) -> str:
+    wc = _child_by_type(fn_node, "where_clause")
+    return _text(wc) if wc else ""
+
+
+def _combine_generics_decl(impl_g: str, fn_g: str) -> str:
+    """Merge two ``<...>`` text blobs into one. Either may be empty."""
+    inner: list[str] = []
+    for g in (impl_g, fn_g):
+        s = g.strip()
+        if s.startswith("<") and s.endswith(">"):
+            body = s[1:-1].strip()
+            if body:
+                inner.append(body)
+    return f"<{', '.join(inner)}>" if inner else ""
+
+
+def _combine_where_decl(impl_w: str, fn_w: str) -> str:
+    """Merge two ``where ...`` text blobs into one. Either may be empty."""
+    parts: list[str] = []
+    for w in (impl_w, fn_w):
+        s = w.strip()
+        if s.startswith("where"):
+            tail = s[len("where"):].strip()
+            if tail:
+                parts.append(tail)
+    return f"where {', '.join(parts)}" if parts else ""
 
 
 def extract_spec(
@@ -752,14 +873,32 @@ def extract_spec(
         if fq:
             requires_raw, ensures_raw = _extract_clauses(fq)
 
-    # Resolve self type from enclosing impl block (always use full_tree)
-    impl_type_name = _find_impl_type(fn_node, full_tree, source, fn_name=fn_name)
-    if impl_type_name:
+    # Resolve self type from enclosing impl block (always use full_tree).
+    # Two-tier strategy: prefer the AST-based `_find_impl_node` (also
+    # surfaces generics + where), and fall back to the older flat-token
+    # `_find_impl_type` (chunk-parsed / recovery cases) for bare type
+    # names only.
+    impl_node = _find_impl_node(fn_node, full_tree)
+    impl_ctx = _extract_impl_context(impl_node)
+    if impl_ctx.self_type is None:
+        bare_name = _find_impl_type(fn_node, full_tree, source, fn_name=fn_name)
+        if bare_name:
+            impl_ctx = _ImplContext(self_type=bare_name)
+
+    fn_generics = _extract_fn_generics_decl(fn_node)
+    fn_where = _extract_fn_where_decl(fn_node)
+    generics_decl = _combine_generics_decl(impl_ctx.generics_decl, fn_generics)
+    where_decl = _combine_where_decl(impl_ctx.where_decl, fn_where)
+
+    if impl_ctx.self_type:
         for p in params:
             if p.is_self:
-                p.type = TypeInfo(kind=TypeKind.UNKNOWN, name=impl_type_name)
+                p.type = TypeInfo(kind=TypeKind.UNKNOWN, name=impl_ctx.self_type)
+            else:
+                # Non-self params may reference Self / Self::Item too
+                _resolve_self_in_type(p.type, impl_ctx.self_type)
         # Also resolve Self in return type
-        _resolve_self_in_type(return_type, impl_type_name)
+        _resolve_self_in_type(return_type, impl_ctx.self_type)
 
     # Resolve type definitions from all sources
     all_sources = [source] + (type_sources or [])
@@ -773,6 +912,9 @@ def extract_spec(
         ensures=ensures_raw,
         type_defs=type_defs,
         result_binding=result_binding or "result",
+        generics_decl=generics_decl,
+        where_decl=where_decl,
+        self_type=impl_ctx.self_type,
     )
 
 

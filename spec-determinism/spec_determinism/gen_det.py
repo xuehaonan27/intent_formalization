@@ -263,7 +263,8 @@ def _build_template(
     # Ensures: `({&&& run1 &&& run2}) ==> conclusion`. No assumes here — they
     # go into the body as `assume(...)` statements, which is cleaner and keeps
     # the postcondition stable across search rounds.
-    code = f"""proof fn {fn_name}({params_str}){requires_str}
+    where_block = f"\n    {spec.where_decl}" if spec.where_decl else ""
+    code = f"""proof fn {fn_name}{spec.generics_decl}({params_str}){where_block}{requires_str}
     ensures
         ({{
             &&& {run1}
@@ -272,8 +273,19 @@ def _build_template(
 {{
 {{ASSUMES}}}}"""
 
+    # Substitute `Self` (word-boundary) with the impl target text so the
+    # generated proof fn — which lives at module scope — typechecks even
+    # when ensures/requires referenced `Self` directly.
+    if spec.self_type:
+        code = re.sub(r'\bSelf\b', spec.self_type, code)
+
     # Build the default equal spec fn body uses bare names (no `@`).
-    equal_fn_def = _build_equal_fn(equal_fn_name, equal_params, equal_body_args, policy)
+    equal_fn_def = _build_equal_fn(
+        equal_fn_name, equal_params, equal_body_args, policy,
+        generics_decl=spec.generics_decl,
+        where_decl=spec.where_decl,
+        self_type=spec.self_type,
+    )
 
     return code, equal_fn_def, equal_fn_name, equal_call_args
 
@@ -319,6 +331,9 @@ def build_det_check_spec(
         equal_arg_pairs=[
             {"lhs": a1, "rhs": a2} for (a1, a2) in equal_call_args
         ],
+        generics_decl=spec.generics_decl,
+        where_decl=spec.where_decl,
+        self_type=spec.self_type,
     )
 
 
@@ -628,6 +643,9 @@ def _build_equal_fn(
     params: list[tuple[str, TypeInfo]],
     arg_pairs: list[tuple[str, str, TypeInfo]],
     policy: EqualPolicy | None = None,
+    generics_decl: str = "",
+    where_decl: str = "",
+    self_type: str | None = None,
 ) -> str:
     """Emit a Verus spec fn that structurally compares each (lhs, rhs) pair.
 
@@ -639,11 +657,16 @@ def _build_equal_fn(
     If ``policy.custom_body`` is set, it is used verbatim as the function
     body (the caller — typically a human reviewer or an LLM hook — takes
     full responsibility for correctness).
+
+    ``generics_decl`` / ``where_decl`` / ``self_type`` propagate the
+    enclosing impl's generic context onto the synthesized spec fn.
     """
     if policy is None:
         policy = default_policy()
 
     param_decls = ", ".join(f"{n}: {_type_annotation(t)}" for (n, t) in params)
+    if self_type:
+        param_decls = re.sub(r'\bSelf\b', self_type, param_decls)
 
     if policy.custom_body is not None and policy.custom_body.strip():
         body = policy.custom_body.strip()
@@ -671,9 +694,10 @@ def _build_equal_fn(
     if policy.custom_body:
         header += " [custom_body in use]"
 
+    where_block = f"\n    {where_decl}" if where_decl else ""
     return (
         f"{header}\n"
-        f"spec fn {fn_name}({param_decls}) -> bool {{\n"
+        f"spec fn {fn_name}{generics_decl}({param_decls}) -> bool{where_block} {{\n"
         f"    {body}\n"
         f"}}"
     )
@@ -895,6 +919,9 @@ def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
     equal_fn_def = _build_equal_fn(
         equal_fn_name, params, body_pairs,
         EqualPolicy.from_dict(det_spec.equal_policy),
+        generics_decl=det_spec.generics_decl,
+        where_decl=det_spec.where_decl,
+        self_type=det_spec.self_type,
     )
     det_spec.equal_fn_def = equal_fn_def
     det_spec.equal_fn_name = equal_fn_name
