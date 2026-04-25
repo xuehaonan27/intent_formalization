@@ -170,11 +170,35 @@ def _extract_return_type(fn_node: ts.Node) -> tuple[TypeInfo, Optional[str]]:
     id_node = _child_by_type(ret_node, "identifier")
     binding_name = _text(id_node) if id_node else None
 
-    # Find the type node (generic_type, type_identifier, primitive_type, etc.)
-    type_node = _child_by_type(ret_node, "generic_type", "type_identifier",
-                                "primitive_type", "unit_type", "scoped_type_identifier")
+    # Find the type node — permissively pick the first child that is not a
+    # syntactic token or the binding identifier. tree-sitter-verus emits a
+    # variety of node kinds for the type position (reference_type, tuple_type,
+    # array_type, function_type, ...); enumerating them is fragile, so we
+    # exclude the known non-type children instead.
+    _SYNTACTIC = {"(", ")", ":", "identifier"}
+    type_node = None
+    for child in ret_node.children:
+        if child.type not in _SYNTACTIC:
+            type_node = child
+            break
     if type_node:
-        return _parse_type_node(type_node), binding_name
+        info = _parse_type_node(type_node)
+        # Preserve `&`/`&mut ` for return types: gen_det renders return_type.name
+        # verbatim and there's no separate `is_ref` channel for returns. Param
+        # extraction tracks is_ref separately so this branch stays return-only.
+        if type_node.type == "reference_type":
+            is_mut = any(c.type == "mutable_specifier" for c in type_node.children)
+            prefix = "&mut " if is_mut else "&"
+            if not info.name.startswith("&"):
+                info = TypeInfo(
+                    kind=info.kind,
+                    name=f"{prefix}{info.name}",
+                    fields=info.fields,
+                    variants=info.variants,
+                    type_args=info.type_args,
+                    spec_view=info.spec_view,
+                )
+        return info, binding_name
 
     return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(ret_node)), binding_name
 
