@@ -1,0 +1,68 @@
+{
+  "anvil-controller": {
+    "by_status": {},
+    "n": 0,
+    "ok_with_witness": 0
+  },
+  "anvil-library": {
+    "by_status": {
+      "verus_error": 1
+    },
+    "n": 1,
+    "ok_with_witness": 0
+  },
+  "atmosphere": {
+    "by_status": {
+      "ok": 757,
+      "runner_crash": 1,
+      "search_error": 3,
+      "verus_error": 602
+    },
+    "n": 1363,
+    "ok_with_witness": 757
+  },
+  "ironkv": {
+    "by_status": {
+      "ok": 85,
+      "verus_error": 129
+    },
+    "n": 214,
+    "ok_with_witness": 68
+  },
+  "memory-allocator": {
+    "by_status": {
+      "ok": 10,
+      "search_error": 4,
+      "verus_error": 2
+    },
+    "n": 16,
+    "ok_with_witness": 5
+  },
+  "node-replication": {
+    "by_status": {},
+    "n": 0,
+    "ok_with_witness": 0
+  },
+  "nrkernel": {
+    "by_status": {
+      "ok": 6,
+      "verus_error": 2
+    },
+    "n": 8,
+    "ok_with_witness": 6
+  },
+  "storage": {
+    "by_status": {
+      "verus_error": 43
+    },
+    "n": 43,
+    "ok_with_witness": 0
+  },
+  "vest": {
+    "by_status": {
+      "ok": 2
+    },
+    "n": 2,
+    "ok_with_witness": 1
+  }
+}

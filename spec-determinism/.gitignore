@@ -8,3 +8,9 @@ results/*_spec.json
 results/artifacts/
 results/full_test_*.json
 results/full_test_run.log
+# Per-target det_spec.json files are regeneratable from source via
+# `spec-determinism-verusage`. They are heavy (108 MB for atmosphere
+# alone) and fragile to internal schema changes, so we keep the
+# per-project full_run.json + the SUMMARY for git, and gitignore the
+# detailed artifact tree.
+results-verusage/*/artifacts/
