@@ -4,9 +4,9 @@
     "function": "address",
     "n_schemas": 7,
     "n_params": 16,
-    "verus_ms": 297,
+    "verus_ms": 284,
     "status": "verus_error",
-    "stderr_tail": "error: zero-sized fields in `repr(transparent)` cannot contain external types with private fields\n   --> /tmp/specdet_sf_address_gpgywfjj/impl_u__l2_impl__impl0__address.rs:127:5\n    |\n127 |     pub layer: Ghost<nat>,\n    |     ^^^^^^^^^^^^^^^^^^^^^\n    |\n    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!\n    = note: for more information, see issue #78586 <https://github.com/rust-lang/rust/issues/78586>\n    = note: this field contains `vstd::prelude::Ghost<vstd::prelude::nat>`, which contains private fields, so it could become non-zero-sized in the future.\n    = note: `#[deny(repr_transparent_non_zst_fields)]` (part of `#[deny(future_incompatible)]`) on by default\n\nerror: aborting due to 1 previous error\n\n",
+    "stderr_tail": "error: zero-sized fields in `repr(transparent)` cannot contain external types with private fields\n   --> /tmp/specdet_sf_address_ld4b0mah/impl_u__l2_impl__impl0__address.rs:127:5\n    |\n127 |     pub layer: Ghost<nat>,\n    |     ^^^^^^^^^^^^^^^^^^^^^\n    |\n    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!\n    = note: for more information, see issue #78586 <https://github.com/rust-lang/rust/issues/78586>\n    = note: this field contains `vstd::prelude::Ghost<vstd::prelude::nat>`, which contains private fields, so it could become non-zero-sized in the future.\n    = note: `#[deny(repr_transparent_non_zst_fields)]` (part of `#[deny(future_incompatible)]`) on by default\n\nerror: aborting due to 1 previous error\n\n",
     "artifact_key": "nrkernel__verified__impl_u__l2_impl__impl_u__l2_impl__impl0__address__address"
   },
   {
@@ -14,9 +14,9 @@
     "function": "new_entry",
     "n_schemas": 17,
     "n_params": 23,
-    "verus_ms": 290,
+    "verus_ms": 285,
     "status": "verus_error",
-    "stderr_tail": "error: zero-sized fields in `repr(transparent)` cannot contain external types with private fields\n   --> /tmp/specdet_sf_new_entry_0q69nq1l/impl_u__l2_impl__impl0__new_entry.rs:129:5\n    |\n129 |     pub layer: Ghost<nat>,\n    |     ^^^^^^^^^^^^^^^^^^^^^\n    |\n    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!\n    = note: for more information, see issue #78586 <https://github.com/rust-lang/rust/issues/78586>\n    = note: this field contains `vstd::prelude::Ghost<vstd::prelude::nat>`, which contains private fields, so it could become non-zero-sized in the future.\n    = note: `#[deny(repr_transparent_non_zst_fields)]` (part of `#[deny(future_incompatible)]`) on by default\n\nerror: aborting due to 1 previous error\n\n",
+    "stderr_tail": "error: zero-sized fields in `repr(transparent)` cannot contain external types with private fields\n   --> /tmp/specdet_sf_new_entry_3d_dflj5/impl_u__l2_impl__impl0__new_entry.rs:129:5\n    |\n129 |     pub layer: Ghost<nat>,\n    |     ^^^^^^^^^^^^^^^^^^^^^\n    |\n    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!\n    = note: for more information, see issue #78586 <https://github.com/rust-lang/rust/issues/78586>\n    = note: this field contains `vstd::prelude::Ghost<vstd::prelude::nat>`, which contains private fields, so it could become non-zero-sized in the future.\n    = note: `#[deny(repr_transparent_non_zst_fields)]` (part of `#[deny(future_incompatible)]`) on by default\n\nerror: aborting due to 1 previous error\n\n",
     "artifact_key": "nrkernel__verified__impl_u__l2_impl__impl_u__l2_impl__impl0__new_entry__new_entry"
   },
   {
@@ -24,10 +24,10 @@
     "function": "MAX_PHYADDR",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 511,
+    "verus_ms": 499,
     "smt2_bytes": 104838,
-    "ctx_ms": 20,
-    "search_ms": 35,
+    "ctx_ms": 21,
+    "search_ms": 36,
     "n_rounds": 14,
     "assumes": [
       "r1 == 0",
@@ -35,7 +35,7 @@
       "!det_MAX_PHYADDR_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 570,
+    "total_ms": 558,
     "artifact_key": "nrkernel__verified__spec_t_mmu__defs__spec_t__mmu__defs__MAX_PHYADDR__MAX_PHYADDR"
   },
   {
@@ -43,16 +43,16 @@
     "function": "x86_arch_exec",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 405,
+    "verus_ms": 395,
     "smt2_bytes": 175527,
-    "ctx_ms": 20,
-    "search_ms": 25,
+    "ctx_ms": 21,
+    "search_ms": 26,
     "n_rounds": 2,
     "assumes": [
       "!det_x86_arch_exec_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 454,
+    "total_ms": 446,
     "artifact_key": "nrkernel__verified__spec_t_mmu__defs__spec_t__mmu__defs__x86_arch_exec__x86_arch_exec"
   },
   {
@@ -60,10 +60,10 @@
     "function": "MASK_ADDR",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 456,
+    "verus_ms": 466,
     "smt2_bytes": 102273,
-    "ctx_ms": 16,
-    "search_ms": 34,
+    "ctx_ms": 17,
+    "search_ms": 35,
     "n_rounds": 14,
     "assumes": [
       "r1 == 0",
@@ -71,7 +71,7 @@
       "!det_MASK_ADDR_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 509,
+    "total_ms": 522,
     "artifact_key": "nrkernel__verified__spec_t_mmu__translation__spec_t__mmu__translation__MASK_ADDR__MASK_ADDR"
   },
   {
@@ -79,10 +79,10 @@
     "function": "MASK_L1_PG_ADDR",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 366,
+    "verus_ms": 382,
     "smt2_bytes": 43457,
     "ctx_ms": 14,
-    "search_ms": 19,
+    "search_ms": 20,
     "n_rounds": 14,
     "assumes": [
       "r1 == 0",
@@ -90,7 +90,7 @@
       "!det_MASK_L1_PG_ADDR_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 402,
+    "total_ms": 419,
     "artifact_key": "nrkernel__verified__spec_t_mmu__translation__spec_t__mmu__translation__MASK_L1_PG_ADDR__MASK_L1_PG_ADDR"
   },
   {
@@ -98,7 +98,7 @@
     "function": "MASK_L2_PG_ADDR",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 381,
+    "verus_ms": 358,
     "smt2_bytes": 43457,
     "ctx_ms": 14,
     "search_ms": 19,
@@ -109,7 +109,7 @@
       "!det_MASK_L2_PG_ADDR_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 417,
+    "total_ms": 395,
     "artifact_key": "nrkernel__verified__spec_t_mmu__translation__spec_t__mmu__translation__MASK_L2_PG_ADDR__MASK_L2_PG_ADDR"
   },
   {
@@ -117,9 +117,9 @@
     "function": "MASK_L3_PG_ADDR",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 467,
+    "verus_ms": 435,
     "smt2_bytes": 103132,
-    "ctx_ms": 17,
+    "ctx_ms": 16,
     "search_ms": 34,
     "n_rounds": 14,
     "assumes": [
@@ -128,7 +128,7 @@
       "!det_MASK_L3_PG_ADDR_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 522,
+    "total_ms": 488,
     "artifact_key": "nrkernel__verified__spec_t_mmu__translation__spec_t__mmu__translation__MASK_L3_PG_ADDR__MASK_L3_PG_ADDR"
   }
 ]

@@ -6,18 +6,18 @@
 |---|---:|---:|---:|---:|---:|---:|---:|
 | anvil-controller | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | anvil-library | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
-| atmosphere | 1363 | 757 | 757 | 3 | 602 | 0 | 1 |
-| ironkv | 214 | 85 | 68 | 0 | 129 | 0 | 0 |
-| memory-allocator | 16 | 10 | 5 | 4 | 2 | 0 | 0 |
+| atmosphere | 1363 | 1079 | 1079 | 3 | 280 | 0 | 1 |
+| ironkv | 214 | 137 | 99 | 3 | 74 | 0 | 0 |
+| memory-allocator | 16 | 11 | 6 | 4 | 1 | 0 | 0 |
 | node-replication | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | nrkernel | 8 | 6 | 6 | 0 | 2 | 0 | 0 |
 | storage | 43 | 0 | 0 | 0 | 43 | 0 | 0 |
 | vest | 2 | 2 | 1 | 0 | 0 | 0 | 0 |
-| **TOTAL** | **1647** | **860** | **837** | **7** | **779** | **0** | — |
+| **TOTAL** | **1647** | **1235** | **1191** | **10** | **401** | **0** | — |
 
 ## Targets with determinism witnesses
 
-### atmosphere (757 witness-bearing)
+### atmosphere (1079 witness-bearing)
 
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
@@ -77,6 +77,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__alloc_and_map_2m`  (rounds=2)
   - `!det_alloc_and_map_2m_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_state`  (rounds=9)
@@ -107,6 +109,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__alloc_and_map_4k`  (rounds=2)
   - `!det_alloc_and_map_4k_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_state`  (rounds=9)
@@ -137,6 +141,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__alloc_and_map_io_4k`  (rounds=2)
   - `!det_alloc_and_map_io_4k_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_state`  (rounds=9)
@@ -167,6 +173,10 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__alloc_page_2m`  (rounds=2)
+  - `!det_alloc_page_2m_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__set_state`  (rounds=9)
   - `index == 0`
   - `state is Unavailable4k`
@@ -181,6 +191,10 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__set_state`  (rounds=9)
   - `index == 0`
   - `state is Unavailable4k`
@@ -195,6 +209,10 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__alloc_page_4k_for_new_container`  (rounds=2)
+  - `!det_alloc_page_4k_for_new_container_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__set_state`  (rounds=9)
   - `index == 0`
   - `state is Unavailable4k`
@@ -209,6 +227,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__set_state`  (rounds=9)
   - `index == 0`
   - `state is Unavailable4k`
@@ -226,9 +246,16 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__remove`  (rounds=2)
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merged_4k_to_2m`  (rounds=8)
   - `target_page_idx == 0`
   - `!det_merged_4k_to_2m_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merge_4k_pages_to_2m_page`  (rounds=8)
   - `target_page_idx == 0`
   - `!det_merge_4k_pages_to_2m_page_equal(r1, r2)`
@@ -296,6 +323,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__remove_mapping_4k_helper2`  (rounds=2)
   - `!det_remove_mapping_4k_helper2_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_state`  (rounds=9)
@@ -345,6 +374,31 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_page_index2page_ptr_equal(r1, r2)`
+- `atmosphere__verified__array__array__impl2__init2zero__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl2__init2zero__init2zero`  (rounds=2)
+  - `!det_init2zero_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl3__init2zero__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl3__init2zero__init2zero`  (rounds=2)
+  - `!det_init2zero_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl4__init2none__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl4__init2none__init2none`  (rounds=2)
+  - `!det_init2none_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__init__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__init__init`  (rounds=2)
+  - `!det_init_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__new__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -356,6 +410,14 @@
   - `!det_usize2pa_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__alloc_and_map_4k`  (rounds=2)
   - `!det_alloc_and_map_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -397,6 +459,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -408,6 +473,14 @@
   - `!det_usize2pa_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__alloc_and_map_io_4k`  (rounds=2)
   - `!det_alloc_and_map_io_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -449,6 +522,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -458,6 +534,10 @@
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -507,6 +587,10 @@
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_io_space_va_range_free__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_io_space_va_range_free__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_io_space_va_range_free__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_io_space_va_range_free__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -556,6 +640,14 @@
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -567,6 +659,8 @@
   - `self_.len == 1`
   - `i == 0`
   - `!det_index_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__create_entry_and_alloc_and_map`  (rounds=2)
+  - `!det_create_entry_and_alloc_and_map_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
   - `r1 == 0`
@@ -591,6 +685,14 @@
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -602,6 +704,8 @@
   - `self_.len == 1`
   - `i == 0`
   - `!det_index_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__create_entry_and_alloc_and_map_io`  (rounds=2)
+  - `!det_create_entry_and_alloc_and_map_io_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
   - `r1 == 0`
@@ -630,6 +734,10 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_get_page_reference_counter_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__check_address_space_va_range_shareable__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__check_address_space_va_range_shareable__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__check_address_space_va_range_shareable__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -679,6 +787,14 @@
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -708,6 +824,8 @@
   - `r1 == 0`
   - `r2 == 0`
   - `!det_create_entry_and_share_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__create_entry`  (rounds=2)
+  - `!det_create_entry_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
   - `r1 == 0`
@@ -732,6 +850,14 @@
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -773,6 +899,14 @@
   - `!det_usize2pa_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__add_mapping_4k`  (rounds=2)
   - `!det_add_mapping_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -813,6 +947,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -822,6 +959,14 @@
 - `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -859,6 +1004,12 @@
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -868,6 +1019,8 @@
   - `!det_get_payload_as_va_range_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__free_page_table`  (rounds=2)
   - `!det_free_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__kill_process_none_root`  (rounds=2)
+  - `!det_kill_process_none_root_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__helper_kernel_kill_proc_non_root`  (rounds=2)
   - `!det_helper_kernel_kill_proc_non_root_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__page_ptr2page_index`  (rounds=20)
@@ -894,6 +1047,12 @@
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -903,6 +1062,8 @@
   - `!det_get_payload_as_va_range_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__free_page_table`  (rounds=2)
   - `!det_free_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__kill_process_root`  (rounds=2)
+  - `!det_kill_process_root_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__helper_kernel_kill_proc_root`  (rounds=2)
   - `!det_helper_kernel_kill_proc_root_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__page_ptr2page_index`  (rounds=20)
@@ -929,6 +1090,12 @@
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -936,6 +1103,12 @@
   - `r2 is Some`
   - `r2->Some_0.len == 0`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_scheduled_thread`  (rounds=2)
+  - `!det_kill_scheduled_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_running_thread`  (rounds=2)
+  - `!det_kill_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_blocked_thread`  (rounds=2)
+  - `!det_kill_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kernel_drop_endpoint`  (rounds=2)
   - `!det_kernel_drop_endpoint_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kernel_kill_thread`  (rounds=2)
@@ -964,6 +1137,12 @@
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -999,6 +1178,16 @@
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1061,6 +1250,8 @@
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__set_container_mem_quota_mem_4k`  (rounds=8)
   - `new_quota == 0`
   - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__create_entry`  (rounds=2)
+  - `!det_create_entry_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
   - `r1 == 0`
@@ -1086,6 +1277,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -1095,6 +1289,16 @@
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1157,6 +1361,8 @@
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__set_container_mem_quota_mem_4k`  (rounds=8)
   - `new_quota == 0`
   - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__create_iommu_table_entry`  (rounds=2)
+  - `!det_create_iommu_table_entry_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__page_ptr2page_index`  (rounds=20)
   - `ptr == 0`
   - `r1 == 0`
@@ -1182,6 +1388,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -1191,6 +1400,10 @@
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1245,6 +1458,14 @@
 - `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1416,6 +1637,12 @@
 - `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_io_mmap__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_io_mmap__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_io_mmap__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_io_mmap__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_io_mmap__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1450,6 +1677,12 @@
 - `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_mmap_to_iommu_table__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_mmap_to_iommu_table__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_mmap_to_iommu_table__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_mmap_to_iommu_table__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_io_mmap__impl0__syscall_mmap_to_iommu_table__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1484,6 +1717,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1521,6 +1762,18 @@
 - `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__alloc_page_4k_for_new_container`  (rounds=2)
+  - `!det_alloc_page_4k_for_new_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__get_endpoint_ptr_by_endpoint_idx`  (rounds=4)
   - `r1 is Some`
   - `r2 is Some`
@@ -1607,6 +1860,16 @@
 - `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__get_endpoint_ptr_by_endpoint_idx`  (rounds=4)
   - `r1 is Some`
   - `r2 is Some`
@@ -1688,6 +1951,16 @@
 - `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__get_endpoint_ptr_by_endpoint_idx`  (rounds=4)
   - `r1 is Some`
   - `r2 is Some`
@@ -1738,6 +2011,16 @@
 - `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_container_by_proc_ptr`  (rounds=2)
+  - `!det_get_container_by_proc_ptr_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_owning_proc_by_thread_ptr`  (rounds=2)
   - `!det_get_owning_proc_by_thread_ptr_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__get_payload_as_va_range`  (rounds=17)
@@ -1829,6 +2112,18 @@
 - `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__alloc_page_4k`  (rounds=2)
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_container_by_proc_ptr`  (rounds=2)
+  - `!det_get_container_by_proc_ptr_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_owning_proc_by_thread_ptr`  (rounds=2)
   - `!det_get_owning_proc_by_thread_ptr_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__get_endpoint_ptr_by_endpoint_idx`  (rounds=4)
@@ -1900,6 +2195,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -1998,6 +2301,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2044,6 +2355,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2119,6 +2438,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2184,6 +2511,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2305,6 +2640,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2353,6 +2696,16 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_cpu`  (rounds=2)
+  - `!det_get_cpu_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2373,6 +2726,30 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__NoSwitchNew`  (rounds=3)
   - `error_code is SuccessUsize`
   - `!det_NoSwitchNew_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__unwrap`  (rounds=129)
+  - `self_.reg.r15 == 0`
+  - `self_.reg.r14 == 0`
+  - `self_.reg.r13 == 0`
+  - `self_.reg.r12 == 0`
+  - `self_.reg.rbp == 0`
+  - `self_.reg.rbx == 0`
+  - `self_.reg.r11 == 0`
+  - `self_.reg.r10 == 0`
+  - `self_.reg.r9 == 0`
+  - `self_.reg.r8 == 0`
+  - `self_.reg.rcx == 0`
+  - `self_.reg.rdx == 0`
+  - `self_.reg.rsi == 0`
+  - `self_.reg.rdi == 0`
+  - `self_.reg.rax == 0`
+  - `self_.reg.error_code == 0`
+  - `self_.reg.rip == 0`
+  - `self_.reg.cs == 0`
+  - `self_.reg.flags == 0`
+  - `self_.reg.rsp == 0`
+  - `self_.reg.ss == 0`
+  - `self_.exists == true`
+  - `!det_unwrap_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__schedule_running_thread`  (rounds=128)
   - `pt_regs.r15 == 0`
   - `pt_regs.r14 == 0`
@@ -2554,6 +2931,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2620,6 +3005,14 @@
 - `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__get_payload_as_va_range`  (rounds=17)
   - `self_ is Message`
   - `r1 is Some`
@@ -2678,6 +3071,11 @@
   - `!det_usize2pa_equal(r1, r2)`
 - `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__alloc_iommu_table`  (rounds=2)
   - `!det_alloc_iommu_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__pop_unique`  (rounds=2)
+  - `!det_pop_unique_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -2689,6 +3087,11 @@
   - `!det_usize2pa_equal(r1, r2)`
 - `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__alloc_page_table`  (rounds=2)
   - `!det_alloc_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__pop_unique`  (rounds=2)
+  - `!det_pop_unique_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__create_iommu_table_l2_entry__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -2852,6 +3255,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__resolve_iommu_table_mapping__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__resolve_pagetable_mapping__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -2961,6 +3367,9 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_va_1g_valid_equal(r1, r2)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__resolve_pagetable_mapping__va2index`  (rounds=8)
+  - `va == 0`
+  - `!det_va2index_equal(r1, r2)`
 - `atmosphere__verified__pagetable__pagetable__entry__page_entry2usize__usize2page_entry_perm`  (rounds=8)
   - `v == 0`
   - `!det_usize2page_entry_perm_equal(r1, r2)`
@@ -2993,6 +3402,9 @@
 - `atmosphere__verified__pagetable__pagetable__pagemap__impl0__init__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__pagemap__impl0__init__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__pagetable__pagetable__pagemap__impl0__set__set`  (rounds=13)
   - `index == 0`
   - `value.perm.present == true`
@@ -3448,6 +3860,17 @@
 - `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l2_entry__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l2_entry__remove_l2_entry`  (rounds=26)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `!det_remove_l2_entry_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l2_entry__va_4k_valid`  (rounds=10)
   - `va == 0`
   - `r1 == true`
@@ -3472,6 +3895,17 @@
 - `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l3_entry__usize2pa`  (rounds=8)
   - `v == 0`
   - `!det_usize2pa_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l3_entry__remove_l3_entry`  (rounds=26)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `!det_remove_l3_entry_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l3_entry__va_4k_valid`  (rounds=10)
   - `va == 0`
   - `r1 == true`
@@ -3534,11 +3968,22 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_container_tree_check_is_ancestor_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__endpoint_push`  (rounds=2)
   - `!det_endpoint_push_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__block_running_thread`  (rounds=3)
@@ -3552,11 +3997,22 @@
   - `ipc_payload is Message`
   - `blocking_endpoint_index is Some`
   - `!det_thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__endpoint_push_and_set_state`  (rounds=3)
   - `queue_state is RECEIVE`
   - `!det_endpoint_push_and_set_state_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
@@ -3572,11 +4028,46 @@
   - `ipc_payload is Message`
   - `blocking_endpoint_index is Some`
   - `!det_thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__unwrap`  (rounds=129)
+  - `self_.reg.r15 == 0`
+  - `self_.reg.r14 == 0`
+  - `self_.reg.r13 == 0`
+  - `self_.reg.r12 == 0`
+  - `self_.reg.rbp == 0`
+  - `self_.reg.rbx == 0`
+  - `self_.reg.r11 == 0`
+  - `self_.reg.r10 == 0`
+  - `self_.reg.r9 == 0`
+  - `self_.reg.r8 == 0`
+  - `self_.reg.rcx == 0`
+  - `self_.reg.rdx == 0`
+  - `self_.reg.rsi == 0`
+  - `self_.reg.rdi == 0`
+  - `self_.reg.rax == 0`
+  - `self_.reg.error_code == 0`
+  - `self_.reg.rip == 0`
+  - `self_.reg.cs == 0`
+  - `self_.reg.flags == 0`
+  - `self_.reg.rsp == 0`
+  - `self_.reg.ss == 0`
+  - `self_.exists == true`
+  - `!det_unwrap_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__endpoint_push_and_set_state`  (rounds=3)
   - `queue_state is RECEIVE`
   - `!det_endpoint_push_and_set_state_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
@@ -3636,11 +4127,46 @@
   - `pt_regs.rsp == 0`
   - `pt_regs.ss == 0`
   - `!det_thread_set_trap_frame_fast_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__unwrap`  (rounds=129)
+  - `self_.reg.r15 == 0`
+  - `self_.reg.r14 == 0`
+  - `self_.reg.r13 == 0`
+  - `self_.reg.r12 == 0`
+  - `self_.reg.rbp == 0`
+  - `self_.reg.rbx == 0`
+  - `self_.reg.r11 == 0`
+  - `self_.reg.r10 == 0`
+  - `self_.reg.r9 == 0`
+  - `self_.reg.r8 == 0`
+  - `self_.reg.rcx == 0`
+  - `self_.reg.rdx == 0`
+  - `self_.reg.rsi == 0`
+  - `self_.reg.rdi == 0`
+  - `self_.reg.rax == 0`
+  - `self_.reg.error_code == 0`
+  - `self_.reg.rip == 0`
+  - `self_.reg.cs == 0`
+  - `self_.reg.flags == 0`
+  - `self_.reg.rsp == 0`
+  - `self_.reg.ss == 0`
+  - `self_.exists == true`
+  - `!det_unwrap_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__endpoint_push`  (rounds=2)
   - `!det_endpoint_push_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__block_running_thread_and_set_trap_frame`  (rounds=129)
@@ -3698,6 +4224,12 @@
   - `pt_regs.rsp == 0`
   - `pt_regs.ss == 0`
   - `!det_thread_set_trap_frame_fast_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__container_check_is_ancestor__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__container_check_is_ancestor__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__container_check_is_ancestor__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__container_check_is_ancestor__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3711,6 +4243,14 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_container_check_is_ancestor_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3721,11 +4261,21 @@
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__container_set_quota_mem_4k`  (rounds=8)
   - `value == 0`
   - `!det_container_set_quota_mem_4k_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__page_to_endpoint_with_thread_and_container`  (rounds=2)
+  - `!det_page_to_endpoint_with_thread_and_container_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__new_endpoint`  (rounds=2)
   - `!det_new_endpoint_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__thread_set_endpoint_descriptor`  (rounds=3)
   - `endpoint_op is Some`
   - `!det_thread_set_endpoint_descriptor_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3738,6 +4288,14 @@
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__thread_set_endpoint_descriptor`  (rounds=3)
   - `endpoint_op is Some`
   - `!det_thread_set_endpoint_descriptor_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3745,6 +4303,8 @@
   - `!det_get_payload_as_va_range_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__scheduler_push_thread`  (rounds=2)
   - `!det_scheduler_push_thread_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__endpoint_pop_head`  (rounds=2)
+  - `!det_endpoint_pop_head_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__schedule_blocked_thread`  (rounds=2)
   - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`  (rounds=8)
@@ -3755,6 +4315,14 @@
   - `ipc_payload is Message`
   - `blocking_endpoint_index is Some`
   - `!det_thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3766,6 +4334,14 @@
 - `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__set_container_mem_quota_mem_4k`  (rounds=8)
   - `new_quota == 0`
   - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3775,6 +4351,8 @@
   - `!det_container_pop_endpoint_equal(r1, r2, post1_container_perm, post2_container_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__endpoint_remove_ref`  (rounds=2)
   - `!det_endpoint_remove_ref_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__endpoint_to_page`  (rounds=2)
+  - `!det_endpoint_to_page_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__drop_endpoint`  (rounds=4)
   - `r1 is Some`
   - `r2 is Some`
@@ -3782,30 +4360,70 @@
 - `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__thread_set_endpoint_descriptor`  (rounds=3)
   - `endpoint_op is Some`
   - `!det_thread_set_endpoint_descriptor_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__get_cpu`  (rounds=2)
+  - `!det_get_cpu_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__container_insert_cpu`  (rounds=2)
   - `!det_container_insert_cpu_equal(r1, r2, post1_container_perm, post2_container_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__container_remove_cpu`  (rounds=2)
   - `!det_container_remove_cpu_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__container_remove_proc`  (rounds=2)
   - `!det_container_remove_proc_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__kill_process_none_root`  (rounds=2)
+  - `!det_kill_process_none_root_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_remove_child`  (rounds=2)
   - `!det_proc_remove_child_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_to_page`  (rounds=2)
+  - `!det_proc_to_page_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_perms_remove_subtree_set`  (rounds=2)
   - `!det_proc_perms_remove_subtree_set_equal(r1, r2, post1_perms, post2_perms)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__container_set_owned_threads`  (rounds=2)
   - `!det_container_set_owned_threads_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__kill_running_thread`  (rounds=2)
+  - `!det_kill_running_thread_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__proc_remove_thread`  (rounds=2)
   - `!det_proc_remove_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__thread_to_page`  (rounds=2)
+  - `!det_thread_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
@@ -3815,8 +4433,20 @@
   - `!det_scheduler_remove_thread_equal(r1, r2, post1_container_perm, post2_container_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__container_set_owned_threads`  (rounds=2)
   - `!det_container_set_owned_threads_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__kill_scheduled_thread`  (rounds=2)
+  - `!det_kill_scheduled_thread_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__proc_remove_thread`  (rounds=2)
   - `!det_proc_remove_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__thread_to_page`  (rounds=2)
+  - `!det_thread_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__get_endpoint_ptr_by_endpoint_idx`  (rounds=4)
   - `r1 is Some`
   - `r2 is Some`
@@ -3834,6 +4464,32 @@
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__unwrap`  (rounds=129)
+  - `self_.reg.r15 == 0`
+  - `self_.reg.r14 == 0`
+  - `self_.reg.r13 == 0`
+  - `self_.reg.r12 == 0`
+  - `self_.reg.rbp == 0`
+  - `self_.reg.rbx == 0`
+  - `self_.reg.r11 == 0`
+  - `self_.reg.r10 == 0`
+  - `self_.reg.r9 == 0`
+  - `self_.reg.r8 == 0`
+  - `self_.reg.rcx == 0`
+  - `self_.reg.rdx == 0`
+  - `self_.reg.rsi == 0`
+  - `self_.reg.rdi == 0`
+  - `self_.reg.rax == 0`
+  - `self_.reg.error_code == 0`
+  - `self_.reg.rip == 0`
+  - `self_.reg.cs == 0`
+  - `self_.reg.flags == 0`
+  - `self_.reg.rsp == 0`
+  - `self_.reg.ss == 0`
+  - `self_.exists == true`
+  - `!det_unwrap_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__subtract_mem_4k`  (rounds=98)
   - `pre_self_.mem_4k == 0`
   - `pre_self_.mem_2m == 0`
@@ -3867,10 +4523,57 @@
   - `!det_container_set_quota_equal(r1, r2, post1_container_perm, post2_container_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_set_owned_threads`  (rounds=2)
   - `!det_container_set_owned_threads_equal(r1, r2, post1_container_perm, post2_container_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__page_to_container_tree_version_1`  (rounds=39)
+  - `init_quota.mem_4k == 0`
+  - `init_quota.mem_2m == 0`
+  - `init_quota.mem_1g == 0`
+  - `init_quota.pcid == 0`
+  - `init_quota.ioid == 0`
+  - `depth == 0`
+  - `root_process is Some`
+  - `!det_page_to_container_tree_version_1_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_perms_update_subtree_set`  (rounds=2)
   - `!det_container_perms_update_subtree_set_equal(r1, r2, post1_perms, post2_perms)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__endpoint_add_ref`  (rounds=2)
   - `!det_endpoint_add_ref_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__page_to_proc_with_first_thread`  (rounds=11)
+  - `ioid is Some`
+  - `parent is Some`
+  - `parent_rev_ptr is Some`
+  - `depth == 0`
+  - `!det_page_to_proc_with_first_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__get_container_by_proc_ptr`  (rounds=2)
+  - `!det_get_container_by_proc_ptr_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__unwrap`  (rounds=129)
+  - `self_.reg.r15 == 0`
+  - `self_.reg.r14 == 0`
+  - `self_.reg.r13 == 0`
+  - `self_.reg.r12 == 0`
+  - `self_.reg.rbp == 0`
+  - `self_.reg.rbx == 0`
+  - `self_.reg.r11 == 0`
+  - `self_.reg.r10 == 0`
+  - `self_.reg.r9 == 0`
+  - `self_.reg.r8 == 0`
+  - `self_.reg.rcx == 0`
+  - `self_.reg.rdx == 0`
+  - `self_.reg.rsi == 0`
+  - `self_.reg.rdi == 0`
+  - `self_.reg.rax == 0`
+  - `self_.reg.error_code == 0`
+  - `self_.reg.rip == 0`
+  - `self_.reg.cs == 0`
+  - `self_.reg.flags == 0`
+  - `self_.reg.rsp == 0`
+  - `self_.reg.ss == 0`
+  - `self_.exists == true`
+  - `!det_unwrap_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__scheduler_push_thread`  (rounds=2)
   - `!det_scheduler_push_thread_equal(r1, r2, post1_container_perm, post2_container_perm)`
 - `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__container_set_quota_mem_4k`  (rounds=8)
@@ -3907,36 +4610,140 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_proc_tree_check_is_ancestor_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_owned_procs_disjoint_inv__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_owned_procs_disjoint_inv__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_owned_procs_disjoint_inv__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_owned_procs_disjoint_inv__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_disjoint_inv__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_disjoint_inv__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_disjoint_inv__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_disjoint_inv__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_inv__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_inv__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_inv__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__container_subtree_inv__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__endpoint_inv__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__endpoint_inv__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__endpoint_inv__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__endpoint_inv__get_endpoint`  (rounds=2)
+  - `!det_get_endpoint_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__endpoint_inv__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__proc_tree_root_inv__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__proc_tree_root_inv__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__proc_tree_root_inv__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__proc_tree_root_inv__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__same_or_deeper_depth_imply_none_ancestor__get_container`  (rounds=2)
+  - `!det_get_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__same_or_deeper_depth_imply_none_ancestor__get_proc`  (rounds=2)
+  - `!det_get_proc_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__same_or_deeper_depth_imply_none_ancestor__get_thread`  (rounds=2)
+  - `!det_get_thread_equal(r1, r2)`
 - `atmosphere__verified__process_manager__process_manager__spec_proof__impl2__same_or_deeper_depth_imply_none_ancestor__get_payload_as_va_range`  (rounds=7)
   - `self_ is Message`
   - `r1 is None`
   - `r2 is None`
   - `!det_get_payload_as_va_range_equal(r1, r2)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__init`  (rounds=2)
+  - `!det_init_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_value`  (rounds=3)
+  - `v is Some`
+  - `!det_set_value_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_value`  (rounds=3)
+  - `v is Some`
+  - `!det_set_value_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__remove_helper1`  (rounds=2)
+  - `!det_remove_helper1_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__remove_helper2`  (rounds=2)
+  - `!det_remove_helper2_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__remove_helper3`  (rounds=2)
+  - `!det_remove_helper3_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__remove_helper4`  (rounds=2)
+  - `!det_remove_helper4_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__remove_helper5`  (rounds=2)
+  - `!det_remove_helper5_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__remove_helper6`  (rounds=2)
+  - `!det_remove_helper6_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__remove_helper7`  (rounds=2)
+  - `!det_remove_helper7_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
 - `atmosphere__verified__util__util__page_ptr_util_u__page_index2page_ptr__page_index2page_ptr`  (rounds=20)
   - `i == 0`
   - `r1 == 0`
@@ -4052,10 +4859,61 @@
   - `len == 0`
   - `!det_new_equal(r1, r2)`
 
-### ironkv (68 witness-bearing)
+### ironkv (99 witness-bearing)
 
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove`  (rounds=8)
+  - `i == 0`
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_erase_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_insert__insert`  (rounds=14)
+  - `r1 == 0`
+  - `r2 == 0`
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_remove__remove`  (rounds=8)
+  - `i == 0`
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__erase__erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_erase_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__erase__vec_erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__insert`  (rounds=14)
+  - `r1 == 0`
+  - `r2 == 0`
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__get_internal`  (rounds=2)
+  - `!det_get_internal_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__clone_end_point`  (rounds=2)
   - `!det_clone_end_point_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl5__delegate_for_key_range_is_host_impl__get`  (rounds=2)
+  - `!det_get_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl5__delegate_for_key_range_is_host_impl__delegate_for_key_range_is_host_impl`  (rounds=4)
+  - `r1 == true`
+  - `r2 == true`
+  - `!det_delegate_for_key_range_is_host_impl_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__vec_erase__vec_erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__deliver_packet_seq__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__is_message_marshallable`  (rounds=5)
@@ -4063,6 +4921,8 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_is_message_marshallable_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__endpoints_contain`  (rounds=4)
@@ -4116,6 +4976,12 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_is_message_marshallable_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__delegate_for_key_range_is_host_impl`  (rounds=4)
+  - `r1 == true`
+  - `r2 == true`
+  - `!det_delegate_for_key_range_is_host_impl_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__extract_range_impl`  (rounds=2)
   - `!det_extract_range_impl_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__len`  (rounds=14)
@@ -4145,6 +5011,8 @@
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__retransmit_un_acked_packets`  (rounds=2)
+  - `!det_retransmit_un_acked_packets_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__parse_end_points__parse_end_point`  (rounds=2)
   - `!det_parse_end_point_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__parse_end_points__parse_end_points`  (rounds=4)
@@ -4167,6 +5035,8 @@
   - `!det_should_process_received_message_impl_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__process_received_packet_next__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__parse_command_line_configuration`  (rounds=28)
   - `r1 is Some`
   - `r1->Some_0.params.max_seqno == 0`
@@ -4197,14 +5067,26 @@
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__clone_up_to_view`  (rounds=2)
   - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__lookup`  (rounds=14)
   - `r1 == 0`
   - `r2 == 0`
   - `!det_lookup_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__maybe_ack_packet_impl`  (rounds=4)
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_maybe_ack_packet_impl_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view`  (rounds=2)
   - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__lookup`  (rounds=14)
   - `r1 == 0`
   - `r2 == 0`
@@ -4232,6 +5114,10 @@
   - `r1 == true`
   - `r2 == true`
   - `!det_receive_real_packet_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__maybe_ack_packet_impl`  (rounds=4)
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_maybe_ack_packet_impl_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_impl`  (rounds=2)
   - `!det_receive_impl_equal(r1, r2, post1_self_, post2_self_)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets_for_dst__clone_up_to_view`  (rounds=2)
@@ -4268,14 +5154,20 @@
   - `!det_clone_up_to_view_equal(r1, r2)`
 - `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list__clone_up_to_view`  (rounds=2)
   - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
 - `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__to_vec`  (rounds=2)
   - `!det_to_vec_equal(r1, r2)`
 - `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__valid_physical_address`  (rounds=4)
   - `r1 == true`
   - `r2 == true`
   - `!det_valid_physical_address_equal(r1, r2)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
 
-### memory-allocator (5 witness-bearing)
+### memory-allocator (6 witness-bearing)
 
 - `memory-allocator__verified__commit_mask__commit_mask__impl__clear__clear`  (rounds=2)
   - `!det_clear_equal(r1, r2, post1_self_, post2_self_)`
@@ -4285,6 +5177,9 @@
   - `!det_create_intersect_equal(r1, r2, post1_res, post2_res)`
 - `memory-allocator__verified__commit_mask__commit_mask__impl__empty__empty`  (rounds=2)
   - `!det_empty_equal(r1, r2)`
+- `memory-allocator__verified__commit_mask__commit_mask__impl__next_run__next_run`  (rounds=8)
+  - `idx == 0`
+  - `!det_next_run_equal(r1, r2)`
 - `memory-allocator__verified__commit_mask__commit_mask__impl__set__set`  (rounds=2)
   - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 
@@ -4321,29 +5216,13 @@
 
 ## Failure-mode samples
 
-### status=`verus_error`  (779 cases)
+### status=`verus_error`  (401 cases)
 
 **anvil-library / anvil-library__verified__vstd_exd__vec_lib__vec_lib__vec_filter**
 
 ```
-might be missing a type parameter
-   |
-52 | proof fn det_vec_filter<V>(g_neq_tuple: bool, v: Vec<V>, f: impl Fn(&V)->bool, f_spec: spec_fn(V)->bool, r1: Vec<V>, r2: Vec<V>)
-   |                        +++
-
-error[E0425]: cannot find type `V` in this scope
-  --> /tmp/specdet_sf_vec_filter_kicnvoxm/vec_lib.rs:53:70
-   |
-53 |     requires (forall|v: V| #[trigger] f.requires((&v,))), (forall |v:V,r:bool| f.ensures((&v,), r) ==> f_spec(v)...
-   |                                                                      ^ not found in this scope
-   |
-help: you might be missing a type parameter
-   |
-52 | proof fn det_vec_filter<V>(g_neq_tuple: bool, v: Vec<V>, f: impl Fn(&V)->bool, f_spec: spec_fn(V)->bool, r1: Vec<V>, r2: Vec<V>)
-   |                        +++
-
 error[E0425]: cannot find function `lemma_seq_properties` in this scope
-  --> /tmp/specdet_sf_vec_filter_kicnvoxm/vec_lib.rs:31:17
+  --> /tmp/specdet_sf_vec_filter_k5bhkte8/vec_lib.rs:31:17
    |
 31 |         proof { lemma_seq_properties::<V>(); }
    |                 ^^^^^^^^^^^^^^^^^^^^
@@ -4358,7 +5237,7 @@ help: a function with a similar name exists
 31 +         proof { group_seq_properties::<V>(); }
    |
 
-error: aborting due to 10 previous errors
+error: aborting due to 1 previous error
 
 For more information about this error, try `rustc --explain E0425`.
 ```
@@ -4366,60 +5245,138 @@ For more information about this error, try `rustc --explain E0425`.
 **atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped__len**
 
 ```
-error[E0411]: cannot find type `Self` in this scope
-   --> /tmp/specdet_sf_len_10luxcul/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs:694:206
+d.rs:690:26
     |
-694 | ...fn det_len(g_r1_eq: bool, k_r1_eq: int, g_r1_rng: bool, k_r1_rng_lo: int, k_r1_rng_hi: int, g_r2_eq: bool, k_r2_eq: int, g_r2_rng: bool, k_r2_rng_lo: int, k_r2_rng_hi: int, g_neq_tuple: bool, self_: Self, r...
-    |       ------- `Self` not allowed in a function                                                                                                                                                            ^^^^ `Self` is only available in impls, traits, and type definitions
+690 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+    |
+703 |         }) ==> det_len_equal::<T, N>(r1, r2),
+    |                             ++++++++
 
-error: aborting due to 1 previous error
+error[E0284]: type annotations needed
+   --> /tmp/specdet_sf_len_v15o_mov/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs:709:30
+    |
+709 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
+    |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
+    |
+note: required by a const generic parameter in `det_len_equal`
+   --> /tmp/specdet_sf_len_v15o_mov/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs:690:26
+    |
+690 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+    |
+709 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
+    |                                           ++++++++
 
-For more information about this error, try `rustc --explain E0411`.
+error: aborting due to 2 previous errors; 4 warnings emitted
+
+For more information about this error, try `rustc --explain E0284`.
 ```
 
 **atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped__len**
 
 ```
-error[E0411]: cannot find type `Self` in this scope
-   --> /tmp/specdet_sf_len_eapttpl_/allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped.rs:776:206
+6
     |
-776 | ...fn det_len(g_r1_eq: bool, k_r1_eq: int, g_r1_rng: bool, k_r1_rng_lo: int, k_r1_rng_hi: int, g_r2_eq: bool, k_r2_eq: int, g_r2_rng: bool, k_r2_rng_lo: int, k_r2_rng_hi: int, g_neq_tuple: bool, self_: Self, r...
-    |       ------- `Self` not allowed in a function                                                                                                                                                            ^^^^ `Self` is only available in impls, traits, and type definitions
+772 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+    |
+785 |         }) ==> det_len_equal::<T, N>(r1, r2),
+    |                             ++++++++
 
-error: aborting due to 1 previous error
+error[E0284]: type annotations needed
+   --> /tmp/specdet_sf_len_75zwd495/allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped.rs:791:30
+    |
+791 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
+    |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
+    |
+note: required by a const generic parameter in `det_len_equal`
+   --> /tmp/specdet_sf_len_75zwd495/allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped.rs:772:26
+    |
+772 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+    |
+791 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
+    |                                           ++++++++
 
-For more information about this error, try `rustc --explain E0411`.
+error: aborting due to 2 previous errors; 4 warnings emitted
+
+For more information about this error, try `rustc --explain E0284`.
 ```
 
 **atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__len**
 
 ```
-error[E0411]: cannot find type `Self` in this scope
-    --> /tmp/specdet_sf_len_7oif30u2/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1045:206
+1041:26
      |
-1045 | ...fn det_len(g_r1_eq: bool, k_r1_eq: int, g_r1_rng: bool, k_r1_rng_lo: int, k_r1_rng_hi: int, g_r2_eq: bool, k_r2_eq: int, g_r2_rng: bool, k_r2_rng_lo: int, k_r2_rng_hi: int, g_neq_tuple: bool, self_: Self, r...
-     |       ------- `Self` not allowed in a function                                                                                                                                                            ^^^^ `Self` is only available in impls, traits, and type definitions
+1041 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+     |
+1054 |         }) ==> det_len_equal::<T, N>(r1, r2),
+     |                             ++++++++
 
-error: aborting due to 1 previous error
+error[E0284]: type annotations needed
+    --> /tmp/specdet_sf_len_zx2o5cbi/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1060:30
+     |
+1060 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
+     |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
+     |
+note: required by a const generic parameter in `det_len_equal`
+    --> /tmp/specdet_sf_len_zx2o5cbi/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1041:26
+     |
+1041 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
+     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
+help: consider specifying the generic arguments
+     |
+1060 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
+     |                                           ++++++++
 
-For more information about this error, try `rustc --explain E0411`.
+error: aborting due to 2 previous errors; 4 warnings emitted
+
+For more information about this error, try `rustc --explain E0284`.
 ```
 
 **atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__get**
 
 ```
-error: unexpected token, expected `)`
-    --> /tmp/specdet_sf_get_rl45yad0/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1041:31
+pping_4k.rs:1041:26
      |
-1041 | spec fn det_get_equal(r1: (out: &A), r2: (out: &A)) -> bool {
-     |                               ^
+1041 | spec fn det_get_equal<A, const N: usize>(r1: &A, r2: &A) -> bool {
+     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_get_equal`
+help: consider specifying the generic arguments
+     |
+1051 |         }) ==> det_get_equal::<A, N>(r1, r2),
+     |                             ++++++++
 
-error: aborting due to 1 previous error
+error[E0284]: type annotations needed
+    --> /tmp/specdet_sf_get_d0v0o6at/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1055:30
+     |
+1055 |     if g_neq_tuple { assume(!det_get_equal(r1, r2)); }
+     |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_get_equal`
+     |
+note: required by a const generic parameter in `det_get_equal`
+    --> /tmp/specdet_sf_get_d0v0o6at/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1041:26
+     |
+1041 | spec fn det_get_equal<A, const N: usize>(r1: &A, r2: &A) -> bool {
+     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_get_equal`
+help: consider specifying the generic arguments
+     |
+1055 |     if g_neq_tuple { assume(!det_get_equal::<A, N>(r1, r2)); }
+     |                                           ++++++++
+
+error: aborting due to 2 previous errors; 4 warnings emitted
+
+For more information about this error, try `rustc --explain E0284`.
 ```
 
-_...and 774 more_
+_...and 396 more_
 
-### status=`search_error`  (7 cases)
+### status=`search_error`  (10 cases)
 
 **atmosphere / atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__new_proc_with_endpoint**
 
@@ -4475,11 +5432,11 @@ ization/spec-determinism/spec_determinism/schema_search/search.py", line 83, in 
 z3.z3types.Z3Exception: b'(error "line 2240 column 205: unknown constant %%lambda%%2 (Poly) ")\n'
 ```
 
-**memory-allocator / memory-allocator__verified__commit_mask__commit_mask__impl__create__create**
+**ironkv / ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets_for_dst**
 
 ```
-Z3Exception: b'(error "line 143 column 16: unknown constant %%lambda%%6 (Int Int) ")\n'
-zation/spec-determinism/spec_determinism/schema_search/search.py", line 83, in build_schema_ctx
+Z3Exception: b'(error "line 104 column 40: unknown constant %%lambda%%10")\n'
+nt_formalization/spec-determinism/spec_determinism/schema_search/search.py", line 83, in build_schema_ctx
     solver.from_string(body_clean)
     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
   File "/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py", line 7274, in from_string
@@ -4490,14 +5447,14 @@ zation/spec-determinism/spec_determinism/schema_search/search.py", line 83, in b
     ~~~~~~~~~~~~^^^^
   File "/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py", line 1554, in Check
     raise self.Exception(self.get_error_message(ctx, err))
-z3.z3types.Z3Exception: b'(error "line 143 column 16: unknown constant %%lambda%%6 (Int Int) ")\n'
+z3.z3types.Z3Exception: b'(error "line 104 column 40: unknown constant %%lambda%%10")\n'
 ```
 
-**memory-allocator / memory-allocator__verified__commit_mask__commit_mask__impl__create__create_full**
+**ironkv / ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets**
 
 ```
-Z3Exception: b'(error "line 50 column 8: unknown constant %%lambda%%6 (Int Int) ")\n'
-lization/spec-determinism/spec_determinism/schema_search/search.py", line 83, in build_schema_ctx
+Z3Exception: b'(error "line 103 column 41: unknown constant %%lambda%%10")\n'
+nt_formalization/spec-determinism/spec_determinism/schema_search/search.py", line 83, in build_schema_ctx
     solver.from_string(body_clean)
     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
   File "/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py", line 7274, in from_string
@@ -4508,10 +5465,10 @@ lization/spec-determinism/spec_determinism/schema_search/search.py", line 83, in
     ~~~~~~~~~~~~^^^^
   File "/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py", line 1554, in Check
     raise self.Exception(self.get_error_message(ctx, err))
-z3.z3types.Z3Exception: b'(error "line 50 column 8: unknown constant %%lambda%%6 (Int Int) ")\n'
+z3.z3types.Z3Exception: b'(error "line 103 column 41: unknown constant %%lambda%%10")\n'
 ```
 
-_...and 2 more_
+_...and 5 more_
 
 ### status=`runner_crash`  (1 cases)
 

@@ -4,14 +4,14 @@
     "function": "all_set",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 512,
+    "verus_ms": 516,
     "smt2_bytes": 148384,
-    "ctx_ms": 21,
+    "ctx_ms": 22,
     "search_ms": 18,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 556,
+    "total_ms": 561,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__all_set__all_set"
   },
   {
@@ -19,14 +19,14 @@
     "function": "any_set",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 462,
+    "verus_ms": 517,
     "smt2_bytes": 146655,
-    "ctx_ms": 19,
+    "ctx_ms": 20,
     "search_ms": 18,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 504,
+    "total_ms": 561,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__any_set__any_set"
   },
   {
@@ -34,16 +34,16 @@
     "function": "clear",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 407,
+    "verus_ms": 404,
     "smt2_bytes": 161342,
-    "ctx_ms": 18,
+    "ctx_ms": 19,
     "search_ms": 25,
     "n_rounds": 2,
     "assumes": [
       "!det_clear_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 456,
+    "total_ms": 454,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__clear__clear"
   },
   {
@@ -51,11 +51,11 @@
     "function": "create",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 844,
+    "verus_ms": 840,
     "smt2_bytes": 316901,
     "status": "search_error",
     "error": "Z3Exception: b'(error \"line 143 column 16: unknown constant %%lambda%%6 (Int Int) \")\\n'\nzation/spec-determinism/spec_determinism/schema_search/search.py\", line 83, in build_schema_ctx\n    solver.from_string(body_clean)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py\", line 7274, in from_string\n    Z3_solver_from_string(self.ctx.ref(), self.solver, s)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 4138, in Z3_solver_from_string\n    _elems.Check(a0)\n    ~~~~~~~~~~~~^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 1554, in Check\n    raise self.Exception(self.get_error_message(ctx, err))\nz3.z3types.Z3Exception: b'(error \"line 143 column 16: unknown constant %%lambda%%6 (Int Int) \")\\n'\n",
-    "total_ms": 873,
+    "total_ms": 869,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create__create"
   },
   {
@@ -63,11 +63,11 @@
     "function": "create_full",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 839,
+    "verus_ms": 829,
     "smt2_bytes": 309714,
     "status": "search_error",
     "error": "Z3Exception: b'(error \"line 50 column 8: unknown constant %%lambda%%6 (Int Int) \")\\n'\nlization/spec-determinism/spec_determinism/schema_search/search.py\", line 83, in build_schema_ctx\n    solver.from_string(body_clean)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py\", line 7274, in from_string\n    Z3_solver_from_string(self.ctx.ref(), self.solver, s)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 4138, in Z3_solver_from_string\n    _elems.Check(a0)\n    ~~~~~~~~~~~~^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 1554, in Check\n    raise self.Exception(self.get_error_message(ctx, err))\nz3.z3types.Z3Exception: b'(error \"line 50 column 8: unknown constant %%lambda%%6 (Int Int) \")\\n'\n",
-    "total_ms": 867,
+    "total_ms": 857,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create__create_full"
   },
   {
@@ -75,16 +75,16 @@
     "function": "create_empty",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 420,
+    "verus_ms": 423,
     "smt2_bytes": 184049,
-    "ctx_ms": 20,
+    "ctx_ms": 19,
     "search_ms": 30,
     "n_rounds": 2,
     "assumes": [
       "!det_create_empty_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 475,
+    "total_ms": 477,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create_empty__create_empty"
   },
   {
@@ -92,11 +92,11 @@
     "function": "create_full",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 458,
+    "verus_ms": 477,
     "smt2_bytes": 204702,
     "status": "search_error",
     "error": "Z3Exception: b'(error \"line 50 column 8: unknown constant %%lambda%%4 (Int Int) \")\\n'\nlization/spec-determinism/spec_determinism/schema_search/search.py\", line 83, in build_schema_ctx\n    solver.from_string(body_clean)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py\", line 7274, in from_string\n    Z3_solver_from_string(self.ctx.ref(), self.solver, s)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 4138, in Z3_solver_from_string\n    _elems.Check(a0)\n    ~~~~~~~~~~~~^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 1554, in Check\n    raise self.Exception(self.get_error_message(ctx, err))\nz3.z3types.Z3Exception: b'(error \"line 50 column 8: unknown constant %%lambda%%4 (Int Int) \")\\n'\n",
-    "total_ms": 475,
+    "total_ms": 494,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create_full__create_full"
   },
   {
@@ -104,10 +104,10 @@
     "function": "create_intersect",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 389,
+    "verus_ms": 388,
     "smt2_bytes": 158624,
     "ctx_ms": 17,
-    "search_ms": 25,
+    "search_ms": 26,
     "n_rounds": 2,
     "assumes": [
       "!det_create_intersect_equal(r1, r2, post1_res, post2_res)"
@@ -121,16 +121,16 @@
     "function": "empty",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 360,
+    "verus_ms": 385,
     "smt2_bytes": 127816,
-    "ctx_ms": 16,
+    "ctx_ms": 17,
     "search_ms": 23,
     "n_rounds": 2,
     "assumes": [
       "!det_empty_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 404,
+    "total_ms": 430,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__empty__empty"
   },
   {
@@ -138,14 +138,14 @@
     "function": "is_empty",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 484,
+    "verus_ms": 476,
     "smt2_bytes": 139893,
     "ctx_ms": 18,
     "search_ms": 17,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 525,
+    "total_ms": 517,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__is_empty__is_empty"
   },
   {
@@ -153,11 +153,11 @@
     "function": "is_full",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 623,
+    "verus_ms": 595,
     "smt2_bytes": 199271,
     "status": "search_error",
     "error": "Z3Exception: b'(error \"line 102 column 16: unknown constant %%lambda%%4 (Int Int) \")\\n'\nzation/spec-determinism/spec_determinism/schema_search/search.py\", line 83, in build_schema_ctx\n    solver.from_string(body_clean)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3.py\", line 7274, in from_string\n    Z3_solver_from_string(self.ctx.ref(), self.solver, s)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 4138, in Z3_solver_from_string\n    _elems.Check(a0)\n    ~~~~~~~~~~~~^^^^\n  File \"/home/chentianyu/miniconda3/lib/python3.13/site-packages/z3/z3core.py\", line 1554, in Check\n    raise self.Exception(self.get_error_message(ctx, err))\nz3.z3types.Z3Exception: b'(error \"line 102 column 16: unknown constant %%lambda%%4 (Int Int) \")\\n'\n",
-    "total_ms": 642,
+    "total_ms": 613,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__is_full__is_full"
   },
   {
@@ -165,7 +165,7 @@
     "function": "next_run",
     "n_schemas": 3,
     "n_params": 6,
-    "verus_ms": 1435,
+    "verus_ms": 1428,
     "smt2_bytes": 271983,
     "ctx_ms": 19,
     "search_ms": 35,
@@ -175,7 +175,7 @@
       "!det_next_run_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 1500,
+    "total_ms": 1493,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__next_run__next_run"
   },
   {
@@ -185,8 +185,8 @@
     "n_params": 1,
     "verus_ms": 408,
     "smt2_bytes": 160589,
-    "ctx_ms": 18,
-    "search_ms": 25,
+    "ctx_ms": 17,
+    "search_ms": 26,
     "n_rounds": 2,
     "assumes": [
       "!det_set_equal(r1, r2, post1_self_, post2_self_)"
@@ -200,14 +200,14 @@
     "function": "align_down",
     "n_schemas": 9,
     "n_params": 21,
-    "verus_ms": 553,
+    "verus_ms": 524,
     "smt2_bytes": 53128,
     "ctx_ms": 15,
-    "search_ms": 108,
+    "search_ms": 107,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 680,
+    "total_ms": 650,
     "artifact_key": "memory-allocator__verified__layout__layout__impl__align_down__align_down"
   },
   {
@@ -215,14 +215,14 @@
     "function": "align_up",
     "n_schemas": 9,
     "n_params": 21,
-    "verus_ms": 497,
+    "verus_ms": 506,
     "smt2_bytes": 51765,
     "ctx_ms": 15,
-    "search_ms": 106,
+    "search_ms": 105,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 622,
+    "total_ms": 631,
     "artifact_key": "memory-allocator__verified__layout__layout__impl__align_up__align_up"
   },
   {
@@ -230,9 +230,9 @@
     "function": "calculate_page_block_at",
     "n_schemas": 11,
     "n_params": 26,
-    "verus_ms": 29,
+    "verus_ms": 28,
     "status": "verus_error",
-    "stderr_tail": "error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`\n   --> /tmp/specdet_sf_calculate_page_block_at_213g9wwj/layout__impl__calculate_page_block_at.rs:189:597\n    |\n189 | ...l, page_start: usize, block_size: usize, idx: usize, ?: Ghost<PageId>, r1: usize, r2: usize)\n    |                                                         ^\n\nerror: aborting due to 1 previous error\n\n",
+    "stderr_tail": "error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`\n   --> /tmp/specdet_sf_calculate_page_block_at_95rqmdg8/layout__impl__calculate_page_block_at.rs:189:597\n    |\n189 | ...l, page_start: usize, block_size: usize, idx: usize, ?: Ghost<PageId>, r1: usize, r2: usize)\n    |                                                         ^\n\nerror: aborting due to 1 previous error\n\n",
     "artifact_key": "memory-allocator__verified__layout__layout__impl__calculate_page_block_at__calculate_page_block_at"
   }
 ]

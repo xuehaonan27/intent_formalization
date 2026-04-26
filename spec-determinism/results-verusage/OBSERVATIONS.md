@@ -1,144 +1,103 @@
-# verusage spec-determinism run — observations (2026-04-24)
+# verusage spec-determinism — observations (post fix #1 + #2)
 
-Source: `~/intent_formalization/verusage/source-projects/<proj>/verified/`
-Run:    `nohup spec-determinism-verusage` per project, `--timeout 60`s
-Total wall: 65 minutes for 1 647 targets across 9 projects.
+Snapshot after commits `93de97f` (named return type) + `168b071`
+(impl-context lift + guard-param regex). Run config: per-target
+`--timeout 60`, single-file backend.
 
-Numbers per project — see `SUMMARY.json` for the canonical breakdown.
-Headline figures:
+## Headline numbers
 
-|                | total | ok  | with witness | verus_error | search_error |
-|----------------|------:|----:|-------------:|------------:|-------------:|
-| atmosphere     | 1 363 | 757 |          757 |         602 |            3 |
-| ironkv         |   214 |  85 |           68 |         129 |            0 |
-| memory-alloc.  |    16 |  10 |            5 |           2 |            4 |
-| nrkernel       |     8 |   6 |            6 |           2 |            0 |
-| storage        |    43 |   0 |            0 |          43 |            0 |
-| vest           |     2 |   2 |            1 |           0 |            0 |
-| anvil-library  |     1 |   0 |            0 |           1 |            0 |
-| anvil-control. |     0 |   — |            — |           — |            — |
-| node-replic.   |     0 |   — |            — |           — |            — |
-| **total**      | **1 647** | **860** | **837** | **779** | **7** |
+|              | prior (`cfed62f`) | this run | Δ |
+|---           | ---:              | ---:     | ---:|
+| ok           | 860               | **1235** | +375 |
+| ok-w-witness | 837               | **1191** | +354 |
+| verus_error  | 779               | **401**  | -378 |
+| search_error | 7                 | 10       | +3 |
+| runner_crash | 1                 | 1        | 0 |
+| n            | 1647              | 1647     | 0 |
 
-`runner_crash` = 1 (atmosphere) is in the rounding above.
+Per-project deltas:
+- atmosphere: 757 → **1079** ok (+322), 602 → **280** verus_error
+- ironkv:     85  → **137** ok (+52),  129 → **74**  verus_error
+- memory-allocator: 10 → 11 ok, 2 → 1 verus_error
+- nrkernel / vest / storage / anvil-library: unchanged
 
-## Three failure modes diagnosed
+`anvil-controller` and `node-replication` still show n=0 — neither has
+ensures-bearing exec fns under `verified/`, so the discovery walker
+correctly emits no targets.
 
-### 1. `storage` — 43/43 verus_error: missing dependency crate
+## Remaining verus_error breakdown (n=401)
 
-Every target file imports `deps_hack`:
+Categorized by the first compiler diagnostic in each stderr tail.
+
+### atmosphere (280)
+
+| count | first diagnostic | likely cause |
+|---:|---|---|
+| 173 | `type annotations needed` | `r1 == r2` on generic / inferred-type returns; equal-fn body falls back to `==` and z3 can't pin the type. |
+| 38  | `expected one of: identifier, '::', '<', '_', literal, 'const', 'ref', 'mut', '&'` | residual gen_det syntax — likely a return-type form not yet covered (e.g. closure / fn pointer / `impl Trait`). |
+| 23  | `mismatched types` | post1/post2 field types vs derived equal-fn signature. |
+| 13  | `Dereference this mutable reference …` | `&mut T` return type produces `r1 == r2` over references; needs `*r1 == *r2`. |
+| 11  | `expected ','` | gen_det header / where-clause splice still off in some shapes. |
+| 10  | `no field 'r1' on type 'Node<T>'` | extracted return shape mistakenly treated as tuple. |
+| 7   | rlimit exceeded | timeout/resource — not a tool bug. |
+
+### ironkv (74)
+
+| count | first diagnostic | likely cause |
+|---:|---|---|
+| 13 | `disallowed: field expression for an opaque datatype` | gen_det reads `pre_self_.field` for opaque structs; needs view-aware substitution (`spec_get_X(pre_self_)`). |
+| 9  | `function pointer types` | Verus inherent limitation. |
+| 9  | `type 'HostState' cannot be dereferenced` | similar to atmosphere `&mut` case. |
+| 4  | `mismatched types` | param/return mismatch in synthesized template. |
+| 3  | `no method named 'r1' found for struct 'vstd::seq::Seq<A>'` | tuple-return mis-handling (expected single Seq, treated as tuple). |
+| 3  | gen_det syntax | still residual. |
+
+### storage (43)
+
+All 43 are corpus dependency issues (the project depends on a sibling
+crate `deps_hack` that doesn't exist standalone). Distribution:
+
+- 26 — `unresolved import 'deps_hack'` / `unresolved module 'deps_hack'`
+- 10 — `expected one of '!' or '::', found keyword 'fn'` (proc-macro
+  expansion failed because `deps_hack` re-exports `verus!`)
+- 7  — fallout from the above (`Self in this scope`, etc.)
+
+Action: add a corpus-side skip rule for storage, or vendor `deps_hack`.
+
+### memory-allocator (1) / nrkernel (2) / anvil-library (1)
+
+- memory-allocator: 1 case using a `*const T` raw pointer — pointer
+  semantics still not modeled.
+- nrkernel: 2 cases using `Tracked<...>` ghost wrappers in the return
+  type — equal-fn falls back to `r1 == r2` which Verus rejects on
+  tracked types.
+- anvil-library: only target uses `lemma_seq_properties::<V>()`, renamed
+  to `group_seq_properties` in current vstd. Corpus vs stdlib version
+  mismatch, not a tool bug.
+
+## Witness-soundness reminder (atmosphere)
+
+1079/1079 atmosphere ok cases produce witnesses, almost all of the form
 
 ```
-error[E0432]: unresolved import `deps_hack`
- --> ...:2:5
-  | use deps_hack::{PmSized, pmsized_primitive};
-  |     ^^^^^^^^^ use of unresolved module or unlinked crate `deps_hack`
+ptr == 0  ∧  r1 == 0  ∧  r2 == 0  ∧  !equal(r1, r2)
 ```
 
-`deps_hack` is a sibling crate the original project pulls from cargo
-metadata. The verusage drop just dumped the `.rs` files without the
-companion crates, so single-file invocation can never link. **This is
-a corpus problem, not a spec-determinism bug.** Fixing it requires
-either bundling stubs for `deps_hack` symbols or excluding this project
-from the corpus.
+Hypothesis: schema solver doesn't see uninterpreted spec-fn axioms, so
+z3 doesn't know `f(x) = f(x)` and "satisfies" the contradiction. **None
+of the atmosphere witnesses should be trusted as true nondeterminism
+findings until this is investigated separately.**
 
-### 2. `ironkv` 60% / `anvil-library` 100% verus_error: generic params not lifted
+## Suggested next slices (priority order)
 
-Representative tail:
-
-```
-error[E0411]: `Self` is only available in impls, traits, and type definitions
-   --> .../delegation_map_v__impl1_erase.rs:165:182
-    | proof fn det_remove(... pre_self_: Self, ... r1: K, ...)
-    |       ----------                          ^^^^
-    |       `Self` not allowed in a function
-
-error[E0425]: cannot find type `K` in this scope
-```
-
-When the target is a generic `impl<K: KeyTrait + VerusClone>` method,
-`gen_det.build_template` emits `det_<fn>(...)` at module scope without
-re-introducing the type parameters, and copies `Self` / generic types
-verbatim into the param list. Verus then rejects them because det fn is
-no longer inside an impl. **This is a real spec-determinism limitation
-that becomes the dominant breakage as soon as the corpus has generics.**
-
-Fix sketch: extract should record (a) the impl's `Self` resolved type
-and (b) the function's generic-param list with bounds; gen_det should
-emit `proof fn det_<fn><K: KeyTrait + VerusClone>(... pre_self_:
-StrictlyOrderedVec<K> ...)`. Affects 130 targets out of 1 647.
-
-### 3. `atmosphere` — 100% witness rate is suspicious
-
-Every OK case in atmosphere reports a witness, including ones that
-should be trivially deterministic. Smoking gun:
-
-`atmosphere__...__page_ptr2page_index` reports witness:
-- `ptr == 0`, `r1 == 0`, `r2 == 0`, `!det_page_ptr2page_index_equal(r1, r2)`
-
-But `det_page_ptr2page_index_equal(r1, r2) == (r1 == r2)`, so the
-conjunction `r1 == 0 ∧ r2 == 0 ∧ !(r1 == r2)` is **directly unsat** in
-the SMT solver. Yet schema search committed it. Likely cause: the
-ensures `r1 == spec_page_ptr2page_index(ptr) ∧ r2 == spec_page_ptr2page_index(ptr)`
-involves an `uninterp spec fn`, and the functional axiom (same input ⇒
-same output) for `spec_page_ptr2page_index` is **not** present in the
-SMT2 prelude that `build_schema_ctx` extracts from Verus's `--log-all`
-dump. Without that axiom z3 has no reason to conclude `r1 == r2` and
-returns sat for the whole tuple.
-
-Counter-evidence in the same run:
-- `ironkv` 68 witnesses look more plausible (assumes mention concrete
-  pre-state predicates like `pre_self_@.len() == ...`).
-- nanvix's `kernel::layout_to_allocator` works correctly because we
-  **explicitly inject** `spec_layout_size` / `spec_layout_align`
-  projections via the LLM hook landed in `6f51581`.
-
-The atmosphere finding is a strong hint that **for opaque/uninterp
-spec fns we are silently dropping their functionality axiom from
-the schema solver**. Verifying this is the next investigation step.
-
-## Witness table — useful pointers
-
-837 targets reported a witness. Most are atmosphere (757) and ironkv
-(68). The interesting tier (likely real, not the atmosphere artefact):
-
-- `ironkv` — 68 witnesses involving `StrictlyOrderedVec`, etc.
-- `nrkernel` — all 6 OK cases produce witnesses; small enough to
-  audit by hand.
-- `memory-allocator` — 5 witnesses on bin-size / pigeonhole helpers.
-- `vest` — `set_range` (already known: Vec/slice UNKNOWN, partial).
-
-Per-target details with assume lists are in `SUMMARY.md`
-("Targets with determinism witnesses").
-
-## Suggested next step
-
-Decide ranking among:
-
-1. Verify the atmosphere "100 % witness" hypothesis by re-running ONE
-   target with hand-injected functional axioms for the uninterp spec
-   fn. If the witness disappears, write a fix that copies relevant
-   `(define-fun ...)` / function-axiom blocks from Verus's SMT2 dump
-   into `build_schema_ctx`'s schema solver.
-2. Implement the generics-lifting fix (item 2 above) — unlocks ~130
-   more ironkv targets and changes the tier from "60 % broken" to
-   "mostly green".
-3. Add narrow strategies for `Vec<T>`, `Seq<T>`, `Map<K,V>`,
-   `[T]` (slice), `Option<T>` so the "partial witness" flag goes
-   away — most relevant for the witnesses we already have.
-
-(1) is highest-priority because it determines whether the 757
-atmosphere witnesses have any research value at all. (2) gives the
-biggest quantitative win on coverage. (3) improves witness quality
-once we trust the engine again.
-
-## What's checked in
-
-- `results-verusage/SUMMARY.md` — full per-target witness list +
-  failure-mode samples (4 523 lines)
-- `results-verusage/SUMMARY.json` — by-status counts per project
-- `results-verusage/<proj>/full_run.json` — every target's raw result
-- `results-verusage/logs/` — per-project stdout/stderr from the run
-- `.gitignore` — `results-verusage/*/artifacts/` (1.6 k regeneratable
-  per-target det_spec.json files; 108 MB; can be rebuilt by re-running
-  the batch script)
+1. **atmosphere "type annotations needed" (173 cases)** — biggest
+   single bucket. Likely fixable by emitting a typed `==` (e.g.
+   generating `equal_T(r1, r2)` per concrete return type) instead of
+   bare `r1 == r2` when the return type is generic-but-resolvable.
+2. **`&mut T` return types (~22 across atmosphere + ironkv)** — emit
+   `*r1 == *r2` in `_build_equal_fn`.
+3. **opaque-datatype field access in ironkv (13 cases)** — switch
+   pre/post field reads to view/spec accessors when available.
+4. **atmosphere witness soundness audit** — independent of the
+   compile-rate work; gates any claim about the corpus.
+5. **storage corpus skip rule** — cheap win to clean SUMMARY noise.
