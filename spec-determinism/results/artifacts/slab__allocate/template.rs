@@ -1,8 +1,7 @@
 // Generated equal-fn for determinism check.
-// Policy: errs_equivalent=True, opaque_ok=False
-spec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {
-    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))
-    && ((post1_self_.block_size == post2_self_.block_size) && (post1_self_.start_addr == post2_self_.start_addr) && (post1_self_.end_addr == post2_self_.end_addr) && (post1_self_.allocated_addrs == post2_self_.allocated_addrs) && (post1_self_.free_addrs == post2_self_.free_addrs))
+// Policy: errs_equivalent=True, opaque_ok=True [custom_body in use]
+pub open spec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {
+    ((r1 is Ok) == (r2 is Ok)) && post1_self_@.block_size == post2_self_@.block_size && post1_self_@.start_addr == post2_self_@.start_addr && post1_self_@.end_addr == post2_self_@.end_addr && post1_self_@.allocated_addrs.len() == post2_self_@.allocated_addrs.len() && post1_self_@.free_addrs.len() == post2_self_@.free_addrs.len()
 }
 
 proof fn det_allocate_chk(pre_self_: Slab, post1_self_: Slab, r1: Result<*mut u8, Error>, post2_self_: Slab, r2: Result<*mut u8, Error>)

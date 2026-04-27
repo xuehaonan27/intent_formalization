@@ -129,10 +129,15 @@ _POLICY_SCHEMA_DOC = """\
 - `custom_body` (string | null, default null): if the coarsening cannot be
   expressed via the above, provide the ENTIRE body of the equal-fn as a
   Verus spec expression. Parameters are `r1`/`r2` for the return value
-  and `post1_<name>` / `post2_<name>` for `&mut` post-states (viewed if
-  the underlying struct has `@`/`spec_view`). Example for two Maps
-  compared by cardinality only:
-    `((r1 is Ok) == (r2 is Ok)) && (post1_self_@.allocations.dom().len() == post2_self_@.allocations.dom().len())`
+  and `post1_<name>` / `post2_<name>` for `&mut` post-states. **If the
+  underlying struct has an `@`/`spec_view`, the parameter is ALREADY the
+  view type** (the wrapper code applies `@` at the call site). So inside
+  `custom_body` you must access fields directly on the bare parameter
+  name — DO NOT write `post1_self_@.<field>`; write `post1_self_.<field>`.
+  Same for `post2_<name>`. Applying `@` to a value that's already a view
+  would call `.view()` on the view type and fails to compile in Verus.
+  Example for two Maps compared by cardinality only:
+    `((r1 is Ok) == (r2 is Ok)) && (post1_self_.allocations.dom().len() == post2_self_.allocations.dom().len())`
 - `rationale` (string): 1-3 sentences explaining the decision. This is
   stored for human review.
 
@@ -189,8 +194,8 @@ only ensures is `old(allocations).len() + 1 == allocations.len()`.
   "opaque_ok": false,
   "opaque_types": [],
   "ignore_fields": [],
-  "custom_body": "((r1 is Ok) == (r2 is Ok)) && (post1_self_@.allocations.dom().len() == post2_self_@.allocations.dom().len())",
-  "rationale": "Spec only constrains allocation count, not specific addresses or sizes. Comparing by dom().len() captures 'one more allocation happened' without forcing the same address or size."
+  "custom_body": "((r1 is Ok) == (r2 is Ok)) && (post1_self_.allocations.dom().len() == post2_self_.allocations.dom().len())",
+  "rationale": "Spec only constrains allocation count, not specific addresses or sizes. Comparing by dom().len() captures 'one more allocation happened' without forcing the same address or size. Note post1_self_ is already the view type, so we read fields directly without `@`."
 }
 ```
 """
@@ -285,6 +290,22 @@ _ALLOWED_KEYS = {
 }
 
 
+# Strip stray `@` after `post1_<ident>` / `post2_<ident>` in LLM custom bodies.
+# The synthesized equal-fn parameter is already the view type when the underlying
+# struct has spec_view (the wrapper applies `@` at the call site), so a naive
+# `post1_self_@.field` becomes `BitmapView.view().field` which fails to compile.
+_POST_AT_RE = re.compile(r"\b(post[12]_[A-Za-z_][A-Za-z0-9_]*)@")
+
+
+def _sanitize_custom_body(body: str | None) -> str | None:
+    if not body:
+        return body
+    cleaned = _POST_AT_RE.sub(r"\1", body)
+    if cleaned != body:
+        logger.warning("stripped stray @ after post1_/post2_ in LLM custom_body")
+    return cleaned
+
+
 def policy_from_llm_dict(d: dict) -> EqualPolicy:
     extra = set(d.keys()) - _ALLOWED_KEYS
     if extra:
@@ -295,7 +316,7 @@ def policy_from_llm_dict(d: dict) -> EqualPolicy:
         compare_raw_pointers=False,  # mechanical rule, LLM cannot override
         ignore_fields=set(d.get("ignore_fields") or []),
         opaque_types=set(d.get("opaque_types") or []),
-        custom_body=d.get("custom_body"),
+        custom_body=_sanitize_custom_body(d.get("custom_body")),
         rationale=d.get("rationale"),
         source="llm",
     )

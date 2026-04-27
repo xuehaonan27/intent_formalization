@@ -1,8 +1,7 @@
 // Generated equal-fn for determinism check.
-// Policy: errs_equivalent=True, opaque_ok=False
-spec fn det_alloc_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {
-    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))
-    && ((post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits == post2_self_.set_bits))
+// Policy: errs_equivalent=True, opaque_ok=False [custom_body in use]
+pub open spec fn det_alloc_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {
+    ((r1 is Ok) == (r2 is Ok)) && (post1_self_@.num_bits == post2_self_@.num_bits) && (post1_self_@.set_bits.len() == post2_self_@.set_bits.len())
 }
 
 proof fn det_alloc(pre_self_: Bitmap, post1_self_: Bitmap, r1: Result<usize, Error>, post2_self_: Bitmap, r2: Result<usize, Error>)

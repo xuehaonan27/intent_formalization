@@ -2067,7 +2067,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))\n    && ((post1_self_.block_size == post2_self_.block_size) && (post1_self_.start_addr == post2_self_.start_addr) && (post1_self_.end_addr == post2_self_.end_addr) && (post1_self_.allocated_addrs == post2_self_.allocated_addrs) && (post1_self_.free_addrs == post2_self_.free_addrs))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=True [custom_body in use]\npub open spec fn det_allocate_chk_equal(r1: Result<*mut u8, Error>, r2: Result<*mut u8, Error>, post1_self_: SlabView, post2_self_: SlabView) -> bool {\n    ((r1 is Ok) == (r2 is Ok)) && post1_self_.block_size == post2_self_.block_size && post1_self_.start_addr == post2_self_.start_addr && post1_self_.end_addr == post2_self_.end_addr && post1_self_.allocated_addrs.len() == post2_self_.allocated_addrs.len() && post1_self_.free_addrs.len() == post2_self_.free_addrs.len()\n}",
   "equal_fn_name": "det_allocate_chk_equal",
   "equal_arg_pairs": [
     {
@@ -2082,13 +2082,16 @@
   "check_fn_name": "det_allocate_chk",
   "equal_policy": {
     "errs_equivalent": true,
-    "opaque_ok": false,
+    "opaque_ok": true,
     "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],
-    "custom_body": null,
-    "rationale": null,
-    "source": "default"
+    "custom_body": "((r1 is Ok) == (r2 is Ok)) && post1_self_.block_size == post2_self_.block_size && post1_self_.start_addr == post2_self_.start_addr && post1_self_.end_addr == post2_self_.end_addr && post1_self_.allocated_addrs.len() == post2_self_.allocated_addrs.len() && post1_self_.free_addrs.len() == post2_self_.free_addrs.len()",
+    "rationale": "The spec lets the allocator pick any address from old free_addrs, so the specific chosen address (and the resulting allocated_addrs/free_addrs sets, the Bitmap's internal usage/next_free/bits, and the raw data_addr/end_addr pointers) is implementation-defined. The invariant block_size/start_addr/end_addr must match, and exactly one address moves from free to allocated on Ok (none on Err), which is captured by comparing set cardinalities plus matching Ok/Err variant.",
+    "source": "llm"
   },
-  "type_projections": {}
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Slab"
 }

@@ -1818,7 +1818,7 @@
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_alloc_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n    && ((post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits == post2_self_.set_bits))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False [custom_body in use]\npub open spec fn det_alloc_equal(r1: Result<usize, Error>, r2: Result<usize, Error>, post1_self_: BitmapView, post2_self_: BitmapView) -> bool {\n    ((r1 is Ok) == (r2 is Ok)) && (post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits.len() == post2_self_.set_bits.len())\n}",
   "equal_fn_name": "det_alloc_equal",
   "equal_arg_pairs": [
     {
@@ -1837,9 +1837,12 @@
     "compare_raw_pointers": false,
     "ignore_fields": [],
     "opaque_types": [],
-    "custom_body": null,
-    "rationale": null,
-    "source": "default"
+    "custom_body": "((r1 is Ok) == (r2 is Ok)) && (post1_self_.num_bits == post2_self_.num_bits) && (post1_self_.set_bits.len() == post2_self_.set_bits.len())",
+    "rationale": "The ensures clause does not pin down which specific free bit is chosen \u2014 any previously-unset index is a valid result. So the returned Ok index, the resulting set_bits contents, and the concrete bits/next_free/usage representation can all legitimately differ between runs. The only spec-mandated invariants are Ok-vs-Err agreement, preserved num_bits, and that exactly one more bit is set (set_bits.len() grew by one, which is identical across runs starting from the same input). Err reasons are diagnostic only.",
+    "source": "llm"
   },
-  "type_projections": {}
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Bitmap"
 }
