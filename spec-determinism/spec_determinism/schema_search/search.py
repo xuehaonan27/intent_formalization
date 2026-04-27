@@ -46,23 +46,72 @@ def build_schema_ctx(
     locate the guard/k constants that Verus emitted for each schema."""
     text = Path(smt2_path).read_text()
 
-    first_push = text.find("(push)")
-    prelude = text[:first_push]
+    # Prelude must include the global declarations AND every
+    # ``Function-Axioms`` block that lives between Verus's per-function
+    # ``(push) ... (pop)`` query blocks. Each push/pop holds a single
+    # function's proof obligation; the body-defining axioms (e.g.
+    # ``(=> (fuel_bool det_X_equal.) (forall r1 r2 (= (det_X_equal r1 r2) ...)))``)
+    # are emitted between blocks as global ``(assert ...)``. Earlier
+    # versions truncated at the first ``(push)`` and so loaded only the
+    # uninterpreted declarations, letting z3 vacuously satisfy
+    # ``!det_X_equal(r1, r2)`` and produce spurious "witnesses".
+    #
+    # Strategy: walk the file and concatenate every region OUTSIDE
+    # ``(push) ... (pop)`` blocks; that gives us a self-contained global
+    # context (declarations + every Function-Axioms block + Trait-Impl
+    # axioms etc.) without any check-sat side effects.
+    def _split_global_and_blocks(s: str) -> tuple[str, list[tuple[int, int]]]:
+        """Return (global_text, [(push_idx, pop_end_idx), ...]).
+        Walks balanced (push)/(pop) tokens at line granularity.
+        """
+        lines = s.splitlines(keepends=True)
+        offsets: list[int] = [0]
+        for ln in lines:
+            offsets.append(offsets[-1] + len(ln))
+        blocks: list[tuple[int, int]] = []
+        depth = 0
+        cur_start = -1
+        for i, ln in enumerate(lines):
+            stripped = ln.lstrip()
+            if stripped.startswith("(push"):
+                if depth == 0:
+                    cur_start = offsets[i]
+                depth += 1
+            elif stripped.startswith("(pop"):
+                depth -= 1
+                if depth == 0 and cur_start >= 0:
+                    blocks.append((cur_start, offsets[i + 1]))
+                    cur_start = -1
+        # Build global text: everything not inside a top-level push/pop.
+        kept = []
+        last = 0
+        for (a, b) in blocks:
+            kept.append(s[last:a])
+            last = b
+        kept.append(s[last:])
+        return "".join(kept), blocks
 
-    # Locate the specific Function-Def block for fn_name. The marker may
-    # include module prefix when --verify-only-module is used, e.g.
-    #   ;; Function-Def kernel::mm::kheap::det_allocate
-    # Search by suffix "::{fn_name}\n" which is unique enough.
+    global_text, blocks = _split_global_and_blocks(text)
+
+    # Find the target Function-Def push block to extract its inner body.
     import re as _re
     m = _re.search(rf";; Function-Def\s+\S*::{_re.escape(fn_name)}\b", text)
     if not m:
-        # Fallback to plain substring.
         mi = text.find(f"Function-Def {crate_name}::{fn_name}")
         if mi < 0:
             raise RuntimeError(f"No Function-Def for {fn_name} in {smt2_path}")
     else:
         mi = m.start()
-    push_idx = text.find("(push)", mi)
+
+    # Locate the push block that contains mi.
+    target_block: tuple[int, int] | None = None
+    for (a, b) in blocks:
+        if a > mi:
+            target_block = (a, b)
+            break
+    if target_block is None:
+        raise RuntimeError(f"No (push) block found after Function-Def for {fn_name}")
+    push_idx = target_block[0]
     cs_idx = text.find("(check-sat)", push_idx)
     body = text[push_idx + len("(push)"):cs_idx]
 
@@ -75,6 +124,8 @@ def build_schema_ctx(
             continue
         kept.append(ln)
     body_clean = "\n".join(kept)
+
+    prelude = global_text
 
     # Build solver.
     z3_ctx = z3.Context()

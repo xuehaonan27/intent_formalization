@@ -695,9 +695,17 @@ def _build_equal_fn(
         header += " [custom_body in use]"
 
     where_block = f"\n    {where_decl}" if where_decl else ""
+    # `open spec fn` (rather than the default `spec fn`) makes the body axiom
+    # unconditionally visible to the SMT backend. With a default closed
+    # `spec fn`, Verus gates the definition behind `fuel_bool`, which means
+    # our schema solver — which loads the SMT2 statically without ever
+    # invoking `reveal` — sees only an uninterpreted predicate. That lets z3
+    # vacuously satisfy `!det_X_equal(r1, r2)` and produces a spurious
+    # nondeterminism "witness" even for trivially deterministic functions
+    # (e.g. constant returns). Forcing `open` closes that soundness gap.
     return (
         f"{header}\n"
-        f"spec fn {fn_name}{generics_decl}({param_decls}) -> bool{where_block} {{\n"
+        f"pub open spec fn {fn_name}{generics_decl}({param_decls}) -> bool{where_block} {{\n"
         f"    {body}\n"
         f"}}"
     )
