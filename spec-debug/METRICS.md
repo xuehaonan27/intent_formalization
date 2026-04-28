@@ -9,17 +9,26 @@ This is design discussion, not a spec. Nothing here is implemented yet.
 
 ---
 
-## Organising principle
+## Organising principle (revised 2026-04-27)
 
-A good patch must, in order:
-1. Pass hard gates (compiles, impl still verifies, signature unchanged).
-2. Actually close the **driving** part of the witness (not just collateral).
-3. Be shaped right (touches the target function's `ensures`, helpers referenced).
-4. Not cheat (no bypass of the checker, no over-specification).
+> **spec-determinism = strict / rule-based.** Deterministic algorithm,
+> auditable.
+>
+> **spec-debug = free / observation-driven.** Hand the LLM the repo,
+> let it read and edit; judge only by **outcome**, not by **process**.
 
-Metrics below map to these layers. We use lexicographic Pareto over
-axes, **not** a weighted sum — "closed one more assume" and "edit layer
-is correct" are not commensurable.
+This rules out "police the LLM via prompt rules and structural gates".
+Concretely:
+
+- **Hard gates** are outcome-only — gap validity, impl still verifies,
+  no checker bypass.
+- **Primary score** is outcome-only — did the driving witness close?
+- **Structural / over-spec metrics are NOT gates.** They are recorded
+  as observation flags in `report.json` for understanding LLM
+  behaviour and post-hoc analysis, but do not restrict the prompt and
+  do not enter ranking.
+
+Lexicographic Pareto still applies, but only over outcome axes.
 
 ---
 
@@ -41,39 +50,99 @@ count), the correct response is **not** to patch the spec — it is to
 feed the disagreement back to spec-determinism so it can update its
 equality policy / `equal_fn`. See §A.1.
 
-### A.1 Upstream feedback path (proposed)
+### A.1 Upstream feedback path (decided 2026-04-27, revised same day)
 
-Before measuring `driving_closed`, classify the witness:
-- **Valid gap** — the driving assumes describe a genuinely
-  observable behavioural difference under the policy. Proceed with
-  normal closure metrics.
-- **Policy-spurious gap** — the driving assumes only distinguish
-  fields a reasonable caller shouldn't branch on (diagnostic strings,
-  allocation order when result is opaque, etc.). Emit a
-  `policy_suggestion` pointing back at spec-determinism
-  (`errs_equivalent`, `opaque_ok`, or a new knob) and **do not**
-  attempt to patch the spec.
+Before measuring `driving_closed`, the witness must be classified:
+- **Valid gap** — driving assumes describe a genuinely observable
+  behavioural difference under the current policy. Proceed with normal
+  closure metrics.
+- **Policy-spurious gap** — driving assumes only distinguish fields a
+  reasonable caller shouldn't branch on (diagnostic strings, opaque
+  handles, etc.). Do **not** attempt to patch the spec; the gap is a
+  policy issue.
+- **Loose-by-design** — function is intentionally underdetermined
+  (allocator-style). No fix expected.
 
-Concrete candidate: `kernel::from_raw_parts`'s
-`errs_equivalent=False` forces `Err.reason` strings to match. This
-is almost certainly over-strict policy. Under this lens case #3
-wasn't a spec bug at all and spec-debug's job there is to route the
-finding back to spec-determinism, not to paper over it.
+**Where this logic lives**: in `spec-debug`, not in `spec-determinism`.
+spec-determinism is presumed correct when it commits a `det-equal` /
+policy — by construction it treats its policy as axiomatic and cannot
+self-diagnose policy bugs. Judging "is this policy actually right for
+this caller-facing API?" is a meta-judgment that belongs to the
+debugger (spec-debug), alongside the other "is this gap worth fixing?"
+decisions in Axes B/D.
+
+Consequence: **spec-determinism's output stays untouched**. No new
+field in the witness, no breaking change. spec-debug owns the
+verdict end-to-end.
+
+**Counterfactual mechanics** (spec-debug-driven):
+1. Load `det_spec.json` for target.
+2. Save original policy. For each policy knob (`errs_equivalent`,
+   `opaque_ok`), write the toggled value, re-invoke
+   `spec-determinism-run`, observe whether the witness disappears
+   or its driving set shrinks.
+3. Restore original `det_spec.json`.
+4. Aggregate the counterfactual matrix into a `policy_verdict`.
+
+This reuses the same patch-then-revert dance `verify.py` already does
+for `.spec.rs` — no new spec-determinism API needed.
+
+**Output shape**: in `spec-debug/runs/<ts>/<crate>__<fn>/report.json`:
+
+```json
+"policy_verdict": {
+    "kind": "valid" | "policy_spurious" | "loose_by_design",
+    "counterfactual": {
+        "errs_equivalent_true":  "witness_disappears" | "driving_shrinks" | "no_change",
+        "opaque_ok_true":        "..."
+    },
+    "suggestion": { "errs_equivalent": true }   // only when policy_spurious
+}
+```
+
+Audit chain: witness → spec-debug verdict → suggestion → human
+reviews → policy edited in `det_spec.json` → re-run spec-determinism.
+
+**Pipeline placement — short-circuit before LLM**: the verdict runs
+*before* prompt construction. `policy_spurious` and `loose_by_design`
+skip the LLM entirely, save cost, and prevent encoding a policy bug
+into the spec.
+
+**Known limit**: counterfactual against the existing two booleans
+only catches "Err-internal" and "Ok-opaque" spuriousness. Cases where
+driving lives in the Ok/Err *discriminant* itself (bitmap::new) remain
+valid gaps under any boolean policy. Finer-grained per-field
+equivalence masks would extend the reach but are a larger change to
+spec-determinism that we are not coupling to.
+
+Concrete first target: `kernel::from_raw_parts` with
+`errs_equivalent=False` forcing `Err.reason` strings to agree. The
+counterfactual should flag this as `policy_spurious` and recover
+case #3 as not-a-spec-bug.
 
 ---
 
-## Axis B — Structural fit (targets the dangling-helper + wrong-layer failures)
+## Axis B — Structural fit (DEMOTED to observation flags, 2026-04-27)
 
-| Metric | Question | Why |
+Per the revised principle, these no longer gate or rank patches and
+no longer drive prompt restrictions. They are recorded in
+`report.json` for post-hoc analysis only — useful for spotting
+recurring failure shapes, writing future observations docs, and
+debugging surprising results, but **not** for telling the LLM what
+not to do.
+
+| Metric | Question | Why we still record it |
 |---|---|---|
-| **`edit_layer`** ∈ {target_ensures, target_requires, struct_inv, new_helper, new_assume_spec, other} | Which AST node was modified | case #1/#2/#3 each picked a different wrong layer; discrete classification is more useful than a score |
-| **`referenced_from_target_ensures`** | Are newly introduced spec items reachable from the target fn's `ensures` | Direct kill for case #1's dangling helper |
-| `touches_target_ensures` (bool) | Did the patch modify the target's ensures at all | Cheap sentinel; False in all three v0 cases |
-| `signature_changed` | Return/param types changed | Must always be False |
+| `edit_layer_counts` (set/dict) | Which AST node types were modified | Lets us track whether LLM behaviour shifts over time / across prompts |
+| `dangling_new_items` | Which newly-added spec items aren't reachable from target's `ensures` | Surfaces the "dangling helper" failure shape after the fact |
+| `target_ensures_modified` (bool) | Did patch touch target fn's ensures | Quick signal in report; not a gate |
+| `signature_changed` (bool) | Did fn signature change | Almost certainly bad if True; surfaced for human review, not auto-rejected |
+| `ensures_surface_delta` | Did ensures' transitive callees change | Detects "syntactic-only" ensures rewrites |
 
-`edit_layer` and `referenced_from_ensures` are orthogonal: a helper at
-module scope is fine if ensures calls it; adding it unreferenced is the
-dangling-helper failure.
+These are computed cheaply via `tree-sitter-verus` (already a dep of
+spec-determinism). No prompt-level "layering rules" — the v0.1
+template's prohibitions on dangling helpers and assume_specification
+are removed (see Prompt Notes below).
 
 ---
 
@@ -85,20 +154,31 @@ dangling-helper failure.
 | `equal_fn_def_stable` | `equal_fn` body unchanged when policy unchanged | If equal_fn shifted without a policy change, LLM edited a type that policy expands over |
 | `schema_count_before → after` | Narrowing-dimension count | 519 → 0 is smoking gun; mild decrease is normal |
 | `rounds==0 AND schemas==0` | Joint flag | Rounds=0 alone is fine (tight spec); combined with no schemas is bypass |
+| **`no_new_admissions_in_impl`** | Did the patch add new `assume(...)` / `admit()` to any `exec` body / proof block | Symmetric counterpart to `ensures false` on the spec side. With Axis E relaxed to "workspace verifies", LLM could otherwise admit any spec by hand. Detect via git diff: only **newly introduced** admissions count; pre-existing `assume_specification` blocks and existing `assume(...)` are part of the design and untouched. Hard gate. |
 
 Theme: "changed what is being checked" and "made the thing being
 checked tighter" look identical on rounds/closed. Only a structural
 before/after snapshot disambiguates them.
 
+Per the hide-police principle, **none of these are exposed in the
+prompt** — exposing the bypass detectors teaches the LLM how to
+evade them.
+
 ---
 
-## Axis D — Over-specification
+## Axis D — Over-specification (DEMOTED to observation flags, 2026-04-27)
 
-| Metric | Question | Why |
+Same demotion as Axis B: recorded, not gated. We trust the LLM with
+the freedom to make over-spec mistakes; the *outcome* axes (especially
+new-witness emergence after rerun, plus impl-verifies) will catch
+material problems, and we'd rather see the over-spec patterns LLM
+produces than restrict them out of the data.
+
+| Metric | Question | Why still recorded |
 |---|---|---|
-| `collateral_pinned_count` | How many policy-ignored assumes did the LLM pin | Directly tests v0.1 prompt compliance |
-| **`literal_bleed`** | Does new `ensures` contain literals taken from `input_narrowing` | Copying `number_of_bits == 8` makes the spec correct only for the witness; subtle but common |
-| `requires_tightened` | Was `requires` strengthened | Tightening `requires` closes witnesses by rejecting inputs — turning the bug into an API restriction |
+| `collateral_pinned_count` | Did LLM pin policy-ignored assumes | Diagnostic of prompt clarity, not a gate |
+| `literal_bleed` | Are concrete `input_narrowing` literals copied into ensures | Subtle failure shape; flag for review |
+| `requires_tightened` | Was `requires` strengthened | Often a fake fix; surface in report |
 
 ---
 
@@ -106,12 +186,13 @@ before/after snapshot disambiguates them.
 
 | Metric | Question | Why |
 |---|---|---|
-| **`impl_still_verifies`** | Does the exec impl still satisfy the new ensures via `cargo verus` | If LLM writes `ensures r is Ok` but impl can return Err, Verus rejects — this one gate kills a whole class of fake fixes |
+| **`impl_still_verifies`** | After patch, does `cargo verus verify` pass on the workspace as a whole | If LLM writes `ensures r is Ok` but impl can return Err, Verus rejects — kills a whole class of fake fixes. **Source code on the impl side is allowed to change** to add proof annotations (loop invariants, asserts, proof blocks) needed to discharge the new ensures; the constraint is that the existing exec logic can still be proven against the new spec, not that the source stays untouched. |
 | `ensures_consistent` | Is the new ensures internally contradictory | Largely subsumed by `impl_still_verifies` |
 
-spec-determinism-run already invokes `cargo verus`; we just need to
-surface its pass/fail as a distinct axis instead of folding it into
-overall success.
+Relaxing `impl_still_verifies` to "workspace verifies" opens a
+symmetric cheat path on the impl side that did not exist before:
+`assume(false)` / `admit()` inside an `exec` body or proof block makes
+Verus accept anything. Caught by Axis C; see `no_new_admissions_in_impl`.
 
 ---
 
@@ -125,23 +206,48 @@ overall success.
 
 ---
 
-## Proposed composite score (lexicographic)
+## Proposed composite score (revised 2026-04-27)
+
+Outcome-only. Structural / over-spec axes do not enter ranking.
 
 ```
 tier 1 (hard gates — must all pass):
-    impl_verifies ∧ signature_stable ∧ ¬bypass_flags
+    policy_verdict.kind == "valid"      (Axis A.1)
+  ∧ impl_still_verifies                 (Axis E)
+  ∧ no_bypass_flags                     (Axis C)
 
-tier 2 (primary score — higher is better):
+tier 2 (primary outcome score — higher better):
     (driving_closed_ratio,
-     edit_layer == target_ensures,
-     all_new_items_referenced)
+     ¬new_witness_driving)              (Axis A)
 
-tier 3 (tie-breakers):
-    (¬new_witness_driving, ¬literal_bleed, ¬collateral_pinned)
+tier 3 (stability — across K samples, when --n-samples enabled):
+    layer_agreement / closure_agreement (Axis F)
 ```
 
-"A dominates B" iff tier-1 is no worse and some tier-2 component is
-strictly better with none worse — standard Pareto.
+Axis B (structural) and Axis D (over-spec) are recorded in
+`report.json` as observation flags but do not appear here.
+
+---
+
+## Pipeline implications
+
+Two concrete pipeline changes follow from the "free repair" principle.
+Both are decisions to make with the user, not done yet.
+
+1. **Patch scope = cargo workspace, not single `.spec.rs` file.**
+   Hand Copilot the nanvix repo path with `--allow-all-tools
+   --allow-all-paths`; it reads any `.rs` / `.spec.rs` it likes and
+   edits in place. spec-debug wraps the whole call in `git stash` /
+   `git reset --hard` for reversibility. Drops the
+   `response.md → apply_patch` step and the whole-file overwrite.
+   Solves case #3's inline-ensures problem at the pipeline level
+   without needing any `spec_locus` field upstream.
+
+2. **Prompt loses its layering rules.** v0.1's PROMPT_TEMPLATE
+   "Layering rules" section (no dangling helpers, no
+   `assume_specification`, no signature changes) is policing
+   disguised as guidance. Per principle, remove. Keep only:
+   gap statement, equal_fn, driving/collateral split, closure goal.
 
 ---
 

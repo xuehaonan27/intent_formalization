@@ -4,9 +4,9 @@
     "function": "vec_filter",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 59,
+    "verus_ms": 60,
     "status": "verus_error",
-    "stderr_tail": "error[E0425]: cannot find function `lemma_seq_properties` in this scope\n  --> /tmp/specdet_sf_vec_filter_k5bhkte8/vec_lib.rs:31:17\n   |\n31 |         proof { lemma_seq_properties::<V>(); }\n   |                 ^^^^^^^^^^^^^^^^^^^^\n   |\n  --> vstd/seq_lib.rs:3666:0\n  ::: vstd/seq_lib.rs:3692:1\n   |\n   = note: similarly named function `group_seq_properties` defined here\nhelp: a function with a similar name exists\n   |\n31 -         proof { lemma_seq_properties::<V>(); }\n31 +         proof { group_seq_properties::<V>(); }\n   |\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0425`.\n",
+    "stderr_tail": "error[E0425]: cannot find function `lemma_seq_properties` in this scope\n  --> /tmp/specdet_sf_vec_filter_bua7xlf1/vec_lib.rs:31:17\n   |\n31 |         proof { lemma_seq_properties::<V>(); }\n   |                 ^^^^^^^^^^^^^^^^^^^^\n   |\n  --> vstd/seq_lib.rs:3666:0\n  ::: vstd/seq_lib.rs:3692:1\n   |\n   = note: similarly named function `group_seq_properties` defined here\nhelp: a function with a similar name exists\n   |\n31 -         proof { lemma_seq_properties::<V>(); }\n31 +         proof { group_seq_properties::<V>(); }\n   |\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0425`.\n",
     "artifact_key": "anvil-library__verified__vstd_exd__vec_lib__vec_lib__vec_filter"
   }
 ]

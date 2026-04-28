@@ -13,31 +13,28 @@
   },
   "atmosphere": {
     "by_status": {
-      "ok": 1079,
+      "ok": 1082,
       "runner_crash": 1,
-      "search_error": 3,
       "verus_error": 280
     },
     "n": 1363,
-    "ok_with_witness": 1079
+    "ok_with_witness": 289
   },
   "ironkv": {
     "by_status": {
-      "ok": 137,
-      "search_error": 3,
+      "ok": 140,
       "verus_error": 74
     },
     "n": 214,
-    "ok_with_witness": 99
+    "ok_with_witness": 67
   },
   "memory-allocator": {
     "by_status": {
-      "ok": 11,
-      "search_error": 4,
+      "ok": 15,
       "verus_error": 1
     },
     "n": 16,
-    "ok_with_witness": 6
+    "ok_with_witness": 9
   },
   "node-replication": {
     "by_status": {},
@@ -50,7 +47,7 @@
       "verus_error": 2
     },
     "n": 8,
-    "ok_with_witness": 6
+    "ok_with_witness": 1
   },
   "storage": {
     "by_status": {

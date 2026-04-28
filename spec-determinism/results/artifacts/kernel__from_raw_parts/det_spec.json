@@ -6179,5 +6179,8 @@
     "rationale": null,
     "source": "default"
   },
-  "type_projections": {}
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Kheap"
 }
