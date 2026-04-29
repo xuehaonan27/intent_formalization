@@ -591,47 +591,117 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
     return result
 
 
+def _rename_idents_in_expr(text: str, name_map: dict) -> str:
+    """AST-aware identifier rename in a Verus expression.
+
+    Wraps ``text`` in a probe ``proof fn __probe() ensures EXPR, {}`` and
+    walks the parse tree. For every ``identifier`` (or ``self``) leaf whose
+    text matches a key in ``name_map``, splice in the mapped value.
+
+    Skips:
+      - ``field_identifier`` nodes (different node type — naturally skipped)
+      - identifier children of ``scoped_identifier`` (path components like
+        ``Foo::next`` — neither side is a local variable)
+
+    Falls back to a conservative regex with ``(?<![.:])`` lookbehind on
+    parse failure (e.g. malformed ensures fragments).
+    """
+    if not name_map or not text.strip():
+        return text
+
+    wrapped_prefix = "verus!{ proof fn __probe() ensures "
+    wrapped = f"{wrapped_prefix}{text}, {{}} }}"
+    expr_start = len(wrapped_prefix)
+
+    tree = _parser.parse(wrapped.encode())
+
+    def has_error(n):
+        if n.type == 'ERROR' or n.is_missing:
+            return True
+        return any(has_error(c) for c in n.children)
+
+    if has_error(tree.root_node):
+        out = text
+        for old_name, new_name in name_map.items():
+            out = re.sub(
+                rf'(?<![.:])\b{re.escape(old_name)}\b',
+                new_name,
+                out,
+            )
+        return out
+
+    edits: list[tuple[int, int, str]] = []
+    expr_end = expr_start + len(text)
+    wrapped_bytes = wrapped.encode()
+
+    def visit(node):
+        if node.type == 'scoped_identifier':
+            return  # path components are namespace-resolved, skip subtree
+        if node.type in ('identifier', 'self'):
+            if node.start_byte < expr_start or node.end_byte > expr_end:
+                return
+            name = wrapped_bytes[node.start_byte:node.end_byte].decode()
+            if name in name_map:
+                s = node.start_byte - expr_start
+                e = node.end_byte - expr_start
+                edits.append((s, e, name_map[name]))
+            return
+        for c in node.children:
+            visit(c)
+
+    visit(tree.root_node)
+
+    edits.sort(key=lambda x: -x[0])
+    out_bytes = text.encode()
+    for s, e, repl in edits:
+        out_bytes = out_bytes[:s] + repl.encode() + out_bytes[e:]
+    return out_bytes.decode()
+
+
 def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     # Rename match-arm bindings first while text is still valid Verus,
     # so tree-sitter can parse it correctly for scoped renaming.
     result = _rename_match_bindings(ensures_raw, run_id)
 
+    # Pre-pass: handle multi-token transforms (deref strip, old(...) wrappers)
+    # via regex — these are not name-vs-field-name ambiguities. We also collect
+    # the single-identifier renames into ``name_map`` and apply them in one
+    # AST-aware pass at the end so e.g. ``self.arr.next`` is not corrupted
+    # when the result binding happens to be ``next``.
+    name_map: dict[str, str] = {}
     for p in spec.params:
         if p.is_mut_ref and p.is_self:
             vn = _var_name(p)
             result = result.replace('__PRE__', f'pre_{vn}')
             result = result.replace('__POST__', f'post{run_id}_{vn}')
             result = result.replace('__RESULT__', f'r{run_id}')
-            # *old(self) → pre_self_ (strip deref, params are values not refs)
             result = re.sub(r'\*\s*old\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
-            # *self → post{run_id}_self_ (strip deref)
             result = re.sub(r'\*\s*self\b', f'post{run_id}_{vn}', result)
-            result = re.sub(r'\bself\b', f'post{run_id}_{vn}', result)
+            name_map['self'] = f'post{run_id}_{vn}'
         elif p.is_mut_ref:
             vn = _var_name(p)
             result = re.sub(rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\*\s*{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
-            result = re.sub(rf'\b{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
+            name_map[p.name] = f'post{run_id}_{vn}'
         elif p.is_self:
             vn = _var_name(p)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', vn, result)
-            result = re.sub(r'\bself\b', vn, result)
+            name_map['self'] = vn
         elif p.is_ref:
-            # Shared reference param: body may write `*p` to dereference.
-            # In det-check fn it's passed by value, so strip the deref.
+            # Shared reference: spec body may write `*p`; strip deref since the
+            # det-check fn takes the param by value.
             result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
 
     # Honour the function's actual return-value binding (from `(name: T)`
-    # in the signature or `#[verus_spec(name => ...)]`). Nanvix always
-    # uses `result`; verusage corpora use e.g. `res`, `v`, etc.
+    # in the signature or `#[verus_spec(name => ...)]`).
     if spec.result_binding and spec.result_binding != f"r{run_id}":
-        result = re.sub(
-            rf'\b{re.escape(spec.result_binding)}\b',
-            f'r{run_id}',
-            result,
-        )
+        name_map[spec.result_binding] = f'r{run_id}'
+
+    if name_map:
+        result = _rename_idents_in_expr(result, name_map)
+
     result = result.replace('__RESULT__', f'r{run_id}')
 
     return result
