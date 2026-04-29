@@ -4,14 +4,14 @@
     "function": "all_set",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 499,
+    "verus_ms": 502,
     "smt2_bytes": 148384,
-    "ctx_ms": 23,
+    "ctx_ms": 22,
     "search_ms": 18,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 546,
+    "total_ms": 547,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__all_set__all_set"
   },
   {
@@ -19,14 +19,14 @@
     "function": "any_set",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 500,
+    "verus_ms": 478,
     "smt2_bytes": 146655,
     "ctx_ms": 20,
     "search_ms": 18,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 544,
+    "total_ms": 521,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__any_set__any_set"
   },
   {
@@ -34,16 +34,16 @@
     "function": "clear",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 415,
+    "verus_ms": 391,
     "smt2_bytes": 161342,
     "ctx_ms": 18,
-    "search_ms": 26,
+    "search_ms": 25,
     "n_rounds": 2,
     "assumes": [
       "!det_clear_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 465,
+    "total_ms": 441,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__clear__clear"
   },
   {
@@ -51,9 +51,9 @@
     "function": "create",
     "n_schemas": 5,
     "n_params": 11,
-    "verus_ms": 835,
+    "verus_ms": 856,
     "smt2_bytes": 316901,
-    "ctx_ms": 22,
+    "ctx_ms": 23,
     "search_ms": 69,
     "n_rounds": 14,
     "assumes": [
@@ -62,7 +62,7 @@
       "!det_create_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 942,
+    "total_ms": 963,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create__create"
   },
   {
@@ -70,16 +70,16 @@
     "function": "create_full",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 832,
+    "verus_ms": 839,
     "smt2_bytes": 309714,
-    "ctx_ms": 21,
+    "ctx_ms": 22,
     "search_ms": 34,
     "n_rounds": 2,
     "assumes": [
       "!det_create_full_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 903,
+    "total_ms": 910,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create__create_full"
   },
   {
@@ -87,7 +87,7 @@
     "function": "create_empty",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 426,
+    "verus_ms": 422,
     "smt2_bytes": 184049,
     "ctx_ms": 19,
     "search_ms": 29,
@@ -96,7 +96,7 @@
       "!det_create_empty_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 480,
+    "total_ms": 476,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create_empty__create_empty"
   },
   {
@@ -104,16 +104,16 @@
     "function": "create_full",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 472,
+    "verus_ms": 464,
     "smt2_bytes": 204702,
     "ctx_ms": 19,
-    "search_ms": 33,
+    "search_ms": 34,
     "n_rounds": 2,
     "assumes": [
       "!det_create_full_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 531,
+    "total_ms": 523,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create_full__create_full"
   },
   {
@@ -121,16 +121,16 @@
     "function": "create_intersect",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 416,
+    "verus_ms": 401,
     "smt2_bytes": 158624,
     "ctx_ms": 18,
-    "search_ms": 25,
+    "search_ms": 31,
     "n_rounds": 2,
     "assumes": [
       "!det_create_intersect_equal(r1, r2, post1_res, post2_res)"
     ],
     "status": "ok",
-    "total_ms": 464,
+    "total_ms": 456,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__create_intersect__create_intersect"
   },
   {
@@ -138,7 +138,7 @@
     "function": "empty",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 366,
+    "verus_ms": 374,
     "smt2_bytes": 127816,
     "ctx_ms": 17,
     "search_ms": 23,
@@ -147,7 +147,7 @@
       "!det_empty_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 412,
+    "total_ms": 419,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__empty__empty"
   },
   {
@@ -155,14 +155,14 @@
     "function": "is_empty",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 487,
+    "verus_ms": 480,
     "smt2_bytes": 139893,
-    "ctx_ms": 18,
+    "ctx_ms": 19,
     "search_ms": 17,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 529,
+    "total_ms": 522,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__is_empty__is_empty"
   },
   {
@@ -170,14 +170,14 @@
     "function": "is_full",
     "n_schemas": 5,
     "n_params": 5,
-    "verus_ms": 609,
+    "verus_ms": 638,
     "smt2_bytes": 199271,
     "ctx_ms": 21,
-    "search_ms": 23,
+    "search_ms": 24,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 661,
+    "total_ms": 690,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__is_full__is_full"
   },
   {
@@ -185,17 +185,17 @@
     "function": "next_run",
     "n_schemas": 3,
     "n_params": 6,
-    "verus_ms": 1419,
+    "verus_ms": 1414,
     "smt2_bytes": 271983,
-    "ctx_ms": 21,
-    "search_ms": 49,
+    "ctx_ms": 22,
+    "search_ms": 50,
     "n_rounds": 8,
     "assumes": [
       "idx == 0",
       "!det_next_run_equal(r1, r2)"
     ],
     "status": "ok",
-    "total_ms": 1501,
+    "total_ms": 1499,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__next_run__next_run"
   },
   {
@@ -203,16 +203,16 @@
     "function": "set",
     "n_schemas": 1,
     "n_params": 1,
-    "verus_ms": 398,
+    "verus_ms": 408,
     "smt2_bytes": 160589,
     "ctx_ms": 18,
-    "search_ms": 26,
+    "search_ms": 25,
     "n_rounds": 2,
     "assumes": [
       "!det_set_equal(r1, r2, post1_self_, post2_self_)"
     ],
     "status": "ok",
-    "total_ms": 447,
+    "total_ms": 457,
     "artifact_key": "memory-allocator__verified__commit_mask__commit_mask__impl__set__set"
   },
   {
@@ -220,14 +220,14 @@
     "function": "align_down",
     "n_schemas": 9,
     "n_params": 21,
-    "verus_ms": 523,
+    "verus_ms": 555,
     "smt2_bytes": 53128,
     "ctx_ms": 15,
     "search_ms": 107,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 650,
+    "total_ms": 682,
     "artifact_key": "memory-allocator__verified__layout__layout__impl__align_down__align_down"
   },
   {
@@ -235,14 +235,14 @@
     "function": "align_up",
     "n_schemas": 9,
     "n_params": 21,
-    "verus_ms": 510,
+    "verus_ms": 495,
     "smt2_bytes": 51765,
-    "ctx_ms": 15,
-    "search_ms": 106,
+    "ctx_ms": 16,
+    "search_ms": 107,
     "n_rounds": 1,
     "assumes": [],
     "status": "ok",
-    "total_ms": 636,
+    "total_ms": 621,
     "artifact_key": "memory-allocator__verified__layout__layout__impl__align_up__align_up"
   },
   {
@@ -250,9 +250,9 @@
     "function": "calculate_page_block_at",
     "n_schemas": 11,
     "n_params": 26,
-    "verus_ms": 29,
+    "verus_ms": 28,
     "status": "verus_error",
-    "stderr_tail": "error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`\n   --> /tmp/specdet_sf_calculate_page_block_at_em1tzovb/layout__impl__calculate_page_block_at.rs:189:597\n    |\n189 | ...l, page_start: usize, block_size: usize, idx: usize, ?: Ghost<PageId>, r1: usize, r2: usize)\n    |                                                         ^\n\nerror: aborting due to 1 previous error\n\n",
+    "stderr_tail": "error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`\n   --> /tmp/specdet_sf_calculate_page_block_at_lhp4o856/layout__impl__calculate_page_block_at.rs:189:597\n    |\n189 | ...tuple: bool, page_start: usize, block_size: usize, idx: usize, ?: Ghost<PageId>, r1: usize, r2: usize)\n    |                                                                   ^\n\nerror: aborting due to 1 previous error\n\n",
     "artifact_key": "memory-allocator__verified__layout__layout__impl__calculate_page_block_at__calculate_page_block_at"
   }
 ]

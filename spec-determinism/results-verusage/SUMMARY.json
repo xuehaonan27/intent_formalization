@@ -13,20 +13,20 @@
   },
   "atmosphere": {
     "by_status": {
-      "ok": 1082,
+      "ok": 1262,
       "runner_crash": 1,
-      "verus_error": 280
+      "verus_error": 100
     },
     "n": 1363,
     "ok_with_witness": 289
   },
   "ironkv": {
     "by_status": {
-      "ok": 140,
-      "verus_error": 74
+      "ok": 170,
+      "verus_error": 44
     },
     "n": 214,
-    "ok_with_witness": 67
+    "ok_with_witness": 76
   },
   "memory-allocator": {
     "by_status": {

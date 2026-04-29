@@ -6,14 +6,14 @@
 |---|---:|---:|---:|---:|---:|---:|---:|
 | anvil-controller | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | anvil-library | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
-| atmosphere | 1363 | 1082 | 289 | 0 | 280 | 0 | 1 |
-| ironkv | 214 | 140 | 67 | 0 | 74 | 0 | 0 |
+| atmosphere | 1363 | 1262 | 289 | 0 | 100 | 0 | 1 |
+| ironkv | 214 | 170 | 76 | 0 | 44 | 0 | 0 |
 | memory-allocator | 16 | 15 | 9 | 0 | 1 | 0 | 0 |
 | node-replication | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | nrkernel | 8 | 6 | 1 | 0 | 2 | 0 | 0 |
 | storage | 43 | 0 | 0 | 0 | 43 | 0 | 0 |
 | vest | 2 | 2 | 1 | 0 | 0 | 0 | 0 |
-| **TOTAL** | **1647** | **1245** | **367** | **0** | **401** | **0** | — |
+| **TOTAL** | **1647** | **1455** | **376** | **0** | **191** | **0** | — |
 
 ## Targets with determinism witnesses
 
@@ -1592,7 +1592,7 @@
   - `len == 0`
   - `!det_new_equal(r1, r2)`
 
-### ironkv (67 witness-bearing)
+### ironkv (76 witness-bearing)
 
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove`  (rounds=8)
   - `i == 0`
@@ -1619,6 +1619,18 @@
   - `start == 0`
   - `end == 0`
   - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__greatest_lower_bound_index__greatest_lower_bound_index`  (rounds=15)
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_greatest_lower_bound_index_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__values_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_values_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__keys_in_index_range_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_keys_in_index_range_agree_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new`  (rounds=2)
   - `!det_new_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__insert`  (rounds=14)
@@ -1627,10 +1639,22 @@
   - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__set`  (rounds=2)
   - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__values_agree__values_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_values_agree_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__new`  (rounds=2)
   - `!det_new_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__set`  (rounds=2)
   - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__range_consistent_impl__keys_in_index_range_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_keys_in_index_range_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__range_consistent_impl__greatest_lower_bound_index`  (rounds=15)
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_greatest_lower_bound_index_equal(r1, r2)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__set`  (rounds=2)
   - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
 - `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__get_internal`  (rounds=2)
@@ -1643,6 +1667,8 @@
   - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__set`  (rounds=2)
   - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__get`  (rounds=2)
+  - `!det_get_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__clone_option_vec_u8`  (rounds=5)
   - `ov is Some`
   - `r1 is Some`
@@ -1660,6 +1686,8 @@
   - `r1 is Some`
   - `r2 is Some`
   - `!det_clone_optional_value_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__get`  (rounds=2)
+  - `!det_get_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__clone_end_point`  (rounds=2)
   - `!det_clone_end_point_equal(r1, r2)`
 - `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__send_single_cmessage`  (rounds=5)
@@ -1753,6 +1781,8 @@
   - `!det_retransmit_un_acked_packets_for_dst_equal(r1, r2, post1_packets, post2_packets)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets`  (rounds=2)
   - `!det_retransmit_un_acked_packets_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__keys`  (rounds=2)
+  - `!det_keys_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets_for_dst__clone_up_to_view`  (rounds=2)
   - `!det_clone_up_to_view_equal(r1, r2)`
 - `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets_for_dst__retransmit_un_acked_packets_for_dst`  (rounds=2)
@@ -1825,7 +1855,7 @@
 
 ## Failure-mode samples
 
-### status=`verus_error`  (401 cases)
+### status=`verus_error`  (191 cases)
 
 **anvil-library / anvil-library__verified__vstd_exd__vec_lib__vec_lib__vec_filter**
 
@@ -1851,139 +1881,125 @@ error: aborting due to 1 previous error
 For more information about this error, try `rustc --explain E0425`.
 ```
 
-**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped__len**
+**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__free_page_4k**
 
 ```
-d.rs:690:26
-    |
-690 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-    |
-703 |         }) ==> det_len_equal::<T, N>(r1, r2),
-    |                             ++++++++
+error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`
+    --> /tmp/specdet_sf_free_page_4k_j_qgdv7k/allocator__page_allocator_spec_impl__impl2__free_page_4k.rs:1085:93
+     |
+1085 | proof fn det_free_page_4k(g_neq_tuple: bool, pre_self_: PageAllocator, target_ptr: PagePtr, ?: Tracked<PagePerm4k>, post1_self_: P...
+     |                                                                                             ^
 
-error[E0284]: type annotations needed
-   --> /tmp/specdet_sf_len_zasz6sdk/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs:709:30
-    |
-709 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
-    |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
-    |
-note: required by a const generic parameter in `det_len_equal`
-   --> /tmp/specdet_sf_len_zasz6sdk/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs:690:26
-    |
-690 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-    |
-709 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
-    |                                           ++++++++
-
-error: aborting due to 2 previous errors; 4 warnings emitted
-
-For more information about this error, try `rustc --explain E0284`.
+error: aborting due to 1 previous error
 ```
 
-**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped__len**
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__page_entry_to_map_entry**
 
 ```
-6
-    |
-772 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-    |
-785 |         }) ==> det_len_equal::<T, N>(r1, r2),
-    |                             ++++++++
+84:18
+     |
+ 184 | pub open spec fn spec_page_entry_to_map_entry(p: &PageEntry) -> MapEntry {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -------------
+help: consider borrowing here
+     |
+2196 |             &&& (r1 =~= spec_page_entry_to_map_entry(&p))
+     |                                                      +
 
-error[E0284]: type annotations needed
-   --> /tmp/specdet_sf_len_3np74khh/allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped.rs:791:30
-    |
-791 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
-    |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
-    |
-note: required by a const generic parameter in `det_len_equal`
-   --> /tmp/specdet_sf_len_3np74khh/allocator__page_allocator_spec_impl__impl1__pages_with_mappings_are_mapped.rs:772:26
-    |
-772 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-    |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-    |
-791 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
-    |                                           ++++++++
+error[E0308]: mismatched types
+    --> /tmp/specdet_sf_page_entry_to_map_entry_5eh85h08/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2197:54
+     |
+2197 |             &&& (r2 =~= spec_page_entry_to_map_entry(p))
+     |                         ---------------------------- ^ expected `&PageEntry`, found `PageEntry`
+     |                         |
+     |                         arguments to this function are incorrect
+     |
+note: function defined here
+    --> /tmp/specdet_sf_page_entry_to_map_entry_5eh85h08/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:184:18
+     |
+ 184 | pub open spec fn spec_page_entry_to_map_entry(p: &PageEntry) -> MapEntry {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -------------
+help: consider borrowing here
+     |
+2197 |             &&& (r2 =~= spec_page_entry_to_map_entry(&p))
+     |                                                      +
 
-error: aborting due to 2 previous errors; 4 warnings emitted
+error: aborting due to 2 previous errors; 18 warnings emitted
 
-For more information about this error, try `rustc --explain E0284`.
+For more information about this error, try `rustc --explain E0308`.
 ```
 
-**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__len**
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__check_address_space_va_range_free**
 
 ```
-1041:26
-     |
-1041 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-     |
-1054 |         }) ==> det_len_equal::<T, N>(r1, r2),
-     |                             ++++++++
 
-error[E0284]: type annotations needed
-    --> /tmp/specdet_sf_len_lwwwnxzd/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1060:30
-     |
-1060 |     if g_neq_tuple { assume(!det_len_equal(r1, r2)); }
-     |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_len_equal`
-     |
-note: required by a const generic parameter in `det_len_equal`
-    --> /tmp/specdet_sf_len_lwwwnxzd/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1041:26
-     |
-1041 | spec fn det_len_equal<T, const N: usize>(r1: usize, r2: usize) -> bool {
-     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_len_equal`
-help: consider specifying the generic arguments
-     |
-1060 |     if g_neq_tuple { assume(!det_len_equal::<T, N>(r1, r2)); }
-     |                                           ++++++++
+2197 |             &&& (r1 == self_.address_space_range_free(target_proc_ptr, &va_range))
+     |                                                                        +
 
-error: aborting due to 2 previous errors; 4 warnings emitted
+error[E0308]: mismatched types
+    --> /tmp/specdet_sf_check_address_space_va_range_free_9aafx8lf/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2198:72
+     |
+2198 |             &&& (r2 == self_.address_space_range_free(target_proc_ptr, va_range))
+     |                              ------------------------                  ^^^^^^^^ expected `&VaRange4K`, found `VaRange4K`
+     |                              |
+     |                              arguments to this method are incorrect
+     |
+note: method defined here
+    --> /tmp/specdet_sf_check_address_space_va_range_free_9aafx8lf/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:1986:22
+     |
+1986 |     pub open spec fn address_space_range_free(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1989 |         va_range: &VaRange4K,
+     |         --------------------
+help: consider borrowing here
+     |
+2198 |             &&& (r2 == self_.address_space_range_free(target_proc_ptr, &va_range))
+     |                                                                        +
 
-For more information about this error, try `rustc --explain E0284`.
+error: aborting due to 2 previous errors; 18 warnings emitted
+
+For more information about this error, try `rustc --explain E0308`.
 ```
 
-**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__get**
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__va_2m_valid**
 
 ```
-pping_4k.rs:1041:26
+not find function `spec_va_2m_valid` in this scope
+    --> /tmp/specdet_sf_va_2m_valid__5yj1fdv/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2196:24
      |
-1041 | spec fn det_get_equal<A, const N: usize>(r1: &A, r2: &A) -> bool {
-     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_get_equal`
-help: consider specifying the generic arguments
+2151 | pub open spec fn spec_va_4k_valid(va: usize) -> bool {
+     | ---------------------------------------------------- similarly named function `spec_va_4k_valid` defined here
+...
+2196 |             &&& (r1 == spec_va_2m_valid(va))
+     |                        ^^^^^^^^^^^^^^^^
      |
-1051 |         }) ==> det_get_equal::<A, N>(r1, r2),
-     |                             ++++++++
+help: a function with a similar name exists
+     |
+2196 -             &&& (r1 == spec_va_2m_valid(va))
+2196 +             &&& (r1 == spec_va_4k_valid(va))
+     |
 
-error[E0284]: type annotations needed
-    --> /tmp/specdet_sf_get_xu4cdi7q/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1055:30
+error[E0425]: cannot find function `spec_va_2m_valid` in this scope
+    --> /tmp/specdet_sf_va_2m_valid__5yj1fdv/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2197:24
      |
-1055 |     if g_neq_tuple { assume(!det_get_equal(r1, r2)); }
-     |                              ^^^^^^^^^^^^^ cannot infer the value of the const parameter `N` declared on the function `det_get_equal`
+2151 | pub open spec fn spec_va_4k_valid(va: usize) -> bool {
+     | ---------------------------------------------------- similarly named function `spec_va_4k_valid` defined here
+...
+2197 |             &&& (r2 == spec_va_2m_valid(va))
+     |                        ^^^^^^^^^^^^^^^^
      |
-note: required by a const generic parameter in `det_get_equal`
-    --> /tmp/specdet_sf_get_xu4cdi7q/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:1041:26
+help: a function with a similar name exists
      |
-1041 | spec fn det_get_equal<A, const N: usize>(r1: &A, r2: &A) -> bool {
-     |                          ^^^^^^^^^^^^^^ required by this const generic parameter in `det_get_equal`
-help: consider specifying the generic arguments
+2197 -             &&& (r2 == spec_va_2m_valid(va))
+2197 +             &&& (r2 == spec_va_4k_valid(va))
      |
-1055 |     if g_neq_tuple { assume(!det_get_equal::<A, N>(r1, r2)); }
-     |                                           ++++++++
 
-error: aborting due to 2 previous errors; 4 warnings emitted
+error: aborting due to 2 previous errors
 
-For more information about this error, try `rustc --explain E0284`.
+For more information about this error, try `rustc --explain E0425`.
 ```
 
-_...and 396 more_
+_...and 186 more_
 
 ### status=`runner_crash`  (1 cases)
 
