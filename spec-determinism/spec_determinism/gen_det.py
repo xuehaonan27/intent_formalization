@@ -73,6 +73,182 @@ def _is_unsized_ty(ty: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Phantom-generic pruning
+# ---------------------------------------------------------------------------
+
+def _ts_find_function_item(node: ts.Node) -> Optional[ts.Node]:
+    """Locate the synthesized `function_item` inside a probe-fn parse tree."""
+    if node.type == "function_item":
+        return node
+    for c in node.children:
+        out = _ts_find_function_item(c)
+        if out is not None:
+            return out
+    return None
+
+
+def _ts_child_by_type(node: ts.Node, *types: str) -> Optional[ts.Node]:
+    for c in node.children:
+        if c.type in types:
+            return c
+    return None
+
+
+def _ts_collect_referenced(node: ts.Node, known: set[str]) -> set[str]:
+    """Walk ``node`` collecting every leaf identifier / lifetime / type-id
+    whose text intersects ``known``. Skips ``type_parameters`` subtrees so
+    HRTB / nested-fn binders don't count as outer-scope references.
+    """
+    out: set[str] = set()
+
+    def visit(n: ts.Node) -> None:
+        # type_parameters introduces a fresh binder list (HRTB ``for<'a>`` or
+        # nested-fn `fn<'a>`); names inside are local, skip the whole subtree.
+        if n.type == "type_parameters":
+            return
+        if n.type in ("type_identifier", "lifetime", "identifier", "primitive_type"):
+            t = n.text.decode()
+            if t in known:
+                out.add(t)
+        for c in n.children:
+            visit(c)
+
+    visit(node)
+    return out
+
+
+def _prune_generics(
+    generics_decl: str,
+    where_decl: str,
+    sig_params_text: str,
+    return_type_text: str = "",
+) -> tuple[str, str]:
+    """Drop generic parameters not referenced by the synthesized fn signature,
+    and drop any where-predicate that refers only to dropped generics.
+
+    Both inputs may be empty strings. Renders back to ``<...>`` / ``where ...``
+    text. Conservative on parse failures: returns inputs unchanged.
+
+    Closure rule: if a where-predicate references one kept generic and one
+    pruned generic, the predicate is kept *and* the pruned generic is pulled
+    back in (otherwise we'd reference an undeclared name).
+    """
+    if not generics_decl.strip():
+        return generics_decl, where_decl
+
+    # Build a probe fn so tree-sitter parses generics + where in proper context.
+    params = sig_params_text.strip()
+    if params.startswith("(") and params.endswith(")"):
+        params = params[1:-1]
+    rt = return_type_text.strip() or "()"
+    where_part = f" {where_decl.strip()}" if where_decl.strip() else ""
+    probe_src = f"fn __probe{generics_decl}({params}) -> {rt}{where_part} {{}}"
+
+    tree = _parser.parse(probe_src.encode())
+    fn_node = _ts_find_function_item(tree.root_node)
+    if fn_node is None:
+        return generics_decl, where_decl
+
+    tp_node = _ts_child_by_type(fn_node, "type_parameters")
+    if tp_node is None:
+        return "", where_decl  # nothing declared, drop where if any
+
+    # 1. Enumerate generic params: (kind, name, raw)
+    entries: list[tuple[str, str, str]] = []
+    known: set[str] = set()
+    for child in tp_node.children:
+        if child.type == "lifetime_parameter":
+            # Node text is e.g. "'a" or "'a: 'static"
+            name = child.text.decode().split(":", 1)[0].strip()
+            entries.append(("lifetime", name, child.text.decode()))
+            known.add(name)
+        elif child.type == "type_parameter":
+            ti = _ts_child_by_type(child, "type_identifier")
+            if ti is None:
+                # Unparseable; keep verbatim with a sentinel name.
+                entries.append(("unknown", "", child.text.decode()))
+                continue
+            name = ti.text.decode()
+            entries.append(("type", name, child.text.decode()))
+            known.add(name)
+        elif child.type == "const_parameter":
+            ident = None
+            for c in child.children:
+                if c.type == "identifier":
+                    ident = c
+                    break
+            if ident is None:
+                entries.append(("unknown", "", child.text.decode()))
+                continue
+            name = ident.text.decode()
+            entries.append(("const", name, child.text.decode()))
+            known.add(name)
+        # Ignore punctuation children (`<`, `>`, `,`).
+
+    # 2. Names referenced in the synthesized signature.
+    used: set[str] = set()
+    params_node = _ts_child_by_type(fn_node, "parameters")
+    if params_node is not None:
+        used |= _ts_collect_referenced(params_node, known)
+    # Return type — tree-sitter-verus uses `named_return_type` (verus form)
+    # or a plain type node after `->`. Check both.
+    rt_node = _ts_child_by_type(fn_node, "named_return_type")
+    if rt_node is None:
+        # Fall back: any sibling between `->` and the block that is a type-ish.
+        seen_arrow = False
+        for c in fn_node.children:
+            if c.type == "->":
+                seen_arrow = True
+                continue
+            if seen_arrow and c.type not in ("block", "where_clause"):
+                used |= _ts_collect_referenced(c, known)
+                break
+    else:
+        used |= _ts_collect_referenced(rt_node, known)
+
+    # 3. Where predicates: parse each, pre-compute referenced name sets.
+    wc_node = _ts_child_by_type(fn_node, "where_clause")
+    wp_list: list[tuple[str, set[str]]] = []
+    if wc_node is not None:
+        for c in wc_node.children:
+            if c.type == "where_predicate":
+                refs = _ts_collect_referenced(c, known)
+                wp_list.append((c.text.decode(), refs))
+
+    # 4. Closure: predicate that overlaps kept ⇒ keep predicate AND pull in
+    #    its other referenced names so we don't end up referencing an
+    #    undeclared generic.
+    kept = set(used)
+    changed = True
+    while changed:
+        changed = False
+        for raw, refs in wp_list:
+            if refs & kept and not refs.issubset(kept):
+                kept |= refs
+                changed = True
+
+    # 5. Filter and render.
+    kept_entries = [(k, n, r) for (k, n, r) in entries
+                    if k == "unknown" or n in kept]
+    new_generics = (
+        "<" + ", ".join(r for (_, _, r) in kept_entries) + ">"
+        if kept_entries else ""
+    )
+
+    kept_preds_raw: list[str] = []
+    for raw, refs in wp_list:
+        # Predicates that mention no known generic are anomalous (e.g., bound
+        # on an associated type binding); keep verbatim.
+        if not refs:
+            kept_preds_raw.append(raw)
+        elif refs & kept:
+            kept_preds_raw.append(raw)
+    new_where = ("where " + ", ".join(kept_preds_raw)) if kept_preds_raw else ""
+
+    return new_generics, new_where
+
+
+# ---------------------------------------------------------------------------
 # Symbol table construction
 # ---------------------------------------------------------------------------
 
@@ -263,8 +439,16 @@ def _build_template(
     # Ensures: `({&&& run1 &&& run2}) ==> conclusion`. No assumes here — they
     # go into the body as `assume(...)` statements, which is cleaner and keeps
     # the postcondition stable across search rounds.
-    where_block = f"\n    {spec.where_decl}" if spec.where_decl else ""
-    code = f"""proof fn {fn_name}{spec.generics_decl}({params_str}){where_block}{requires_str}
+    # Lift impl/fn generics onto the proof fn signature, but only the subset
+    # actually referenced by params/return — phantom generics trigger
+    # E0284/E0283 type-annotations-needed at the call site of the equal-fn.
+    sig_for_prune = params_str
+    if spec.self_type:
+        sig_for_prune = re.sub(r'\bSelf\b', spec.self_type, sig_for_prune)
+    pruned_generics, pruned_where = _prune_generics(
+        spec.generics_decl, spec.where_decl, sig_for_prune)
+    where_block = f"\n    {pruned_where}" if pruned_where else ""
+    code = f"""proof fn {fn_name}{pruned_generics}({params_str}){where_block}{requires_str}
     ensures
         ({{
             &&& {run1}
@@ -694,18 +878,16 @@ def _build_equal_fn(
     if policy.custom_body:
         header += " [custom_body in use]"
 
-    where_block = f"\n    {where_decl}" if where_decl else ""
-    # Use the default `spec fn` (closed). Its body axiom is fuel-gated in
-    # SMT2, but the per-function (push) block emitted by Verus contains
-    # `(assert fuel_defaults)`, which our solver loads as part of the body
-    # — that activates the `fuel_bool ↔ fuel_bool_default` bridge in the
-    # prelude and the body axiom becomes effective. Using `open` here was
-    # tried and reverted: it forces the body to be visible to all callers
-    # and rejects equal-fns that read fields of opaque datatypes (e.g.
-    # memory-allocator's CommitMask), breaking compilation.
+    # Drop unused generics (phantom-generic ⇒ E0284 at the call site). Use
+    # the post-Self-substitution `param_decls` as the reference signature;
+    # the equal-fn return type is `bool`, so generics never appear there.
+    pruned_generics, pruned_where = _prune_generics(
+        generics_decl, where_decl, param_decls)
+
+    where_block = f"\n    {pruned_where}" if pruned_where else ""
     return (
         f"{header}\n"
-        f"spec fn {fn_name}{generics_decl}({param_decls}) -> bool{where_block} {{\n"
+        f"spec fn {fn_name}{pruned_generics}({param_decls}) -> bool{where_block} {{\n"
         f"    {body}\n"
         f"}}"
     )
