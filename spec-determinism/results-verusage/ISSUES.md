@@ -1,11 +1,18 @@
 # Verusage Run — Outstanding Issues
 
 Snapshot of every category of non-`deterministic` outcome observed in the
-verusage batch (commit `eed6038`, 1647 targets across 9 projects). Each
-entry records the symptom, root cause, intended fix, and what currently
-blocks the fix.
+verusage batch. Each entry records the symptom, root cause, intended fix,
+and what currently blocks the fix.
 
-Final batch totals:
+**Update 2026-05-08.** B-1 (`dd602c3`) and B-6 (`2f311af`) have shipped;
+their entries are now annotated with the actual fix and outcome. B-5 was
+investigated and reclassified as "non-target source contamination in the
+inject pipeline" rather than a missing deref in equal-fn synthesis — see
+its section for the corrected analysis. Numbers in the per-project table
+below are the *original baseline* (commit `eed6038`); the `current` table
+that follows shows the post-`42c1248` numbers.
+
+Original baseline (1647 targets across 9 projects):
 
 | project | n | ok | witness | deterministic | verus_error |
 |---|---:|---:|---:|---:|---:|
@@ -19,6 +26,20 @@ Final batch totals:
 | storage | 43 | 0 | 0 | 0 | 43 |
 | vest | 2 | 2 | 1 | 1 | 0 |
 | **total** | **1647** | **1245** | **367** | **878** | **401** |
+
+Current (after B-1 + B-6, commit `42c1248`):
+
+| project | n | ok | ok-with-witness | verus_error |
+|---|---:|---:|---:|---:|
+| atmosphere | 1363 | 1262 | 289 | 100 |
+| ironkv | 214 | 170 | 76 | 44 |
+| memory-allocator | 16 | 15 | 9 | 1 |
+| nrkernel | 8 | 6 | 1 | 2 |
+| vest | 2 | 2 | 1 | 0 |
+| storage | 43 | 0 | 0 | 43 |
+| **total (covered projects)** | **1646** | **1455** | **376** | **190** |
+
+Net change so far: **+210 ok, −210 verus_error**.
 
 Issues are split into two top-level groups: **A. Witness-class** (the
 schema search completed but a separating witness remained) and
@@ -136,7 +157,7 @@ strengthen ensures. Needs a deliberate design pass.
 
 ## B. Verus-error class — 401 cases
 
-### B-1. `E0284`/`E0283` "type annotations needed" — 199 (173 atmo + 26 ironkv)
+### B-1. `E0284`/`E0283` "type annotations needed" — 200 (173 atmo + 27 ironkv) — **fixed (`dd602c3`)**
 
 **Symptom.** Synthesized determinism-check function fails Rust type
 inference at the call site of the equal-fn:
@@ -146,18 +167,35 @@ det_len_equal::<???, ???>(r1, r2)
 ```
 
 **Root cause.** Direct fallout from commit `168b071` (generic-lift
-fix). The fix copies the entire enclosing `impl<T, const N: usize>`
+fix). That fix copies the entire enclosing `impl<T, const N: usize>`
 generic list onto the synthesized equal-fn, but the equal-fn's
 parameter list and return type may not textually reference any of
 those generics — they become phantom and Rust cannot infer them.
 
-**Intended fix.** Drop unused generics: retain only the generic
-parameters whose names appear textually inside the equal-fn signature
-(parameters or return); prune `where` clauses that reference only
-dropped generics.
+**Fix.** `_prune_generics` in `gen_det.py` synthesizes a probe
+`fn __probe<generics>(sig) where ... {}`, parses it with
+tree-sitter-verus, walks the `type_parameters` and `where_clause`
+subtrees, and:
 
-**Blocker.** None — straightforward textual filter on the lifted
-generics. Highest-ROI fix in the table.
+  - keeps only the generics whose names appear textually inside
+    the equal-fn parameters or return type;
+  - applies a fixed-point closure over `where_predicate` nodes so a
+    predicate that overlaps the kept set keeps the predicate AND
+    pulls in its other referenced generics;
+  - skips inner `type_parameters` subtrees so HRTB `for<'a>`
+    binders do not leak as outer-scope references;
+  - falls back to inputs unchanged on parse failure.
+
+Wired into both the proof-fn template (`_build_template`) and the
+spec-fn equal (`_build_equal_fn`); pruning runs after Self-
+substitution so e.g. `Self → Foo<T>` correctly registers `T` as
+referenced.
+
+**Result.** atmosphere E0284 173 → 0; ironkv E0283 26 → 0;
+"type annotations needed" 200 → 0. No regressions on
+memory-allocator / nrkernel / vest. Total verus_error 400 → 203
+after this fix alone.
+
 
 ### B-2. Parser errors in injected.rs — ~65 (38+11+10+4+1+1)
 
@@ -206,31 +244,124 @@ individual diagnosis.
 
 **Blocker.** Depends on B-1.
 
-### B-5. "Dereference this mutable reference …" — 15 (13+2)
+### B-5. "Dereference this mutable reference …" — 18 (16 atmosphere + 2 ironkv)
 
-**Symptom.** Equal-fn compares values of type `&mut T` (or `&T`)
-with `==`; Verus requires `*x == *y` for these.
+**Symptom.** Verus rejects the comparison
+```
+error: Dereference this mutable reference to compare the value via Verus spec equality.
+   |
+   |    self == src,
+   |    ^^^^
+``
+inside an injected source file.
 
-**Root cause.** equal-fn synthesis does not deref reference-typed
-parameters before comparing.
+**Initial hypothesis (wrong).** Equal-fn synthesis compares `&mut T`
+parameters with `==` and forgets to deref.
 
-**Intended fix.** When emitting structural equality for `&T` /
-`&mut T` arguments, deref both sides.
+**Actual root cause (verified 2026-04-29).** The error is **not in
+spec-determinism's synthesized code**. It originates in *non-target*
+functions that happen to live in the same source file as the target.
+Two concrete examples:
 
-**Blocker.** Trivial.
+  - `atmosphere/.../run_blocked_thread.rs:940` —
+    ```
+    #[verifier::external_body]
+    pub fn set_self_fast(&mut self, src: &Registers)
+        ensures self == src,
+    ```
+    Targets `len`, `get_head`, `get_container`, … fail because the
+    injected file pulls in `set_self_fast`'s ensures clause and the
+    current Verus version refuses the `&mut Self == &Self` comparison.
 
-### B-6. `no field r1 on type Node<T>` (`E0609`) — 10 atmosphere
+  - `ironkv/.../truncate.rs:311` — a `while` loop invariant
+    `self == old(self),` written for a permissive Verus version, now
+    rejected by the current toolchain.
 
-**Symptom.** atmosphere's IPC `Node<T>` struct has a real field
-named `r1` (an x86-64 register-name reuse). Our synthesized
-return-value variable `r1` shadows / collides with code that reads
-`node.r1`.
+The targets being checked (`len`, `to_vec`, `valid_physical_address`,
+…) do not themselves contain the problematic comparison. They only
+fail because the inject pipeline copies the entire surrounding source
+into the temp crate.
 
-**Intended fix.** Rename synthesized return variables to a
-collision-resistant name (e.g., `__det_r1`, `__det_r2`). Sweep all
-emitter sites.
+**Why not "just deref in equal-fn".** The text inside the offending
+ensures / invariant comes verbatim from the user's source, so adding
+deref logic to equal-fn synthesis cannot reach it. This is also why
+B-5 was originally tagged "trivial, < 1 hour" — the misdiagnosis hid
+the real scope.
 
-**Blocker.** Trivial.
+**Possible fixes (none implemented).**
+
+  - **A. AST source-patch in inject pipeline.** Walk the injected
+    source with tree-sitter, find `binary_expression` `==` nodes
+    whose operands are `self` / `old(self)` / a `&mut`-typed local,
+    and rewrite them to `*lhs == *rhs`. ~50-80 lines, low risk
+    because spec equality on references and on derefs is equivalent
+    in Verus. Estimated yield ≈ −18 verus errors.
+
+  - **B. Minimal inject.** Restructure the inject pipeline so it
+    drops every function in the source file *except* the target plus
+    its closure of statically referenced spec definitions / type
+    declarations. Larger change (dependency analysis, attribute
+    handling, `#[verifier::external_body]` stubs) but eliminates
+    whole classes of "neighbouring code is incompatible" failures.
+
+  - **C. Block-list the affected source files.** Cheapest; sacrifices
+    determinism coverage for the 18 affected targets.
+
+**Decision (2026-05-08).** Deferred. The 18 affected targets are
+left as `verus_error` in the corpus until B-5 is revisited. When we
+return to it, prefer option A unless the same week we are already
+reworking inject for another reason (then bundle into option B).
+
+
+### B-6. Field accesses corrupted by ensures rename — 13 (10 atmosphere E0609 + 3 ironkv E0599) — **fixed (`2f311af`)**
+
+**Symptom.** Verus errors of the form
+```
+error[E0609]: no field `r1` on type `Node<T>`
+   |
+   |    &&& (r1 == self_.arr_seq@[index as int].r1)
+                                                ^^ unknown field
+```
+and the symmetric "method `r1` not found".
+
+**Initial hypothesis (wrong).** atmosphere's IPC `Node<T>` struct has
+a real field named `r1` colliding with our synthesized return
+variable.
+
+**Actual root cause.** The original function was named with a
+result-binding identifier (e.g., `next` in `fn get_next(...) ->
+(next: SLLIndex)`) and its ensures referenced both the binding *and*
+a struct field of the same spelling, e.g.
+`next == self.arr_seq@[i].next`. Our pre-fix `_substitute_run` used
+`re.sub(r'\bnext\b', 'r1', ...)`, which has no notion of context, so
+the field access `.next` on the right was rewritten to `.r1`.
+ironkv exposed the method-call variant
+(`self@.len()` → `self_@.r1()`) when the binding was `len`.
+
+**Fix.** Replaced the per-rename regex pipeline with an AST-aware
+helper `_rename_idents_in_expr(text, name_map)` that:
+
+  - wraps the ensures fragment in a probe `proof fn __probe()
+    ensures EXPR, {}` and reuses the existing tree-sitter-verus
+    parser (829/829 real ensures clauses parse cleanly);
+  - walks `identifier` and `self` leaves only — `field_identifier`
+    and `arrow_expression` field tags are different node types and
+    are naturally skipped;
+  - prunes `scoped_identifier` subtrees so `Foo::next` is left
+    alone;
+  - applies all collected edits in one pass over the byte buffer,
+    avoiding cascading renames when one rename target appears in
+    another's domain.
+
+15 unit tests cover field access, paths, arrow-variant access,
+quantifier inner expressions, view (`@`), nested fields, multi-name
+maps, and empty inputs.
+
+**Result.** atmosphere E0609 10 → 0; ironkv E0599 3 → 0; 0
+behavioural changes elsewhere apart from the desired corrections (a
+diff sweep across 2256 substitution outputs surfaced 4 differences,
+all of them fixes for the same bug class).
+
 
 ### B-7. `unresolved import deps_hack` / `cannot find type Self` — 29 storage
 
@@ -301,14 +432,19 @@ type.
 
 ## Priority and ROI
 
-| # | item | impact | est. effort |
-|---|---|---|---|
-| 1 | B-1 drop phantom generics from equal-fn | −199 verus_err (and likely most of B-4's 27) | < 1 hour |
-| 2 | A-2 + B-3 view-aware equal-fn | ~−290 false witnesses, −13 verus_err | 1–2 days (policy design) |
-| 3 | A-1 narrow strategies for Tracked/Ghost/PointsTo + newtype unwrap | makes the 29 real-incompleteness witnesses readable | ~1 day |
-| 4 | B-5 deref `&mut`/`&` in equal-fn | −15 verus_err | < 1 hour |
-| 5 | B-6 rename synthesized `r1`/`r2` | −10 verus_err | < 1 hour |
-| 6 | B-2 parser errors triage | up to −65 verus_err | unknown — depends on sub-cause split |
-| 7 | A-3 nested-Err equivalence | ~−30 false witnesses | < 1 hour |
-| 8 | A-4 lemma-as-axiom injection | ~−30 false witnesses | larger design |
-| 9 | B-8 / B-9 / B-10 / B-7 (long tail) | ~−50 verus_err total | varies; lowest priority |
+Updated 2026-05-08 after the B-1, B-6, and B-5 investigations.
+
+| # | item | status | impact | est. effort |
+|---|---|---|---|---|
+| ✅ | B-1 drop phantom generics from equal-fn | **shipped (`dd602c3`)** | −199 verus_err (atmosphere E0284 173, ironkv E0283 26, plus tail) | done |
+| ✅ | B-6 AST-aware ensures rename | **shipped (`2f311af`)** | −13 verus_err (atmosphere E0609 10, ironkv E0599 3) | done |
+| 1 | A-2 + B-3 view-aware equal-fn | open | ~−290 false witnesses, −13 verus_err | 1–2 days (policy design) |
+| 2 | A-1 narrow strategies for Tracked/Ghost/PointsTo + newtype unwrap | open | makes the 29 real-incompleteness witnesses readable | ~1 day |
+| 3 | B-4 E0308 type mismatch in equal-fn calls | open — needs case study | ~−32 verus_err | unknown |
+| 4 | B-2 parser errors triage | open | up to −65 verus_err | unknown — depends on sub-cause split |
+| 5 | A-3 nested-Err equivalence | open | ~−30 false witnesses | < 1 hour |
+| 6 | A-4 lemma-as-axiom injection | open | ~−30 false witnesses | larger design |
+| ⏸ | B-5 deref `&mut`/`&` (was 15, actually 18) | **deferred** — see B-5 section above; root cause is non-target source code copied into inject, not equal-fn synthesis | −18 verus_err | medium (option A: 50-80-line AST source-patch in inject pipeline) |
+| ⏸ | B-7 storage `deps_hack` | deferred | −43 verus_err | high (vendor stub) |
+| ⏸ | B-8 / B-9 / B-10 long tail | deferred | ~−25 verus_err total | varies; lowest priority |
+
