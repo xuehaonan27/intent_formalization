@@ -1,0 +1,126 @@
+{
+  "by_kind": {
+    "alias": 1685,
+    "enum": 381,
+    "struct": 1771
+  },
+  "dangling_top20": [
+    [
+      "Ghost",
+      1043
+    ],
+    [
+      "Seq",
+      722
+    ],
+    [
+      "Option",
+      604
+    ],
+    [
+      "Set",
+      423
+    ],
+    [
+      "PointsTo",
+      370
+    ],
+    [
+      "Map",
+      300
+    ],
+    [
+      "Tracked",
+      172
+    ]
+  ],
+  "external_body": 0,
+  "external_type_specification": 0,
+  "files_scanned": 157,
+  "has_derive_eq_or_partialeq": 170,
+  "in_degree_top20": [
+    [
+      "Ghost",
+      1043
+    ],
+    [
+      "Seq",
+      722
+    ],
+    [
+      "Option",
+      604
+    ],
+    [
+      "SLLIndex",
+      489
+    ],
+    [
+      "ContainerPtr",
+      488
+    ],
+    [
+      "Set",
+      423
+    ],
+    [
+      "Array",
+      402
+    ],
+    [
+      "PointsTo",
+      370
+    ],
+    [
+      "ProcPtr",
+      348
+    ],
+    [
+      "IOid",
+      325
+    ],
+    [
+      "ThreadPtr",
+      325
+    ],
+    [
+      "Map",
+      300
+    ],
+    [
+      "VAddr",
+      268
+    ],
+    [
+      "StaticLinkedList",
+      259
+    ],
+    [
+      "Pcid",
+      251
+    ],
+    [
+      "EndpointPtr",
+      192
+    ],
+    [
+      "PagePtr",
+      186
+    ],
+    [
+      "EndpointIdx",
+      177
+    ],
+    [
+      "Tracked",
+      172
+    ],
+    [
+      "PageEntry",
+      171
+    ]
+  ],
+  "out_degree_sum": 9812,
+  "parse_errors": [],
+  "total_types": 3837
+}

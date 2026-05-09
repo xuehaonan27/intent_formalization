@@ -1,0 +1,93 @@
+{
+  "by_kind": {
+    "enum": 26,
+    "struct": 377
+  },
+  "dangling_top20": [
+    [
+      "Seq",
+      91
+    ],
+    [
+      "Ghost",
+      81
+    ],
+    [
+      "Option",
+      73
+    ],
+    [
+      "Box",
+      7
+    ],
+    [
+      "MaybeUninit",
+      7
+    ],
+    [
+      "Digest",
+      2
+    ]
+  ],
+  "external_body": 9,
+  "external_type_specification": 0,
+  "files_scanned": 63,
+  "has_derive_eq_or_partialeq": 0,
+  "in_degree_top20": [
+    [
+      "Seq",
+      91
+    ],
+    [
+      "Ghost",
+      81
+    ],
+    [
+      "Option",
+      73
+    ],
+    [
+      "PersistentMemoryByte",
+      55
+    ],
+    [
+      "PersistentMemoryRegionView",
+      51
+    ],
+    [
+      "PersistentMemoryConstants",
+      46
+    ],
+    [
+      "LogInfo",
+      11
+    ],
+    [
+      "AbstractLogState",
+      11
+    ],
+    [
+      "PmemError",
+      9
+    ],
+    [
+      "Box",
+      7
+    ],
+    [
+      "MaybeUninit",
+      7
+    ],
+    [
+      "Digest",
+      2
+    ],
+    [
+      "ExternalDigest",
+      2
+    ]
+  ],
+  "out_degree_sum": 446,
+  "parse_errors": [],
+  "total_types": 403
+}

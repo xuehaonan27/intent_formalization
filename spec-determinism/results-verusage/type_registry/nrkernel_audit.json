@@ -1,0 +1,121 @@
+{
+  "by_kind": {
+    "enum": 1090,
+    "struct": 2342
+  },
+  "dangling_top20": [
+    [
+      "Seq",
+      816
+    ],
+    [
+      "Map",
+      777
+    ],
+    [
+      "Set",
+      551
+    ],
+    [
+      "Option",
+      253
+    ],
+    [
+      "Result",
+      191
+    ],
+    [
+      "Ghost",
+      108
+    ]
+  ],
+  "external_body": 31,
+  "external_type_specification": 0,
+  "files_scanned": 204,
+  "has_derive_eq_or_partialeq": 0,
+  "in_degree_top20": [
+    [
+      "Core",
+      974
+    ],
+    [
+      "Seq",
+      816
+    ],
+    [
+      "Map",
+      777
+    ],
+    [
+      "Set",
+      551
+    ],
+    [
+      "MemRegion",
+      425
+    ],
+    [
+      "PTMem",
+      322
+    ],
+    [
+      "Walk",
+      278
+    ],
+    [
+      "Option",
+      253
+    ],
+    [
+      "Polarity",
+      221
+    ],
+    [
+      "Writes",
+      221
+    ],
+    [
+      "Result",
+      191
+    ],
+    [
+      "Flags",
+      154
+    ],
+    [
+      "History",
+      150
+    ],
+    [
+      "MemOp",
+      110
+    ],
+    [
+      "Ghost",
+      108
+    ],
+    [
+      "ArchLayer",
+      105
+    ],
+    [
+      "State",
+      78
+    ],
+    [
+      "CoreState",
+      77
+    ],
+    [
+      "ShootdownVector",
+      77
+    ],
+    [
+      "StoreResult",
+      74
+    ]
+  ],
+  "out_degree_sum": 6234,
+  "parse_errors": [],
+  "total_types": 3432
+}

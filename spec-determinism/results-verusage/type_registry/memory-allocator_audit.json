@@ -1,0 +1,32 @@
+{
+  "by_kind": {
+    "struct": 46
+  },
+  "dangling_top20": [
+    [
+      "Provenance",
+      10
+    ]
+  ],
+  "external_body": 0,
+  "external_type_specification": 0,
+  "files_scanned": 88,
+  "has_derive_eq_or_partialeq": 0,
+  "in_degree_top20": [
+    [
+      "Provenance",
+      10
+    ],
+    [
+      "SegmentId",
+      6
+    ],
+    [
+      "PageId",
+      4
+    ]
+  ],
+  "out_degree_sum": 20,
+  "parse_errors": [],
+  "total_types": 46
+}

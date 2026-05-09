@@ -1,0 +1,15 @@
+{
+  "by_kind": {
+    "alias": 5,
+    "struct": 15
+  },
+  "dangling_top20": [],
+  "external_body": 0,
+  "external_type_specification": 0,
+  "files_scanned": 22,
+  "has_derive_eq_or_partialeq": 0,
+  "in_degree_top20": [],
+  "out_degree_sum": 0,
+  "parse_errors": [],
+  "total_types": 20
+}

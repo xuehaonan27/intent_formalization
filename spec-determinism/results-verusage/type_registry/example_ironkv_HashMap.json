@@ -1,0 +1,2294 @@
+{
+  "edges": {
+    "AbstractArg": [
+      "Seq"
+    ],
+    "AbstractArgs": [
+      "AbstractArg",
+      "Seq"
+    ],
+    "AbstractEndPoint": [
+      "Seq"
+    ],
+    "AbstractIos": [
+      "LSHTIo",
+      "Seq"
+    ],
+    "AbstractKey": [
+      "SHTKey"
+    ],
+    "AbstractValue": [
+      "Seq"
+    ],
+    "AppRequest": [
+      "AbstractKey",
+      "AbstractValue",
+      "Option"
+    ],
+    "Arg": [
+      "Vec"
+    ],
+    "Args": [
+      "Arg",
+      "Vec"
+    ],
+    "CKey": [
+      "SHTKey"
+    ],
+    "CKeyHashMap": [
+      "CKey",
+      "HashMap",
+      "Vec"
+    ],
+    "CKeyKV": [
+      "CKey",
+      "Vec"
+    ],
+    "CPacket": [
+      "CSingleMessage",
+      "EndPoint"
+    ],
+    "CSendState": [
+      "CAckState",
+      "HashMap"
+    ],
+    "CSingleDelivery": [
+      "CSendState",
+      "CTombstoneTable"
+    ],
+    "CTombstoneTable": [
+      "HashMap"
+    ],
+    "Constants": [
+      "EndPoint",
+      "Parameters",
+      "Vec"
+    ],
+    "DelegationMap": [
+      "AbstractEndPoint",
+      "Ghost",
+      "Map",
+      "StrictlyOrderedMap"
+    ],
+    "DuctTapeProfiler": [
+      "HashMap",
+      "String",
+      "SystemTime"
+    ],
+    "EndPoint": [
+      "Vec"
+    ],
+    "HashMap": [
+      "EndPoint"
+    ],
+    "Hashtable": [
+      "AbstractKey",
+      "AbstractValue",
+      "Map"
+    ],
+    "History": [
+      "NetEvent",
+      "Seq"
+    ],
+    "HostState": [
+      "AppRequest",
+      "CKey",
+      "CKeyHashMap",
+      "CPacket",
+      "CSingleDelivery",
+      "Constants",
+      "DelegationMap",
+      "Ghost",
+      "Option",
+      "Seq"
+    ],
+    "ID": [
+      "EndPoint"
+    ],
+    "Ios": [
+      "NetEvent",
+      "Seq"
+    ],
+    "KeyIterator": [
+      "Option"
+    ],
+    "KeyRange": [
+      "KeyIterator"
+    ],
+    "LIoOp": [
+      "LPacket"
+    ],
+    "LPacket": [],
+    "LSHTIo": [
+      "AbstractEndPoint",
+      "LIoOp",
+      "Message",
+      "SingleMessage"
+    ],
+    "LSHTPacket": [
+      "AbstractEndPoint",
+      "LPacket",
+      "Message",
+      "SingleMessage"
+    ],
+    "Message": [
+      "AbstractEndPoint",
+      "AbstractKey",
+      "AbstractValue",
+      "Hashtable",
+      "KeyRange",
+      "Option"
+    ],
+    "NetClient": [
+      "DuctTapeProfiler",
+      "EndPoint",
+      "Ghost",
+      "History",
+      "NetClientCPointers",
+      "State"
+    ],
+    "NetClientCPointers": [
+      "Vec"
+    ],
+    "NetEvent": [
+      "AbstractEndPoint",
+      "LIoOp",
+      "Seq"
+    ],
+    "NetPacket": [
+      "AbstractEndPoint",
+      "LPacket",
+      "Seq"
+    ],
+    "PMsg": [
+      "Message",
+      "SingleMessage"
+    ],
+    "Packet": [
+      "AbstractEndPoint",
+      "PMsg"
+    ],
+    "Parameters": [],
+    "SHTKey": [],
+    "SingleMessage": [
+      "AbstractEndPoint"
+    ],
+    "State": [],
+    "StrictlyOrderedMap": [
+      "Ghost",
+      "Map",
+      "StrictlyOrderedVec",
+      "Vec"
+    ],
+    "StrictlyOrderedVec": [
+      "Vec"
+    ]
+  },
+  "short_names": {
+    "AbstractArg": [
+      "AbstractArg"
+    ],
+    "AbstractArgs": [
+      "AbstractArgs"
+    ],
+    "AbstractEndPoint": [
+      "AbstractEndPoint"
+    ],
+    "AbstractIos": [
+      "AbstractIos"
+    ],
+    "AbstractKey": [
+      "AbstractKey"
+    ],
+    "AbstractValue": [
+      "AbstractValue"
+    ],
+    "AppRequest": [
+      "AppRequest"
+    ],
+    "Arg": [
+      "Arg"
+    ],
+    "Args": [
+      "Args"
+    ],
+    "CKey": [
+      "CKey"
+    ],
+    "CKeyHashMap": [
+      "CKeyHashMap"
+    ],
+    "CKeyKV": [
+      "CKeyKV"
+    ],
+    "CPacket": [
+      "CPacket"
+    ],
+    "CSendState": [
+      "CSendState"
+    ],
+    "CSingleDelivery": [
+      "CSingleDelivery"
+    ],
+    "CTombstoneTable": [
+      "CTombstoneTable"
+    ],
+    "Constants": [
+      "Constants"
+    ],
+    "DelegationMap": [
+      "DelegationMap"
+    ],
+    "DuctTapeProfiler": [
+      "DuctTapeProfiler"
+    ],
+    "EndPoint": [
+      "EndPoint"
+    ],
+    "HashMap": [
+      "HashMap"
+    ],
+    "Hashtable": [
+      "Hashtable"
+    ],
+    "History": [
+      "History"
+    ],
+    "HostState": [
+      "HostState"
+    ],
+    "ID": [
+      "ID"
+    ],
+    "Ios": [
+      "Ios"
+    ],
+    "KeyIterator": [
+      "KeyIterator"
+    ],
+    "KeyRange": [
+      "KeyRange"
+    ],
+    "LIoOp": [
+      "LIoOp"
+    ],
+    "LPacket": [
+      "LPacket"
+    ],
+    "LSHTIo": [
+      "LSHTIo"
+    ],
+    "LSHTPacket": [
+      "LSHTPacket"
+    ],
+    "Message": [
+      "Message"
+    ],
+    "NetClient": [
+      "NetClient"
+    ],
+    "NetClientCPointers": [
+      "NetClientCPointers"
+    ],
+    "NetEvent": [
+      "NetEvent"
+    ],
+    "NetPacket": [
+      "NetPacket"
+    ],
+    "PMsg": [
+      "PMsg"
+    ],
+    "Packet": [
+      "Packet"
+    ],
+    "Parameters": [
+      "Parameters"
+    ],
+    "SHTKey": [
+      "SHTKey"
+    ],
+    "SingleMessage": [
+      "SingleMessage"
+    ],
+    "State": [
+      "State"
+    ],
+    "StrictlyOrderedMap": [
+      "StrictlyOrderedMap"
+    ],
+    "StrictlyOrderedVec": [
+      "StrictlyOrderedVec"
+    ]
+  },
+  "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+  "types": {
+    "AbstractArg": {
+      "alias_target": "Seq<u8>",
+      "alias_target_refs": [
+        "Seq"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "AbstractArg",
+      "qualified_name": "AbstractArg",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 992,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AbstractArgs": {
+      "alias_target": "Seq<AbstractArg>",
+      "alias_target_refs": [
+        "Seq",
+        "AbstractArg"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "AbstractArgs",
+      "qualified_name": "AbstractArgs",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 993,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AbstractEndPoint": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "id",
+          "span": [
+            16735,
+            16750
+          ],
+          "type_refs": [
+            "Seq"
+          ],
+          "type_text": "Seq<u8>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "AbstractEndPoint",
+      "qualified_name": "AbstractEndPoint",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 551,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AbstractIos": {
+      "alias_target": "Seq<LSHTIo>",
+      "alias_target_refs": [
+        "Seq",
+        "LSHTIo"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "AbstractIos",
+      "qualified_name": "AbstractIos",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1008,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AbstractKey": {
+      "alias_target": "SHTKey",
+      "alias_target_refs": [
+        "SHTKey"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "AbstractKey",
+      "qualified_name": "AbstractKey",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 971,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AbstractValue": {
+      "alias_target": "Seq<u8>",
+      "alias_target_refs": [
+        "Seq"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "AbstractValue",
+      "qualified_name": "AbstractValue",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 974,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "AppRequest": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "AppRequest",
+      "qualified_name": "AppRequest",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 569,
+      "variants": [
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "seqno",
+              "span": [
+                17050,
+                17059
+              ],
+              "type_refs": [],
+              "type_text": "nat"
+            },
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                17061,
+                17076
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            }
+          ],
+          "kind": "struct",
+          "name": "AppGetRequest"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "seqno",
+              "span": [
+                17097,
+                17106
+              ],
+              "type_refs": [],
+              "type_text": "nat"
+            },
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                17108,
+                17123
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            },
+            {
+              "is_pub": false,
+              "name": "ov",
+              "span": [
+                17125,
+                17149
+              ],
+              "type_refs": [
+                "Option",
+                "AbstractValue"
+              ],
+              "type_text": "Option<AbstractValue>"
+            }
+          ],
+          "kind": "struct",
+          "name": "AppSetRequest"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "Arg": {
+      "alias_target": "Vec<u8>",
+      "alias_target_refs": [
+        "Vec"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "Arg",
+      "qualified_name": "Arg",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 989,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Args": {
+      "alias_target": "Vec<Arg>",
+      "alias_target_refs": [
+        "Vec",
+        "Arg"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "Args",
+      "qualified_name": "Args",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 990,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CKey": {
+      "alias_target": "SHTKey",
+      "alias_target_refs": [
+        "SHTKey"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "CKey",
+      "qualified_name": "CKey",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 972,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CKeyHashMap": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "m",
+          "span": [
+            17712,
+            17750
+          ],
+          "type_refs": [
+            "HashMap",
+            "CKey",
+            "Vec"
+          ],
+          "type_text": "collections::HashMap<CKey, Vec<u8>>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": true,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CKeyHashMap",
+      "qualified_name": "CKeyHashMap",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 600,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CKeyKV": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "k",
+          "span": [
+            18134,
+            18145
+          ],
+          "type_refs": [
+            "CKey"
+          ],
+          "type_text": "CKey"
+        },
+        {
+          "is_pub": true,
+          "name": "v",
+          "span": [
+            18151,
+            18165
+          ],
+          "type_refs": [
+            "Vec"
+          ],
+          "type_text": "Vec<u8>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CKeyKV",
+      "qualified_name": "CKeyKV",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 620,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CPacket": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "dst",
+          "span": [
+            2336,
+            2353
+          ],
+          "type_refs": [
+            "EndPoint"
+          ],
+          "type_text": "EndPoint"
+        },
+        {
+          "is_pub": true,
+          "name": "src",
+          "span": [
+            2357,
+            2374
+          ],
+          "type_refs": [
+            "EndPoint"
+          ],
+          "type_text": "EndPoint"
+        },
+        {
+          "is_pub": true,
+          "name": "msg",
+          "span": [
+            2378,
+            2401
+          ],
+          "type_refs": [
+            "CSingleMessage"
+          ],
+          "type_text": "CSingleMessage"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CPacket",
+      "qualified_name": "CPacket",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 77,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CSendState": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "epmap",
+          "span": [
+            16530,
+            16559
+          ],
+          "type_refs": [
+            "HashMap",
+            "CAckState"
+          ],
+          "type_text": "HashMap<CAckState>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CSendState",
+      "qualified_name": "CSendState",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 540,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CSingleDelivery": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "receive_state",
+          "span": [
+            16596,
+            16630
+          ],
+          "type_refs": [
+            "CTombstoneTable"
+          ],
+          "type_text": "CTombstoneTable"
+        },
+        {
+          "is_pub": true,
+          "name": "send_state",
+          "span": [
+            16636,
+            16662
+          ],
+          "type_refs": [
+            "CSendState"
+          ],
+          "type_text": "CSendState"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CSingleDelivery",
+      "qualified_name": "CSingleDelivery",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 544,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "CTombstoneTable": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "epmap",
+          "span": [
+            16474,
+            16497
+          ],
+          "type_refs": [
+            "HashMap"
+          ],
+          "type_text": "HashMap<u64>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "CTombstoneTable",
+      "qualified_name": "CTombstoneTable",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 536,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Constants": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "root_identity",
+          "span": [
+            9668,
+            9695
+          ],
+          "type_refs": [
+            "EndPoint"
+          ],
+          "type_text": "EndPoint"
+        },
+        {
+          "is_pub": true,
+          "name": "host_ids",
+          "span": [
+            9701,
+            9728
+          ],
+          "type_refs": [
+            "Vec",
+            "EndPoint"
+          ],
+          "type_text": "Vec<EndPoint>"
+        },
+        {
+          "is_pub": true,
+          "name": "params",
+          "span": [
+            9734,
+            9756
+          ],
+          "type_refs": [
+            "Parameters"
+          ],
+          "type_text": "Parameters"
+        },
+        {
+          "is_pub": true,
+          "name": "me",
+          "span": [
+            9762,
+            9778
+          ],
+          "type_refs": [
+            "EndPoint"
+          ],
+          "type_text": "EndPoint"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Constants",
+      "qualified_name": "Constants",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 382,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "DelegationMap": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "lows",
+          "span": [
+            9519,
+            9546
+          ],
+          "type_refs": [
+            "StrictlyOrderedMap"
+          ],
+          "type_text": "StrictlyOrderedMap<K>"
+        },
+        {
+          "is_pub": false,
+          "name": "m",
+          "span": [
+            9576,
+            9610
+          ],
+          "type_refs": [
+            "Ghost",
+            "Map",
+            "AbstractEndPoint"
+          ],
+          "type_text": "Ghost<Map<K, AbstractEndPoint>>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [
+            "KeyTrait",
+            "VerusClone"
+          ],
+          "kind": "type",
+          "name": "K",
+          "raw": "K: KeyTrait + VerusClone"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "DelegationMap",
+      "qualified_name": "DelegationMap",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 372,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "DuctTapeProfiler": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "last_event",
+          "span": [
+            33298,
+            33320
+          ],
+          "type_refs": [
+            "SystemTime"
+          ],
+          "type_text": "SystemTime"
+        },
+        {
+          "is_pub": false,
+          "name": "last_report",
+          "span": [
+            33326,
+            33349
+          ],
+          "type_refs": [
+            "SystemTime"
+          ],
+          "type_text": "SystemTime"
+        },
+        {
+          "is_pub": false,
+          "name": "event_counter",
+          "span": [
+            33355,
+            33416
+          ],
+          "type_refs": [
+            "HashMap",
+            "String"
+          ],
+          "type_text": "collections::HashMap<std::string::String, u64>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": true,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "DuctTapeProfiler",
+      "qualified_name": "DuctTapeProfiler",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1099,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "EndPoint": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [
+        "PartialEq",
+        "Eq",
+        "Hash"
+      ],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "id",
+          "span": [
+            18689,
+            18704
+          ],
+          "type_refs": [
+            "Vec"
+          ],
+          "type_text": "Vec<u8>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "EndPoint",
+      "qualified_name": "EndPoint",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 640,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "HashMap": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "m",
+          "span": [
+            17279,
+            17315
+          ],
+          "type_refs": [
+            "HashMap",
+            "EndPoint"
+          ],
+          "type_text": "collections::HashMap<EndPoint, V>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "V",
+          "raw": "V"
+        }
+      ],
+      "is_external_body": true,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "HashMap",
+      "qualified_name": "HashMap",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 578,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Hashtable": {
+      "alias_target": "Map<AbstractKey, AbstractValue>",
+      "alias_target_refs": [
+        "Map",
+        "AbstractKey",
+        "AbstractValue"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "Hashtable",
+      "qualified_name": "Hashtable",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 973,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "History": {
+      "alias_target": "Seq<NetEvent>",
+      "alias_target_refs": [
+        "Seq",
+        "NetEvent"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "History",
+      "qualified_name": "History",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1089,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "HostState": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "next_action_index",
+          "span": [
+            10924,
+            10946
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        },
+        {
+          "is_pub": false,
+          "name": "resend_count",
+          "span": [
+            10952,
+            10969
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        },
+        {
+          "is_pub": false,
+          "name": "constants",
+          "span": [
+            11025,
+            11045
+          ],
+          "type_refs": [
+            "Constants"
+          ],
+          "type_text": "Constants"
+        },
+        {
+          "is_pub": false,
+          "name": "delegation_map",
+          "span": [
+            11051,
+            11086
+          ],
+          "type_refs": [
+            "DelegationMap",
+            "CKey"
+          ],
+          "type_text": "DelegationMap<CKey>"
+        },
+        {
+          "is_pub": false,
+          "name": "h",
+          "span": [
+            11092,
+            11106
+          ],
+          "type_refs": [
+            "CKeyHashMap"
+          ],
+          "type_text": "CKeyHashMap"
+        },
+        {
+          "is_pub": false,
+          "name": "sd",
+          "span": [
+            11112,
+            11131
+          ],
+          "type_refs": [
+            "CSingleDelivery"
+          ],
+          "type_text": "CSingleDelivery"
+        },
+        {
+          "is_pub": false,
+          "name": "received_packet",
+          "span": [
+            11137,
+            11169
+          ],
+          "type_refs": [
+            "Option",
+            "CPacket"
+          ],
+          "type_text": "Option<CPacket>"
+        },
+        {
+          "is_pub": false,
+          "name": "num_delegations",
+          "span": [
+            11175,
+            11195
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        },
+        {
+          "is_pub": false,
+          "name": "received_requests",
+          "span": [
+            11201,
+            11242
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq",
+            "AppRequest"
+          ],
+          "type_text": "Ghost<Seq<AppRequest>>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "HostState",
+      "qualified_name": "HostState",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 424,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "ID": {
+      "alias_target": "EndPoint",
+      "alias_target_refs": [
+        "EndPoint"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "ID",
+      "qualified_name": "ID",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 975,
+      "variants": [],
+      "visibility": ""
+    },
+    "Ios": {
+      "alias_target": "Seq<NetEvent>",
+      "alias_target_refs": [
+        "Seq",
+        "NetEvent"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "Ios",
+      "qualified_name": "Ios",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1013,
+      "variants": [],
+      "visibility": ""
+    },
+    "KeyIterator": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "k",
+          "span": [
+            19715,
+            19731
+          ],
+          "type_refs": [
+            "Option"
+          ],
+          "type_text": "Option<K>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [
+            "KeyTrait",
+            "VerusClone"
+          ],
+          "kind": "type",
+          "name": "K",
+          "raw": "K: KeyTrait + VerusClone"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "KeyIterator",
+      "qualified_name": "KeyIterator",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 701,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "KeyRange": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "lo",
+          "span": [
+            19788,
+            19810
+          ],
+          "type_refs": [
+            "KeyIterator"
+          ],
+          "type_text": "KeyIterator<K>"
+        },
+        {
+          "is_pub": true,
+          "name": "hi",
+          "span": [
+            19816,
+            19838
+          ],
+          "type_refs": [
+            "KeyIterator"
+          ],
+          "type_text": "KeyIterator<K>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [
+            "KeyTrait",
+            "VerusClone"
+          ],
+          "kind": "type",
+          "name": "K",
+          "raw": "K: KeyTrait + VerusClone"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "KeyRange",
+      "qualified_name": "KeyRange",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 706,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "LIoOp": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "IdType",
+          "raw": "IdType"
+        },
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "MessageType",
+          "raw": "MessageType"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "LIoOp",
+      "qualified_name": "LIoOp",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 590,
+      "variants": [
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "s",
+              "span": [
+                17507,
+                17538
+              ],
+              "type_refs": [
+                "LPacket"
+              ],
+              "type_text": "LPacket<IdType, MessageType>"
+            }
+          ],
+          "kind": "struct",
+          "name": "Send"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "r",
+              "span": [
+                17553,
+                17584
+              ],
+              "type_refs": [
+                "LPacket"
+              ],
+              "type_text": "LPacket<IdType, MessageType>"
+            }
+          ],
+          "kind": "struct",
+          "name": "Receive"
+        },
+        {
+          "fields": [],
+          "kind": "struct",
+          "name": "TimeoutReceive"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "t",
+              "span": [
+                17623,
+                17629
+              ],
+              "type_refs": [],
+              "type_text": "int"
+            }
+          ],
+          "kind": "struct",
+          "name": "ReadClock"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "LPacket": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "dst",
+          "span": [
+            17393,
+            17408
+          ],
+          "type_refs": [],
+          "type_text": "IdType"
+        },
+        {
+          "is_pub": true,
+          "name": "src",
+          "span": [
+            17414,
+            17429
+          ],
+          "type_refs": [],
+          "type_text": "IdType"
+        },
+        {
+          "is_pub": true,
+          "name": "msg",
+          "span": [
+            17435,
+            17455
+          ],
+          "type_refs": [],
+          "type_text": "MessageType"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "IdType",
+          "raw": "IdType"
+        },
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "MessageType",
+          "raw": "MessageType"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "LPacket",
+      "qualified_name": "LPacket",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 584,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "LSHTIo": {
+      "alias_target": "LIoOp<AbstractEndPoint, SingleMessage<Message>>",
+      "alias_target_refs": [
+        "LIoOp",
+        "AbstractEndPoint",
+        "SingleMessage",
+        "Message"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "LSHTIo",
+      "qualified_name": "LSHTIo",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1010,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "LSHTPacket": {
+      "alias_target": "LPacket<AbstractEndPoint, SingleMessage<Message>>",
+      "alias_target_refs": [
+        "LPacket",
+        "AbstractEndPoint",
+        "SingleMessage",
+        "Message"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "LSHTPacket",
+      "qualified_name": "LSHTPacket",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1009,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Message": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "Message",
+      "qualified_name": "Message",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 719,
+      "variants": [
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                20003,
+                20019
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            }
+          ],
+          "kind": "struct",
+          "name": "GetRequest"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                20053,
+                20069
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            },
+            {
+              "is_pub": false,
+              "name": "value",
+              "span": [
+                20079,
+                20107
+              ],
+              "type_refs": [
+                "Option",
+                "AbstractValue"
+              ],
+              "type_text": "Option<AbstractValue>"
+            }
+          ],
+          "kind": "struct",
+          "name": "SetRequest"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                20136,
+                20152
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            },
+            {
+              "is_pub": false,
+              "name": "value",
+              "span": [
+                20162,
+                20190
+              ],
+              "type_refs": [
+                "Option",
+                "AbstractValue"
+              ],
+              "type_text": "Option<AbstractValue>"
+            }
+          ],
+          "kind": "struct",
+          "name": "Reply"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "key",
+              "span": [
+                20222,
+                20238
+              ],
+              "type_refs": [
+                "AbstractKey"
+              ],
+              "type_text": "AbstractKey"
+            },
+            {
+              "is_pub": false,
+              "name": "id",
+              "span": [
+                20248,
+                20268
+              ],
+              "type_refs": [
+                "AbstractEndPoint"
+              ],
+              "type_text": "AbstractEndPoint"
+            }
+          ],
+          "kind": "struct",
+          "name": "Redirect"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "range",
+              "span": [
+                20297,
+                20325
+              ],
+              "type_refs": [
+                "KeyRange",
+                "AbstractKey"
+              ],
+              "type_text": "KeyRange<AbstractKey>"
+            },
+            {
+              "is_pub": false,
+              "name": "recipient",
+              "span": [
+                20335,
+                20362
+              ],
+              "type_refs": [
+                "AbstractEndPoint"
+              ],
+              "type_text": "AbstractEndPoint"
+            }
+          ],
+          "kind": "struct",
+          "name": "Shard"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "range",
+              "span": [
+                20394,
+                20422
+              ],
+              "type_refs": [
+                "KeyRange",
+                "AbstractKey"
+              ],
+              "type_text": "KeyRange<AbstractKey>"
+            },
+            {
+              "is_pub": false,
+              "name": "h",
+              "span": [
+                20432,
+                20444
+              ],
+              "type_refs": [
+                "Hashtable"
+              ],
+              "type_text": "Hashtable"
+            }
+          ],
+          "kind": "struct",
+          "name": "Delegate"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "NetClient": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "state",
+          "span": [
+            19036,
+            19055
+          ],
+          "type_refs": [
+            "Ghost",
+            "State"
+          ],
+          "type_text": "Ghost<State>"
+        },
+        {
+          "is_pub": false,
+          "name": "history",
+          "span": [
+            19061,
+            19084
+          ],
+          "type_refs": [
+            "Ghost",
+            "History"
+          ],
+          "type_text": "Ghost<History>"
+        },
+        {
+          "is_pub": false,
+          "name": "end_point",
+          "span": [
+            19090,
+            19109
+          ],
+          "type_refs": [
+            "EndPoint"
+          ],
+          "type_text": "EndPoint"
+        },
+        {
+          "is_pub": false,
+          "name": "c_pointers",
+          "span": [
+            19115,
+            19145
+          ],
+          "type_refs": [
+            "NetClientCPointers"
+          ],
+          "type_text": "NetClientCPointers"
+        },
+        {
+          "is_pub": false,
+          "name": "profiler",
+          "span": [
+            19151,
+            19177
+          ],
+          "type_refs": [
+            "DuctTapeProfiler"
+          ],
+          "type_text": "DuctTapeProfiler"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "NetClient",
+      "qualified_name": "NetClient",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 664,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "NetClientCPointers": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "get_time_func",
+          "span": [
+            33008,
+            33045
+          ],
+          "type_refs": [],
+          "type_text": "extern \"C\" fn() -> u64"
+        },
+        {
+          "is_pub": false,
+          "name": "receive_func",
+          "span": [
+            33051,
+            33163
+          ],
+          "type_refs": [
+            "Vec"
+          ],
+          "type_text": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+        },
+        {
+          "is_pub": false,
+          "name": "send_func",
+          "span": [
+            33169,
+            33233
+          ],
+          "type_refs": [],
+          "type_text": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+        }
+      ],
+      "generics": [],
+      "is_external_body": true,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "NetClientCPointers",
+      "qualified_name": "NetClientCPointers",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1092,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "NetEvent": {
+      "alias_target": "LIoOp<AbstractEndPoint, Seq<u8>>",
+      "alias_target_refs": [
+        "LIoOp",
+        "AbstractEndPoint",
+        "Seq"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "NetEvent",
+      "qualified_name": "NetEvent",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1011,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "NetPacket": {
+      "alias_target": "LPacket<AbstractEndPoint, Seq<u8>>",
+      "alias_target_refs": [
+        "LPacket",
+        "AbstractEndPoint",
+        "Seq"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "NetPacket",
+      "qualified_name": "NetPacket",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1012,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PMsg": {
+      "alias_target": "SingleMessage<Message>",
+      "alias_target_refs": [
+        "SingleMessage",
+        "Message"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "PMsg",
+      "qualified_name": "PMsg",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 1014,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Packet": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "dst",
+          "span": [
+            20503,
+            20528
+          ],
+          "type_refs": [
+            "AbstractEndPoint"
+          ],
+          "type_text": "AbstractEndPoint"
+        },
+        {
+          "is_pub": true,
+          "name": "src",
+          "span": [
+            20534,
+            20559
+          ],
+          "type_refs": [
+            "AbstractEndPoint"
+          ],
+          "type_text": "AbstractEndPoint"
+        },
+        {
+          "is_pub": true,
+          "name": "msg",
+          "span": [
+            20565,
+            20578
+          ],
+          "type_refs": [
+            "PMsg"
+          ],
+          "type_text": "PMsg"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Packet",
+      "qualified_name": "Packet",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 747,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Parameters": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "max_seqno",
+          "span": [
+            9811,
+            9829
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        },
+        {
+          "is_pub": true,
+          "name": "max_delegations",
+          "span": [
+            9835,
+            9859
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Parameters",
+      "qualified_name": "Parameters",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 389,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "SHTKey": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [
+        "Eq",
+        "PartialEq",
+        "Hash"
+      ],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "ukey",
+          "span": [
+            19896,
+            19931
+          ],
+          "type_refs": [],
+          "type_text": "u64"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "SHTKey",
+      "qualified_name": "SHTKey",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 712,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "SingleMessage": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "MT",
+          "raw": "MT"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "SingleMessage",
+      "qualified_name": "SingleMessage",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 755,
+      "variants": [
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "seqno",
+              "span": [
+                20664,
+                20674
+              ],
+              "type_refs": [],
+              "type_text": "nat"
+            },
+            {
+              "is_pub": false,
+              "name": "dst",
+              "span": [
+                20684,
+                20705
+              ],
+              "type_refs": [
+                "AbstractEndPoint"
+              ],
+              "type_text": "AbstractEndPoint"
+            },
+            {
+              "is_pub": false,
+              "name": "m",
+              "span": [
+                20715,
+                20720
+              ],
+              "type_refs": [],
+              "type_text": "MT"
+            }
+          ],
+          "kind": "struct",
+          "name": "Message"
+        },
+        {
+          "fields": [
+            {
+              "is_pub": false,
+              "name": "ack_seqno",
+              "span": [
+                20747,
+                20761
+              ],
+              "type_refs": [],
+              "type_text": "nat"
+            }
+          ],
+          "kind": "struct",
+          "name": "Ack"
+        },
+        {
+          "fields": [],
+          "kind": "struct",
+          "name": "InvalidMessage"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "State": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "State",
+      "qualified_name": "State",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 658,
+      "variants": [
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Receiving"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Sending"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Error"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "StrictlyOrderedMap": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "keys",
+          "span": [
+            28017,
+            28044
+          ],
+          "type_refs": [
+            "StrictlyOrderedVec"
+          ],
+          "type_text": "StrictlyOrderedVec<K>"
+        },
+        {
+          "is_pub": false,
+          "name": "vals",
+          "span": [
+            28050,
+            28063
+          ],
+          "type_refs": [
+            "Vec"
+          ],
+          "type_text": "Vec<ID>"
+        },
+        {
+          "is_pub": false,
+          "name": "m",
+          "span": [
+            28069,
+            28089
+          ],
+          "type_refs": [
+            "Ghost",
+            "Map"
+          ],
+          "type_text": "Ghost<Map<K, ID>>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [
+            "KeyTrait",
+            "VerusClone"
+          ],
+          "kind": "type",
+          "name": "K",
+          "raw": "K: KeyTrait + VerusClone"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "StrictlyOrderedMap",
+      "qualified_name": "StrictlyOrderedMap",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 978,
+      "variants": [],
+      "visibility": ""
+    },
+    "StrictlyOrderedVec": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": false,
+          "name": "v",
+          "span": [
+            28186,
+            28195
+          ],
+          "type_refs": [
+            "Vec"
+          ],
+          "type_text": "Vec<K>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [
+            "KeyTrait"
+          ],
+          "kind": "type",
+          "name": "K",
+          "raw": "K: KeyTrait"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "StrictlyOrderedVec",
+      "qualified_name": "StrictlyOrderedVec",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 985,
+      "variants": [],
+      "visibility": ""
+    }
+  }
+}

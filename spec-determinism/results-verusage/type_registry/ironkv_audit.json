@@ -1,0 +1,146 @@
+{
+  "by_kind": {
+    "alias": 416,
+    "enum": 149,
+    "struct": 713
+  },
+  "dangling_top20": [
+    [
+      "Vec",
+      257
+    ],
+    [
+      "Seq",
+      235
+    ],
+    [
+      "Map",
+      137
+    ],
+    [
+      "Option",
+      117
+    ],
+    [
+      "Ghost",
+      89
+    ],
+    [
+      "CSingleMessage",
+      25
+    ],
+    [
+      "CAckState",
+      21
+    ],
+    [
+      "HashMap",
+      19
+    ],
+    [
+      "String",
+      12
+    ],
+    [
+      "SystemTime",
+      11
+    ],
+    [
+      "AbstractDelegationMap",
+      11
+    ],
+    [
+      "CMessage",
+      2
+    ]
+  ],
+  "external_body": 79,
+  "external_type_specification": 0,
+  "files_scanned": 118,
+  "has_derive_eq_or_partialeq": 84,
+  "in_degree_top20": [
+    [
+      "Vec",
+      257
+    ],
+    [
+      "Seq",
+      235
+    ],
+    [
+      "AbstractEndPoint",
+      215
+    ],
+    [
+      "Map",
+      137
+    ],
+    [
+      "EndPoint",
+      125
+    ],
+    [
+      "Option",
+      117
+    ],
+    [
+      "Ghost",
+      89
+    ],
+    [
+      "HashMap",
+      89
+    ],
+    [
+      "CKey",
+      87
+    ],
+    [
+      "AbstractKey",
+      77
+    ],
+    [
+      "SingleMessage",
+      76
+    ],
+    [
+      "SHTKey",
+      75
+    ],
+    [
+      "AbstractValue",
+      75
+    ],
+    [
+      "Message",
+      66
+    ],
+    [
+      "LPacket",
+      43
+    ],
+    [
+      "Hashtable",
+      40
+    ],
+    [
+      "StrictlyOrderedVec",
+      36
+    ],
+    [
+      "KeyIterator",
+      33
+    ],
+    [
+      "KeyRange",
+      33
+    ],
+    [
+      "StrictlyOrderedMap",
+      30
+    ]
+  ],
+  "out_degree_sum": 2462,
+  "parse_errors": [],
+  "total_types": 1278
+}

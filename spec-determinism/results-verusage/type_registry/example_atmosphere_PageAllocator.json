@@ -1,0 +1,1032 @@
+{
+  "edges": {
+    "Array": [
+      "Ghost",
+      "Seq"
+    ],
+    "ContainerPtr": [],
+    "IOid": [],
+    "Node": [
+      "Option",
+      "SLLIndex"
+    ],
+    "Page": [
+      "ContainerPtr",
+      "Ghost",
+      "IOid",
+      "Option",
+      "PagePtr",
+      "PageState",
+      "Pcid",
+      "SLLIndex",
+      "Set",
+      "VAddr"
+    ],
+    "PageAllocator": [
+      "Array",
+      "ContainerPtr",
+      "Ghost",
+      "Map",
+      "Page",
+      "PagePerm1g",
+      "PagePerm2m",
+      "PagePerm4k",
+      "PagePtr",
+      "Set",
+      "StaticLinkedList",
+      "Tracked"
+    ],
+    "PagePerm1g": [
+      "PointsTo"
+    ],
+    "PagePerm2m": [
+      "PointsTo"
+    ],
+    "PagePerm4k": [
+      "PointsTo"
+    ],
+    "PagePtr": [],
+    "PageState": [],
+    "Pcid": [],
+    "SLLIndex": [],
+    "StaticLinkedList": [
+      "Ghost",
+      "Node",
+      "SLLIndex",
+      "Seq"
+    ],
+    "VAddr": []
+  },
+  "short_names": {
+    "Array": [
+      "Array"
+    ],
+    "ContainerPtr": [
+      "ContainerPtr"
+    ],
+    "IOid": [
+      "IOid"
+    ],
+    "Node": [
+      "Node"
+    ],
+    "Page": [
+      "Page"
+    ],
+    "PageAllocator": [
+      "PageAllocator"
+    ],
+    "PagePerm1g": [
+      "PagePerm1g"
+    ],
+    "PagePerm2m": [
+      "PagePerm2m"
+    ],
+    "PagePerm4k": [
+      "PagePerm4k"
+    ],
+    "PagePtr": [
+      "PagePtr"
+    ],
+    "PageState": [
+      "PageState"
+    ],
+    "Pcid": [
+      "Pcid"
+    ],
+    "SLLIndex": [
+      "SLLIndex"
+    ],
+    "StaticLinkedList": [
+      "StaticLinkedList"
+    ],
+    "VAddr": [
+      "VAddr"
+    ]
+  },
+  "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+  "types": {
+    "Array": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "seq",
+          "span": [
+            26068,
+            26090
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq"
+          ],
+          "type_text": "Ghost<Seq<A>>"
+        },
+        {
+          "is_pub": true,
+          "name": "ar",
+          "span": [
+            26096,
+            26109
+          ],
+          "type_refs": [],
+          "type_text": "[A;N]"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "A",
+          "raw": "A"
+        },
+        {
+          "bounds": [],
+          "kind": "const",
+          "name": "N",
+          "raw": "const N: usize"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Array",
+      "qualified_name": "Array",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 577,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "ContainerPtr": {
+      "alias_target": "usize",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "ContainerPtr",
+      "qualified_name": "ContainerPtr",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 10,
+      "variants": [],
+      "visibility": ""
+    },
+    "IOid": {
+      "alias_target": "usize",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "IOid",
+      "qualified_name": "IOid",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 14,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Node": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [
+        "Debug"
+      ],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "value",
+          "span": [
+            758,
+            778
+          ],
+          "type_refs": [
+            "Option"
+          ],
+          "type_text": "Option<T>"
+        },
+        {
+          "is_pub": true,
+          "name": "next",
+          "span": [
+            784,
+            802
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "prev",
+          "span": [
+            808,
+            826
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "T",
+          "raw": "T"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Node",
+      "qualified_name": "Node",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 33,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "Page": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [
+        "Clone",
+        "Copy"
+      ],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "addr",
+          "span": [
+            2491,
+            2508
+          ],
+          "type_refs": [
+            "PagePtr"
+          ],
+          "type_text": "PagePtr"
+        },
+        {
+          "is_pub": true,
+          "name": "state",
+          "span": [
+            2514,
+            2534
+          ],
+          "type_refs": [
+            "PageState"
+          ],
+          "type_text": "PageState"
+        },
+        {
+          "is_pub": true,
+          "name": "is_io_page",
+          "span": [
+            2540,
+            2560
+          ],
+          "type_refs": [],
+          "type_text": "bool"
+        },
+        {
+          "is_pub": true,
+          "name": "rev_pointer",
+          "span": [
+            2566,
+            2591
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "ref_count",
+          "span": [
+            2597,
+            2617
+          ],
+          "type_refs": [],
+          "type_text": "usize"
+        },
+        {
+          "is_pub": true,
+          "name": "owning_container",
+          "span": [
+            2623,
+            2665
+          ],
+          "type_refs": [
+            "Option",
+            "ContainerPtr"
+          ],
+          "type_text": "Option<ContainerPtr>"
+        },
+        {
+          "is_pub": true,
+          "name": "mappings",
+          "span": [
+            2671,
+            2710
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "Pcid",
+            "VAddr"
+          ],
+          "type_text": "Ghost<Set<(Pcid, VAddr)>>"
+        },
+        {
+          "is_pub": true,
+          "name": "io_mappings",
+          "span": [
+            2716,
+            2758
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "IOid",
+            "VAddr"
+          ],
+          "type_text": "Ghost<Set<(IOid, VAddr)>>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "Page",
+      "qualified_name": "Page",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 107,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PageAllocator": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "page_array",
+          "span": [
+            2842,
+            2880
+          ],
+          "type_refs": [
+            "Array",
+            "Page"
+          ],
+          "type_text": "Array<Page, NUM_PAGES>"
+        },
+        {
+          "is_pub": true,
+          "name": "free_pages_4k",
+          "span": [
+            2886,
+            2941
+          ],
+          "type_refs": [
+            "StaticLinkedList",
+            "PagePtr"
+          ],
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+        },
+        {
+          "is_pub": true,
+          "name": "free_pages_2m",
+          "span": [
+            2947,
+            3002
+          ],
+          "type_refs": [
+            "StaticLinkedList",
+            "PagePtr"
+          ],
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+        },
+        {
+          "is_pub": true,
+          "name": "free_pages_1g",
+          "span": [
+            3008,
+            3063
+          ],
+          "type_refs": [
+            "StaticLinkedList",
+            "PagePtr"
+          ],
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+        },
+        {
+          "is_pub": true,
+          "name": "allocated_pages_4k",
+          "span": [
+            3069,
+            3112
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "allocated_pages_2m",
+          "span": [
+            3118,
+            3161
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "allocated_pages_1g",
+          "span": [
+            3167,
+            3210
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "mapped_pages_4k",
+          "span": [
+            3216,
+            3256
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "mapped_pages_2m",
+          "span": [
+            3262,
+            3302
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "mapped_pages_1g",
+          "span": [
+            3308,
+            3348
+          ],
+          "type_refs": [
+            "Ghost",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Set<PagePtr>>"
+        },
+        {
+          "is_pub": true,
+          "name": "page_perms_4k",
+          "span": [
+            3403,
+            3455
+          ],
+          "type_refs": [
+            "Tracked",
+            "Map",
+            "PagePtr",
+            "PagePerm4k"
+          ],
+          "type_text": "Tracked<Map<PagePtr, PagePerm4k>>"
+        },
+        {
+          "is_pub": true,
+          "name": "page_perms_2m",
+          "span": [
+            3461,
+            3513
+          ],
+          "type_refs": [
+            "Tracked",
+            "Map",
+            "PagePtr",
+            "PagePerm2m"
+          ],
+          "type_text": "Tracked<Map<PagePtr, PagePerm2m>>"
+        },
+        {
+          "is_pub": true,
+          "name": "page_perms_1g",
+          "span": [
+            3519,
+            3571
+          ],
+          "type_refs": [
+            "Tracked",
+            "Map",
+            "PagePtr",
+            "PagePerm1g"
+          ],
+          "type_text": "Tracked<Map<PagePtr, PagePerm1g>>"
+        },
+        {
+          "is_pub": true,
+          "name": "container_map_4k",
+          "span": [
+            3577,
+            3637
+          ],
+          "type_refs": [
+            "Ghost",
+            "Map",
+            "ContainerPtr",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+        },
+        {
+          "is_pub": true,
+          "name": "container_map_2m",
+          "span": [
+            3643,
+            3703
+          ],
+          "type_refs": [
+            "Ghost",
+            "Map",
+            "ContainerPtr",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+        },
+        {
+          "is_pub": true,
+          "name": "container_map_1g",
+          "span": [
+            3709,
+            3769
+          ],
+          "type_refs": [
+            "Ghost",
+            "Map",
+            "ContainerPtr",
+            "Set",
+            "PagePtr"
+          ],
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+        }
+      ],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "PageAllocator",
+      "qualified_name": "PageAllocator",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 120,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PagePerm1g": {
+      "alias_target": "PointsTo<[u8; PAGE_SZ_1g]>",
+      "alias_target_refs": [
+        "PointsTo"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "PagePerm1g",
+      "qualified_name": "PagePerm1g",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 11,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PagePerm2m": {
+      "alias_target": "PointsTo<[u8; PAGE_SZ_2m]>",
+      "alias_target_refs": [
+        "PointsTo"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "PagePerm2m",
+      "qualified_name": "PagePerm2m",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 12,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PagePerm4k": {
+      "alias_target": "PointsTo<[u8; PAGE_SZ_4k]>",
+      "alias_target_refs": [
+        "PointsTo"
+      ],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "PagePerm4k",
+      "qualified_name": "PagePerm4k",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 13,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "PagePtr": {
+      "alias_target": "usize",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "PagePtr",
+      "qualified_name": "PagePtr",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 9,
+      "variants": [],
+      "visibility": ""
+    },
+    "PageState": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [
+        "Clone",
+        "Copy",
+        "Debug",
+        "PartialEq"
+      ],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "enum",
+      "name": "PageState",
+      "qualified_name": "PageState",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 554,
+      "variants": [
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Unavailable4k"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Unavailable2m"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Unavailable1g"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Pagetable"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Allocated4k"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Allocated2m"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Allocated1g"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Free4k"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Free2m"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Free1g"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Mapped4k"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Mapped2m"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Mapped1g"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Merged2m"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Merged1g"
+        },
+        {
+          "fields": [],
+          "kind": "unit",
+          "name": "Io"
+        }
+      ],
+      "visibility": "pub"
+    },
+    "Pcid": {
+      "alias_target": "usize",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "Pcid",
+      "qualified_name": "Pcid",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 16,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "SLLIndex": {
+      "alias_target": "i32",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "SLLIndex",
+      "qualified_name": "SLLIndex",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 15,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "StaticLinkedList": {
+      "alias_target": null,
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [
+        {
+          "is_pub": true,
+          "name": "ar",
+          "span": [
+            960,
+            980
+          ],
+          "type_refs": [
+            "Node"
+          ],
+          "type_text": "[Node<T>; N]"
+        },
+        {
+          "is_pub": true,
+          "name": "spec_seq",
+          "span": [
+            986,
+            1013
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq"
+          ],
+          "type_text": "Ghost<Seq<T>>"
+        },
+        {
+          "is_pub": true,
+          "name": "value_list",
+          "span": [
+            1019,
+            1055
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq",
+            "SLLIndex"
+          ],
+          "type_text": "Ghost<Seq<SLLIndex>>"
+        },
+        {
+          "is_pub": true,
+          "name": "value_list_head",
+          "span": [
+            1061,
+            1090
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "value_list_tail",
+          "span": [
+            1096,
+            1125
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "value_list_len",
+          "span": [
+            1131,
+            1156
+          ],
+          "type_refs": [],
+          "type_text": "usize"
+        },
+        {
+          "is_pub": true,
+          "name": "free_list",
+          "span": [
+            1162,
+            1197
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq",
+            "SLLIndex"
+          ],
+          "type_text": "Ghost<Seq<SLLIndex>>"
+        },
+        {
+          "is_pub": true,
+          "name": "free_list_head",
+          "span": [
+            1203,
+            1231
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "free_list_tail",
+          "span": [
+            1237,
+            1265
+          ],
+          "type_refs": [
+            "SLLIndex"
+          ],
+          "type_text": "SLLIndex"
+        },
+        {
+          "is_pub": true,
+          "name": "free_list_len",
+          "span": [
+            1271,
+            1295
+          ],
+          "type_refs": [],
+          "type_text": "usize"
+        },
+        {
+          "is_pub": true,
+          "name": "size",
+          "span": [
+            1301,
+            1316
+          ],
+          "type_refs": [],
+          "type_text": "usize"
+        },
+        {
+          "is_pub": true,
+          "name": "arr_seq",
+          "span": [
+            1322,
+            1354
+          ],
+          "type_refs": [
+            "Ghost",
+            "Seq",
+            "Node"
+          ],
+          "type_text": "Ghost<Seq<Node<T>>>"
+        }
+      ],
+      "generics": [
+        {
+          "bounds": [],
+          "kind": "type",
+          "name": "T",
+          "raw": "T"
+        },
+        {
+          "bounds": [],
+          "kind": "const",
+          "name": "N",
+          "raw": "const N: usize"
+        }
+      ],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "struct",
+      "name": "StaticLinkedList",
+      "qualified_name": "StaticLinkedList",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 42,
+      "variants": [],
+      "visibility": "pub"
+    },
+    "VAddr": {
+      "alias_target": "usize",
+      "alias_target_refs": [],
+      "cfg": [],
+      "derives": [],
+      "fields": [],
+      "generics": [],
+      "is_external_body": false,
+      "is_external_type_specification": false,
+      "kind": "alias",
+      "name": "VAddr",
+      "qualified_name": "VAddr",
+      "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 8,
+      "variants": [],
+      "visibility": "pub"
+    }
+  }
+}
