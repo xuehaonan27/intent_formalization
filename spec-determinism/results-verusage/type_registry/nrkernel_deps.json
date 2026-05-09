@@ -1,0 +1,1000 @@
+{
+  "aggregate": {
+    "classification": {
+      "Arch": "struct",
+      "ArchExec": "struct",
+      "ArchLayer": "struct",
+      "ArchLayerExec": "struct",
+      "Constants": "struct",
+      "Core": "struct",
+      "CoreState": "external",
+      "Directory": "struct",
+      "DoShootdown": "enum",
+      "Flags": "struct",
+      "GPDE": "enum",
+      "Ghost": "container",
+      "History": "struct",
+      "Lbl": "enum",
+      "LoadResult": "enum",
+      "Map": "container",
+      "MemOp": "enum",
+      "MemRegion": "struct",
+      "MemRegionExec": "external",
+      "NodeEntry": "enum",
+      "OpArgs": "enum",
+      "Option": "container",
+      "PDE": "struct",
+      "PTDir": "struct",
+      "PTE": "struct",
+      "PTMem": "struct",
+      "Polarity": "enum",
+      "Progress": "external",
+      "RLbl": "enum",
+      "Result": "container",
+      "Seq": "container",
+      "Set": "container",
+      "ShootdownVector": "external",
+      "State": "struct",
+      "Step": "enum",
+      "StoreResult": "enum",
+      "ThreadState": "enum",
+      "TokState": "enum",
+      "Token": "external",
+      "Walk": "struct",
+      "WalkResult": "enum",
+      "WrappedMapToken": "struct",
+      "WrappedTokenView": "struct",
+      "WrappedUnmapToken": "struct",
+      "Writes": "struct"
+    },
+    "field_paths": {
+      "Arch": [],
+      "ArchExec": [],
+      "ArchLayer": [],
+      "ArchLayerExec": [],
+      "Constants": [],
+      "Core": [],
+      "CoreState": [],
+      "Directory": [],
+      "DoShootdown": [],
+      "Flags": [],
+      "GPDE": [],
+      "History": [],
+      "Lbl": [],
+      "LoadResult": [],
+      "MemOp": [],
+      "MemRegion": [],
+      "MemRegionExec": [],
+      "NodeEntry": [],
+      "OpArgs": [],
+      "PDE": [],
+      "PTDir": [],
+      "PTE": [],
+      "PTMem": [],
+      "Polarity": [],
+      "Progress": [],
+      "RLbl": [],
+      "ShootdownVector": [],
+      "State": [],
+      "Step": [],
+      "StoreResult": [],
+      "ThreadState": [],
+      "TokState": [],
+      "Token": [],
+      "Walk": [],
+      "WalkResult": [],
+      "WrappedMapToken": [],
+      "WrappedTokenView": [],
+      "WrappedUnmapToken": [],
+      "Writes": []
+    },
+    "forward": {
+      "Arch": [
+        "ArchLayer",
+        "Seq"
+      ],
+      "ArchExec": [
+        "ArchLayerExec"
+      ],
+      "ArchLayer": [],
+      "ArchLayerExec": [],
+      "Constants": [
+        "Core",
+        "Map"
+      ],
+      "Core": [],
+      "CoreState": [
+        "Option",
+        "Result"
+      ],
+      "Directory": [
+        "Arch",
+        "NodeEntry",
+        "Seq"
+      ],
+      "DoShootdown": [],
+      "Flags": [],
+      "GPDE": [],
+      "Ghost": [],
+      "History": [
+        "Core",
+        "Map",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Writes"
+      ],
+      "Lbl": [
+        "Core",
+        "MemOp",
+        "MemRegion"
+      ],
+      "LoadResult": [
+        "Seq"
+      ],
+      "Map": [],
+      "MemOp": [
+        "LoadResult",
+        "Seq",
+        "StoreResult"
+      ],
+      "MemRegion": [],
+      "MemRegionExec": [],
+      "NodeEntry": [
+        "Directory"
+      ],
+      "OpArgs": [],
+      "Option": [],
+      "PDE": [
+        "Ghost"
+      ],
+      "PTDir": [
+        "MemRegion",
+        "Option",
+        "Seq",
+        "Set"
+      ],
+      "PTE": [
+        "Flags",
+        "MemRegion"
+      ],
+      "PTMem": [
+        "Map"
+      ],
+      "Polarity": [],
+      "Progress": [],
+      "RLbl": [
+        "Core",
+        "MemOp",
+        "Result"
+      ],
+      "Result": [],
+      "Seq": [],
+      "Set": [],
+      "ShootdownVector": [
+        "Core",
+        "Set"
+      ],
+      "State": [
+        "Core",
+        "CoreState",
+        "History",
+        "Map",
+        "MemRegion",
+        "Option",
+        "PTMem",
+        "Polarity",
+        "Seq",
+        "Set",
+        "ShootdownVector",
+        "ThreadState",
+        "Walk",
+        "Writes"
+      ],
+      "Step": [
+        "Core",
+        "MemRegion",
+        "Option",
+        "Walk"
+      ],
+      "StoreResult": [],
+      "ThreadState": [
+        "Option"
+      ],
+      "TokState": [],
+      "Token": [],
+      "Walk": [
+        "Seq"
+      ],
+      "WalkResult": [],
+      "WrappedMapToken": [
+        "State",
+        "Token"
+      ],
+      "WrappedTokenView": [
+        "Map",
+        "MemRegion",
+        "OpArgs",
+        "PTMem",
+        "Result",
+        "Seq",
+        "State"
+      ],
+      "WrappedUnmapToken": [
+        "State",
+        "Token"
+      ],
+      "Writes": [
+        "Core",
+        "Set"
+      ]
+    },
+    "forward_closure": {
+      "Arch": [
+        "ArchLayer",
+        "Seq"
+      ],
+      "ArchExec": [
+        "ArchLayerExec"
+      ],
+      "ArchLayer": [],
+      "ArchLayerExec": [],
+      "Constants": [
+        "Core",
+        "Map"
+      ],
+      "Core": [],
+      "CoreState": [
+        "Option",
+        "Result"
+      ],
+      "Directory": [
+        "Arch",
+        "ArchLayer",
+        "Seq",
+        "NodeEntry"
+      ],
+      "DoShootdown": [],
+      "Flags": [],
+      "GPDE": [],
+      "Ghost": [],
+      "History": [
+        "Core",
+        "Map",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Seq",
+        "Writes"
+      ],
+      "Lbl": [
+        "Core",
+        "MemOp",
+        "LoadResult",
+        "Seq",
+        "StoreResult",
+        "MemRegion"
+      ],
+      "LoadResult": [
+        "Seq"
+      ],
+      "Map": [],
+      "MemOp": [
+        "LoadResult",
+        "Seq",
+        "StoreResult"
+      ],
+      "MemRegion": [],
+      "MemRegionExec": [],
+      "NodeEntry": [
+        "Directory",
+        "Arch",
+        "ArchLayer",
+        "Seq"
+      ],
+      "OpArgs": [],
+      "Option": [],
+      "PDE": [
+        "Ghost"
+      ],
+      "PTDir": [
+        "MemRegion",
+        "Option",
+        "Seq",
+        "Set"
+      ],
+      "PTE": [
+        "Flags",
+        "MemRegion"
+      ],
+      "PTMem": [
+        "Map"
+      ],
+      "Polarity": [],
+      "Progress": [],
+      "RLbl": [
+        "Core",
+        "MemOp",
+        "LoadResult",
+        "Seq",
+        "StoreResult",
+        "Result"
+      ],
+      "Result": [],
+      "Seq": [],
+      "Set": [],
+      "ShootdownVector": [
+        "Core",
+        "Set"
+      ],
+      "State": [
+        "Core",
+        "CoreState",
+        "Option",
+        "Result",
+        "History",
+        "Map",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Seq",
+        "Writes",
+        "MemRegion",
+        "PTMem",
+        "ShootdownVector",
+        "ThreadState"
+      ],
+      "Step": [
+        "Core",
+        "MemRegion",
+        "Option",
+        "Walk",
+        "Seq"
+      ],
+      "StoreResult": [],
+      "ThreadState": [
+        "Option"
+      ],
+      "TokState": [],
+      "Token": [],
+      "Walk": [
+        "Seq"
+      ],
+      "WalkResult": [],
+      "WrappedMapToken": [
+        "State",
+        "Core",
+        "CoreState",
+        "Option",
+        "Result",
+        "History",
+        "Map",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Seq",
+        "Writes",
+        "MemRegion",
+        "PTMem",
+        "ShootdownVector",
+        "ThreadState",
+        "Token"
+      ],
+      "WrappedTokenView": [
+        "Map",
+        "MemRegion",
+        "OpArgs",
+        "PTMem",
+        "Result",
+        "Seq",
+        "State",
+        "Core",
+        "CoreState",
+        "Option",
+        "History",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Writes",
+        "ShootdownVector",
+        "ThreadState"
+      ],
+      "WrappedUnmapToken": [
+        "State",
+        "Core",
+        "CoreState",
+        "Option",
+        "Result",
+        "History",
+        "Map",
+        "Polarity",
+        "Set",
+        "Walk",
+        "Seq",
+        "Writes",
+        "MemRegion",
+        "PTMem",
+        "ShootdownVector",
+        "ThreadState",
+        "Token"
+      ],
+      "Writes": [
+        "Core",
+        "Set"
+      ]
+    },
+    "nodes": [
+      "Arch",
+      "ArchExec",
+      "ArchLayer",
+      "ArchLayerExec",
+      "Constants",
+      "Core",
+      "CoreState",
+      "Directory",
+      "DoShootdown",
+      "Flags",
+      "GPDE",
+      "Ghost",
+      "History",
+      "Lbl",
+      "LoadResult",
+      "Map",
+      "MemOp",
+      "MemRegion",
+      "MemRegionExec",
+      "NodeEntry",
+      "OpArgs",
+      "Option",
+      "PDE",
+      "PTDir",
+      "PTE",
+      "PTMem",
+      "Polarity",
+      "Progress",
+      "RLbl",
+      "Result",
+      "Seq",
+      "Set",
+      "ShootdownVector",
+      "State",
+      "Step",
+      "StoreResult",
+      "ThreadState",
+      "TokState",
+      "Token",
+      "Walk",
+      "WalkResult",
+      "WrappedMapToken",
+      "WrappedTokenView",
+      "WrappedUnmapToken",
+      "Writes"
+    ],
+    "reverse": {
+      "Arch": [
+        "Directory"
+      ],
+      "ArchExec": [],
+      "ArchLayer": [
+        "Arch"
+      ],
+      "ArchLayerExec": [
+        "ArchExec"
+      ],
+      "Constants": [],
+      "Core": [
+        "Constants",
+        "History",
+        "Lbl",
+        "RLbl",
+        "ShootdownVector",
+        "State",
+        "Step",
+        "Writes"
+      ],
+      "CoreState": [
+        "State"
+      ],
+      "Directory": [
+        "NodeEntry"
+      ],
+      "DoShootdown": [],
+      "Flags": [
+        "PTE"
+      ],
+      "GPDE": [],
+      "Ghost": [
+        "PDE"
+      ],
+      "History": [
+        "State"
+      ],
+      "Lbl": [],
+      "LoadResult": [
+        "MemOp"
+      ],
+      "Map": [
+        "Constants",
+        "History",
+        "PTMem",
+        "State",
+        "WrappedTokenView"
+      ],
+      "MemOp": [
+        "Lbl",
+        "RLbl"
+      ],
+      "MemRegion": [
+        "Lbl",
+        "PTDir",
+        "PTE",
+        "State",
+        "Step",
+        "WrappedTokenView"
+      ],
+      "MemRegionExec": [],
+      "NodeEntry": [
+        "Directory"
+      ],
+      "OpArgs": [
+        "WrappedTokenView"
+      ],
+      "Option": [
+        "CoreState",
+        "PTDir",
+        "State",
+        "Step",
+        "ThreadState"
+      ],
+      "PDE": [],
+      "PTDir": [],
+      "PTE": [],
+      "PTMem": [
+        "State",
+        "WrappedTokenView"
+      ],
+      "Polarity": [
+        "History",
+        "State"
+      ],
+      "Progress": [],
+      "RLbl": [],
+      "Result": [
+        "CoreState",
+        "RLbl",
+        "WrappedTokenView"
+      ],
+      "Seq": [
+        "Arch",
+        "Directory",
+        "LoadResult",
+        "MemOp",
+        "PTDir",
+        "State",
+        "Walk",
+        "WrappedTokenView"
+      ],
+      "Set": [
+        "History",
+        "PTDir",
+        "ShootdownVector",
+        "State",
+        "Writes"
+      ],
+      "ShootdownVector": [
+        "State"
+      ],
+      "State": [
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Step": [],
+      "StoreResult": [
+        "MemOp"
+      ],
+      "ThreadState": [
+        "State"
+      ],
+      "TokState": [],
+      "Token": [
+        "WrappedMapToken",
+        "WrappedUnmapToken"
+      ],
+      "Walk": [
+        "History",
+        "State",
+        "Step"
+      ],
+      "WalkResult": [],
+      "WrappedMapToken": [],
+      "WrappedTokenView": [],
+      "WrappedUnmapToken": [],
+      "Writes": [
+        "History",
+        "State"
+      ]
+    },
+    "reverse_closure": {
+      "Arch": [
+        "Directory",
+        "NodeEntry"
+      ],
+      "ArchExec": [],
+      "ArchLayer": [
+        "Arch",
+        "Directory",
+        "NodeEntry"
+      ],
+      "ArchLayerExec": [
+        "ArchExec"
+      ],
+      "Constants": [],
+      "Core": [
+        "Constants",
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "Lbl",
+        "RLbl",
+        "ShootdownVector",
+        "Step",
+        "Writes"
+      ],
+      "CoreState": [
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Directory": [
+        "NodeEntry"
+      ],
+      "DoShootdown": [],
+      "Flags": [
+        "PTE"
+      ],
+      "GPDE": [],
+      "Ghost": [
+        "PDE"
+      ],
+      "History": [
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Lbl": [],
+      "LoadResult": [
+        "MemOp",
+        "Lbl",
+        "RLbl"
+      ],
+      "Map": [
+        "Constants",
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "PTMem"
+      ],
+      "MemOp": [
+        "Lbl",
+        "RLbl"
+      ],
+      "MemRegion": [
+        "Lbl",
+        "PTDir",
+        "PTE",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "Step"
+      ],
+      "MemRegionExec": [],
+      "NodeEntry": [
+        "Directory"
+      ],
+      "OpArgs": [
+        "WrappedTokenView"
+      ],
+      "Option": [
+        "CoreState",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "PTDir",
+        "Step",
+        "ThreadState"
+      ],
+      "PDE": [],
+      "PTDir": [],
+      "PTE": [],
+      "PTMem": [
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Polarity": [
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Progress": [],
+      "RLbl": [],
+      "Result": [
+        "CoreState",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "RLbl"
+      ],
+      "Seq": [
+        "Arch",
+        "Directory",
+        "NodeEntry",
+        "LoadResult",
+        "MemOp",
+        "Lbl",
+        "RLbl",
+        "PTDir",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "Walk",
+        "History",
+        "Step"
+      ],
+      "Set": [
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "PTDir",
+        "ShootdownVector",
+        "Writes"
+      ],
+      "ShootdownVector": [
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "State": [
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "Step": [],
+      "StoreResult": [
+        "MemOp",
+        "Lbl",
+        "RLbl"
+      ],
+      "ThreadState": [
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ],
+      "TokState": [],
+      "Token": [
+        "WrappedMapToken",
+        "WrappedUnmapToken"
+      ],
+      "Walk": [
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken",
+        "Step"
+      ],
+      "WalkResult": [],
+      "WrappedMapToken": [],
+      "WrappedTokenView": [],
+      "WrappedUnmapToken": [],
+      "Writes": [
+        "History",
+        "State",
+        "WrappedMapToken",
+        "WrappedTokenView",
+        "WrappedUnmapToken"
+      ]
+    },
+    "sccs": [
+      [
+        "ArchLayer"
+      ],
+      [
+        "Seq"
+      ],
+      [
+        "Arch"
+      ],
+      [
+        "ArchLayerExec"
+      ],
+      [
+        "ArchExec"
+      ],
+      [
+        "Core"
+      ],
+      [
+        "Map"
+      ],
+      [
+        "Constants"
+      ],
+      [
+        "Option"
+      ],
+      [
+        "Result"
+      ],
+      [
+        "CoreState"
+      ],
+      [
+        "Directory",
+        "NodeEntry"
+      ],
+      [
+        "DoShootdown"
+      ],
+      [
+        "Flags"
+      ],
+      [
+        "GPDE"
+      ],
+      [
+        "Ghost"
+      ],
+      [
+        "Polarity"
+      ],
+      [
+        "Set"
+      ],
+      [
+        "Walk"
+      ],
+      [
+        "Writes"
+      ],
+      [
+        "History"
+      ],
+      [
+        "LoadResult"
+      ],
+      [
+        "StoreResult"
+      ],
+      [
+        "MemOp"
+      ],
+      [
+        "MemRegion"
+      ],
+      [
+        "Lbl"
+      ],
+      [
+        "MemRegionExec"
+      ],
+      [
+        "OpArgs"
+      ],
+      [
+        "PDE"
+      ],
+      [
+        "PTDir"
+      ],
+      [
+        "PTE"
+      ],
+      [
+        "PTMem"
+      ],
+      [
+        "Progress"
+      ],
+      [
+        "RLbl"
+      ],
+      [
+        "ShootdownVector"
+      ],
+      [
+        "ThreadState"
+      ],
+      [
+        "State"
+      ],
+      [
+        "Step"
+      ],
+      [
+        "TokState"
+      ],
+      [
+        "Token"
+      ],
+      [
+        "WalkResult"
+      ],
+      [
+        "WrappedMapToken"
+      ],
+      [
+        "WrappedTokenView"
+      ],
+      [
+        "WrappedUnmapToken"
+      ]
+    ],
+    "topological_order": [
+      "Token",
+      "Option",
+      "ThreadState",
+      "Set",
+      "Core",
+      "ShootdownVector",
+      "Map",
+      "PTMem",
+      "MemRegion",
+      "Writes",
+      "Seq",
+      "Walk",
+      "Polarity",
+      "History",
+      "Result",
+      "CoreState",
+      "State",
+      "WrappedUnmapToken",
+      "OpArgs",
+      "WrappedTokenView",
+      "WrappedMapToken",
+      "WalkResult",
+      "TokState",
+      "Step",
+      "StoreResult",
+      "LoadResult",
+      "MemOp",
+      "RLbl",
+      "Progress",
+      "Flags",
+      "PTE",
+      "PTDir",
+      "Ghost",
+      "PDE",
+      "MemRegionExec",
+      "Lbl",
+      "GPDE",
+      "DoShootdown",
+      "ArchLayer",
+      "Arch",
+      "Directory",
+      "NodeEntry",
+      "Constants",
+      "ArchLayerExec",
+      "ArchExec"
+    ]
+  },
+  "files_scanned": 204
+}

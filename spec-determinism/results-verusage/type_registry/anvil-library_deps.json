@@ -1,0 +1,89 @@
+{
+  "aggregate": {
+    "classification": {
+      "ActionPred": "alias",
+      "Execution": "struct",
+      "StatePred": "alias",
+      "TempPred": "struct"
+    },
+    "field_paths": {
+      "ActionPred": [
+        {
+          "name": "ActionPred",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Execution": [],
+      "StatePred": [
+        {
+          "name": "StatePred",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "TempPred": []
+    },
+    "forward": {
+      "ActionPred": [],
+      "Execution": [],
+      "StatePred": [],
+      "TempPred": [
+        "Execution"
+      ]
+    },
+    "forward_closure": {
+      "ActionPred": [],
+      "Execution": [],
+      "StatePred": [],
+      "TempPred": [
+        "Execution"
+      ]
+    },
+    "nodes": [
+      "ActionPred",
+      "Execution",
+      "StatePred",
+      "TempPred"
+    ],
+    "reverse": {
+      "ActionPred": [],
+      "Execution": [
+        "TempPred"
+      ],
+      "StatePred": [],
+      "TempPred": []
+    },
+    "reverse_closure": {
+      "ActionPred": [],
+      "Execution": [
+        "TempPred"
+      ],
+      "StatePred": [],
+      "TempPred": []
+    },
+    "sccs": [
+      [
+        "ActionPred"
+      ],
+      [
+        "Execution"
+      ],
+      [
+        "StatePred"
+      ],
+      [
+        "TempPred"
+      ]
+    ],
+    "topological_order": [
+      "Execution",
+      "TempPred",
+      "StatePred",
+      "ActionPred"
+    ]
+  },
+  "files_scanned": 104
+}

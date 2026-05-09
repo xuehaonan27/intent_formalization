@@ -1,0 +1,1911 @@
+{
+  "aggregate": {
+    "classification": {
+      "Array": "container",
+      "ArraySet": "struct",
+      "ArrayVec": "struct",
+      "Container": "struct",
+      "ContainerPtr": "alias",
+      "Cpu": "struct",
+      "CpuId": "alias",
+      "DemandPagingMode": "enum",
+      "DeviceTable": "struct",
+      "Endpoint": "struct",
+      "EndpointIdx": "alias",
+      "EndpointPtr": "alias",
+      "EndpointState": "enum",
+      "Ghost": "container",
+      "IOid": "alias",
+      "IPCPayLoad": "enum",
+      "Kernel": "struct",
+      "L1Index": "alias",
+      "L2Index": "alias",
+      "L3Index": "alias",
+      "L4Index": "alias",
+      "Map": "container",
+      "MapEntry": "struct",
+      "MemoryManager": "struct",
+      "Node": "struct",
+      "Option": "container",
+      "PAddr": "alias",
+      "PCIBitMap": "struct",
+      "Page": "struct",
+      "PageAllocator": "struct",
+      "PageEntry": "struct",
+      "PageEntryPerm": "struct",
+      "PageMap": "struct",
+      "PageMapPtr": "alias",
+      "PagePerm1g": "alias",
+      "PagePerm2m": "alias",
+      "PagePerm4k": "alias",
+      "PagePtr": "alias",
+      "PageState": "enum",
+      "PageTable": "struct",
+      "Pcid": "alias",
+      "PointsTo": "container",
+      "ProcPtr": "alias",
+      "Process": "struct",
+      "ProcessManager": "struct",
+      "Quota": "struct",
+      "Registers": "struct",
+      "RetValueType": "enum",
+      "RootTable": "struct",
+      "SLLIndex": "alias",
+      "Seq": "container",
+      "Set": "container",
+      "StaticLinkedList": "struct",
+      "SwitchDecision": "enum",
+      "SyscallReturnStruct": "struct",
+      "Thread": "struct",
+      "ThreadPtr": "alias",
+      "ThreadState": "enum",
+      "Tracked": "container",
+      "TrapFrameOption": "struct",
+      "UserRetValueType": "enum",
+      "VAddr": "alias",
+      "VaRange4K": "struct"
+    },
+    "field_paths": {
+      "Array": [],
+      "ArraySet": [],
+      "ArrayVec": [],
+      "Container": [],
+      "ContainerPtr": [
+        {
+          "name": "ContainerPtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Cpu": [],
+      "CpuId": [
+        {
+          "name": "CpuId",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "DemandPagingMode": [],
+      "DeviceTable": [],
+      "Endpoint": [],
+      "EndpointIdx": [
+        {
+          "name": "EndpointIdx",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "EndpointPtr": [
+        {
+          "name": "EndpointPtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "EndpointState": [],
+      "IOid": [
+        {
+          "name": "IOid",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "IPCPayLoad": [],
+      "Kernel": [],
+      "L1Index": [
+        {
+          "name": "L1Index",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "L2Index": [
+        {
+          "name": "L2Index",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "L3Index": [
+        {
+          "name": "L3Index",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "L4Index": [
+        {
+          "name": "L4Index",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "MapEntry": [],
+      "MemoryManager": [],
+      "Node": [],
+      "PAddr": [
+        {
+          "name": "PAddr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PCIBitMap": [],
+      "Page": [],
+      "PageAllocator": [],
+      "PageEntry": [],
+      "PageEntryPerm": [],
+      "PageMap": [],
+      "PageMapPtr": [
+        {
+          "name": "PageMapPtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PagePerm1g": [
+        {
+          "name": "PagePerm1g",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PagePerm2m": [
+        {
+          "name": "PagePerm2m",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PagePerm4k": [
+        {
+          "name": "PagePerm4k",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PagePtr": [
+        {
+          "name": "PagePtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "PageState": [],
+      "PageTable": [],
+      "Pcid": [
+        {
+          "name": "Pcid",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "ProcPtr": [
+        {
+          "name": "ProcPtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Process": [],
+      "ProcessManager": [],
+      "Quota": [],
+      "Registers": [],
+      "RetValueType": [],
+      "RootTable": [],
+      "SLLIndex": [
+        {
+          "name": "SLLIndex",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "StaticLinkedList": [],
+      "SwitchDecision": [],
+      "SyscallReturnStruct": [],
+      "Thread": [],
+      "ThreadPtr": [
+        {
+          "name": "ThreadPtr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "ThreadState": [],
+      "TrapFrameOption": [],
+      "UserRetValueType": [],
+      "VAddr": [
+        {
+          "name": "VAddr",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "VaRange4K": []
+    },
+    "forward": {
+      "Array": [
+        "Ghost",
+        "Seq"
+      ],
+      "ArraySet": [
+        "Array",
+        "Ghost",
+        "Set"
+      ],
+      "ArrayVec": [
+        "Array"
+      ],
+      "Container": [
+        "ArraySet",
+        "ContainerPtr",
+        "EndpointPtr",
+        "Ghost",
+        "Option",
+        "ProcPtr",
+        "Quota",
+        "SLLIndex",
+        "Seq",
+        "Set",
+        "StaticLinkedList",
+        "ThreadPtr"
+      ],
+      "ContainerPtr": [],
+      "Cpu": [
+        "ContainerPtr",
+        "Option",
+        "ThreadPtr"
+      ],
+      "CpuId": [],
+      "DemandPagingMode": [],
+      "DeviceTable": [],
+      "Endpoint": [
+        "ContainerPtr",
+        "EndpointIdx",
+        "EndpointState",
+        "Ghost",
+        "Set",
+        "StaticLinkedList",
+        "ThreadPtr"
+      ],
+      "EndpointIdx": [],
+      "EndpointPtr": [],
+      "EndpointState": [],
+      "Ghost": [],
+      "IOid": [],
+      "IPCPayLoad": [
+        "EndpointIdx",
+        "VAddr",
+        "VaRange4K"
+      ],
+      "Kernel": [
+        "Ghost",
+        "Map",
+        "MemoryManager",
+        "PageAllocator",
+        "PagePtr",
+        "ProcPtr",
+        "ProcessManager",
+        "Set",
+        "VAddr"
+      ],
+      "L1Index": [],
+      "L2Index": [],
+      "L3Index": [],
+      "L4Index": [],
+      "Map": [],
+      "MapEntry": [
+        "PAddr"
+      ],
+      "MemoryManager": [
+        "Array",
+        "ArrayVec",
+        "Ghost",
+        "IOid",
+        "Map",
+        "Option",
+        "PCIBitMap",
+        "PageEntry",
+        "PagePtr",
+        "PageTable",
+        "Pcid",
+        "ProcPtr",
+        "RootTable",
+        "Seq"
+      ],
+      "Node": [
+        "Option",
+        "SLLIndex"
+      ],
+      "Option": [],
+      "PAddr": [],
+      "PCIBitMap": [
+        "Ghost",
+        "IOid",
+        "Map"
+      ],
+      "Page": [
+        "ContainerPtr",
+        "Ghost",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr"
+      ],
+      "PageAllocator": [
+        "Array",
+        "ContainerPtr",
+        "Ghost",
+        "Map",
+        "Page",
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k",
+        "PagePtr",
+        "Set",
+        "StaticLinkedList",
+        "Tracked"
+      ],
+      "PageEntry": [
+        "PAddr",
+        "PageEntryPerm"
+      ],
+      "PageEntryPerm": [],
+      "PageMap": [
+        "Array",
+        "Ghost",
+        "PageEntry",
+        "Seq"
+      ],
+      "PageMapPtr": [],
+      "PagePerm1g": [
+        "PointsTo"
+      ],
+      "PagePerm2m": [
+        "PointsTo"
+      ],
+      "PagePerm4k": [
+        "PointsTo"
+      ],
+      "PagePtr": [],
+      "PageState": [],
+      "PageTable": [
+        "Ghost",
+        "IOid",
+        "L2Index",
+        "L3Index",
+        "L4Index",
+        "Map",
+        "MapEntry",
+        "Option",
+        "PageEntry",
+        "PageMap",
+        "PageMapPtr",
+        "Pcid",
+        "PointsTo",
+        "Seq",
+        "Tracked",
+        "VAddr"
+      ],
+      "Pcid": [],
+      "PointsTo": [],
+      "ProcPtr": [],
+      "Process": [
+        "ContainerPtr",
+        "DemandPagingMode",
+        "Ghost",
+        "IOid",
+        "Option",
+        "Pcid",
+        "ProcPtr",
+        "SLLIndex",
+        "Seq",
+        "Set",
+        "StaticLinkedList",
+        "ThreadPtr"
+      ],
+      "ProcessManager": [
+        "Array",
+        "Container",
+        "ContainerPtr",
+        "Cpu",
+        "Endpoint",
+        "EndpointPtr",
+        "Map",
+        "PointsTo",
+        "ProcPtr",
+        "Process",
+        "Thread",
+        "ThreadPtr",
+        "Tracked"
+      ],
+      "Quota": [],
+      "Registers": [],
+      "RetValueType": [
+        "Ghost",
+        "Seq"
+      ],
+      "RootTable": [
+        "DeviceTable",
+        "Ghost",
+        "IOid",
+        "Option",
+        "Seq"
+      ],
+      "SLLIndex": [],
+      "Seq": [],
+      "Set": [],
+      "StaticLinkedList": [
+        "Ghost",
+        "Node",
+        "SLLIndex",
+        "Seq"
+      ],
+      "SwitchDecision": [],
+      "SyscallReturnStruct": [
+        "Option",
+        "Pcid",
+        "RetValueType",
+        "SwitchDecision"
+      ],
+      "Thread": [
+        "Array",
+        "ContainerPtr",
+        "CpuId",
+        "EndpointIdx",
+        "EndpointPtr",
+        "IPCPayLoad",
+        "Option",
+        "ProcPtr",
+        "RetValueType",
+        "SLLIndex",
+        "ThreadState",
+        "TrapFrameOption"
+      ],
+      "ThreadPtr": [],
+      "ThreadState": [],
+      "Tracked": [],
+      "TrapFrameOption": [
+        "Registers"
+      ],
+      "UserRetValueType": [],
+      "VAddr": [],
+      "VaRange4K": [
+        "Ghost",
+        "Seq",
+        "VAddr"
+      ]
+    },
+    "forward_closure": {
+      "Array": [
+        "Ghost",
+        "Seq"
+      ],
+      "ArraySet": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "Set"
+      ],
+      "ArrayVec": [
+        "Array",
+        "Ghost",
+        "Seq"
+      ],
+      "Container": [
+        "ArraySet",
+        "Array",
+        "Ghost",
+        "Seq",
+        "Set",
+        "ContainerPtr",
+        "EndpointPtr",
+        "Option",
+        "ProcPtr",
+        "Quota",
+        "SLLIndex",
+        "StaticLinkedList",
+        "Node",
+        "ThreadPtr"
+      ],
+      "ContainerPtr": [],
+      "Cpu": [
+        "ContainerPtr",
+        "Option",
+        "ThreadPtr"
+      ],
+      "CpuId": [],
+      "DemandPagingMode": [],
+      "DeviceTable": [],
+      "Endpoint": [
+        "ContainerPtr",
+        "EndpointIdx",
+        "EndpointState",
+        "Ghost",
+        "Set",
+        "StaticLinkedList",
+        "Node",
+        "Option",
+        "SLLIndex",
+        "Seq",
+        "ThreadPtr"
+      ],
+      "EndpointIdx": [],
+      "EndpointPtr": [],
+      "EndpointState": [],
+      "Ghost": [],
+      "IOid": [],
+      "IPCPayLoad": [
+        "EndpointIdx",
+        "VAddr",
+        "VaRange4K",
+        "Ghost",
+        "Seq"
+      ],
+      "Kernel": [
+        "Ghost",
+        "Map",
+        "MemoryManager",
+        "Array",
+        "Seq",
+        "ArrayVec",
+        "IOid",
+        "Option",
+        "PCIBitMap",
+        "PageEntry",
+        "PAddr",
+        "PageEntryPerm",
+        "PagePtr",
+        "PageTable",
+        "L2Index",
+        "L3Index",
+        "L4Index",
+        "MapEntry",
+        "PageMap",
+        "PageMapPtr",
+        "Pcid",
+        "PointsTo",
+        "Tracked",
+        "VAddr",
+        "ProcPtr",
+        "RootTable",
+        "DeviceTable",
+        "PageAllocator",
+        "ContainerPtr",
+        "Page",
+        "PageState",
+        "SLLIndex",
+        "Set",
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k",
+        "StaticLinkedList",
+        "Node",
+        "ProcessManager",
+        "Container",
+        "ArraySet",
+        "EndpointPtr",
+        "Quota",
+        "ThreadPtr",
+        "Cpu",
+        "Endpoint",
+        "EndpointIdx",
+        "EndpointState",
+        "Process",
+        "DemandPagingMode",
+        "Thread",
+        "CpuId",
+        "IPCPayLoad",
+        "VaRange4K",
+        "RetValueType",
+        "ThreadState",
+        "TrapFrameOption",
+        "Registers"
+      ],
+      "L1Index": [],
+      "L2Index": [],
+      "L3Index": [],
+      "L4Index": [],
+      "Map": [],
+      "MapEntry": [
+        "PAddr"
+      ],
+      "MemoryManager": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "ArrayVec",
+        "IOid",
+        "Map",
+        "Option",
+        "PCIBitMap",
+        "PageEntry",
+        "PAddr",
+        "PageEntryPerm",
+        "PagePtr",
+        "PageTable",
+        "L2Index",
+        "L3Index",
+        "L4Index",
+        "MapEntry",
+        "PageMap",
+        "PageMapPtr",
+        "Pcid",
+        "PointsTo",
+        "Tracked",
+        "VAddr",
+        "ProcPtr",
+        "RootTable",
+        "DeviceTable"
+      ],
+      "Node": [
+        "Option",
+        "SLLIndex"
+      ],
+      "Option": [],
+      "PAddr": [],
+      "PCIBitMap": [
+        "Ghost",
+        "IOid",
+        "Map"
+      ],
+      "Page": [
+        "ContainerPtr",
+        "Ghost",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr"
+      ],
+      "PageAllocator": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "ContainerPtr",
+        "Map",
+        "Page",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr",
+        "PagePerm1g",
+        "PointsTo",
+        "PagePerm2m",
+        "PagePerm4k",
+        "StaticLinkedList",
+        "Node",
+        "Tracked"
+      ],
+      "PageEntry": [
+        "PAddr",
+        "PageEntryPerm"
+      ],
+      "PageEntryPerm": [],
+      "PageMap": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "PageEntry",
+        "PAddr",
+        "PageEntryPerm"
+      ],
+      "PageMapPtr": [],
+      "PagePerm1g": [
+        "PointsTo"
+      ],
+      "PagePerm2m": [
+        "PointsTo"
+      ],
+      "PagePerm4k": [
+        "PointsTo"
+      ],
+      "PagePtr": [],
+      "PageState": [],
+      "PageTable": [
+        "Ghost",
+        "IOid",
+        "L2Index",
+        "L3Index",
+        "L4Index",
+        "Map",
+        "MapEntry",
+        "PAddr",
+        "Option",
+        "PageEntry",
+        "PageEntryPerm",
+        "PageMap",
+        "Array",
+        "Seq",
+        "PageMapPtr",
+        "Pcid",
+        "PointsTo",
+        "Tracked",
+        "VAddr"
+      ],
+      "Pcid": [],
+      "PointsTo": [],
+      "ProcPtr": [],
+      "Process": [
+        "ContainerPtr",
+        "DemandPagingMode",
+        "Ghost",
+        "IOid",
+        "Option",
+        "Pcid",
+        "ProcPtr",
+        "SLLIndex",
+        "Seq",
+        "Set",
+        "StaticLinkedList",
+        "Node",
+        "ThreadPtr"
+      ],
+      "ProcessManager": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "Container",
+        "ArraySet",
+        "Set",
+        "ContainerPtr",
+        "EndpointPtr",
+        "Option",
+        "ProcPtr",
+        "Quota",
+        "SLLIndex",
+        "StaticLinkedList",
+        "Node",
+        "ThreadPtr",
+        "Cpu",
+        "Endpoint",
+        "EndpointIdx",
+        "EndpointState",
+        "Map",
+        "PointsTo",
+        "Process",
+        "DemandPagingMode",
+        "IOid",
+        "Pcid",
+        "Thread",
+        "CpuId",
+        "IPCPayLoad",
+        "VAddr",
+        "VaRange4K",
+        "RetValueType",
+        "ThreadState",
+        "TrapFrameOption",
+        "Registers",
+        "Tracked"
+      ],
+      "Quota": [],
+      "Registers": [],
+      "RetValueType": [
+        "Ghost",
+        "Seq"
+      ],
+      "RootTable": [
+        "DeviceTable",
+        "Ghost",
+        "IOid",
+        "Option",
+        "Seq"
+      ],
+      "SLLIndex": [],
+      "Seq": [],
+      "Set": [],
+      "StaticLinkedList": [
+        "Ghost",
+        "Node",
+        "Option",
+        "SLLIndex",
+        "Seq"
+      ],
+      "SwitchDecision": [],
+      "SyscallReturnStruct": [
+        "Option",
+        "Pcid",
+        "RetValueType",
+        "Ghost",
+        "Seq",
+        "SwitchDecision"
+      ],
+      "Thread": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "ContainerPtr",
+        "CpuId",
+        "EndpointIdx",
+        "EndpointPtr",
+        "IPCPayLoad",
+        "VAddr",
+        "VaRange4K",
+        "Option",
+        "ProcPtr",
+        "RetValueType",
+        "SLLIndex",
+        "ThreadState",
+        "TrapFrameOption",
+        "Registers"
+      ],
+      "ThreadPtr": [],
+      "ThreadState": [],
+      "Tracked": [],
+      "TrapFrameOption": [
+        "Registers"
+      ],
+      "UserRetValueType": [],
+      "VAddr": [],
+      "VaRange4K": [
+        "Ghost",
+        "Seq",
+        "VAddr"
+      ]
+    },
+    "nodes": [
+      "Array",
+      "ArraySet",
+      "ArrayVec",
+      "Container",
+      "ContainerPtr",
+      "Cpu",
+      "CpuId",
+      "DemandPagingMode",
+      "DeviceTable",
+      "Endpoint",
+      "EndpointIdx",
+      "EndpointPtr",
+      "EndpointState",
+      "Ghost",
+      "IOid",
+      "IPCPayLoad",
+      "Kernel",
+      "L1Index",
+      "L2Index",
+      "L3Index",
+      "L4Index",
+      "Map",
+      "MapEntry",
+      "MemoryManager",
+      "Node",
+      "Option",
+      "PAddr",
+      "PCIBitMap",
+      "Page",
+      "PageAllocator",
+      "PageEntry",
+      "PageEntryPerm",
+      "PageMap",
+      "PageMapPtr",
+      "PagePerm1g",
+      "PagePerm2m",
+      "PagePerm4k",
+      "PagePtr",
+      "PageState",
+      "PageTable",
+      "Pcid",
+      "PointsTo",
+      "ProcPtr",
+      "Process",
+      "ProcessManager",
+      "Quota",
+      "Registers",
+      "RetValueType",
+      "RootTable",
+      "SLLIndex",
+      "Seq",
+      "Set",
+      "StaticLinkedList",
+      "SwitchDecision",
+      "SyscallReturnStruct",
+      "Thread",
+      "ThreadPtr",
+      "ThreadState",
+      "Tracked",
+      "TrapFrameOption",
+      "UserRetValueType",
+      "VAddr",
+      "VaRange4K"
+    ],
+    "reverse": {
+      "Array": [
+        "ArraySet",
+        "ArrayVec",
+        "MemoryManager",
+        "PageAllocator",
+        "PageMap",
+        "ProcessManager",
+        "Thread"
+      ],
+      "ArraySet": [
+        "Container"
+      ],
+      "ArrayVec": [
+        "MemoryManager"
+      ],
+      "Container": [
+        "ProcessManager"
+      ],
+      "ContainerPtr": [
+        "Container",
+        "Cpu",
+        "Endpoint",
+        "Page",
+        "PageAllocator",
+        "Process",
+        "ProcessManager",
+        "Thread"
+      ],
+      "Cpu": [
+        "ProcessManager"
+      ],
+      "CpuId": [
+        "Thread"
+      ],
+      "DemandPagingMode": [
+        "Process"
+      ],
+      "DeviceTable": [
+        "RootTable"
+      ],
+      "Endpoint": [
+        "ProcessManager"
+      ],
+      "EndpointIdx": [
+        "Endpoint",
+        "IPCPayLoad",
+        "Thread"
+      ],
+      "EndpointPtr": [
+        "Container",
+        "ProcessManager",
+        "Thread"
+      ],
+      "EndpointState": [
+        "Endpoint"
+      ],
+      "Ghost": [
+        "Array",
+        "ArraySet",
+        "Container",
+        "Endpoint",
+        "Kernel",
+        "MemoryManager",
+        "PCIBitMap",
+        "Page",
+        "PageAllocator",
+        "PageMap",
+        "PageTable",
+        "Process",
+        "RetValueType",
+        "RootTable",
+        "StaticLinkedList",
+        "VaRange4K"
+      ],
+      "IOid": [
+        "MemoryManager",
+        "PCIBitMap",
+        "Page",
+        "PageTable",
+        "Process",
+        "RootTable"
+      ],
+      "IPCPayLoad": [
+        "Thread"
+      ],
+      "Kernel": [],
+      "L1Index": [],
+      "L2Index": [
+        "PageTable"
+      ],
+      "L3Index": [
+        "PageTable"
+      ],
+      "L4Index": [
+        "PageTable"
+      ],
+      "Map": [
+        "Kernel",
+        "MemoryManager",
+        "PCIBitMap",
+        "PageAllocator",
+        "PageTable",
+        "ProcessManager"
+      ],
+      "MapEntry": [
+        "PageTable"
+      ],
+      "MemoryManager": [
+        "Kernel"
+      ],
+      "Node": [
+        "StaticLinkedList"
+      ],
+      "Option": [
+        "Container",
+        "Cpu",
+        "MemoryManager",
+        "Node",
+        "Page",
+        "PageTable",
+        "Process",
+        "RootTable",
+        "SyscallReturnStruct",
+        "Thread"
+      ],
+      "PAddr": [
+        "MapEntry",
+        "PageEntry"
+      ],
+      "PCIBitMap": [
+        "MemoryManager"
+      ],
+      "Page": [
+        "PageAllocator"
+      ],
+      "PageAllocator": [
+        "Kernel"
+      ],
+      "PageEntry": [
+        "MemoryManager",
+        "PageMap",
+        "PageTable"
+      ],
+      "PageEntryPerm": [
+        "PageEntry"
+      ],
+      "PageMap": [
+        "PageTable"
+      ],
+      "PageMapPtr": [
+        "PageTable"
+      ],
+      "PagePerm1g": [
+        "PageAllocator"
+      ],
+      "PagePerm2m": [
+        "PageAllocator"
+      ],
+      "PagePerm4k": [
+        "PageAllocator"
+      ],
+      "PagePtr": [
+        "Kernel",
+        "MemoryManager",
+        "Page",
+        "PageAllocator"
+      ],
+      "PageState": [
+        "Page"
+      ],
+      "PageTable": [
+        "MemoryManager"
+      ],
+      "Pcid": [
+        "MemoryManager",
+        "Page",
+        "PageTable",
+        "Process",
+        "SyscallReturnStruct"
+      ],
+      "PointsTo": [
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k",
+        "PageTable",
+        "ProcessManager"
+      ],
+      "ProcPtr": [
+        "Container",
+        "Kernel",
+        "MemoryManager",
+        "Process",
+        "ProcessManager",
+        "Thread"
+      ],
+      "Process": [
+        "ProcessManager"
+      ],
+      "ProcessManager": [
+        "Kernel"
+      ],
+      "Quota": [
+        "Container"
+      ],
+      "Registers": [
+        "TrapFrameOption"
+      ],
+      "RetValueType": [
+        "SyscallReturnStruct",
+        "Thread"
+      ],
+      "RootTable": [
+        "MemoryManager"
+      ],
+      "SLLIndex": [
+        "Container",
+        "Node",
+        "Page",
+        "Process",
+        "StaticLinkedList",
+        "Thread"
+      ],
+      "Seq": [
+        "Array",
+        "Container",
+        "MemoryManager",
+        "PageMap",
+        "PageTable",
+        "Process",
+        "RetValueType",
+        "RootTable",
+        "StaticLinkedList",
+        "VaRange4K"
+      ],
+      "Set": [
+        "ArraySet",
+        "Container",
+        "Endpoint",
+        "Kernel",
+        "Page",
+        "PageAllocator",
+        "Process"
+      ],
+      "StaticLinkedList": [
+        "Container",
+        "Endpoint",
+        "PageAllocator",
+        "Process"
+      ],
+      "SwitchDecision": [
+        "SyscallReturnStruct"
+      ],
+      "SyscallReturnStruct": [],
+      "Thread": [
+        "ProcessManager"
+      ],
+      "ThreadPtr": [
+        "Container",
+        "Cpu",
+        "Endpoint",
+        "Process",
+        "ProcessManager"
+      ],
+      "ThreadState": [
+        "Thread"
+      ],
+      "Tracked": [
+        "PageAllocator",
+        "PageTable",
+        "ProcessManager"
+      ],
+      "TrapFrameOption": [
+        "Thread"
+      ],
+      "UserRetValueType": [],
+      "VAddr": [
+        "IPCPayLoad",
+        "Kernel",
+        "Page",
+        "PageTable",
+        "VaRange4K"
+      ],
+      "VaRange4K": [
+        "IPCPayLoad"
+      ]
+    },
+    "reverse_closure": {
+      "Array": [
+        "ArraySet",
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "ArrayVec",
+        "MemoryManager",
+        "PageAllocator",
+        "PageMap",
+        "PageTable",
+        "Thread"
+      ],
+      "ArraySet": [
+        "Container",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "ArrayVec": [
+        "MemoryManager",
+        "Kernel"
+      ],
+      "Container": [
+        "ProcessManager",
+        "Kernel"
+      ],
+      "ContainerPtr": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Cpu",
+        "Endpoint",
+        "Page",
+        "PageAllocator",
+        "Process",
+        "Thread"
+      ],
+      "Cpu": [
+        "ProcessManager",
+        "Kernel"
+      ],
+      "CpuId": [
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "DemandPagingMode": [
+        "Process",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "DeviceTable": [
+        "RootTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "Endpoint": [
+        "ProcessManager",
+        "Kernel"
+      ],
+      "EndpointIdx": [
+        "Endpoint",
+        "ProcessManager",
+        "Kernel",
+        "IPCPayLoad",
+        "Thread"
+      ],
+      "EndpointPtr": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Thread"
+      ],
+      "EndpointState": [
+        "Endpoint",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "Ghost": [
+        "Array",
+        "ArraySet",
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "ArrayVec",
+        "MemoryManager",
+        "PageAllocator",
+        "PageMap",
+        "PageTable",
+        "Thread",
+        "Endpoint",
+        "PCIBitMap",
+        "Page",
+        "Process",
+        "RetValueType",
+        "SyscallReturnStruct",
+        "RootTable",
+        "StaticLinkedList",
+        "VaRange4K",
+        "IPCPayLoad"
+      ],
+      "IOid": [
+        "MemoryManager",
+        "Kernel",
+        "PCIBitMap",
+        "Page",
+        "PageAllocator",
+        "PageTable",
+        "Process",
+        "ProcessManager",
+        "RootTable"
+      ],
+      "IPCPayLoad": [
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "Kernel": [],
+      "L1Index": [],
+      "L2Index": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "L3Index": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "L4Index": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "Map": [
+        "Kernel",
+        "MemoryManager",
+        "PCIBitMap",
+        "PageAllocator",
+        "PageTable",
+        "ProcessManager"
+      ],
+      "MapEntry": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "MemoryManager": [
+        "Kernel"
+      ],
+      "Node": [
+        "StaticLinkedList",
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Endpoint",
+        "PageAllocator",
+        "Process"
+      ],
+      "Option": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Cpu",
+        "MemoryManager",
+        "Node",
+        "StaticLinkedList",
+        "Endpoint",
+        "PageAllocator",
+        "Process",
+        "Page",
+        "PageTable",
+        "RootTable",
+        "SyscallReturnStruct",
+        "Thread"
+      ],
+      "PAddr": [
+        "MapEntry",
+        "PageTable",
+        "MemoryManager",
+        "Kernel",
+        "PageEntry",
+        "PageMap"
+      ],
+      "PCIBitMap": [
+        "MemoryManager",
+        "Kernel"
+      ],
+      "Page": [
+        "PageAllocator",
+        "Kernel"
+      ],
+      "PageAllocator": [
+        "Kernel"
+      ],
+      "PageEntry": [
+        "MemoryManager",
+        "Kernel",
+        "PageMap",
+        "PageTable"
+      ],
+      "PageEntryPerm": [
+        "PageEntry",
+        "MemoryManager",
+        "Kernel",
+        "PageMap",
+        "PageTable"
+      ],
+      "PageMap": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "PageMapPtr": [
+        "PageTable",
+        "MemoryManager",
+        "Kernel"
+      ],
+      "PagePerm1g": [
+        "PageAllocator",
+        "Kernel"
+      ],
+      "PagePerm2m": [
+        "PageAllocator",
+        "Kernel"
+      ],
+      "PagePerm4k": [
+        "PageAllocator",
+        "Kernel"
+      ],
+      "PagePtr": [
+        "Kernel",
+        "MemoryManager",
+        "Page",
+        "PageAllocator"
+      ],
+      "PageState": [
+        "Page",
+        "PageAllocator",
+        "Kernel"
+      ],
+      "PageTable": [
+        "MemoryManager",
+        "Kernel"
+      ],
+      "Pcid": [
+        "MemoryManager",
+        "Kernel",
+        "Page",
+        "PageAllocator",
+        "PageTable",
+        "Process",
+        "ProcessManager",
+        "SyscallReturnStruct"
+      ],
+      "PointsTo": [
+        "PagePerm1g",
+        "PageAllocator",
+        "Kernel",
+        "PagePerm2m",
+        "PagePerm4k",
+        "PageTable",
+        "MemoryManager",
+        "ProcessManager"
+      ],
+      "ProcPtr": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "MemoryManager",
+        "Process",
+        "Thread"
+      ],
+      "Process": [
+        "ProcessManager",
+        "Kernel"
+      ],
+      "ProcessManager": [
+        "Kernel"
+      ],
+      "Quota": [
+        "Container",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "Registers": [
+        "TrapFrameOption",
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "RetValueType": [
+        "SyscallReturnStruct",
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "RootTable": [
+        "MemoryManager",
+        "Kernel"
+      ],
+      "SLLIndex": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Node",
+        "StaticLinkedList",
+        "Endpoint",
+        "PageAllocator",
+        "Process",
+        "Page",
+        "Thread"
+      ],
+      "Seq": [
+        "Array",
+        "ArraySet",
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "ArrayVec",
+        "MemoryManager",
+        "PageAllocator",
+        "PageMap",
+        "PageTable",
+        "Thread",
+        "Process",
+        "RetValueType",
+        "SyscallReturnStruct",
+        "RootTable",
+        "StaticLinkedList",
+        "Endpoint",
+        "VaRange4K",
+        "IPCPayLoad"
+      ],
+      "Set": [
+        "ArraySet",
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Endpoint",
+        "Page",
+        "PageAllocator",
+        "Process"
+      ],
+      "StaticLinkedList": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Endpoint",
+        "PageAllocator",
+        "Process"
+      ],
+      "SwitchDecision": [
+        "SyscallReturnStruct"
+      ],
+      "SyscallReturnStruct": [],
+      "Thread": [
+        "ProcessManager",
+        "Kernel"
+      ],
+      "ThreadPtr": [
+        "Container",
+        "ProcessManager",
+        "Kernel",
+        "Cpu",
+        "Endpoint",
+        "Process"
+      ],
+      "ThreadState": [
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "Tracked": [
+        "PageAllocator",
+        "Kernel",
+        "PageTable",
+        "MemoryManager",
+        "ProcessManager"
+      ],
+      "TrapFrameOption": [
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ],
+      "UserRetValueType": [],
+      "VAddr": [
+        "IPCPayLoad",
+        "Thread",
+        "ProcessManager",
+        "Kernel",
+        "Page",
+        "PageAllocator",
+        "PageTable",
+        "MemoryManager",
+        "VaRange4K"
+      ],
+      "VaRange4K": [
+        "IPCPayLoad",
+        "Thread",
+        "ProcessManager",
+        "Kernel"
+      ]
+    },
+    "sccs": [
+      [
+        "Ghost"
+      ],
+      [
+        "Seq"
+      ],
+      [
+        "Array"
+      ],
+      [
+        "Set"
+      ],
+      [
+        "ArraySet"
+      ],
+      [
+        "ArrayVec"
+      ],
+      [
+        "ContainerPtr"
+      ],
+      [
+        "EndpointPtr"
+      ],
+      [
+        "Option"
+      ],
+      [
+        "ProcPtr"
+      ],
+      [
+        "Quota"
+      ],
+      [
+        "SLLIndex"
+      ],
+      [
+        "Node"
+      ],
+      [
+        "StaticLinkedList"
+      ],
+      [
+        "ThreadPtr"
+      ],
+      [
+        "Container"
+      ],
+      [
+        "Cpu"
+      ],
+      [
+        "CpuId"
+      ],
+      [
+        "DemandPagingMode"
+      ],
+      [
+        "DeviceTable"
+      ],
+      [
+        "EndpointIdx"
+      ],
+      [
+        "EndpointState"
+      ],
+      [
+        "Endpoint"
+      ],
+      [
+        "IOid"
+      ],
+      [
+        "VAddr"
+      ],
+      [
+        "VaRange4K"
+      ],
+      [
+        "IPCPayLoad"
+      ],
+      [
+        "Map"
+      ],
+      [
+        "PCIBitMap"
+      ],
+      [
+        "PAddr"
+      ],
+      [
+        "PageEntryPerm"
+      ],
+      [
+        "PageEntry"
+      ],
+      [
+        "PagePtr"
+      ],
+      [
+        "L2Index"
+      ],
+      [
+        "L3Index"
+      ],
+      [
+        "L4Index"
+      ],
+      [
+        "MapEntry"
+      ],
+      [
+        "PageMap"
+      ],
+      [
+        "PageMapPtr"
+      ],
+      [
+        "Pcid"
+      ],
+      [
+        "PointsTo"
+      ],
+      [
+        "Tracked"
+      ],
+      [
+        "PageTable"
+      ],
+      [
+        "RootTable"
+      ],
+      [
+        "MemoryManager"
+      ],
+      [
+        "PageState"
+      ],
+      [
+        "Page"
+      ],
+      [
+        "PagePerm1g"
+      ],
+      [
+        "PagePerm2m"
+      ],
+      [
+        "PagePerm4k"
+      ],
+      [
+        "PageAllocator"
+      ],
+      [
+        "Process"
+      ],
+      [
+        "RetValueType"
+      ],
+      [
+        "ThreadState"
+      ],
+      [
+        "Registers"
+      ],
+      [
+        "TrapFrameOption"
+      ],
+      [
+        "Thread"
+      ],
+      [
+        "ProcessManager"
+      ],
+      [
+        "Kernel"
+      ],
+      [
+        "L1Index"
+      ],
+      [
+        "SwitchDecision"
+      ],
+      [
+        "SyscallReturnStruct"
+      ],
+      [
+        "UserRetValueType"
+      ]
+    ],
+    "topological_order": [
+      "UserRetValueType",
+      "SwitchDecision",
+      "Seq",
+      "Ghost",
+      "RetValueType",
+      "Pcid",
+      "Option",
+      "SyscallReturnStruct",
+      "L1Index",
+      "Registers",
+      "TrapFrameOption",
+      "ThreadState",
+      "VAddr",
+      "VaRange4K",
+      "EndpointIdx",
+      "IPCPayLoad",
+      "CpuId",
+      "SLLIndex",
+      "ProcPtr",
+      "EndpointPtr",
+      "ContainerPtr",
+      "Array",
+      "Thread",
+      "IOid",
+      "DemandPagingMode",
+      "ThreadPtr",
+      "Node",
+      "StaticLinkedList",
+      "Set",
+      "Process",
+      "Tracked",
+      "PointsTo",
+      "Map",
+      "EndpointState",
+      "Endpoint",
+      "Cpu",
+      "Quota",
+      "ArraySet",
+      "Container",
+      "ProcessManager",
+      "PagePerm4k",
+      "PagePerm2m",
+      "PagePerm1g",
+      "PageState",
+      "PagePtr",
+      "Page",
+      "PageAllocator",
+      "DeviceTable",
+      "RootTable",
+      "PageMapPtr",
+      "PageEntryPerm",
+      "PAddr",
+      "PageEntry",
+      "PageMap",
+      "MapEntry",
+      "L4Index",
+      "L3Index",
+      "L2Index",
+      "PageTable",
+      "PCIBitMap",
+      "ArrayVec",
+      "MemoryManager",
+      "Kernel"
+    ]
+  },
+  "files_scanned": 157
+}

@@ -1,0 +1,74 @@
+{
+  "aggregate": {
+    "classification": {
+      "Repeat": "struct",
+      "RepeatN": "struct",
+      "UInt": "alias",
+      "UnsignedLEB128": "struct"
+    },
+    "field_paths": {
+      "Repeat": [],
+      "RepeatN": [],
+      "UInt": [
+        {
+          "name": "UInt",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "UnsignedLEB128": []
+    },
+    "forward": {
+      "Repeat": [],
+      "RepeatN": [],
+      "UInt": [],
+      "UnsignedLEB128": []
+    },
+    "forward_closure": {
+      "Repeat": [],
+      "RepeatN": [],
+      "UInt": [],
+      "UnsignedLEB128": []
+    },
+    "nodes": [
+      "Repeat",
+      "RepeatN",
+      "UInt",
+      "UnsignedLEB128"
+    ],
+    "reverse": {
+      "Repeat": [],
+      "RepeatN": [],
+      "UInt": [],
+      "UnsignedLEB128": []
+    },
+    "reverse_closure": {
+      "Repeat": [],
+      "RepeatN": [],
+      "UInt": [],
+      "UnsignedLEB128": []
+    },
+    "sccs": [
+      [
+        "Repeat"
+      ],
+      [
+        "RepeatN"
+      ],
+      [
+        "UInt"
+      ],
+      [
+        "UnsignedLEB128"
+      ]
+    ],
+    "topological_order": [
+      "UnsignedLEB128",
+      "UInt",
+      "RepeatN",
+      "Repeat"
+    ]
+  },
+  "files_scanned": 22
+}

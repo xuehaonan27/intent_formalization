@@ -7,8 +7,9 @@ under ``mod`` blocks — and records:
 * its kind, generics, visibility, derives, ``cfg(...)`` guards;
 * whether it is marked ``#[verifier::external_body]`` /
   ``#[verifier::external_type_specification]``;
-* for structs: each field's name, raw type text, and the *short* type names
-  it references (e.g. ``Vec<Option<Bar>>`` → ``["Vec", "Option", "Bar"]``);
+* for structs: each field's name, raw type text, and a parsed
+  :class:`TypeExpr` *tree* of its type expression — which preserves
+  containers, generic args, references, tuples, arrays, fn types.
 * for enums: each variant (unit / tuple / named struct), with the same
   per-field info.
 
@@ -17,6 +18,18 @@ The output is a per-file dependency graph (nodes = type defs, edges =
 unresolved** — short names are recorded as written; we do *not* try to map
 ``crate::foo::Bar`` to a fully-qualified name in this phase. Resolution
 (use-tracking, View impls, trait impls) is Phase 2 work.
+
+Beyond the raw direct-reference ``edges`` set, an enriched
+:class:`DepGraph` is computable on top of any registry — see
+:func:`compute_dep_graph` — which adds:
+
+* ``forward_closure`` / ``reverse_closure`` — full transitive
+  reachability in either direction;
+* ``sccs`` / ``topological_order`` — Tarjan-style cycle detection +
+  Kahn-style topological order over the SCC condensation;
+* ``classification`` — each type labelled as ``leaf`` / ``container`` /
+  ``compound`` / ``external`` so witness generation can pick a strategy
+  per node.
 
 Verusage corpus is flat single-file style — every `.rs` is self-contained.
 The registry therefore operates one source file at a time. A separate
@@ -56,6 +69,65 @@ class GenericParam:
 
 
 @dataclass
+class TypeExpr:
+    """Recursive parsed type expression.
+
+    The ``kind`` discriminates how to interpret ``head`` and ``args``:
+
+    * ``"leaf"`` — a single user-type name (``head`` set, ``args`` empty)
+    * ``"primitive"`` — a primitive (``head`` set to ``u32`` / ``bool`` /
+      ``str`` / ``int`` / ``nat`` / etc; ``args`` empty)
+    * ``"generic"`` — a generic instance like ``Vec<T>`` (``head`` is the
+      head name, ``args`` are the type arguments)
+    * ``"ref"`` — ``&T`` / ``&mut T``; ``args = [T]``; ``is_mut`` set
+    * ``"ptr"`` — ``*const T`` / ``*mut T``; ``args = [T]``; ``is_mut``
+      set
+    * ``"tuple"`` — ``(A, B, C)``; ``args`` is the element list
+    * ``"array"`` — ``[T; N]`` or ``[T]``; ``args = [T]``; ``extra``
+      holds the size text (``""`` for unsized slices)
+    * ``"fn"`` — ``fn(A) -> R`` / ``spec_fn(A) -> R``; ``args`` are
+      ``[*params, return_type]``; ``head`` carries the constructor
+      keyword (``"fn"`` / ``"spec_fn"``)
+    * ``"dyn"`` / ``"impl"`` — trait-object / opaque types; ``args`` are
+      the trait references
+    * ``"unit"`` — ``()``
+    * ``"unknown"`` — anything we couldn't parse cleanly; ``head`` holds
+      the raw text for inspection
+    """
+    kind: str
+    head: str = ""
+    args: list["TypeExpr"] = field(default_factory=list)
+    raw: str = ""
+    is_mut: bool = False
+    extra: str = ""
+
+    def leaves(self, include_primitives: bool = False) -> list[str]:
+        """Walk this expression collecting every user-type name (or
+        primitive name if ``include_primitives``). De-duped, first-seen
+        order.
+        """
+        seen: list[str] = []
+        seen_set: set[str] = set()
+
+        def visit(e: TypeExpr) -> None:
+            if e.kind == "leaf" and e.head and e.head not in seen_set:
+                seen.append(e.head)
+                seen_set.add(e.head)
+            if e.kind == "generic" and e.head and e.head not in seen_set:
+                seen.append(e.head)
+                seen_set.add(e.head)
+            if e.kind == "primitive" and include_primitives:
+                if e.head and e.head not in seen_set:
+                    seen.append(e.head)
+                    seen_set.add(e.head)
+            for a in e.args:
+                visit(a)
+
+        visit(self)
+        return seen
+
+
+@dataclass
 class FieldDecl:
     """A struct field or an enum-variant field."""
     name: str            # named field name; "0" / "1" / ... for tuple positions
@@ -63,6 +135,7 @@ class FieldDecl:
     type_refs: list[str] # short names referenced (excludes generic params)
     is_pub: bool = False
     span: tuple[int, int] = (0, 0)
+    type_expr: Optional[TypeExpr] = None  # parsed structured type tree
 
 
 @dataclass
@@ -84,6 +157,7 @@ class TypeDef:
     variants: list[VariantDecl] = field(default_factory=list)    # enum
     alias_target: Optional[str] = None                           # type alias RHS
     alias_target_refs: list[str] = field(default_factory=list)
+    alias_target_expr: Optional[TypeExpr] = None
     is_external_body: bool = False
     is_external_type_specification: bool = False
     derives: list[str] = field(default_factory=list)
@@ -97,9 +171,9 @@ class TypeDef:
 class TypeRegistry:
     """Per-file type registry.
 
-    `types` is keyed by qualified name (mod path + local name); `short_names`
+    ``types`` is keyed by qualified name (mod path + local name); ``short_names``
     maps a local name to all qualified names that share it (handles
-    cfg-gated duplicates and inner-mod shadowing). `edges` records, for
+    cfg-gated duplicates and inner-mod shadowing). ``edges`` records, for
     each qualified name, the set of *short* type names referenced in its
     body.
     """
@@ -107,6 +181,26 @@ class TypeRegistry:
     types: dict[str, TypeDef] = field(default_factory=dict)
     short_names: dict[str, list[str]] = field(default_factory=dict)
     edges: dict[str, set[str]] = field(default_factory=dict)
+
+
+@dataclass
+class DepGraph:
+    """Enriched dependency view derived from a :class:`TypeRegistry`.
+
+    Nodes are *short names* (so generic instantiations of the same head
+    type collapse together — ``Vec<u8>``, ``Vec<Foo>`` both depend on
+    ``Vec``). Edges combine references from every TypeDef sharing that
+    short name.
+    """
+    nodes: list[str]
+    forward: dict[str, list[str]]          # direct refs
+    forward_closure: dict[str, list[str]]  # transitive refs
+    reverse: dict[str, list[str]]          # who refs me directly
+    reverse_closure: dict[str, list[str]]  # who refs me transitively
+    sccs: list[list[str]]                  # strongly-connected components
+    topological_order: list[str]           # over the SCC condensation
+    classification: dict[str, str]         # see classify_node()
+    field_paths: dict[str, list[dict]]     # type → per-field structured trees
 
 
 # ---------------------------------------------------------------------------
@@ -244,6 +338,207 @@ def _collect_type_refs(node: ts.Node, generics: set[str]) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Structured type-expression parsing
+# ---------------------------------------------------------------------------
+
+
+def _parse_type_expr(node: ts.Node, generics: set[str]) -> TypeExpr:
+    """Recursively parse a type-expression node into a :class:`TypeExpr`
+    tree. Generics bound in the enclosing scope collapse to ``leaf`` /
+    ``generic`` with ``head=`` the param name — callers that care can
+    filter them out using ``leaves(...)`` and the supplied set.
+
+    Unrecognised or malformed shapes produce a ``"unknown"`` node with
+    the raw text preserved, which keeps the walker total.
+    """
+    if node is None:
+        return TypeExpr(kind="unknown", raw="")
+
+    raw = _text(node)
+    t = node.type
+
+    if t == "type_identifier":
+        name = _text(node)
+        return TypeExpr(kind="leaf", head=name, raw=raw)
+
+    if t == "primitive_type":
+        return TypeExpr(kind="primitive", head=raw, raw=raw)
+
+    if t == "scoped_type_identifier":
+        # Drop the path; keep last ident as the leaf head.
+        tids = [c for c in node.named_children if c.type == "type_identifier"]
+        head = _text(tids[-1]) if tids else raw
+        # Collect args from type_arguments if any.
+        ta = _child_by_type(node, "type_arguments")
+        if ta is not None:
+            args = _parse_type_args(ta, generics)
+            return TypeExpr(kind="generic", head=head, args=args, raw=raw)
+        return TypeExpr(kind="leaf", head=head, raw=raw)
+
+    if t == "generic_type":
+        head_node = (_child_by_type(node, "type_identifier")
+                     or _child_by_type(node, "scoped_type_identifier"))
+        if head_node is None:
+            return TypeExpr(kind="unknown", raw=raw)
+        if head_node.type == "scoped_type_identifier":
+            tids = [c for c in head_node.named_children
+                    if c.type == "type_identifier"]
+            head = _text(tids[-1]) if tids else _text(head_node)
+        else:
+            head = _text(head_node)
+        ta = _child_by_type(node, "type_arguments")
+        args = _parse_type_args(ta, generics) if ta is not None else []
+        return TypeExpr(kind="generic", head=head, args=args, raw=raw)
+
+    if t == "reference_type":
+        is_mut = _child_by_type(node, "mutable_specifier") is not None
+        # Inner type is the last named non-{lifetime, mutable_specifier} child.
+        inner = None
+        for c in node.named_children:
+            if c.type in ("lifetime", "mutable_specifier"):
+                continue
+            inner = c
+        return TypeExpr(
+            kind="ref",
+            args=[_parse_type_expr(inner, generics)] if inner else [],
+            is_mut=is_mut, raw=raw,
+        )
+
+    if t == "pointer_type":
+        # `*const T` / `*mut T`. Tree-sitter-verus exposes mutable_specifier
+        # for `mut`; the `const` keyword shows up as an unnamed token.
+        is_mut = _child_by_type(node, "mutable_specifier") is not None
+        inner = None
+        for c in node.named_children:
+            if c.type == "mutable_specifier":
+                continue
+            inner = c
+        extra = "mut" if is_mut else "const"
+        return TypeExpr(
+            kind="ptr",
+            args=[_parse_type_expr(inner, generics)] if inner else [],
+            is_mut=is_mut, extra=extra, raw=raw,
+        )
+
+    if t == "tuple_type":
+        elements = [_parse_type_expr(c, generics) for c in node.named_children]
+        if not elements:
+            return TypeExpr(kind="unit", raw=raw)
+        return TypeExpr(kind="tuple", args=elements, raw=raw)
+
+    if t == "unit_type":
+        return TypeExpr(kind="unit", raw=raw)
+
+    if t == "array_type":
+        # `[T; N]` or `[T]`. First named child is the element type; if a
+        # second child is present it's the size expression. We don't try
+        # to interpret the size — store its raw text in `extra`.
+        elem_node = node.named_children[0] if node.named_children else None
+        size_text = ""
+        if len(node.named_children) > 1:
+            size_text = _text(node.named_children[1])
+        return TypeExpr(
+            kind="array",
+            args=[_parse_type_expr(elem_node, generics)] if elem_node else [],
+            extra=size_text, raw=raw,
+        )
+
+    if t == "function_type":
+        # tree-sitter-verus parses `spec_fn(u8) -> bool` with a leading
+        # type_identifier marker (`spec_fn` / `fn`). Strip it; collect
+        # parameter types and the return type.
+        head = ""
+        params_node = _child_by_type(node, "parameters")
+        params: list[TypeExpr] = []
+        if params_node is not None:
+            for c in params_node.named_children:
+                params.append(_parse_type_expr(c, generics))
+        # Return type is the last named child that's not parameters /
+        # the head marker.
+        ret_node = None
+        seen_head = False
+        for c in node.named_children:
+            if c.type == "type_identifier" and not seen_head:
+                head = _text(c)
+                seen_head = True
+                continue
+            if c.type == "parameters":
+                continue
+            ret_node = c
+        ret = (_parse_type_expr(ret_node, generics) if ret_node
+               else TypeExpr(kind="unit", raw=""))
+        return TypeExpr(kind="fn", head=head, args=params + [ret], raw=raw)
+
+    if t == "dynamic_type":
+        # `dyn Trait + 'a`. Trait references look like type_identifier(s)
+        # plus optional bounds; collect the type identifiers as args.
+        args = []
+        for c in node.named_children:
+            if c.type == "lifetime":
+                continue
+            args.append(_parse_type_expr(c, generics))
+        return TypeExpr(kind="dyn", args=args, raw=raw)
+
+    if t == "abstract_return_type" or t == "impl_type":
+        args = []
+        for c in node.named_children:
+            if c.type == "lifetime":
+                continue
+            args.append(_parse_type_expr(c, generics))
+        return TypeExpr(kind="impl", args=args, raw=raw)
+
+    if t == "bounded_type":
+        # `T + Trait` or `dyn Trait + 'a`. Use the first named child as
+        # the principal type.
+        if node.named_children:
+            return _parse_type_expr(node.named_children[0], generics)
+        return TypeExpr(kind="unknown", raw=raw)
+
+    if t in ("identifier", "lifetime"):
+        # Const-arg identifier inside type_arguments (parser quirk) or a
+        # lifetime — neither contributes to the type tree.
+        return TypeExpr(kind="unknown", raw=raw)
+
+    # Fallback — unknown / parser shape we haven't enumerated. Walk
+    # children and pick the first parseable one if any, otherwise emit
+    # an unknown node.
+    for c in node.named_children:
+        sub = _parse_type_expr(c, generics)
+        if sub.kind != "unknown":
+            return sub
+    return TypeExpr(kind="unknown", raw=raw, head=raw)
+
+
+def _parse_type_args(args_node: ts.Node,
+                     generics: set[str]) -> list[TypeExpr]:
+    """Parse a ``type_arguments`` node into a list of :class:`TypeExpr`.
+
+    The tree-sitter-verus grammar places const arguments here as plain
+    ``type_identifier`` (parser quirk — see :func:`_looks_like_const_name`).
+    Such entries are kept in the tree but classified as ``unknown`` so
+    downstream consumers can either ignore them or report them.
+    """
+    out: list[TypeExpr] = []
+    for c in args_node.named_children:
+        if c.type == "type_identifier":
+            name = _text(c)
+            if _looks_like_const_name(name):
+                out.append(TypeExpr(kind="unknown", raw=name, head=name,
+                                    extra="const_arg"))
+                continue
+            if name in generics:
+                out.append(TypeExpr(kind="leaf", head=name, raw=name,
+                                    extra="generic_param"))
+                continue
+            out.append(TypeExpr(kind="leaf", head=name, raw=name))
+            continue
+        if c.type == "lifetime":
+            continue
+        out.append(_parse_type_expr(c, generics))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Per-item parsing
 # ---------------------------------------------------------------------------
 
@@ -301,6 +596,7 @@ def _parse_field_declaration(
         name=_text(fname),
         type_text=_text(type_node),
         type_refs=_collect_type_refs(type_node, generics),
+        type_expr=_parse_type_expr(type_node, generics),
         is_pub=is_pub,
         span=(fd.start_byte, fd.end_byte),
     )
@@ -332,6 +628,7 @@ def _parse_ordered_fields(
             name=str(len(out)),
             type_text=_text(c),
             type_refs=_collect_type_refs(c, generics),
+            type_expr=_parse_type_expr(c, generics),
             is_pub=pending_pub,
             span=(c.start_byte, c.end_byte),
         ))
@@ -472,6 +769,7 @@ def _parse_type_alias(
             target_node = cc
     target_text = _text(target_node) if target_node else None
     target_refs = _collect_type_refs(target_node, bound) if target_node else []
+    target_expr = _parse_type_expr(target_node, bound) if target_node else None
     vis_node = _child_by_type(node, "visibility_modifier")
     return TypeDef(
         name=name,
@@ -480,6 +778,7 @@ def _parse_type_alias(
         generics=generics,
         alias_target=target_text,
         alias_target_refs=target_refs,
+        alias_target_expr=target_expr,
         visibility=_text(vis_node) if vis_node else "",
         source_file=src_file,
         source_line=node.start_point[0] + 1,
@@ -608,6 +907,359 @@ def build_registry_from_file(path: Path) -> TypeRegistry:
 
 
 # ---------------------------------------------------------------------------
+# Dependency graph computation
+# ---------------------------------------------------------------------------
+
+
+# Built-in container heads — used by classify_node() to mark a node as a
+# pure container (its semantic value is its element type's value, modulo
+# multiplicity / nullability). This is the *minimal* set; Phase 2 will
+# augment with prelude View info.
+_PRELUDE_CONTAINERS = {
+    "Vec", "Box", "Rc", "Arc", "Cell", "RefCell", "UnsafeCell",
+    "Option", "Result",
+    "Map", "Set", "Seq",
+    "HashMap", "HashSet", "BTreeMap", "BTreeSet",
+    "Ghost", "Tracked", "PointsTo", "PointsToRaw",
+    "Array",
+}
+
+
+def _aggregate_short_edges(reg: TypeRegistry) -> dict[str, set[str]]:
+    """Collapse the per-qualified-name edge map down to a per-short-name
+    edge map. Multiple cfg-gated definitions of the same short name
+    contribute their edges as a union — which matches how a downstream
+    consumer (witness gen) usually wants to reason about "what types does
+    a ``Foo`` depend on".
+    """
+    short_edges: dict[str, set[str]] = {}
+    for qn, edges in reg.edges.items():
+        td = reg.types.get(qn)
+        if td is None:
+            continue
+        short_edges.setdefault(td.name, set()).update(edges)
+    # Self-references can arise via short-name collapse — drop them so
+    # SCCs correctly capture only *non-trivial* cycles.
+    for n, e in short_edges.items():
+        e.discard(n)
+    return short_edges
+
+
+def _transitive_closure(adj: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Compute reachable-from-each-node sets. Iterative DFS, deterministic
+    ordering driven by the input adjacency."""
+    closure: dict[str, list[str]] = {}
+    nodes = list(adj.keys())
+    for n in nodes:
+        seen: set[str] = set()
+        order: list[str] = []
+        stack: list[str] = list(reversed(adj.get(n, [])))
+        while stack:
+            cur = stack.pop()
+            if cur in seen or cur == n:
+                continue
+            seen.add(cur)
+            order.append(cur)
+            for nxt in reversed(adj.get(cur, [])):
+                if nxt not in seen:
+                    stack.append(nxt)
+        closure[n] = order
+    return closure
+
+
+def _tarjan_scc(adj: dict[str, list[str]]) -> list[list[str]]:
+    """Tarjan's strongly-connected-components algorithm. Returns SCCs in
+    reverse-topological order (leaf SCCs first), each component sorted
+    alphabetically for determinism."""
+    index_counter = [0]
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    indices: dict[str, int] = {}
+    lowlinks: dict[str, int] = {}
+    components: list[list[str]] = []
+
+    def strongconnect(v: str) -> None:
+        indices[v] = index_counter[0]
+        lowlinks[v] = index_counter[0]
+        index_counter[0] += 1
+        stack.append(v)
+        on_stack.add(v)
+        for w in adj.get(v, []):
+            if w not in indices:
+                strongconnect(w)
+                lowlinks[v] = min(lowlinks[v], lowlinks[w])
+            elif w in on_stack:
+                lowlinks[v] = min(lowlinks[v], indices[w])
+        if lowlinks[v] == indices[v]:
+            comp: list[str] = []
+            while True:
+                w = stack.pop()
+                on_stack.discard(w)
+                comp.append(w)
+                if w == v:
+                    break
+            components.append(sorted(comp))
+
+    # We need to iterate deterministically over input nodes.
+    sys.setrecursionlimit(max(sys.getrecursionlimit(), 10000))
+    for v in sorted(adj.keys()):
+        if v not in indices:
+            strongconnect(v)
+    return components
+
+
+def _condensation_topo(adj: dict[str, list[str]],
+                       sccs: list[list[str]]) -> list[str]:
+    """Topological order over the SCC condensation, **leaves first**.
+
+    For witness generation we want to build value witnesses bottom-up:
+    construct innermost / leaf types first, then assemble outer types
+    using them. This function therefore returns the *reverse*
+    topological order — sinks (no outgoing edges) appear first, sources
+    last. Within each SCC, members appear in the original Tarjan
+    component ordering.
+    """
+    scc_id: dict[str, int] = {}
+    for i, comp in enumerate(sccs):
+        for n in comp:
+            scc_id[n] = i
+    cond_adj: dict[int, set[int]] = {i: set() for i in range(len(sccs))}
+    for src, dsts in adj.items():
+        i = scc_id.get(src)
+        if i is None:
+            continue
+        for d in dsts:
+            j = scc_id.get(d)
+            if j is None or j == i:
+                continue
+            cond_adj[i].add(j)
+    # Kahn's standard (sources-first):
+    indeg = {i: 0 for i in range(len(sccs))}
+    for i, dsts in cond_adj.items():
+        for j in dsts:
+            indeg[j] += 1
+    ready = sorted(i for i, d in indeg.items() if d == 0)
+    order_components: list[int] = []
+    while ready:
+        i = ready.pop(0)
+        order_components.append(i)
+        for j in sorted(cond_adj[i]):
+            indeg[j] -= 1
+            if indeg[j] == 0:
+                ready.append(j)
+                ready.sort()
+    flat: list[str] = []
+    # Reverse to get leaves-first.
+    for ci in reversed(order_components):
+        flat.extend(sccs[ci])
+    return flat
+
+
+def classify_node(name: str, reg: TypeRegistry,
+                  containers: set[str]) -> str:
+    """Tag a node with a coarse classification useful for witness
+    generation:
+
+    * ``"container"``  — a known prelude container (Vec, Option, Map, ...)
+    * ``"primitive"``  — a primitive type
+    * ``"alias"``      — defined locally as a ``type`` alias
+    * ``"enum"``       — defined locally as an enum
+    * ``"union"``      — defined locally as a union
+    * ``"struct"``     — defined locally as a struct
+    * ``"external"``   — referenced but not defined in this file
+                         (likely from prelude / std / other module)
+    """
+    if name in containers:
+        return "container"
+    if name in _PRIMITIVES:
+        return "primitive"
+    qns = reg.short_names.get(name)
+    if not qns:
+        return "external"
+    # Pick the first def for the short name (cfg dups carry the same kind
+    # in practice).
+    td = reg.types.get(qns[0])
+    if td is None:
+        return "external"
+    return td.kind
+
+
+def _typeexpr_to_dict(e: Optional[TypeExpr]) -> Optional[dict]:
+    if e is None:
+        return None
+    return {
+        "kind": e.kind,
+        "head": e.head,
+        "raw": e.raw,
+        "is_mut": e.is_mut,
+        "extra": e.extra,
+        "args": [_typeexpr_to_dict(a) for a in e.args],
+    }
+
+
+def compute_dep_graph(reg: TypeRegistry,
+                      extra_containers: Optional[Iterable[str]] = None
+                      ) -> DepGraph:
+    """Build an enriched dependency view over ``reg``.
+
+    Nodes are *short names* (one node per distinct local-or-referenced
+    name). Direct edges union over every TypeDef / variant / alias body
+    sharing that short name. From those, transitive closures, SCCs, a
+    topological order over the SCC condensation, and per-node
+    classification are computed.
+
+    ``extra_containers`` lets callers extend the built-in prelude
+    container set with project-specific wrappers (``StaticLinkedList``,
+    ``ContainerPtr``, etc) once Phase 2 wires View-impl info in.
+    """
+    containers = set(_PRELUDE_CONTAINERS)
+    if extra_containers:
+        containers.update(extra_containers)
+
+    short_edges = _aggregate_short_edges(reg)
+    # Union all node names (defined + referenced).
+    all_nodes: set[str] = set(short_edges.keys())
+    for es in short_edges.values():
+        all_nodes.update(es)
+
+    forward = {n: sorted(short_edges.get(n, set())) for n in sorted(all_nodes)}
+
+    reverse: dict[str, list[str]] = {n: [] for n in forward}
+    for src, dsts in forward.items():
+        for d in dsts:
+            reverse.setdefault(d, []).append(src)
+    for k, v in reverse.items():
+        reverse[k] = sorted(set(v))
+
+    forward_closure = _transitive_closure(forward)
+    reverse_closure = _transitive_closure(reverse)
+    sccs = _tarjan_scc(forward)
+    topo = _condensation_topo(forward, sccs)
+
+    classification = {n: classify_node(n, reg, containers) for n in forward}
+
+    # Per-type structured field paths, keyed by qualified name (so we
+    # don't lose cfg duplicates). Each entry is the list of
+    # field-or-variant-field type expressions — exactly what witness
+    # generation will pattern-match on.
+    field_paths: dict[str, list[dict]] = {}
+    for qn, td in reg.types.items():
+        entries: list[dict] = []
+        if td.kind == "alias":
+            entries.append({
+                "where": "alias_target",
+                "name": td.name,
+                "type_text": td.alias_target or "",
+                "type_expr": _typeexpr_to_dict(td.alias_target_expr),
+            })
+        for f in td.fields:
+            entries.append({
+                "where": "field",
+                "name": f.name,
+                "type_text": f.type_text,
+                "type_expr": _typeexpr_to_dict(f.type_expr),
+            })
+        for v in td.variants:
+            for f in v.fields:
+                entries.append({
+                    "where": f"variant:{v.name}",
+                    "name": f.name,
+                    "type_text": f.type_text,
+                    "type_expr": _typeexpr_to_dict(f.type_expr),
+                })
+        field_paths[qn] = entries
+
+    return DepGraph(
+        nodes=sorted(all_nodes),
+        forward=forward,
+        forward_closure=forward_closure,
+        reverse=reverse,
+        reverse_closure=reverse_closure,
+        sccs=sccs,
+        topological_order=topo,
+        classification=classification,
+        field_paths=field_paths,
+    )
+
+
+def dep_graph_to_dict(dg: DepGraph) -> dict:
+    return {
+        "nodes": dg.nodes,
+        "forward": dg.forward,
+        "forward_closure": dg.forward_closure,
+        "reverse": dg.reverse,
+        "reverse_closure": dg.reverse_closure,
+        "sccs": dg.sccs,
+        "topological_order": dg.topological_order,
+        "classification": dg.classification,
+        "field_paths": dg.field_paths,
+    }
+
+
+def compute_project_dep_graphs(root: Path,
+                               limit: Optional[int] = None) -> dict:
+    """Walk every .rs under ``root`` and emit one combined per-project
+    dependency view.
+
+    The result has two keys:
+
+    * ``per_file`` — registry + dep-graph dict keyed by file path
+    * ``aggregate`` — a *project-wide* dep graph, computed from the union
+      of all per-file edge sets, treating every short name as a single
+      node regardless of which file defined it.
+    """
+    per_file: dict[str, dict] = {}
+    project_edges: dict[str, set[str]] = {}
+    project_short_names: dict[str, list[str]] = {}
+    project_kinds: dict[str, str] = {}
+
+    files = list(_iter_rs_files(root))
+    if limit:
+        files = files[:limit]
+
+    for f in files:
+        try:
+            reg = build_registry_from_file(f)
+        except Exception as e:
+            per_file[str(f)] = {"error": str(e)}
+            continue
+        try:
+            dg = compute_dep_graph(reg)
+        except Exception as e:
+            per_file[str(f)] = {"error": f"dep_graph: {e}"}
+            continue
+        per_file[str(f)] = {
+            "registry": _registry_to_dict(reg),
+            "dep_graph": dep_graph_to_dict(dg),
+        }
+        for src, dsts in dg.forward.items():
+            project_edges.setdefault(src, set()).update(dsts)
+        for short, qns in reg.short_names.items():
+            project_short_names.setdefault(short, []).extend(qns)
+            for qn in qns:
+                td = reg.types[qn]
+                # First-seen kind wins; we report it as a hint.
+                project_kinds.setdefault(short, td.kind)
+
+    # Build a project-wide graph from the unioned edges. We have to fake
+    # a TypeRegistry-shape to reuse classify_node; build one inline.
+    pseudo_reg = TypeRegistry(source_file=f"<aggregate:{root}>")
+    pseudo_reg.short_names = {k: sorted(set(v))
+                              for k, v in project_short_names.items()}
+    # Insert a dummy TypeDef per short name carrying its first-seen kind.
+    for short, kind in project_kinds.items():
+        td = TypeDef(name=short, qualified_name=short, kind=kind)
+        pseudo_reg.types[short] = td
+    pseudo_reg.edges = project_edges
+    aggregate_graph = compute_dep_graph(pseudo_reg)
+
+    return {
+        "per_file": per_file,
+        "aggregate": dep_graph_to_dict(aggregate_graph),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Serialization
 # ---------------------------------------------------------------------------
 
@@ -730,6 +1382,33 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         print(f"  parse_errors        : {len(summary['parse_errors'])}")
         for e in summary['parse_errors'][:5]:
             print(f"    {e}")
+    return 0
+
+
+def _cmd_deps(args: argparse.Namespace) -> int:
+    """Compute structured dependency graphs for every .rs in a project,
+    plus a project-wide aggregate. Writes JSON to ``--out`` (or stdout).
+    """
+    root = Path(args.root).expanduser().resolve()
+    result = compute_project_dep_graphs(root, limit=args.limit)
+    if args.aggregate_only:
+        result = {"aggregate": result["aggregate"],
+                  "files_scanned": len(result["per_file"])}
+    js = json.dumps(result, indent=2, sort_keys=True)
+    if args.out:
+        Path(args.out).expanduser().write_text(js)
+    else:
+        sys.stdout.write(js + "\n")
+    if not args.quiet:
+        ag = result["aggregate"]
+        n_nodes = len(ag["nodes"])
+        n_edges = sum(len(v) for v in ag["forward"].values())
+        non_trivial_sccs = [c for c in ag["sccs"] if len(c) > 1]
+        sys.stderr.write(
+            f"deps: {root.name} — "
+            f"{n_nodes} nodes / {n_edges} edges / "
+            f"{len(non_trivial_sccs)} non-trivial SCCs\n"
+        )
     return 0
 
 
@@ -868,6 +1547,158 @@ def _cmd_selftest(args: argparse.Namespace) -> int:
          "}",
          lambda r: len(r.short_names["D"]) == 2)
 
+    # ---- TypeExpr parsing ----------------------------------------------------
+
+    def _expr_of_field(r, ty, fname):
+        td = r.types[ty]
+        for f in td.fields:
+            if f.name == fname:
+                return f.type_expr
+        raise KeyError(fname)
+
+    case("type_expr — leaf user type",
+         "verus!{ pub struct S { x: Bar } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "leaf"
+             and _expr_of_field(r, "S", "x").head == "Bar"
+         ))
+
+    case("type_expr — primitive",
+         "verus!{ pub struct S { x: u32 } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "primitive"
+             and _expr_of_field(r, "S", "x").head == "u32"
+         ))
+
+    case("type_expr — generic with args",
+         "verus!{ pub struct S { x: Vec<Option<Bar>> } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "generic"
+             and _expr_of_field(r, "S", "x").head == "Vec"
+             and _expr_of_field(r, "S", "x").args[0].head == "Option"
+             and _expr_of_field(r, "S", "x").args[0].args[0].head == "Bar"
+         ))
+
+    case("type_expr — &mut T",
+         "verus!{ pub struct S { x: &'a mut Bar } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "ref"
+             and _expr_of_field(r, "S", "x").is_mut
+             and _expr_of_field(r, "S", "x").args[0].head == "Bar"
+         ))
+
+    case("type_expr — *const T pointer",
+         "verus!{ pub struct S { x: *const Bar } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "ptr"
+             and not _expr_of_field(r, "S", "x").is_mut
+             and _expr_of_field(r, "S", "x").args[0].head == "Bar"
+         ))
+
+    case("type_expr — tuple",
+         "verus!{ pub struct S { x: (Bar, Vec<Baz>, u8) } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "tuple"
+             and len(_expr_of_field(r, "S", "x").args) == 3
+             and _expr_of_field(r, "S", "x").args[0].head == "Bar"
+             and _expr_of_field(r, "S", "x").args[1].head == "Vec"
+             and _expr_of_field(r, "S", "x").args[2].head == "u8"
+         ))
+
+    case("type_expr — array with const size",
+         "verus!{ pub struct S { x: [Bar; 4] } }",
+         lambda r: (
+             _expr_of_field(r, "S", "x").kind == "array"
+             and _expr_of_field(r, "S", "x").args[0].head == "Bar"
+             and _expr_of_field(r, "S", "x").extra == "4"
+         ))
+
+    case("type_expr — leaves() walker collects all user types",
+         "verus!{ pub struct S { x: Map<KeyT, Vec<Box<Inner>>> } }",
+         lambda r: set(_expr_of_field(r, "S", "x").leaves())
+         == {"Map", "KeyT", "Vec", "Box", "Inner"})
+
+    case("type_expr — alias_target_expr populated",
+         "verus!{ pub type A = Vec<Option<Bar>>; }",
+         lambda r: (
+             r.types["A"].alias_target_expr is not None
+             and r.types["A"].alias_target_expr.head == "Vec"
+             and r.types["A"].alias_target_expr.args[0].head == "Option"
+         ))
+
+    # ---- DepGraph: forward/reverse closures, SCCs, topo, classification ------
+
+    case("dep_graph — forward & reverse closure",
+         "verus!{ "
+         "pub struct Aa { x: Bb } "
+         "pub struct Bb { y: Cc } "
+         "pub struct Cc { z: u8 } "
+         "}",
+         lambda r: (
+             # Build dep graph and check transitive reachability
+             (lambda dg: (
+                 set(dg.forward["Aa"]) == {"Bb"}
+                 and set(dg.forward_closure["Aa"]) == {"Bb", "Cc"}
+                 and set(dg.reverse["Cc"]) == {"Bb"}
+                 and set(dg.reverse_closure["Cc"]) == {"Aa", "Bb"}
+             ))(compute_dep_graph(r))
+         ))
+
+    case("dep_graph — Tarjan SCC catches a cycle",
+         "verus!{ "
+         "pub struct Aa { x: Box<Bb> } "
+         "pub struct Bb { y: Box<Aa> } "
+         "}",
+         lambda r: (
+             (lambda dg: (
+                 any(set(comp) == {"Aa", "Bb"} for comp in dg.sccs)
+             ))(compute_dep_graph(r))
+         ))
+
+    case("dep_graph — topological order: leaves first",
+         "verus!{ "
+         "pub struct Aa { x: Bb } "
+         "pub struct Bb { y: Cc } "
+         "pub struct Cc { z: u8 } "
+         "}",
+         lambda r: (
+             (lambda dg, order=compute_dep_graph(r).topological_order: (
+                 # Bb must come before Aa; Cc must come before Bb.
+                 order.index("Bb") < order.index("Aa")
+                 and order.index("Cc") < order.index("Bb")
+             ))(compute_dep_graph(r))
+         ))
+
+    case("dep_graph — classification labels",
+         "verus!{ "
+         "pub struct Inner { x: u8 } "
+         "pub struct Outer { v: Vec<Inner>, e: External } "
+         "pub enum E { A } "
+         "pub type Al = Vec<u8>; "
+         "}",
+         lambda r: (
+             (lambda dg: (
+                 dg.classification["Inner"] == "struct"
+                 and dg.classification["Outer"] == "struct"
+                 and dg.classification["E"] == "enum"
+                 and dg.classification["Al"] == "alias"
+                 and dg.classification["Vec"] == "container"
+                 and dg.classification["External"] == "external"
+             ))(compute_dep_graph(r))
+         ))
+
+    case("dep_graph — field_paths preserves type_expr per field",
+         "verus!{ pub struct S { x: Vec<Bar>, y: u8 } }",
+         lambda r: (
+             (lambda dg: (
+                 [e["where"] for e in dg.field_paths["S"]] == ["field", "field"]
+                 and dg.field_paths["S"][0]["type_expr"]["kind"] == "generic"
+                 and dg.field_paths["S"][0]["type_expr"]["head"] == "Vec"
+                 and dg.field_paths["S"][0]["type_expr"]["args"][0]["head"]
+                     == "Bar"
+             ))(compute_dep_graph(r))
+         ))
+
     fails: list[tuple[str, str]] = []
     passes = 0
     for name, src, check in cases:
@@ -906,6 +1737,19 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_audit.add_argument("--limit", type=int, default=None)
     p_audit.add_argument("--json", action="store_true")
     p_audit.set_defaults(func=_cmd_audit)
+
+    p_deps = sub.add_parser("deps",
+                            help="Compute structured dep graph (forward "
+                                 "/ reverse closure, SCCs, topological "
+                                 "order, classification) for a project.")
+    p_deps.add_argument("root", help="Project root containing .rs files.")
+    p_deps.add_argument("--out", default=None, help="Output JSON path.")
+    p_deps.add_argument("--limit", type=int, default=None)
+    p_deps.add_argument("--aggregate-only", action="store_true",
+                        help="Drop per-file payload; only emit project "
+                             "aggregate graph.")
+    p_deps.add_argument("--quiet", action="store_true")
+    p_deps.set_defaults(func=_cmd_deps)
 
     p_test = sub.add_parser("test",
                             help="Run inline self-check on the parser path.")

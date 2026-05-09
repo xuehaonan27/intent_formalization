@@ -1,0 +1,3824 @@
+{
+  "dep_graph": {
+    "classification": {
+      "Array": "container",
+      "ContainerPtr": "alias",
+      "Ghost": "container",
+      "IOid": "alias",
+      "Map": "container",
+      "Node": "struct",
+      "Option": "container",
+      "Page": "struct",
+      "PageAllocator": "struct",
+      "PagePerm1g": "alias",
+      "PagePerm2m": "alias",
+      "PagePerm4k": "alias",
+      "PagePtr": "alias",
+      "PageState": "enum",
+      "Pcid": "alias",
+      "PointsTo": "container",
+      "SLLIndex": "alias",
+      "Seq": "container",
+      "Set": "container",
+      "StaticLinkedList": "struct",
+      "Tracked": "container",
+      "VAddr": "alias"
+    },
+    "field_paths": {
+      "Array": [
+        {
+          "name": "seq",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "const_arg",
+                    "head": "A",
+                    "is_mut": false,
+                    "kind": "unknown",
+                    "raw": "A"
+                  }
+                ],
+                "extra": "",
+                "head": "Seq",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Seq<A>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Seq<A>>"
+          },
+          "type_text": "Ghost<Seq<A>>",
+          "where": "field"
+        },
+        {
+          "name": "ar",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "A",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "A"
+              }
+            ],
+            "extra": "N",
+            "head": "",
+            "is_mut": false,
+            "kind": "array",
+            "raw": "[A;N]"
+          },
+          "type_text": "[A;N]",
+          "where": "field"
+        }
+      ],
+      "ContainerPtr": [
+        {
+          "name": "ContainerPtr",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "alias_target"
+        }
+      ],
+      "IOid": [
+        {
+          "name": "IOid",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "alias_target"
+        }
+      ],
+      "Node": [
+        {
+          "name": "value",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "const_arg",
+                "head": "T",
+                "is_mut": false,
+                "kind": "unknown",
+                "raw": "T"
+              }
+            ],
+            "extra": "",
+            "head": "Option",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Option<T>"
+          },
+          "type_text": "Option<T>",
+          "where": "field"
+        },
+        {
+          "name": "next",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "prev",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        }
+      ],
+      "Page": [
+        {
+          "name": "addr",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "PagePtr",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "PagePtr"
+          },
+          "type_text": "PagePtr",
+          "where": "field"
+        },
+        {
+          "name": "state",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "PageState",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "PageState"
+          },
+          "type_text": "PageState",
+          "where": "field"
+        },
+        {
+          "name": "is_io_page",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "bool",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "bool"
+          },
+          "type_text": "bool",
+          "where": "field"
+        },
+        {
+          "name": "rev_pointer",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "ref_count",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "field"
+        },
+        {
+          "name": "owning_container",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "ContainerPtr",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "ContainerPtr"
+              }
+            ],
+            "extra": "",
+            "head": "Option",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Option<ContainerPtr>"
+          },
+          "type_text": "Option<ContainerPtr>",
+          "where": "field"
+        },
+        {
+          "name": "mappings",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "Pcid",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "Pcid"
+                      },
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "VAddr",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "VAddr"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "",
+                    "is_mut": false,
+                    "kind": "tuple",
+                    "raw": "(Pcid, VAddr)"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<(Pcid, VAddr)>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<(Pcid, VAddr)>>"
+          },
+          "type_text": "Ghost<Set<(Pcid, VAddr)>>",
+          "where": "field"
+        },
+        {
+          "name": "io_mappings",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "IOid",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "IOid"
+                      },
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "VAddr",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "VAddr"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "",
+                    "is_mut": false,
+                    "kind": "tuple",
+                    "raw": "(IOid, VAddr)"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<(IOid, VAddr)>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<(IOid, VAddr)>>"
+          },
+          "type_text": "Ghost<Set<(IOid, VAddr)>>",
+          "where": "field"
+        }
+      ],
+      "PageAllocator": [
+        {
+          "name": "page_array",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "Page",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "Page"
+              },
+              {
+                "args": [],
+                "extra": "const_arg",
+                "head": "NUM_PAGES",
+                "is_mut": false,
+                "kind": "unknown",
+                "raw": "NUM_PAGES"
+              }
+            ],
+            "extra": "",
+            "head": "Array",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Array<Page, NUM_PAGES>"
+          },
+          "type_text": "Array<Page, NUM_PAGES>",
+          "where": "field"
+        },
+        {
+          "name": "free_pages_4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "PagePtr",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "PagePtr"
+              },
+              {
+                "args": [],
+                "extra": "const_arg",
+                "head": "NUM_PAGES",
+                "is_mut": false,
+                "kind": "unknown",
+                "raw": "NUM_PAGES"
+              }
+            ],
+            "extra": "",
+            "head": "StaticLinkedList",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>",
+          "where": "field"
+        },
+        {
+          "name": "free_pages_2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "PagePtr",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "PagePtr"
+              },
+              {
+                "args": [],
+                "extra": "const_arg",
+                "head": "NUM_PAGES",
+                "is_mut": false,
+                "kind": "unknown",
+                "raw": "NUM_PAGES"
+              }
+            ],
+            "extra": "",
+            "head": "StaticLinkedList",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>",
+          "where": "field"
+        },
+        {
+          "name": "free_pages_1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [],
+                "extra": "",
+                "head": "PagePtr",
+                "is_mut": false,
+                "kind": "leaf",
+                "raw": "PagePtr"
+              },
+              {
+                "args": [],
+                "extra": "const_arg",
+                "head": "NUM_PAGES",
+                "is_mut": false,
+                "kind": "unknown",
+                "raw": "NUM_PAGES"
+              }
+            ],
+            "extra": "",
+            "head": "StaticLinkedList",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>",
+          "where": "field"
+        },
+        {
+          "name": "allocated_pages_4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "allocated_pages_2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "allocated_pages_1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "mapped_pages_4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "mapped_pages_2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "mapped_pages_1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  }
+                ],
+                "extra": "",
+                "head": "Set",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Set<PagePtr>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Set<PagePtr>>"
+          },
+          "type_text": "Ghost<Set<PagePtr>>",
+          "where": "field"
+        },
+        {
+          "name": "page_perms_4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  },
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePerm4k",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePerm4k"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<PagePtr, PagePerm4k>"
+              }
+            ],
+            "extra": "",
+            "head": "Tracked",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Tracked<Map<PagePtr, PagePerm4k>>"
+          },
+          "type_text": "Tracked<Map<PagePtr, PagePerm4k>>",
+          "where": "field"
+        },
+        {
+          "name": "page_perms_2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  },
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePerm2m",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePerm2m"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<PagePtr, PagePerm2m>"
+              }
+            ],
+            "extra": "",
+            "head": "Tracked",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Tracked<Map<PagePtr, PagePerm2m>>"
+          },
+          "type_text": "Tracked<Map<PagePtr, PagePerm2m>>",
+          "where": "field"
+        },
+        {
+          "name": "page_perms_1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePtr"
+                  },
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "PagePerm1g",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "PagePerm1g"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<PagePtr, PagePerm1g>"
+              }
+            ],
+            "extra": "",
+            "head": "Tracked",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Tracked<Map<PagePtr, PagePerm1g>>"
+          },
+          "type_text": "Tracked<Map<PagePtr, PagePerm1g>>",
+          "where": "field"
+        },
+        {
+          "name": "container_map_4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "ContainerPtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "ContainerPtr"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "PagePtr",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "PagePtr"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "Set",
+                    "is_mut": false,
+                    "kind": "generic",
+                    "raw": "Set<PagePtr>"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<ContainerPtr, Set<PagePtr>>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          },
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+          "where": "field"
+        },
+        {
+          "name": "container_map_2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "ContainerPtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "ContainerPtr"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "PagePtr",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "PagePtr"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "Set",
+                    "is_mut": false,
+                    "kind": "generic",
+                    "raw": "Set<PagePtr>"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<ContainerPtr, Set<PagePtr>>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          },
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+          "where": "field"
+        },
+        {
+          "name": "container_map_1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "ContainerPtr",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "ContainerPtr"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "",
+                        "head": "PagePtr",
+                        "is_mut": false,
+                        "kind": "leaf",
+                        "raw": "PagePtr"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "Set",
+                    "is_mut": false,
+                    "kind": "generic",
+                    "raw": "Set<PagePtr>"
+                  }
+                ],
+                "extra": "",
+                "head": "Map",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Map<ContainerPtr, Set<PagePtr>>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          },
+          "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+          "where": "field"
+        }
+      ],
+      "PagePerm1g": [
+        {
+          "name": "PagePerm1g",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "u8",
+                    "is_mut": false,
+                    "kind": "primitive",
+                    "raw": "u8"
+                  }
+                ],
+                "extra": "PAGE_SZ_1g",
+                "head": "",
+                "is_mut": false,
+                "kind": "array",
+                "raw": "[u8; PAGE_SZ_1g]"
+              }
+            ],
+            "extra": "",
+            "head": "PointsTo",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "PointsTo<[u8; PAGE_SZ_1g]>"
+          },
+          "type_text": "PointsTo<[u8; PAGE_SZ_1g]>",
+          "where": "alias_target"
+        }
+      ],
+      "PagePerm2m": [
+        {
+          "name": "PagePerm2m",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "u8",
+                    "is_mut": false,
+                    "kind": "primitive",
+                    "raw": "u8"
+                  }
+                ],
+                "extra": "PAGE_SZ_2m",
+                "head": "",
+                "is_mut": false,
+                "kind": "array",
+                "raw": "[u8; PAGE_SZ_2m]"
+              }
+            ],
+            "extra": "",
+            "head": "PointsTo",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "PointsTo<[u8; PAGE_SZ_2m]>"
+          },
+          "type_text": "PointsTo<[u8; PAGE_SZ_2m]>",
+          "where": "alias_target"
+        }
+      ],
+      "PagePerm4k": [
+        {
+          "name": "PagePerm4k",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "u8",
+                    "is_mut": false,
+                    "kind": "primitive",
+                    "raw": "u8"
+                  }
+                ],
+                "extra": "PAGE_SZ_4k",
+                "head": "",
+                "is_mut": false,
+                "kind": "array",
+                "raw": "[u8; PAGE_SZ_4k]"
+              }
+            ],
+            "extra": "",
+            "head": "PointsTo",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "PointsTo<[u8; PAGE_SZ_4k]>"
+          },
+          "type_text": "PointsTo<[u8; PAGE_SZ_4k]>",
+          "where": "alias_target"
+        }
+      ],
+      "PagePtr": [
+        {
+          "name": "PagePtr",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "alias_target"
+        }
+      ],
+      "PageState": [],
+      "Pcid": [
+        {
+          "name": "Pcid",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "alias_target"
+        }
+      ],
+      "SLLIndex": [
+        {
+          "name": "SLLIndex",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "i32",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "i32"
+          },
+          "type_text": "i32",
+          "where": "alias_target"
+        }
+      ],
+      "StaticLinkedList": [
+        {
+          "name": "ar",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "const_arg",
+                    "head": "T",
+                    "is_mut": false,
+                    "kind": "unknown",
+                    "raw": "T"
+                  }
+                ],
+                "extra": "",
+                "head": "Node",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Node<T>"
+              }
+            ],
+            "extra": "N",
+            "head": "",
+            "is_mut": false,
+            "kind": "array",
+            "raw": "[Node<T>; N]"
+          },
+          "type_text": "[Node<T>; N]",
+          "where": "field"
+        },
+        {
+          "name": "spec_seq",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "const_arg",
+                    "head": "T",
+                    "is_mut": false,
+                    "kind": "unknown",
+                    "raw": "T"
+                  }
+                ],
+                "extra": "",
+                "head": "Seq",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Seq<T>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Seq<T>>"
+          },
+          "type_text": "Ghost<Seq<T>>",
+          "where": "field"
+        },
+        {
+          "name": "value_list",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "SLLIndex",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "SLLIndex"
+                  }
+                ],
+                "extra": "",
+                "head": "Seq",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Seq<SLLIndex>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Seq<SLLIndex>>"
+          },
+          "type_text": "Ghost<Seq<SLLIndex>>",
+          "where": "field"
+        },
+        {
+          "name": "value_list_head",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "value_list_tail",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "value_list_len",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "field"
+        },
+        {
+          "name": "free_list",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "extra": "",
+                    "head": "SLLIndex",
+                    "is_mut": false,
+                    "kind": "leaf",
+                    "raw": "SLLIndex"
+                  }
+                ],
+                "extra": "",
+                "head": "Seq",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Seq<SLLIndex>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Seq<SLLIndex>>"
+          },
+          "type_text": "Ghost<Seq<SLLIndex>>",
+          "where": "field"
+        },
+        {
+          "name": "free_list_head",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "free_list_tail",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "SLLIndex",
+            "is_mut": false,
+            "kind": "leaf",
+            "raw": "SLLIndex"
+          },
+          "type_text": "SLLIndex",
+          "where": "field"
+        },
+        {
+          "name": "free_list_len",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "field"
+        },
+        {
+          "name": "size",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "field"
+        },
+        {
+          "name": "arr_seq",
+          "type_expr": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "extra": "const_arg",
+                        "head": "T",
+                        "is_mut": false,
+                        "kind": "unknown",
+                        "raw": "T"
+                      }
+                    ],
+                    "extra": "",
+                    "head": "Node",
+                    "is_mut": false,
+                    "kind": "generic",
+                    "raw": "Node<T>"
+                  }
+                ],
+                "extra": "",
+                "head": "Seq",
+                "is_mut": false,
+                "kind": "generic",
+                "raw": "Seq<Node<T>>"
+              }
+            ],
+            "extra": "",
+            "head": "Ghost",
+            "is_mut": false,
+            "kind": "generic",
+            "raw": "Ghost<Seq<Node<T>>>"
+          },
+          "type_text": "Ghost<Seq<Node<T>>>",
+          "where": "field"
+        }
+      ],
+      "VAddr": [
+        {
+          "name": "VAddr",
+          "type_expr": {
+            "args": [],
+            "extra": "",
+            "head": "usize",
+            "is_mut": false,
+            "kind": "primitive",
+            "raw": "usize"
+          },
+          "type_text": "usize",
+          "where": "alias_target"
+        }
+      ]
+    },
+    "forward": {
+      "Array": [
+        "Ghost",
+        "Seq"
+      ],
+      "ContainerPtr": [],
+      "Ghost": [],
+      "IOid": [],
+      "Map": [],
+      "Node": [
+        "Option",
+        "SLLIndex"
+      ],
+      "Option": [],
+      "Page": [
+        "ContainerPtr",
+        "Ghost",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr"
+      ],
+      "PageAllocator": [
+        "Array",
+        "ContainerPtr",
+        "Ghost",
+        "Map",
+        "Page",
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k",
+        "PagePtr",
+        "Set",
+        "StaticLinkedList",
+        "Tracked"
+      ],
+      "PagePerm1g": [
+        "PointsTo"
+      ],
+      "PagePerm2m": [
+        "PointsTo"
+      ],
+      "PagePerm4k": [
+        "PointsTo"
+      ],
+      "PagePtr": [],
+      "PageState": [],
+      "Pcid": [],
+      "PointsTo": [],
+      "SLLIndex": [],
+      "Seq": [],
+      "Set": [],
+      "StaticLinkedList": [
+        "Ghost",
+        "Node",
+        "SLLIndex",
+        "Seq"
+      ],
+      "Tracked": [],
+      "VAddr": []
+    },
+    "forward_closure": {
+      "Array": [
+        "Ghost",
+        "Seq"
+      ],
+      "ContainerPtr": [],
+      "Ghost": [],
+      "IOid": [],
+      "Map": [],
+      "Node": [
+        "Option",
+        "SLLIndex"
+      ],
+      "Option": [],
+      "Page": [
+        "ContainerPtr",
+        "Ghost",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr"
+      ],
+      "PageAllocator": [
+        "Array",
+        "Ghost",
+        "Seq",
+        "ContainerPtr",
+        "Map",
+        "Page",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr",
+        "PagePerm1g",
+        "PointsTo",
+        "PagePerm2m",
+        "PagePerm4k",
+        "StaticLinkedList",
+        "Node",
+        "Tracked"
+      ],
+      "PagePerm1g": [
+        "PointsTo"
+      ],
+      "PagePerm2m": [
+        "PointsTo"
+      ],
+      "PagePerm4k": [
+        "PointsTo"
+      ],
+      "PagePtr": [],
+      "PageState": [],
+      "Pcid": [],
+      "PointsTo": [],
+      "SLLIndex": [],
+      "Seq": [],
+      "Set": [],
+      "StaticLinkedList": [
+        "Ghost",
+        "Node",
+        "Option",
+        "SLLIndex",
+        "Seq"
+      ],
+      "Tracked": [],
+      "VAddr": []
+    },
+    "nodes": [
+      "Array",
+      "ContainerPtr",
+      "Ghost",
+      "IOid",
+      "Map",
+      "Node",
+      "Option",
+      "Page",
+      "PageAllocator",
+      "PagePerm1g",
+      "PagePerm2m",
+      "PagePerm4k",
+      "PagePtr",
+      "PageState",
+      "Pcid",
+      "PointsTo",
+      "SLLIndex",
+      "Seq",
+      "Set",
+      "StaticLinkedList",
+      "Tracked",
+      "VAddr"
+    ],
+    "reverse": {
+      "Array": [
+        "PageAllocator"
+      ],
+      "ContainerPtr": [
+        "Page",
+        "PageAllocator"
+      ],
+      "Ghost": [
+        "Array",
+        "Page",
+        "PageAllocator",
+        "StaticLinkedList"
+      ],
+      "IOid": [
+        "Page"
+      ],
+      "Map": [
+        "PageAllocator"
+      ],
+      "Node": [
+        "StaticLinkedList"
+      ],
+      "Option": [
+        "Node",
+        "Page"
+      ],
+      "Page": [
+        "PageAllocator"
+      ],
+      "PageAllocator": [],
+      "PagePerm1g": [
+        "PageAllocator"
+      ],
+      "PagePerm2m": [
+        "PageAllocator"
+      ],
+      "PagePerm4k": [
+        "PageAllocator"
+      ],
+      "PagePtr": [
+        "Page",
+        "PageAllocator"
+      ],
+      "PageState": [
+        "Page"
+      ],
+      "Pcid": [
+        "Page"
+      ],
+      "PointsTo": [
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k"
+      ],
+      "SLLIndex": [
+        "Node",
+        "Page",
+        "StaticLinkedList"
+      ],
+      "Seq": [
+        "Array",
+        "StaticLinkedList"
+      ],
+      "Set": [
+        "Page",
+        "PageAllocator"
+      ],
+      "StaticLinkedList": [
+        "PageAllocator"
+      ],
+      "Tracked": [
+        "PageAllocator"
+      ],
+      "VAddr": [
+        "Page"
+      ]
+    },
+    "reverse_closure": {
+      "Array": [
+        "PageAllocator"
+      ],
+      "ContainerPtr": [
+        "Page",
+        "PageAllocator"
+      ],
+      "Ghost": [
+        "Array",
+        "PageAllocator",
+        "Page",
+        "StaticLinkedList"
+      ],
+      "IOid": [
+        "Page",
+        "PageAllocator"
+      ],
+      "Map": [
+        "PageAllocator"
+      ],
+      "Node": [
+        "StaticLinkedList",
+        "PageAllocator"
+      ],
+      "Option": [
+        "Node",
+        "StaticLinkedList",
+        "PageAllocator",
+        "Page"
+      ],
+      "Page": [
+        "PageAllocator"
+      ],
+      "PageAllocator": [],
+      "PagePerm1g": [
+        "PageAllocator"
+      ],
+      "PagePerm2m": [
+        "PageAllocator"
+      ],
+      "PagePerm4k": [
+        "PageAllocator"
+      ],
+      "PagePtr": [
+        "Page",
+        "PageAllocator"
+      ],
+      "PageState": [
+        "Page",
+        "PageAllocator"
+      ],
+      "Pcid": [
+        "Page",
+        "PageAllocator"
+      ],
+      "PointsTo": [
+        "PagePerm1g",
+        "PageAllocator",
+        "PagePerm2m",
+        "PagePerm4k"
+      ],
+      "SLLIndex": [
+        "Node",
+        "StaticLinkedList",
+        "PageAllocator",
+        "Page"
+      ],
+      "Seq": [
+        "Array",
+        "PageAllocator",
+        "StaticLinkedList"
+      ],
+      "Set": [
+        "Page",
+        "PageAllocator"
+      ],
+      "StaticLinkedList": [
+        "PageAllocator"
+      ],
+      "Tracked": [
+        "PageAllocator"
+      ],
+      "VAddr": [
+        "Page",
+        "PageAllocator"
+      ]
+    },
+    "sccs": [
+      [
+        "Ghost"
+      ],
+      [
+        "Seq"
+      ],
+      [
+        "Array"
+      ],
+      [
+        "ContainerPtr"
+      ],
+      [
+        "IOid"
+      ],
+      [
+        "Map"
+      ],
+      [
+        "Option"
+      ],
+      [
+        "SLLIndex"
+      ],
+      [
+        "Node"
+      ],
+      [
+        "PagePtr"
+      ],
+      [
+        "PageState"
+      ],
+      [
+        "Pcid"
+      ],
+      [
+        "Set"
+      ],
+      [
+        "VAddr"
+      ],
+      [
+        "Page"
+      ],
+      [
+        "PointsTo"
+      ],
+      [
+        "PagePerm1g"
+      ],
+      [
+        "PagePerm2m"
+      ],
+      [
+        "PagePerm4k"
+      ],
+      [
+        "StaticLinkedList"
+      ],
+      [
+        "Tracked"
+      ],
+      [
+        "PageAllocator"
+      ]
+    ],
+    "topological_order": [
+      "Tracked",
+      "SLLIndex",
+      "Option",
+      "Node",
+      "Seq",
+      "Ghost",
+      "StaticLinkedList",
+      "PointsTo",
+      "PagePerm4k",
+      "PagePerm2m",
+      "PagePerm1g",
+      "VAddr",
+      "Set",
+      "Pcid",
+      "PageState",
+      "PagePtr",
+      "IOid",
+      "ContainerPtr",
+      "Page",
+      "Map",
+      "Array",
+      "PageAllocator"
+    ]
+  },
+  "registry": {
+    "edges": {
+      "Array": [
+        "Ghost",
+        "Seq"
+      ],
+      "ContainerPtr": [],
+      "IOid": [],
+      "Node": [
+        "Option",
+        "SLLIndex"
+      ],
+      "Page": [
+        "ContainerPtr",
+        "Ghost",
+        "IOid",
+        "Option",
+        "PagePtr",
+        "PageState",
+        "Pcid",
+        "SLLIndex",
+        "Set",
+        "VAddr"
+      ],
+      "PageAllocator": [
+        "Array",
+        "ContainerPtr",
+        "Ghost",
+        "Map",
+        "Page",
+        "PagePerm1g",
+        "PagePerm2m",
+        "PagePerm4k",
+        "PagePtr",
+        "Set",
+        "StaticLinkedList",
+        "Tracked"
+      ],
+      "PagePerm1g": [
+        "PointsTo"
+      ],
+      "PagePerm2m": [
+        "PointsTo"
+      ],
+      "PagePerm4k": [
+        "PointsTo"
+      ],
+      "PagePtr": [],
+      "PageState": [],
+      "Pcid": [],
+      "SLLIndex": [],
+      "StaticLinkedList": [
+        "Ghost",
+        "Node",
+        "SLLIndex",
+        "Seq"
+      ],
+      "VAddr": []
+    },
+    "short_names": {
+      "Array": [
+        "Array"
+      ],
+      "ContainerPtr": [
+        "ContainerPtr"
+      ],
+      "IOid": [
+        "IOid"
+      ],
+      "Node": [
+        "Node"
+      ],
+      "Page": [
+        "Page"
+      ],
+      "PageAllocator": [
+        "PageAllocator"
+      ],
+      "PagePerm1g": [
+        "PagePerm1g"
+      ],
+      "PagePerm2m": [
+        "PagePerm2m"
+      ],
+      "PagePerm4k": [
+        "PagePerm4k"
+      ],
+      "PagePtr": [
+        "PagePtr"
+      ],
+      "PageState": [
+        "PageState"
+      ],
+      "Pcid": [
+        "Pcid"
+      ],
+      "SLLIndex": [
+        "SLLIndex"
+      ],
+      "StaticLinkedList": [
+        "StaticLinkedList"
+      ],
+      "VAddr": [
+        "VAddr"
+      ]
+    },
+    "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+    "types": {
+      "Array": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [
+          {
+            "is_pub": true,
+            "name": "seq",
+            "span": [
+              29299,
+              29321
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "const_arg",
+                      "head": "A",
+                      "is_mut": false,
+                      "kind": "unknown",
+                      "raw": "A"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Seq",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Seq<A>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Seq<A>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Seq"
+            ],
+            "type_text": "Ghost<Seq<A>>"
+          },
+          {
+            "is_pub": true,
+            "name": "ar",
+            "span": [
+              29327,
+              29340
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "A",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "A"
+                }
+              ],
+              "extra": "N",
+              "head": "",
+              "is_mut": false,
+              "kind": "array",
+              "raw": "[A;N]"
+            },
+            "type_refs": [],
+            "type_text": "[A;N]"
+          }
+        ],
+        "generics": [
+          {
+            "bounds": [],
+            "kind": "type",
+            "name": "A",
+            "raw": "A"
+          },
+          {
+            "bounds": [],
+            "kind": "const",
+            "name": "N",
+            "raw": "const N: usize"
+          }
+        ],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "struct",
+        "name": "Array",
+        "qualified_name": "Array",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 669,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "ContainerPtr": {
+        "alias_target": "usize",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "usize",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "usize"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "ContainerPtr",
+        "qualified_name": "ContainerPtr",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 10,
+        "variants": [],
+        "visibility": ""
+      },
+      "IOid": {
+        "alias_target": "usize",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "usize",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "usize"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "IOid",
+        "qualified_name": "IOid",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 14,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "Node": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [
+          "Debug"
+        ],
+        "fields": [
+          {
+            "is_pub": true,
+            "name": "value",
+            "span": [
+              622,
+              642
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "const_arg",
+                  "head": "T",
+                  "is_mut": false,
+                  "kind": "unknown",
+                  "raw": "T"
+                }
+              ],
+              "extra": "",
+              "head": "Option",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Option<T>"
+            },
+            "type_refs": [
+              "Option"
+            ],
+            "type_text": "Option<T>"
+          },
+          {
+            "is_pub": true,
+            "name": "next",
+            "span": [
+              648,
+              666
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "prev",
+            "span": [
+              672,
+              690
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          }
+        ],
+        "generics": [
+          {
+            "bounds": [],
+            "kind": "type",
+            "name": "T",
+            "raw": "T"
+          }
+        ],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "struct",
+        "name": "Node",
+        "qualified_name": "Node",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 24,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "Page": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [
+          "Clone",
+          "Copy"
+        ],
+        "fields": [
+          {
+            "is_pub": true,
+            "name": "addr",
+            "span": [
+              2612,
+              2629
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "PagePtr",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "PagePtr"
+            },
+            "type_refs": [
+              "PagePtr"
+            ],
+            "type_text": "PagePtr"
+          },
+          {
+            "is_pub": true,
+            "name": "state",
+            "span": [
+              2635,
+              2655
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "PageState",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "PageState"
+            },
+            "type_refs": [
+              "PageState"
+            ],
+            "type_text": "PageState"
+          },
+          {
+            "is_pub": true,
+            "name": "is_io_page",
+            "span": [
+              2661,
+              2681
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "bool",
+              "is_mut": false,
+              "kind": "primitive",
+              "raw": "bool"
+            },
+            "type_refs": [],
+            "type_text": "bool"
+          },
+          {
+            "is_pub": true,
+            "name": "rev_pointer",
+            "span": [
+              2687,
+              2712
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "ref_count",
+            "span": [
+              2718,
+              2738
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "usize",
+              "is_mut": false,
+              "kind": "primitive",
+              "raw": "usize"
+            },
+            "type_refs": [],
+            "type_text": "usize"
+          },
+          {
+            "is_pub": true,
+            "name": "owning_container",
+            "span": [
+              2744,
+              2786
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "ContainerPtr",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "ContainerPtr"
+                }
+              ],
+              "extra": "",
+              "head": "Option",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Option<ContainerPtr>"
+            },
+            "type_refs": [
+              "Option",
+              "ContainerPtr"
+            ],
+            "type_text": "Option<ContainerPtr>"
+          },
+          {
+            "is_pub": true,
+            "name": "mappings",
+            "span": [
+              2792,
+              2831
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "Pcid",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "Pcid"
+                        },
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "VAddr",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "VAddr"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "",
+                      "is_mut": false,
+                      "kind": "tuple",
+                      "raw": "(Pcid, VAddr)"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<(Pcid, VAddr)>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<(Pcid, VAddr)>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "Pcid",
+              "VAddr"
+            ],
+            "type_text": "Ghost<Set<(Pcid, VAddr)>>"
+          },
+          {
+            "is_pub": true,
+            "name": "io_mappings",
+            "span": [
+              2837,
+              2879
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "IOid",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "IOid"
+                        },
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "VAddr",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "VAddr"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "",
+                      "is_mut": false,
+                      "kind": "tuple",
+                      "raw": "(IOid, VAddr)"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<(IOid, VAddr)>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<(IOid, VAddr)>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "IOid",
+              "VAddr"
+            ],
+            "type_text": "Ghost<Set<(IOid, VAddr)>>"
+          }
+        ],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "struct",
+        "name": "Page",
+        "qualified_name": "Page",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 112,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "PageAllocator": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [
+          {
+            "is_pub": true,
+            "name": "page_array",
+            "span": [
+              2963,
+              3001
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "Page",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "Page"
+                },
+                {
+                  "args": [],
+                  "extra": "const_arg",
+                  "head": "NUM_PAGES",
+                  "is_mut": false,
+                  "kind": "unknown",
+                  "raw": "NUM_PAGES"
+                }
+              ],
+              "extra": "",
+              "head": "Array",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Array<Page, NUM_PAGES>"
+            },
+            "type_refs": [
+              "Array",
+              "Page"
+            ],
+            "type_text": "Array<Page, NUM_PAGES>"
+          },
+          {
+            "is_pub": true,
+            "name": "free_pages_4k",
+            "span": [
+              3007,
+              3062
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "PagePtr",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "PagePtr"
+                },
+                {
+                  "args": [],
+                  "extra": "const_arg",
+                  "head": "NUM_PAGES",
+                  "is_mut": false,
+                  "kind": "unknown",
+                  "raw": "NUM_PAGES"
+                }
+              ],
+              "extra": "",
+              "head": "StaticLinkedList",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+            },
+            "type_refs": [
+              "StaticLinkedList",
+              "PagePtr"
+            ],
+            "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          {
+            "is_pub": true,
+            "name": "free_pages_2m",
+            "span": [
+              3068,
+              3123
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "PagePtr",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "PagePtr"
+                },
+                {
+                  "args": [],
+                  "extra": "const_arg",
+                  "head": "NUM_PAGES",
+                  "is_mut": false,
+                  "kind": "unknown",
+                  "raw": "NUM_PAGES"
+                }
+              ],
+              "extra": "",
+              "head": "StaticLinkedList",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+            },
+            "type_refs": [
+              "StaticLinkedList",
+              "PagePtr"
+            ],
+            "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          {
+            "is_pub": true,
+            "name": "free_pages_1g",
+            "span": [
+              3129,
+              3184
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "PagePtr",
+                  "is_mut": false,
+                  "kind": "leaf",
+                  "raw": "PagePtr"
+                },
+                {
+                  "args": [],
+                  "extra": "const_arg",
+                  "head": "NUM_PAGES",
+                  "is_mut": false,
+                  "kind": "unknown",
+                  "raw": "NUM_PAGES"
+                }
+              ],
+              "extra": "",
+              "head": "StaticLinkedList",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "StaticLinkedList<PagePtr, NUM_PAGES>"
+            },
+            "type_refs": [
+              "StaticLinkedList",
+              "PagePtr"
+            ],
+            "type_text": "StaticLinkedList<PagePtr, NUM_PAGES>"
+          },
+          {
+            "is_pub": true,
+            "name": "allocated_pages_4k",
+            "span": [
+              3190,
+              3233
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "allocated_pages_2m",
+            "span": [
+              3239,
+              3282
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "allocated_pages_1g",
+            "span": [
+              3288,
+              3331
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "mapped_pages_4k",
+            "span": [
+              3337,
+              3377
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "mapped_pages_2m",
+            "span": [
+              3383,
+              3423
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "mapped_pages_1g",
+            "span": [
+              3429,
+              3469
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Set",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Set<PagePtr>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Set<PagePtr>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Set<PagePtr>>"
+          },
+          {
+            "is_pub": true,
+            "name": "page_perms_4k",
+            "span": [
+              3524,
+              3576
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    },
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePerm4k",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePerm4k"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<PagePtr, PagePerm4k>"
+                }
+              ],
+              "extra": "",
+              "head": "Tracked",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Tracked<Map<PagePtr, PagePerm4k>>"
+            },
+            "type_refs": [
+              "Tracked",
+              "Map",
+              "PagePtr",
+              "PagePerm4k"
+            ],
+            "type_text": "Tracked<Map<PagePtr, PagePerm4k>>"
+          },
+          {
+            "is_pub": true,
+            "name": "page_perms_2m",
+            "span": [
+              3582,
+              3634
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    },
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePerm2m",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePerm2m"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<PagePtr, PagePerm2m>"
+                }
+              ],
+              "extra": "",
+              "head": "Tracked",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Tracked<Map<PagePtr, PagePerm2m>>"
+            },
+            "type_refs": [
+              "Tracked",
+              "Map",
+              "PagePtr",
+              "PagePerm2m"
+            ],
+            "type_text": "Tracked<Map<PagePtr, PagePerm2m>>"
+          },
+          {
+            "is_pub": true,
+            "name": "page_perms_1g",
+            "span": [
+              3640,
+              3692
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePtr"
+                    },
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "PagePerm1g",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "PagePerm1g"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<PagePtr, PagePerm1g>"
+                }
+              ],
+              "extra": "",
+              "head": "Tracked",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Tracked<Map<PagePtr, PagePerm1g>>"
+            },
+            "type_refs": [
+              "Tracked",
+              "Map",
+              "PagePtr",
+              "PagePerm1g"
+            ],
+            "type_text": "Tracked<Map<PagePtr, PagePerm1g>>"
+          },
+          {
+            "is_pub": true,
+            "name": "container_map_4k",
+            "span": [
+              3698,
+              3758
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "ContainerPtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "ContainerPtr"
+                    },
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "PagePtr",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "PagePtr"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "Set",
+                      "is_mut": false,
+                      "kind": "generic",
+                      "raw": "Set<PagePtr>"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<ContainerPtr, Set<PagePtr>>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Map",
+              "ContainerPtr",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          },
+          {
+            "is_pub": true,
+            "name": "container_map_2m",
+            "span": [
+              3764,
+              3824
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "ContainerPtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "ContainerPtr"
+                    },
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "PagePtr",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "PagePtr"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "Set",
+                      "is_mut": false,
+                      "kind": "generic",
+                      "raw": "Set<PagePtr>"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<ContainerPtr, Set<PagePtr>>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Map",
+              "ContainerPtr",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          },
+          {
+            "is_pub": true,
+            "name": "container_map_1g",
+            "span": [
+              3830,
+              3890
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "ContainerPtr",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "ContainerPtr"
+                    },
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "",
+                          "head": "PagePtr",
+                          "is_mut": false,
+                          "kind": "leaf",
+                          "raw": "PagePtr"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "Set",
+                      "is_mut": false,
+                      "kind": "generic",
+                      "raw": "Set<PagePtr>"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Map",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Map<ContainerPtr, Set<PagePtr>>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Map",
+              "ContainerPtr",
+              "Set",
+              "PagePtr"
+            ],
+            "type_text": "Ghost<Map<ContainerPtr, Set<PagePtr>>>"
+          }
+        ],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "struct",
+        "name": "PageAllocator",
+        "qualified_name": "PageAllocator",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 125,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "PagePerm1g": {
+        "alias_target": "PointsTo<[u8; PAGE_SZ_1g]>",
+        "alias_target_expr": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "u8",
+                  "is_mut": false,
+                  "kind": "primitive",
+                  "raw": "u8"
+                }
+              ],
+              "extra": "PAGE_SZ_1g",
+              "head": "",
+              "is_mut": false,
+              "kind": "array",
+              "raw": "[u8; PAGE_SZ_1g]"
+            }
+          ],
+          "extra": "",
+          "head": "PointsTo",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "PointsTo<[u8; PAGE_SZ_1g]>"
+        },
+        "alias_target_refs": [
+          "PointsTo"
+        ],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "PagePerm1g",
+        "qualified_name": "PagePerm1g",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 11,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "PagePerm2m": {
+        "alias_target": "PointsTo<[u8; PAGE_SZ_2m]>",
+        "alias_target_expr": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "u8",
+                  "is_mut": false,
+                  "kind": "primitive",
+                  "raw": "u8"
+                }
+              ],
+              "extra": "PAGE_SZ_2m",
+              "head": "",
+              "is_mut": false,
+              "kind": "array",
+              "raw": "[u8; PAGE_SZ_2m]"
+            }
+          ],
+          "extra": "",
+          "head": "PointsTo",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "PointsTo<[u8; PAGE_SZ_2m]>"
+        },
+        "alias_target_refs": [
+          "PointsTo"
+        ],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "PagePerm2m",
+        "qualified_name": "PagePerm2m",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 12,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "PagePerm4k": {
+        "alias_target": "PointsTo<[u8; PAGE_SZ_4k]>",
+        "alias_target_expr": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "extra": "",
+                  "head": "u8",
+                  "is_mut": false,
+                  "kind": "primitive",
+                  "raw": "u8"
+                }
+              ],
+              "extra": "PAGE_SZ_4k",
+              "head": "",
+              "is_mut": false,
+              "kind": "array",
+              "raw": "[u8; PAGE_SZ_4k]"
+            }
+          ],
+          "extra": "",
+          "head": "PointsTo",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "PointsTo<[u8; PAGE_SZ_4k]>"
+        },
+        "alias_target_refs": [
+          "PointsTo"
+        ],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "PagePerm4k",
+        "qualified_name": "PagePerm4k",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 13,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "PagePtr": {
+        "alias_target": "usize",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "usize",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "usize"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "PagePtr",
+        "qualified_name": "PagePtr",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 9,
+        "variants": [],
+        "visibility": ""
+      },
+      "PageState": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [
+          "Clone",
+          "Copy",
+          "Debug",
+          "PartialEq"
+        ],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "enum",
+        "name": "PageState",
+        "qualified_name": "PageState",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 646,
+        "variants": [
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Unavailable4k"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Unavailable2m"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Unavailable1g"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Pagetable"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Allocated4k"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Allocated2m"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Allocated1g"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Free4k"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Free2m"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Free1g"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Mapped4k"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Mapped2m"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Mapped1g"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Merged2m"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Merged1g"
+          },
+          {
+            "fields": [],
+            "kind": "unit",
+            "name": "Io"
+          }
+        ],
+        "visibility": "pub"
+      },
+      "Pcid": {
+        "alias_target": "usize",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "usize",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "usize"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "Pcid",
+        "qualified_name": "Pcid",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 16,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "SLLIndex": {
+        "alias_target": "i32",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "i32",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "i32"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "SLLIndex",
+        "qualified_name": "SLLIndex",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 15,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "StaticLinkedList": {
+        "alias_target": null,
+        "alias_target_expr": null,
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [
+          {
+            "is_pub": true,
+            "name": "ar",
+            "span": [
+              824,
+              844
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "const_arg",
+                      "head": "T",
+                      "is_mut": false,
+                      "kind": "unknown",
+                      "raw": "T"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Node",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Node<T>"
+                }
+              ],
+              "extra": "N",
+              "head": "",
+              "is_mut": false,
+              "kind": "array",
+              "raw": "[Node<T>; N]"
+            },
+            "type_refs": [
+              "Node"
+            ],
+            "type_text": "[Node<T>; N]"
+          },
+          {
+            "is_pub": true,
+            "name": "spec_seq",
+            "span": [
+              850,
+              877
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "const_arg",
+                      "head": "T",
+                      "is_mut": false,
+                      "kind": "unknown",
+                      "raw": "T"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Seq",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Seq<T>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Seq<T>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Seq"
+            ],
+            "type_text": "Ghost<Seq<T>>"
+          },
+          {
+            "is_pub": true,
+            "name": "value_list",
+            "span": [
+              883,
+              919
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "SLLIndex",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "SLLIndex"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Seq",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Seq<SLLIndex>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Seq<SLLIndex>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Seq",
+              "SLLIndex"
+            ],
+            "type_text": "Ghost<Seq<SLLIndex>>"
+          },
+          {
+            "is_pub": true,
+            "name": "value_list_head",
+            "span": [
+              925,
+              954
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "value_list_tail",
+            "span": [
+              960,
+              989
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "value_list_len",
+            "span": [
+              995,
+              1020
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "usize",
+              "is_mut": false,
+              "kind": "primitive",
+              "raw": "usize"
+            },
+            "type_refs": [],
+            "type_text": "usize"
+          },
+          {
+            "is_pub": true,
+            "name": "free_list",
+            "span": [
+              1026,
+              1061
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "extra": "",
+                      "head": "SLLIndex",
+                      "is_mut": false,
+                      "kind": "leaf",
+                      "raw": "SLLIndex"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Seq",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Seq<SLLIndex>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Seq<SLLIndex>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Seq",
+              "SLLIndex"
+            ],
+            "type_text": "Ghost<Seq<SLLIndex>>"
+          },
+          {
+            "is_pub": true,
+            "name": "free_list_head",
+            "span": [
+              1067,
+              1095
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "free_list_tail",
+            "span": [
+              1101,
+              1129
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "SLLIndex",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "SLLIndex"
+            },
+            "type_refs": [
+              "SLLIndex"
+            ],
+            "type_text": "SLLIndex"
+          },
+          {
+            "is_pub": true,
+            "name": "free_list_len",
+            "span": [
+              1135,
+              1159
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "usize",
+              "is_mut": false,
+              "kind": "primitive",
+              "raw": "usize"
+            },
+            "type_refs": [],
+            "type_text": "usize"
+          },
+          {
+            "is_pub": true,
+            "name": "size",
+            "span": [
+              1165,
+              1180
+            ],
+            "type_expr": {
+              "args": [],
+              "extra": "",
+              "head": "usize",
+              "is_mut": false,
+              "kind": "primitive",
+              "raw": "usize"
+            },
+            "type_refs": [],
+            "type_text": "usize"
+          },
+          {
+            "is_pub": true,
+            "name": "arr_seq",
+            "span": [
+              1186,
+              1218
+            ],
+            "type_expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "extra": "const_arg",
+                          "head": "T",
+                          "is_mut": false,
+                          "kind": "unknown",
+                          "raw": "T"
+                        }
+                      ],
+                      "extra": "",
+                      "head": "Node",
+                      "is_mut": false,
+                      "kind": "generic",
+                      "raw": "Node<T>"
+                    }
+                  ],
+                  "extra": "",
+                  "head": "Seq",
+                  "is_mut": false,
+                  "kind": "generic",
+                  "raw": "Seq<Node<T>>"
+                }
+              ],
+              "extra": "",
+              "head": "Ghost",
+              "is_mut": false,
+              "kind": "generic",
+              "raw": "Ghost<Seq<Node<T>>>"
+            },
+            "type_refs": [
+              "Ghost",
+              "Seq",
+              "Node"
+            ],
+            "type_text": "Ghost<Seq<Node<T>>>"
+          }
+        ],
+        "generics": [
+          {
+            "bounds": [],
+            "kind": "type",
+            "name": "T",
+            "raw": "T"
+          },
+          {
+            "bounds": [],
+            "kind": "const",
+            "name": "N",
+            "raw": "const N: usize"
+          }
+        ],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "struct",
+        "name": "StaticLinkedList",
+        "qualified_name": "StaticLinkedList",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 33,
+        "variants": [],
+        "visibility": "pub"
+      },
+      "VAddr": {
+        "alias_target": "usize",
+        "alias_target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "usize",
+          "is_mut": false,
+          "kind": "primitive",
+          "raw": "usize"
+        },
+        "alias_target_refs": [],
+        "cfg": [],
+        "derives": [],
+        "fields": [],
+        "generics": [],
+        "is_external_body": false,
+        "is_external_type_specification": false,
+        "kind": "alias",
+        "name": "VAddr",
+        "qualified_name": "VAddr",
+        "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs",
+        "source_line": 8,
+        "variants": [],
+        "visibility": "pub"
+      }
+    }
+  },
+  "source_file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs"
+}

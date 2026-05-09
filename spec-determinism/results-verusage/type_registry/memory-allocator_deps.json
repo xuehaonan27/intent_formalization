@@ -1,0 +1,135 @@
+{
+  "aggregate": {
+    "classification": {
+      "BlockId": "struct",
+      "CommitMask": "struct",
+      "HeapId": "struct",
+      "Node": "struct",
+      "PageId": "struct",
+      "Provenance": "external",
+      "SegmentId": "struct"
+    },
+    "field_paths": {
+      "BlockId": [],
+      "CommitMask": [],
+      "HeapId": [],
+      "Node": [],
+      "PageId": [],
+      "SegmentId": []
+    },
+    "forward": {
+      "BlockId": [
+        "PageId"
+      ],
+      "CommitMask": [],
+      "HeapId": [
+        "Provenance"
+      ],
+      "Node": [],
+      "PageId": [
+        "SegmentId"
+      ],
+      "Provenance": [],
+      "SegmentId": [
+        "Provenance"
+      ]
+    },
+    "forward_closure": {
+      "BlockId": [
+        "PageId",
+        "SegmentId",
+        "Provenance"
+      ],
+      "CommitMask": [],
+      "HeapId": [
+        "Provenance"
+      ],
+      "Node": [],
+      "PageId": [
+        "SegmentId",
+        "Provenance"
+      ],
+      "Provenance": [],
+      "SegmentId": [
+        "Provenance"
+      ]
+    },
+    "nodes": [
+      "BlockId",
+      "CommitMask",
+      "HeapId",
+      "Node",
+      "PageId",
+      "Provenance",
+      "SegmentId"
+    ],
+    "reverse": {
+      "BlockId": [],
+      "CommitMask": [],
+      "HeapId": [],
+      "Node": [],
+      "PageId": [
+        "BlockId"
+      ],
+      "Provenance": [
+        "HeapId",
+        "SegmentId"
+      ],
+      "SegmentId": [
+        "PageId"
+      ]
+    },
+    "reverse_closure": {
+      "BlockId": [],
+      "CommitMask": [],
+      "HeapId": [],
+      "Node": [],
+      "PageId": [
+        "BlockId"
+      ],
+      "Provenance": [
+        "HeapId",
+        "SegmentId",
+        "PageId",
+        "BlockId"
+      ],
+      "SegmentId": [
+        "PageId",
+        "BlockId"
+      ]
+    },
+    "sccs": [
+      [
+        "Provenance"
+      ],
+      [
+        "SegmentId"
+      ],
+      [
+        "PageId"
+      ],
+      [
+        "BlockId"
+      ],
+      [
+        "CommitMask"
+      ],
+      [
+        "HeapId"
+      ],
+      [
+        "Node"
+      ]
+    ],
+    "topological_order": [
+      "Node",
+      "Provenance",
+      "HeapId",
+      "CommitMask",
+      "SegmentId",
+      "PageId",
+      "BlockId"
+    ]
+  },
+  "files_scanned": 88
+}

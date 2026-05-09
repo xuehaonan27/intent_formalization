@@ -1,0 +1,2088 @@
+{
+  "aggregate": {
+    "classification": {
+      "AbstractArg": "alias",
+      "AbstractArgs": "alias",
+      "AbstractConstants": "struct",
+      "AbstractDelegationMap": "struct",
+      "AbstractEndPoint": "struct",
+      "AbstractHostState": "struct",
+      "AbstractIos": "alias",
+      "AbstractKey": "alias",
+      "AbstractParameters": "struct",
+      "AbstractValue": "alias",
+      "AckList": "alias",
+      "AckState": "struct",
+      "AppRequest": "enum",
+      "Arg": "alias",
+      "Args": "alias",
+      "CAckState": "external",
+      "CKey": "alias",
+      "CKeyHashMap": "struct",
+      "CKeyKV": "struct",
+      "CMessage": "enum",
+      "CPacket": "struct",
+      "CSendState": "struct",
+      "CSingleDelivery": "struct",
+      "CSingleMessage": "enum",
+      "CTombstoneTable": "struct",
+      "Constants": "struct",
+      "DelegationMap": "struct",
+      "DuctTapeProfiler": "struct",
+      "EndPoint": "struct",
+      "EventResults": "struct",
+      "Ghost": "container",
+      "HashMap": "container",
+      "Hashtable": "alias",
+      "History": "alias",
+      "HostState": "struct",
+      "ID": "alias",
+      "Ios": "alias",
+      "IronfleetIOError": "struct",
+      "KeyIterator": "struct",
+      "KeyRange": "struct",
+      "LIoOp": "enum",
+      "LPacket": "struct",
+      "LSHTIo": "alias",
+      "LSHTPacket": "alias",
+      "Map": "container",
+      "Message": "enum",
+      "NetClient": "struct",
+      "NetClientCPointers": "struct",
+      "NetEvent": "alias",
+      "NetPacket": "alias",
+      "NetcReceiveResult": "enum",
+      "Option": "container",
+      "Ordering": "enum",
+      "PMsg": "alias",
+      "Packet": "struct",
+      "Parameters": "struct",
+      "ReceiveImplResult": "enum",
+      "ReceiveResult": "enum",
+      "SHTKey": "struct",
+      "SendState": "alias",
+      "Seq": "container",
+      "SingleDelivery": "struct",
+      "SingleMessage": "enum",
+      "State": "enum",
+      "Step": "enum",
+      "StrictlyOrderedMap": "struct",
+      "StrictlyOrderedVec": "struct",
+      "String": "external",
+      "SystemTime": "external",
+      "TombstoneTable": "alias",
+      "Vec": "container"
+    },
+    "field_paths": {
+      "AbstractArg": [
+        {
+          "name": "AbstractArg",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AbstractArgs": [
+        {
+          "name": "AbstractArgs",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AbstractConstants": [],
+      "AbstractDelegationMap": [],
+      "AbstractEndPoint": [],
+      "AbstractHostState": [],
+      "AbstractIos": [
+        {
+          "name": "AbstractIos",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AbstractKey": [
+        {
+          "name": "AbstractKey",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AbstractParameters": [],
+      "AbstractValue": [
+        {
+          "name": "AbstractValue",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AckList": [
+        {
+          "name": "AckList",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "AckState": [],
+      "AppRequest": [],
+      "Arg": [
+        {
+          "name": "Arg",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Args": [
+        {
+          "name": "Args",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "CKey": [
+        {
+          "name": "CKey",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "CKeyHashMap": [],
+      "CKeyKV": [],
+      "CMessage": [],
+      "CPacket": [],
+      "CSendState": [],
+      "CSingleDelivery": [],
+      "CSingleMessage": [],
+      "CTombstoneTable": [],
+      "Constants": [],
+      "DelegationMap": [],
+      "DuctTapeProfiler": [],
+      "EndPoint": [],
+      "EventResults": [],
+      "HashMap": [],
+      "Hashtable": [
+        {
+          "name": "Hashtable",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "History": [
+        {
+          "name": "History",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "HostState": [],
+      "ID": [
+        {
+          "name": "ID",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Ios": [
+        {
+          "name": "Ios",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "IronfleetIOError": [],
+      "KeyIterator": [],
+      "KeyRange": [],
+      "LIoOp": [],
+      "LPacket": [],
+      "LSHTIo": [
+        {
+          "name": "LSHTIo",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "LSHTPacket": [
+        {
+          "name": "LSHTPacket",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Message": [],
+      "NetClient": [],
+      "NetClientCPointers": [],
+      "NetEvent": [
+        {
+          "name": "NetEvent",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "NetPacket": [
+        {
+          "name": "NetPacket",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "NetcReceiveResult": [],
+      "Ordering": [],
+      "PMsg": [
+        {
+          "name": "PMsg",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "Packet": [],
+      "Parameters": [],
+      "ReceiveImplResult": [],
+      "ReceiveResult": [],
+      "SHTKey": [],
+      "SendState": [
+        {
+          "name": "SendState",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ],
+      "SingleDelivery": [],
+      "SingleMessage": [],
+      "State": [],
+      "Step": [],
+      "StrictlyOrderedMap": [],
+      "StrictlyOrderedVec": [],
+      "TombstoneTable": [
+        {
+          "name": "TombstoneTable",
+          "type_expr": null,
+          "type_text": "",
+          "where": "alias_target"
+        }
+      ]
+    },
+    "forward": {
+      "AbstractArg": [
+        "Seq"
+      ],
+      "AbstractArgs": [
+        "AbstractArg",
+        "Seq"
+      ],
+      "AbstractConstants": [
+        "AbstractEndPoint",
+        "AbstractParameters",
+        "Seq"
+      ],
+      "AbstractDelegationMap": [
+        "AbstractEndPoint",
+        "AbstractKey",
+        "Map"
+      ],
+      "AbstractEndPoint": [
+        "Seq"
+      ],
+      "AbstractHostState": [
+        "AbstractConstants",
+        "AbstractDelegationMap",
+        "AppRequest",
+        "Hashtable",
+        "Message",
+        "Option",
+        "Packet",
+        "Seq",
+        "SingleDelivery"
+      ],
+      "AbstractIos": [
+        "LSHTIo",
+        "Seq"
+      ],
+      "AbstractKey": [
+        "SHTKey"
+      ],
+      "AbstractParameters": [],
+      "AbstractValue": [
+        "Seq"
+      ],
+      "AckList": [
+        "Seq",
+        "SingleMessage"
+      ],
+      "AckState": [
+        "AckList"
+      ],
+      "AppRequest": [
+        "AbstractKey",
+        "AbstractValue",
+        "Option"
+      ],
+      "Arg": [
+        "Vec"
+      ],
+      "Args": [
+        "Arg",
+        "Vec"
+      ],
+      "CAckState": [],
+      "CKey": [
+        "SHTKey"
+      ],
+      "CKeyHashMap": [
+        "CKey",
+        "HashMap",
+        "Vec"
+      ],
+      "CKeyKV": [
+        "CKey",
+        "Vec"
+      ],
+      "CMessage": [
+        "CKey",
+        "CKeyHashMap",
+        "EndPoint",
+        "KeyRange",
+        "Option",
+        "Vec"
+      ],
+      "CPacket": [
+        "CSingleMessage",
+        "EndPoint"
+      ],
+      "CSendState": [
+        "CAckState",
+        "HashMap"
+      ],
+      "CSingleDelivery": [
+        "CSendState",
+        "CTombstoneTable"
+      ],
+      "CSingleMessage": [
+        "CMessage",
+        "EndPoint"
+      ],
+      "CTombstoneTable": [
+        "HashMap"
+      ],
+      "Constants": [
+        "EndPoint",
+        "Parameters",
+        "Vec"
+      ],
+      "DelegationMap": [
+        "AbstractEndPoint",
+        "Ghost",
+        "Map",
+        "StrictlyOrderedMap"
+      ],
+      "DuctTapeProfiler": [
+        "HashMap",
+        "String",
+        "SystemTime"
+      ],
+      "EndPoint": [
+        "Vec"
+      ],
+      "EventResults": [
+        "Ios",
+        "NetEvent",
+        "Seq"
+      ],
+      "Ghost": [],
+      "HashMap": [
+        "EndPoint"
+      ],
+      "Hashtable": [
+        "AbstractKey",
+        "AbstractValue",
+        "Map"
+      ],
+      "History": [
+        "NetEvent",
+        "Seq"
+      ],
+      "HostState": [
+        "AppRequest",
+        "CKey",
+        "CKeyHashMap",
+        "CPacket",
+        "CSingleDelivery",
+        "Constants",
+        "DelegationMap",
+        "Ghost",
+        "Option",
+        "Seq"
+      ],
+      "ID": [
+        "EndPoint"
+      ],
+      "Ios": [
+        "NetEvent",
+        "Seq"
+      ],
+      "IronfleetIOError": [
+        "String"
+      ],
+      "KeyIterator": [
+        "Option"
+      ],
+      "KeyRange": [
+        "KeyIterator"
+      ],
+      "LIoOp": [
+        "LPacket"
+      ],
+      "LPacket": [],
+      "LSHTIo": [
+        "AbstractEndPoint",
+        "LIoOp",
+        "Message",
+        "SingleMessage"
+      ],
+      "LSHTPacket": [
+        "AbstractEndPoint",
+        "LPacket",
+        "Message",
+        "SingleMessage"
+      ],
+      "Map": [],
+      "Message": [
+        "AbstractEndPoint",
+        "AbstractKey",
+        "AbstractValue",
+        "Hashtable",
+        "KeyRange",
+        "Option"
+      ],
+      "NetClient": [
+        "DuctTapeProfiler",
+        "EndPoint",
+        "Ghost",
+        "History",
+        "NetClientCPointers",
+        "State"
+      ],
+      "NetClientCPointers": [
+        "Vec"
+      ],
+      "NetEvent": [
+        "AbstractEndPoint",
+        "LIoOp",
+        "Seq"
+      ],
+      "NetPacket": [
+        "AbstractEndPoint",
+        "LPacket",
+        "Seq"
+      ],
+      "NetcReceiveResult": [
+        "EndPoint",
+        "Vec"
+      ],
+      "Option": [],
+      "Ordering": [],
+      "PMsg": [
+        "Message",
+        "SingleMessage"
+      ],
+      "Packet": [
+        "AbstractEndPoint",
+        "PMsg"
+      ],
+      "Parameters": [],
+      "ReceiveImplResult": [
+        "CPacket"
+      ],
+      "ReceiveResult": [
+        "CPacket"
+      ],
+      "SHTKey": [],
+      "SendState": [
+        "AbstractEndPoint",
+        "AckState",
+        "Map"
+      ],
+      "Seq": [],
+      "SingleDelivery": [
+        "SendState",
+        "TombstoneTable"
+      ],
+      "SingleMessage": [
+        "AbstractEndPoint"
+      ],
+      "State": [],
+      "Step": [],
+      "StrictlyOrderedMap": [
+        "Ghost",
+        "Map",
+        "StrictlyOrderedVec",
+        "Vec"
+      ],
+      "StrictlyOrderedVec": [
+        "Vec"
+      ],
+      "String": [],
+      "SystemTime": [],
+      "TombstoneTable": [
+        "AbstractEndPoint",
+        "Map"
+      ],
+      "Vec": []
+    },
+    "forward_closure": {
+      "AbstractArg": [
+        "Seq"
+      ],
+      "AbstractArgs": [
+        "AbstractArg",
+        "Seq"
+      ],
+      "AbstractConstants": [
+        "AbstractEndPoint",
+        "Seq",
+        "AbstractParameters"
+      ],
+      "AbstractDelegationMap": [
+        "AbstractEndPoint",
+        "Seq",
+        "AbstractKey",
+        "SHTKey",
+        "Map"
+      ],
+      "AbstractEndPoint": [
+        "Seq"
+      ],
+      "AbstractHostState": [
+        "AbstractConstants",
+        "AbstractEndPoint",
+        "Seq",
+        "AbstractParameters",
+        "AbstractDelegationMap",
+        "AbstractKey",
+        "SHTKey",
+        "Map",
+        "AppRequest",
+        "AbstractValue",
+        "Option",
+        "Hashtable",
+        "Message",
+        "KeyRange",
+        "KeyIterator",
+        "Packet",
+        "PMsg",
+        "SingleMessage",
+        "SingleDelivery",
+        "SendState",
+        "AckState",
+        "AckList",
+        "TombstoneTable"
+      ],
+      "AbstractIos": [
+        "LSHTIo",
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket",
+        "Message",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option",
+        "SingleMessage"
+      ],
+      "AbstractKey": [
+        "SHTKey"
+      ],
+      "AbstractParameters": [],
+      "AbstractValue": [
+        "Seq"
+      ],
+      "AckList": [
+        "Seq",
+        "SingleMessage",
+        "AbstractEndPoint"
+      ],
+      "AckState": [
+        "AckList",
+        "Seq",
+        "SingleMessage",
+        "AbstractEndPoint"
+      ],
+      "AppRequest": [
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Seq",
+        "Option"
+      ],
+      "Arg": [
+        "Vec"
+      ],
+      "Args": [
+        "Arg",
+        "Vec"
+      ],
+      "CAckState": [],
+      "CKey": [
+        "SHTKey"
+      ],
+      "CKeyHashMap": [
+        "CKey",
+        "SHTKey",
+        "HashMap",
+        "EndPoint",
+        "Vec"
+      ],
+      "CKeyKV": [
+        "CKey",
+        "SHTKey",
+        "Vec"
+      ],
+      "CMessage": [
+        "CKey",
+        "SHTKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "CPacket": [
+        "CSingleMessage",
+        "CMessage",
+        "CKey",
+        "SHTKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "CSendState": [
+        "CAckState",
+        "HashMap",
+        "EndPoint",
+        "Vec"
+      ],
+      "CSingleDelivery": [
+        "CSendState",
+        "CAckState",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "CTombstoneTable"
+      ],
+      "CSingleMessage": [
+        "CMessage",
+        "CKey",
+        "SHTKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "CTombstoneTable": [
+        "HashMap",
+        "EndPoint",
+        "Vec"
+      ],
+      "Constants": [
+        "EndPoint",
+        "Vec",
+        "Parameters"
+      ],
+      "DelegationMap": [
+        "AbstractEndPoint",
+        "Seq",
+        "Ghost",
+        "Map",
+        "StrictlyOrderedMap",
+        "StrictlyOrderedVec",
+        "Vec"
+      ],
+      "DuctTapeProfiler": [
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "String",
+        "SystemTime"
+      ],
+      "EndPoint": [
+        "Vec"
+      ],
+      "EventResults": [
+        "Ios",
+        "NetEvent",
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket"
+      ],
+      "Ghost": [],
+      "HashMap": [
+        "EndPoint",
+        "Vec"
+      ],
+      "Hashtable": [
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Seq",
+        "Map"
+      ],
+      "History": [
+        "NetEvent",
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket"
+      ],
+      "HostState": [
+        "AppRequest",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Seq",
+        "Option",
+        "CKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "CPacket",
+        "CSingleMessage",
+        "CMessage",
+        "KeyRange",
+        "KeyIterator",
+        "CSingleDelivery",
+        "CSendState",
+        "CAckState",
+        "CTombstoneTable",
+        "Constants",
+        "Parameters",
+        "DelegationMap",
+        "AbstractEndPoint",
+        "Ghost",
+        "Map",
+        "StrictlyOrderedMap",
+        "StrictlyOrderedVec"
+      ],
+      "ID": [
+        "EndPoint",
+        "Vec"
+      ],
+      "Ios": [
+        "NetEvent",
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket"
+      ],
+      "IronfleetIOError": [
+        "String"
+      ],
+      "KeyIterator": [
+        "Option"
+      ],
+      "KeyRange": [
+        "KeyIterator",
+        "Option"
+      ],
+      "LIoOp": [
+        "LPacket"
+      ],
+      "LPacket": [],
+      "LSHTIo": [
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket",
+        "Message",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option",
+        "SingleMessage"
+      ],
+      "LSHTPacket": [
+        "AbstractEndPoint",
+        "Seq",
+        "LPacket",
+        "Message",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option",
+        "SingleMessage"
+      ],
+      "Map": [],
+      "Message": [
+        "AbstractEndPoint",
+        "Seq",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "NetClient": [
+        "DuctTapeProfiler",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "String",
+        "SystemTime",
+        "Ghost",
+        "History",
+        "NetEvent",
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket",
+        "NetClientCPointers",
+        "State"
+      ],
+      "NetClientCPointers": [
+        "Vec"
+      ],
+      "NetEvent": [
+        "AbstractEndPoint",
+        "Seq",
+        "LIoOp",
+        "LPacket"
+      ],
+      "NetPacket": [
+        "AbstractEndPoint",
+        "Seq",
+        "LPacket"
+      ],
+      "NetcReceiveResult": [
+        "EndPoint",
+        "Vec"
+      ],
+      "Option": [],
+      "Ordering": [],
+      "PMsg": [
+        "Message",
+        "AbstractEndPoint",
+        "Seq",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option",
+        "SingleMessage"
+      ],
+      "Packet": [
+        "AbstractEndPoint",
+        "Seq",
+        "PMsg",
+        "Message",
+        "AbstractKey",
+        "SHTKey",
+        "AbstractValue",
+        "Hashtable",
+        "Map",
+        "KeyRange",
+        "KeyIterator",
+        "Option",
+        "SingleMessage"
+      ],
+      "Parameters": [],
+      "ReceiveImplResult": [
+        "CPacket",
+        "CSingleMessage",
+        "CMessage",
+        "CKey",
+        "SHTKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "ReceiveResult": [
+        "CPacket",
+        "CSingleMessage",
+        "CMessage",
+        "CKey",
+        "SHTKey",
+        "CKeyHashMap",
+        "HashMap",
+        "EndPoint",
+        "Vec",
+        "KeyRange",
+        "KeyIterator",
+        "Option"
+      ],
+      "SHTKey": [],
+      "SendState": [
+        "AbstractEndPoint",
+        "Seq",
+        "AckState",
+        "AckList",
+        "SingleMessage",
+        "Map"
+      ],
+      "Seq": [],
+      "SingleDelivery": [
+        "SendState",
+        "AbstractEndPoint",
+        "Seq",
+        "AckState",
+        "AckList",
+        "SingleMessage",
+        "Map",
+        "TombstoneTable"
+      ],
+      "SingleMessage": [
+        "AbstractEndPoint",
+        "Seq"
+      ],
+      "State": [],
+      "Step": [],
+      "StrictlyOrderedMap": [
+        "Ghost",
+        "Map",
+        "StrictlyOrderedVec",
+        "Vec"
+      ],
+      "StrictlyOrderedVec": [
+        "Vec"
+      ],
+      "String": [],
+      "SystemTime": [],
+      "TombstoneTable": [
+        "AbstractEndPoint",
+        "Seq",
+        "Map"
+      ],
+      "Vec": []
+    },
+    "nodes": [
+      "AbstractArg",
+      "AbstractArgs",
+      "AbstractConstants",
+      "AbstractDelegationMap",
+      "AbstractEndPoint",
+      "AbstractHostState",
+      "AbstractIos",
+      "AbstractKey",
+      "AbstractParameters",
+      "AbstractValue",
+      "AckList",
+      "AckState",
+      "AppRequest",
+      "Arg",
+      "Args",
+      "CAckState",
+      "CKey",
+      "CKeyHashMap",
+      "CKeyKV",
+      "CMessage",
+      "CPacket",
+      "CSendState",
+      "CSingleDelivery",
+      "CSingleMessage",
+      "CTombstoneTable",
+      "Constants",
+      "DelegationMap",
+      "DuctTapeProfiler",
+      "EndPoint",
+      "EventResults",
+      "Ghost",
+      "HashMap",
+      "Hashtable",
+      "History",
+      "HostState",
+      "ID",
+      "Ios",
+      "IronfleetIOError",
+      "KeyIterator",
+      "KeyRange",
+      "LIoOp",
+      "LPacket",
+      "LSHTIo",
+      "LSHTPacket",
+      "Map",
+      "Message",
+      "NetClient",
+      "NetClientCPointers",
+      "NetEvent",
+      "NetPacket",
+      "NetcReceiveResult",
+      "Option",
+      "Ordering",
+      "PMsg",
+      "Packet",
+      "Parameters",
+      "ReceiveImplResult",
+      "ReceiveResult",
+      "SHTKey",
+      "SendState",
+      "Seq",
+      "SingleDelivery",
+      "SingleMessage",
+      "State",
+      "Step",
+      "StrictlyOrderedMap",
+      "StrictlyOrderedVec",
+      "String",
+      "SystemTime",
+      "TombstoneTable",
+      "Vec"
+    ],
+    "reverse": {
+      "AbstractArg": [
+        "AbstractArgs"
+      ],
+      "AbstractArgs": [],
+      "AbstractConstants": [
+        "AbstractHostState"
+      ],
+      "AbstractDelegationMap": [
+        "AbstractHostState"
+      ],
+      "AbstractEndPoint": [
+        "AbstractConstants",
+        "AbstractDelegationMap",
+        "DelegationMap",
+        "LSHTIo",
+        "LSHTPacket",
+        "Message",
+        "NetEvent",
+        "NetPacket",
+        "Packet",
+        "SendState",
+        "SingleMessage",
+        "TombstoneTable"
+      ],
+      "AbstractHostState": [],
+      "AbstractIos": [],
+      "AbstractKey": [
+        "AbstractDelegationMap",
+        "AppRequest",
+        "Hashtable",
+        "Message"
+      ],
+      "AbstractParameters": [
+        "AbstractConstants"
+      ],
+      "AbstractValue": [
+        "AppRequest",
+        "Hashtable",
+        "Message"
+      ],
+      "AckList": [
+        "AckState"
+      ],
+      "AckState": [
+        "SendState"
+      ],
+      "AppRequest": [
+        "AbstractHostState",
+        "HostState"
+      ],
+      "Arg": [
+        "Args"
+      ],
+      "Args": [],
+      "CAckState": [
+        "CSendState"
+      ],
+      "CKey": [
+        "CKeyHashMap",
+        "CKeyKV",
+        "CMessage",
+        "HostState"
+      ],
+      "CKeyHashMap": [
+        "CMessage",
+        "HostState"
+      ],
+      "CKeyKV": [],
+      "CMessage": [
+        "CSingleMessage"
+      ],
+      "CPacket": [
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult"
+      ],
+      "CSendState": [
+        "CSingleDelivery"
+      ],
+      "CSingleDelivery": [
+        "HostState"
+      ],
+      "CSingleMessage": [
+        "CPacket"
+      ],
+      "CTombstoneTable": [
+        "CSingleDelivery"
+      ],
+      "Constants": [
+        "HostState"
+      ],
+      "DelegationMap": [
+        "HostState"
+      ],
+      "DuctTapeProfiler": [
+        "NetClient"
+      ],
+      "EndPoint": [
+        "CMessage",
+        "CPacket",
+        "CSingleMessage",
+        "Constants",
+        "HashMap",
+        "ID",
+        "NetClient",
+        "NetcReceiveResult"
+      ],
+      "EventResults": [],
+      "Ghost": [
+        "DelegationMap",
+        "HostState",
+        "NetClient",
+        "StrictlyOrderedMap"
+      ],
+      "HashMap": [
+        "CKeyHashMap",
+        "CSendState",
+        "CTombstoneTable",
+        "DuctTapeProfiler"
+      ],
+      "Hashtable": [
+        "AbstractHostState",
+        "Message"
+      ],
+      "History": [
+        "NetClient"
+      ],
+      "HostState": [],
+      "ID": [],
+      "Ios": [
+        "EventResults"
+      ],
+      "IronfleetIOError": [],
+      "KeyIterator": [
+        "KeyRange"
+      ],
+      "KeyRange": [
+        "CMessage",
+        "Message"
+      ],
+      "LIoOp": [
+        "LSHTIo",
+        "NetEvent"
+      ],
+      "LPacket": [
+        "LIoOp",
+        "LSHTPacket",
+        "NetPacket"
+      ],
+      "LSHTIo": [
+        "AbstractIos"
+      ],
+      "LSHTPacket": [],
+      "Map": [
+        "AbstractDelegationMap",
+        "DelegationMap",
+        "Hashtable",
+        "SendState",
+        "StrictlyOrderedMap",
+        "TombstoneTable"
+      ],
+      "Message": [
+        "AbstractHostState",
+        "LSHTIo",
+        "LSHTPacket",
+        "PMsg"
+      ],
+      "NetClient": [],
+      "NetClientCPointers": [
+        "NetClient"
+      ],
+      "NetEvent": [
+        "EventResults",
+        "History",
+        "Ios"
+      ],
+      "NetPacket": [],
+      "NetcReceiveResult": [],
+      "Option": [
+        "AbstractHostState",
+        "AppRequest",
+        "CMessage",
+        "HostState",
+        "KeyIterator",
+        "Message"
+      ],
+      "Ordering": [],
+      "PMsg": [
+        "Packet"
+      ],
+      "Packet": [
+        "AbstractHostState"
+      ],
+      "Parameters": [
+        "Constants"
+      ],
+      "ReceiveImplResult": [],
+      "ReceiveResult": [],
+      "SHTKey": [
+        "AbstractKey",
+        "CKey"
+      ],
+      "SendState": [
+        "SingleDelivery"
+      ],
+      "Seq": [
+        "AbstractArg",
+        "AbstractArgs",
+        "AbstractConstants",
+        "AbstractEndPoint",
+        "AbstractHostState",
+        "AbstractIos",
+        "AbstractValue",
+        "AckList",
+        "EventResults",
+        "History",
+        "HostState",
+        "Ios",
+        "NetEvent",
+        "NetPacket"
+      ],
+      "SingleDelivery": [
+        "AbstractHostState"
+      ],
+      "SingleMessage": [
+        "AckList",
+        "LSHTIo",
+        "LSHTPacket",
+        "PMsg"
+      ],
+      "State": [
+        "NetClient"
+      ],
+      "Step": [],
+      "StrictlyOrderedMap": [
+        "DelegationMap"
+      ],
+      "StrictlyOrderedVec": [
+        "StrictlyOrderedMap"
+      ],
+      "String": [
+        "DuctTapeProfiler",
+        "IronfleetIOError"
+      ],
+      "SystemTime": [
+        "DuctTapeProfiler"
+      ],
+      "TombstoneTable": [
+        "SingleDelivery"
+      ],
+      "Vec": [
+        "Arg",
+        "Args",
+        "CKeyHashMap",
+        "CKeyKV",
+        "CMessage",
+        "Constants",
+        "EndPoint",
+        "NetClientCPointers",
+        "NetcReceiveResult",
+        "StrictlyOrderedMap",
+        "StrictlyOrderedVec"
+      ]
+    },
+    "reverse_closure": {
+      "AbstractArg": [
+        "AbstractArgs"
+      ],
+      "AbstractArgs": [],
+      "AbstractConstants": [
+        "AbstractHostState"
+      ],
+      "AbstractDelegationMap": [
+        "AbstractHostState"
+      ],
+      "AbstractEndPoint": [
+        "AbstractConstants",
+        "AbstractHostState",
+        "AbstractDelegationMap",
+        "DelegationMap",
+        "HostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "Message",
+        "PMsg",
+        "Packet",
+        "NetEvent",
+        "EventResults",
+        "History",
+        "NetClient",
+        "Ios",
+        "NetPacket",
+        "SendState",
+        "SingleDelivery",
+        "SingleMessage",
+        "AckList",
+        "AckState",
+        "TombstoneTable"
+      ],
+      "AbstractHostState": [],
+      "AbstractIos": [],
+      "AbstractKey": [
+        "AbstractDelegationMap",
+        "AbstractHostState",
+        "AppRequest",
+        "HostState",
+        "Hashtable",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "AbstractParameters": [
+        "AbstractConstants",
+        "AbstractHostState"
+      ],
+      "AbstractValue": [
+        "AppRequest",
+        "AbstractHostState",
+        "HostState",
+        "Hashtable",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "AckList": [
+        "AckState",
+        "SendState",
+        "SingleDelivery",
+        "AbstractHostState"
+      ],
+      "AckState": [
+        "SendState",
+        "SingleDelivery",
+        "AbstractHostState"
+      ],
+      "AppRequest": [
+        "AbstractHostState",
+        "HostState"
+      ],
+      "Arg": [
+        "Args"
+      ],
+      "Args": [],
+      "CAckState": [
+        "CSendState",
+        "CSingleDelivery",
+        "HostState"
+      ],
+      "CKey": [
+        "CKeyHashMap",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "CKeyKV"
+      ],
+      "CKeyHashMap": [
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult"
+      ],
+      "CKeyKV": [],
+      "CMessage": [
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult"
+      ],
+      "CPacket": [
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult"
+      ],
+      "CSendState": [
+        "CSingleDelivery",
+        "HostState"
+      ],
+      "CSingleDelivery": [
+        "HostState"
+      ],
+      "CSingleMessage": [
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult"
+      ],
+      "CTombstoneTable": [
+        "CSingleDelivery",
+        "HostState"
+      ],
+      "Constants": [
+        "HostState"
+      ],
+      "DelegationMap": [
+        "HostState"
+      ],
+      "DuctTapeProfiler": [
+        "NetClient"
+      ],
+      "EndPoint": [
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "Constants",
+        "HashMap",
+        "CKeyHashMap",
+        "CSendState",
+        "CSingleDelivery",
+        "CTombstoneTable",
+        "DuctTapeProfiler",
+        "NetClient",
+        "ID",
+        "NetcReceiveResult"
+      ],
+      "EventResults": [],
+      "Ghost": [
+        "DelegationMap",
+        "HostState",
+        "NetClient",
+        "StrictlyOrderedMap"
+      ],
+      "HashMap": [
+        "CKeyHashMap",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "CSendState",
+        "CSingleDelivery",
+        "CTombstoneTable",
+        "DuctTapeProfiler",
+        "NetClient"
+      ],
+      "Hashtable": [
+        "AbstractHostState",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "History": [
+        "NetClient"
+      ],
+      "HostState": [],
+      "ID": [],
+      "Ios": [
+        "EventResults"
+      ],
+      "IronfleetIOError": [],
+      "KeyIterator": [
+        "KeyRange",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "Message",
+        "AbstractHostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "KeyRange": [
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "Message",
+        "AbstractHostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "LIoOp": [
+        "LSHTIo",
+        "AbstractIos",
+        "NetEvent",
+        "EventResults",
+        "History",
+        "NetClient",
+        "Ios"
+      ],
+      "LPacket": [
+        "LIoOp",
+        "LSHTIo",
+        "AbstractIos",
+        "NetEvent",
+        "EventResults",
+        "History",
+        "NetClient",
+        "Ios",
+        "LSHTPacket",
+        "NetPacket"
+      ],
+      "LSHTIo": [
+        "AbstractIos"
+      ],
+      "LSHTPacket": [],
+      "Map": [
+        "AbstractDelegationMap",
+        "AbstractHostState",
+        "DelegationMap",
+        "HostState",
+        "Hashtable",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet",
+        "SendState",
+        "SingleDelivery",
+        "StrictlyOrderedMap",
+        "TombstoneTable"
+      ],
+      "Message": [
+        "AbstractHostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "NetClient": [],
+      "NetClientCPointers": [
+        "NetClient"
+      ],
+      "NetEvent": [
+        "EventResults",
+        "History",
+        "NetClient",
+        "Ios"
+      ],
+      "NetPacket": [],
+      "NetcReceiveResult": [],
+      "Option": [
+        "AbstractHostState",
+        "AppRequest",
+        "HostState",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "KeyIterator",
+        "KeyRange",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "Ordering": [],
+      "PMsg": [
+        "Packet",
+        "AbstractHostState"
+      ],
+      "Packet": [
+        "AbstractHostState"
+      ],
+      "Parameters": [
+        "Constants",
+        "HostState"
+      ],
+      "ReceiveImplResult": [],
+      "ReceiveResult": [],
+      "SHTKey": [
+        "AbstractKey",
+        "AbstractDelegationMap",
+        "AbstractHostState",
+        "AppRequest",
+        "HostState",
+        "Hashtable",
+        "Message",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet",
+        "CKey",
+        "CKeyHashMap",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "CKeyKV"
+      ],
+      "SendState": [
+        "SingleDelivery",
+        "AbstractHostState"
+      ],
+      "Seq": [
+        "AbstractArg",
+        "AbstractArgs",
+        "AbstractConstants",
+        "AbstractHostState",
+        "AbstractEndPoint",
+        "AbstractDelegationMap",
+        "DelegationMap",
+        "HostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "Message",
+        "PMsg",
+        "Packet",
+        "NetEvent",
+        "EventResults",
+        "History",
+        "NetClient",
+        "Ios",
+        "NetPacket",
+        "SendState",
+        "SingleDelivery",
+        "SingleMessage",
+        "AckList",
+        "AckState",
+        "TombstoneTable",
+        "AbstractValue",
+        "AppRequest",
+        "Hashtable"
+      ],
+      "SingleDelivery": [
+        "AbstractHostState"
+      ],
+      "SingleMessage": [
+        "AckList",
+        "AckState",
+        "SendState",
+        "SingleDelivery",
+        "AbstractHostState",
+        "LSHTIo",
+        "AbstractIos",
+        "LSHTPacket",
+        "PMsg",
+        "Packet"
+      ],
+      "State": [
+        "NetClient"
+      ],
+      "Step": [],
+      "StrictlyOrderedMap": [
+        "DelegationMap",
+        "HostState"
+      ],
+      "StrictlyOrderedVec": [
+        "StrictlyOrderedMap",
+        "DelegationMap",
+        "HostState"
+      ],
+      "String": [
+        "DuctTapeProfiler",
+        "NetClient",
+        "IronfleetIOError"
+      ],
+      "SystemTime": [
+        "DuctTapeProfiler",
+        "NetClient"
+      ],
+      "TombstoneTable": [
+        "SingleDelivery",
+        "AbstractHostState"
+      ],
+      "Vec": [
+        "Arg",
+        "Args",
+        "CKeyHashMap",
+        "CMessage",
+        "CSingleMessage",
+        "CPacket",
+        "HostState",
+        "ReceiveImplResult",
+        "ReceiveResult",
+        "CKeyKV",
+        "Constants",
+        "EndPoint",
+        "HashMap",
+        "CSendState",
+        "CSingleDelivery",
+        "CTombstoneTable",
+        "DuctTapeProfiler",
+        "NetClient",
+        "ID",
+        "NetcReceiveResult",
+        "NetClientCPointers",
+        "StrictlyOrderedMap",
+        "DelegationMap",
+        "StrictlyOrderedVec"
+      ]
+    },
+    "sccs": [
+      [
+        "Seq"
+      ],
+      [
+        "AbstractArg"
+      ],
+      [
+        "AbstractArgs"
+      ],
+      [
+        "AbstractEndPoint"
+      ],
+      [
+        "AbstractParameters"
+      ],
+      [
+        "AbstractConstants"
+      ],
+      [
+        "SHTKey"
+      ],
+      [
+        "AbstractKey"
+      ],
+      [
+        "Map"
+      ],
+      [
+        "AbstractDelegationMap"
+      ],
+      [
+        "AbstractValue"
+      ],
+      [
+        "Option"
+      ],
+      [
+        "AppRequest"
+      ],
+      [
+        "Hashtable"
+      ],
+      [
+        "KeyIterator"
+      ],
+      [
+        "KeyRange"
+      ],
+      [
+        "Message"
+      ],
+      [
+        "SingleMessage"
+      ],
+      [
+        "PMsg"
+      ],
+      [
+        "Packet"
+      ],
+      [
+        "AckList"
+      ],
+      [
+        "AckState"
+      ],
+      [
+        "SendState"
+      ],
+      [
+        "TombstoneTable"
+      ],
+      [
+        "SingleDelivery"
+      ],
+      [
+        "AbstractHostState"
+      ],
+      [
+        "LPacket"
+      ],
+      [
+        "LIoOp"
+      ],
+      [
+        "LSHTIo"
+      ],
+      [
+        "AbstractIos"
+      ],
+      [
+        "Vec"
+      ],
+      [
+        "Arg"
+      ],
+      [
+        "Args"
+      ],
+      [
+        "CAckState"
+      ],
+      [
+        "CKey"
+      ],
+      [
+        "EndPoint"
+      ],
+      [
+        "HashMap"
+      ],
+      [
+        "CKeyHashMap"
+      ],
+      [
+        "CKeyKV"
+      ],
+      [
+        "CMessage"
+      ],
+      [
+        "CSingleMessage"
+      ],
+      [
+        "CPacket"
+      ],
+      [
+        "CSendState"
+      ],
+      [
+        "CTombstoneTable"
+      ],
+      [
+        "CSingleDelivery"
+      ],
+      [
+        "Parameters"
+      ],
+      [
+        "Constants"
+      ],
+      [
+        "Ghost"
+      ],
+      [
+        "StrictlyOrderedVec"
+      ],
+      [
+        "StrictlyOrderedMap"
+      ],
+      [
+        "DelegationMap"
+      ],
+      [
+        "String"
+      ],
+      [
+        "SystemTime"
+      ],
+      [
+        "DuctTapeProfiler"
+      ],
+      [
+        "NetEvent"
+      ],
+      [
+        "Ios"
+      ],
+      [
+        "EventResults"
+      ],
+      [
+        "History"
+      ],
+      [
+        "HostState"
+      ],
+      [
+        "ID"
+      ],
+      [
+        "IronfleetIOError"
+      ],
+      [
+        "LSHTPacket"
+      ],
+      [
+        "NetClientCPointers"
+      ],
+      [
+        "State"
+      ],
+      [
+        "NetClient"
+      ],
+      [
+        "NetPacket"
+      ],
+      [
+        "NetcReceiveResult"
+      ],
+      [
+        "Ordering"
+      ],
+      [
+        "ReceiveImplResult"
+      ],
+      [
+        "ReceiveResult"
+      ],
+      [
+        "Step"
+      ]
+    ],
+    "topological_order": [
+      "Step",
+      "Vec",
+      "EndPoint",
+      "HashMap",
+      "SHTKey",
+      "CKey",
+      "CKeyHashMap",
+      "Option",
+      "KeyIterator",
+      "KeyRange",
+      "CMessage",
+      "CSingleMessage",
+      "CPacket",
+      "ReceiveResult",
+      "ReceiveImplResult",
+      "Ordering",
+      "NetcReceiveResult",
+      "LPacket",
+      "Seq",
+      "AbstractEndPoint",
+      "NetPacket",
+      "State",
+      "NetClientCPointers",
+      "LIoOp",
+      "NetEvent",
+      "History",
+      "SystemTime",
+      "String",
+      "DuctTapeProfiler",
+      "Ghost",
+      "NetClient",
+      "SingleMessage",
+      "AbstractValue",
+      "Map",
+      "AbstractKey",
+      "Hashtable",
+      "Message",
+      "LSHTPacket",
+      "IronfleetIOError",
+      "ID",
+      "StrictlyOrderedVec",
+      "StrictlyOrderedMap",
+      "DelegationMap",
+      "Parameters",
+      "Constants",
+      "CTombstoneTable",
+      "CAckState",
+      "CSendState",
+      "CSingleDelivery",
+      "AppRequest",
+      "HostState",
+      "Ios",
+      "EventResults",
+      "CKeyKV",
+      "Arg",
+      "Args",
+      "LSHTIo",
+      "AbstractIos",
+      "TombstoneTable",
+      "AckList",
+      "AckState",
+      "SendState",
+      "SingleDelivery",
+      "PMsg",
+      "Packet",
+      "AbstractDelegationMap",
+      "AbstractParameters",
+      "AbstractConstants",
+      "AbstractHostState",
+      "AbstractArg",
+      "AbstractArgs"
+    ]
+  },
+  "files_scanned": 118
+}

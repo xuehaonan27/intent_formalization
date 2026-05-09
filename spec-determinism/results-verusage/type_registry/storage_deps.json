@@ -1,0 +1,479 @@
+{
+  "aggregate": {
+    "classification": {
+      "AbstractLogState": "struct",
+      "Box": "container",
+      "CrcDigest": "struct",
+      "Digest": "external",
+      "ExternalDigest": "struct",
+      "Ghost": "container",
+      "GlobalMetadata": "struct",
+      "LogErr": "enum",
+      "LogInfo": "struct",
+      "LogMetadata": "struct",
+      "MaybeCorruptedBytes": "struct",
+      "MaybeUninit": "external",
+      "Option": "container",
+      "PersistentMemoryByte": "struct",
+      "PersistentMemoryConstants": "struct",
+      "PersistentMemoryRegionView": "struct",
+      "PersistentMemoryRegionsView": "struct",
+      "PersistentMemorySubregion": "struct",
+      "PmemError": "enum",
+      "RegionMetadata": "struct",
+      "Seq": "container",
+      "TrustedPermission": "struct",
+      "UntrustedLogImpl": "struct",
+      "WritablePersistentMemorySubregion": "struct",
+      "WriteRestrictedPersistentMemoryRegion": "struct",
+      "WriteRestrictedPersistentMemorySubregion": "struct"
+    },
+    "field_paths": {
+      "AbstractLogState": [],
+      "CrcDigest": [],
+      "ExternalDigest": [],
+      "GlobalMetadata": [],
+      "LogErr": [],
+      "LogInfo": [],
+      "LogMetadata": [],
+      "MaybeCorruptedBytes": [],
+      "PersistentMemoryByte": [],
+      "PersistentMemoryConstants": [],
+      "PersistentMemoryRegionView": [],
+      "PersistentMemoryRegionsView": [],
+      "PersistentMemorySubregion": [],
+      "PmemError": [],
+      "RegionMetadata": [],
+      "TrustedPermission": [],
+      "UntrustedLogImpl": [],
+      "WritablePersistentMemorySubregion": [],
+      "WriteRestrictedPersistentMemoryRegion": [],
+      "WriteRestrictedPersistentMemorySubregion": []
+    },
+    "forward": {
+      "AbstractLogState": [
+        "Seq"
+      ],
+      "Box": [],
+      "CrcDigest": [
+        "ExternalDigest",
+        "Ghost",
+        "Seq"
+      ],
+      "Digest": [],
+      "ExternalDigest": [
+        "Digest"
+      ],
+      "Ghost": [],
+      "GlobalMetadata": [],
+      "LogErr": [
+        "PmemError"
+      ],
+      "LogInfo": [],
+      "LogMetadata": [],
+      "MaybeCorruptedBytes": [
+        "Box",
+        "MaybeUninit"
+      ],
+      "MaybeUninit": [],
+      "Option": [],
+      "PersistentMemoryByte": [
+        "Option"
+      ],
+      "PersistentMemoryConstants": [],
+      "PersistentMemoryRegionView": [
+        "PersistentMemoryByte",
+        "Seq"
+      ],
+      "PersistentMemoryRegionsView": [
+        "PersistentMemoryRegionView",
+        "Seq"
+      ],
+      "PersistentMemorySubregion": [
+        "Ghost"
+      ],
+      "PmemError": [],
+      "RegionMetadata": [],
+      "Seq": [],
+      "TrustedPermission": [
+        "Seq"
+      ],
+      "UntrustedLogImpl": [
+        "AbstractLogState",
+        "Ghost",
+        "LogInfo"
+      ],
+      "WritablePersistentMemorySubregion": [
+        "Ghost",
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView"
+      ],
+      "WriteRestrictedPersistentMemoryRegion": [
+        "Option"
+      ],
+      "WriteRestrictedPersistentMemorySubregion": [
+        "Ghost",
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView"
+      ]
+    },
+    "forward_closure": {
+      "AbstractLogState": [
+        "Seq"
+      ],
+      "Box": [],
+      "CrcDigest": [
+        "ExternalDigest",
+        "Digest",
+        "Ghost",
+        "Seq"
+      ],
+      "Digest": [],
+      "ExternalDigest": [
+        "Digest"
+      ],
+      "Ghost": [],
+      "GlobalMetadata": [],
+      "LogErr": [
+        "PmemError"
+      ],
+      "LogInfo": [],
+      "LogMetadata": [],
+      "MaybeCorruptedBytes": [
+        "Box",
+        "MaybeUninit"
+      ],
+      "MaybeUninit": [],
+      "Option": [],
+      "PersistentMemoryByte": [
+        "Option"
+      ],
+      "PersistentMemoryConstants": [],
+      "PersistentMemoryRegionView": [
+        "PersistentMemoryByte",
+        "Option",
+        "Seq"
+      ],
+      "PersistentMemoryRegionsView": [
+        "PersistentMemoryRegionView",
+        "PersistentMemoryByte",
+        "Option",
+        "Seq"
+      ],
+      "PersistentMemorySubregion": [
+        "Ghost"
+      ],
+      "PmemError": [],
+      "RegionMetadata": [],
+      "Seq": [],
+      "TrustedPermission": [
+        "Seq"
+      ],
+      "UntrustedLogImpl": [
+        "AbstractLogState",
+        "Seq",
+        "Ghost",
+        "LogInfo"
+      ],
+      "WritablePersistentMemorySubregion": [
+        "Ghost",
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView",
+        "PersistentMemoryByte",
+        "Option",
+        "Seq"
+      ],
+      "WriteRestrictedPersistentMemoryRegion": [
+        "Option"
+      ],
+      "WriteRestrictedPersistentMemorySubregion": [
+        "Ghost",
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView",
+        "PersistentMemoryByte",
+        "Option",
+        "Seq"
+      ]
+    },
+    "nodes": [
+      "AbstractLogState",
+      "Box",
+      "CrcDigest",
+      "Digest",
+      "ExternalDigest",
+      "Ghost",
+      "GlobalMetadata",
+      "LogErr",
+      "LogInfo",
+      "LogMetadata",
+      "MaybeCorruptedBytes",
+      "MaybeUninit",
+      "Option",
+      "PersistentMemoryByte",
+      "PersistentMemoryConstants",
+      "PersistentMemoryRegionView",
+      "PersistentMemoryRegionsView",
+      "PersistentMemorySubregion",
+      "PmemError",
+      "RegionMetadata",
+      "Seq",
+      "TrustedPermission",
+      "UntrustedLogImpl",
+      "WritablePersistentMemorySubregion",
+      "WriteRestrictedPersistentMemoryRegion",
+      "WriteRestrictedPersistentMemorySubregion"
+    ],
+    "reverse": {
+      "AbstractLogState": [
+        "UntrustedLogImpl"
+      ],
+      "Box": [
+        "MaybeCorruptedBytes"
+      ],
+      "CrcDigest": [],
+      "Digest": [
+        "ExternalDigest"
+      ],
+      "ExternalDigest": [
+        "CrcDigest"
+      ],
+      "Ghost": [
+        "CrcDigest",
+        "PersistentMemorySubregion",
+        "UntrustedLogImpl",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "GlobalMetadata": [],
+      "LogErr": [],
+      "LogInfo": [
+        "UntrustedLogImpl"
+      ],
+      "LogMetadata": [],
+      "MaybeCorruptedBytes": [],
+      "MaybeUninit": [
+        "MaybeCorruptedBytes"
+      ],
+      "Option": [
+        "PersistentMemoryByte",
+        "WriteRestrictedPersistentMemoryRegion"
+      ],
+      "PersistentMemoryByte": [
+        "PersistentMemoryRegionView"
+      ],
+      "PersistentMemoryConstants": [
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "PersistentMemoryRegionView": [
+        "PersistentMemoryRegionsView",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "PersistentMemoryRegionsView": [],
+      "PersistentMemorySubregion": [],
+      "PmemError": [
+        "LogErr"
+      ],
+      "RegionMetadata": [],
+      "Seq": [
+        "AbstractLogState",
+        "CrcDigest",
+        "PersistentMemoryRegionView",
+        "PersistentMemoryRegionsView",
+        "TrustedPermission"
+      ],
+      "TrustedPermission": [],
+      "UntrustedLogImpl": [],
+      "WritablePersistentMemorySubregion": [],
+      "WriteRestrictedPersistentMemoryRegion": [],
+      "WriteRestrictedPersistentMemorySubregion": []
+    },
+    "reverse_closure": {
+      "AbstractLogState": [
+        "UntrustedLogImpl"
+      ],
+      "Box": [
+        "MaybeCorruptedBytes"
+      ],
+      "CrcDigest": [],
+      "Digest": [
+        "ExternalDigest",
+        "CrcDigest"
+      ],
+      "ExternalDigest": [
+        "CrcDigest"
+      ],
+      "Ghost": [
+        "CrcDigest",
+        "PersistentMemorySubregion",
+        "UntrustedLogImpl",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "GlobalMetadata": [],
+      "LogErr": [],
+      "LogInfo": [
+        "UntrustedLogImpl"
+      ],
+      "LogMetadata": [],
+      "MaybeCorruptedBytes": [],
+      "MaybeUninit": [
+        "MaybeCorruptedBytes"
+      ],
+      "Option": [
+        "PersistentMemoryByte",
+        "PersistentMemoryRegionView",
+        "PersistentMemoryRegionsView",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion",
+        "WriteRestrictedPersistentMemoryRegion"
+      ],
+      "PersistentMemoryByte": [
+        "PersistentMemoryRegionView",
+        "PersistentMemoryRegionsView",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "PersistentMemoryConstants": [
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "PersistentMemoryRegionView": [
+        "PersistentMemoryRegionsView",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion"
+      ],
+      "PersistentMemoryRegionsView": [],
+      "PersistentMemorySubregion": [],
+      "PmemError": [
+        "LogErr"
+      ],
+      "RegionMetadata": [],
+      "Seq": [
+        "AbstractLogState",
+        "UntrustedLogImpl",
+        "CrcDigest",
+        "PersistentMemoryRegionView",
+        "PersistentMemoryRegionsView",
+        "WritablePersistentMemorySubregion",
+        "WriteRestrictedPersistentMemorySubregion",
+        "TrustedPermission"
+      ],
+      "TrustedPermission": [],
+      "UntrustedLogImpl": [],
+      "WritablePersistentMemorySubregion": [],
+      "WriteRestrictedPersistentMemoryRegion": [],
+      "WriteRestrictedPersistentMemorySubregion": []
+    },
+    "sccs": [
+      [
+        "Seq"
+      ],
+      [
+        "AbstractLogState"
+      ],
+      [
+        "Box"
+      ],
+      [
+        "Digest"
+      ],
+      [
+        "ExternalDigest"
+      ],
+      [
+        "Ghost"
+      ],
+      [
+        "CrcDigest"
+      ],
+      [
+        "GlobalMetadata"
+      ],
+      [
+        "PmemError"
+      ],
+      [
+        "LogErr"
+      ],
+      [
+        "LogInfo"
+      ],
+      [
+        "LogMetadata"
+      ],
+      [
+        "MaybeUninit"
+      ],
+      [
+        "MaybeCorruptedBytes"
+      ],
+      [
+        "Option"
+      ],
+      [
+        "PersistentMemoryByte"
+      ],
+      [
+        "PersistentMemoryConstants"
+      ],
+      [
+        "PersistentMemoryRegionView"
+      ],
+      [
+        "PersistentMemoryRegionsView"
+      ],
+      [
+        "PersistentMemorySubregion"
+      ],
+      [
+        "RegionMetadata"
+      ],
+      [
+        "TrustedPermission"
+      ],
+      [
+        "UntrustedLogImpl"
+      ],
+      [
+        "WritablePersistentMemorySubregion"
+      ],
+      [
+        "WriteRestrictedPersistentMemoryRegion"
+      ],
+      [
+        "WriteRestrictedPersistentMemorySubregion"
+      ]
+    ],
+    "topological_order": [
+      "Option",
+      "PersistentMemoryByte",
+      "Seq",
+      "PersistentMemoryRegionView",
+      "PersistentMemoryConstants",
+      "Ghost",
+      "WriteRestrictedPersistentMemorySubregion",
+      "WriteRestrictedPersistentMemoryRegion",
+      "WritablePersistentMemorySubregion",
+      "LogInfo",
+      "AbstractLogState",
+      "UntrustedLogImpl",
+      "TrustedPermission",
+      "RegionMetadata",
+      "PersistentMemorySubregion",
+      "PersistentMemoryRegionsView",
+      "MaybeUninit",
+      "Box",
+      "MaybeCorruptedBytes",
+      "LogMetadata",
+      "PmemError",
+      "LogErr",
+      "GlobalMetadata",
+      "Digest",
+      "ExternalDigest",
+      "CrcDigest"
+    ]
+  },
+  "files_scanned": 63
+}
