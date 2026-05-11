@@ -17,7 +17,7 @@ non-determinism.
 
 ## Where we are
 
-### Verusage corpus baseline (commit `afec6c9`, snapshot 2026-05-09)
+### Verusage corpus baseline (commit `42c1248`, snapshot 2026-04-29)
 
 | project          |     n |    ok | verus_err | **ok\_with\_witness** |
 |------------------|------:|------:|----------:|----------------------:|
@@ -55,6 +55,7 @@ Closed out Phase 2 (A-2 view-aware equal-fn) end-to-end:
 | `1751dc1` | fix: 4 cross-subpackage relative imports silently broken by the layout refactor (caught by manual smoketest) | bug |
 | `a343a56` | docs: COMPARE.md template + tricky-shape audit + ISSUES.md (4 + 1 entries, including the newly-found `arbitrary()` over-collapse) | docs |
 | `ad691cd` | **lint: `view body must reference self`** static check + critic prompt rule #8 + `docs/critic-criteria.md` | quality gate |
+| _next_   | compare_runs.py header rows + true-regression bucket + e2e retry-path selftest | infra |
 
 ### Currently running
 
@@ -122,16 +123,32 @@ codegen-time lookup resolves it.
 
 ## Next milestones
 
-1. **Wait for the running batch to finish + rerun + COMPARE.md** (≈ 2–3
-   hours from 2026-05-11 13:00) — measures actual A-2 drop.
-2. **Commit cached views** under `results-verusage/view_registry/`
-   (currently uncommitted).
-3. **PR-E**: SCC whole-component LLM prompt for the `{Directory,
-   NodeEntry}` mutual-recursion cycle in nrkernel (already kicked into
-   the L4 path, but a single-component prompt would give the LLM both
-   types at once and likely produce cleaner cross-references).
-4. **Tracked / Ghost-aware narrows (A-1)** and **nested-Err policy (A-3)**
-   are next in line once A-2 is closed.
+1. **Wait for the in-flight rerun to finish + COMPARE.md** — the
+   auto-chain (`scripts/auto_chain.sh`) is already running
+   `scripts/rerun_corpus.sh` (the `results-verusage-viewreg/` tree is
+   being populated). Once it completes, the same chain will fire
+   `scripts/compare_runs.py` and produce the headline A-2-drop
+   numbers against the `42c1248` baseline.
+2. **Retry the four `_rejected.jsonl` types** once the rerun is
+   done — `storage/CrcDigest`, `nrkernel/PTDir`,
+   `nrkernel/LoadResult`, plus the freshly-quarantined
+   `storage/MaybeCorruptedBytes` (the `arbitrary()` case). Run with
+   `--force --project <p>` so each type re-prompts the LLM; the new
+   lint + critic rule #8 will gate the second attempt automatically.
+3. **Commit `results-verusage/view_registry/`** (currently
+   untracked; 130 valid cached entries + per-project audit and
+   resolver-audit JSONs + `_rejected.jsonl` durability files).
+4. **PR-E**: SCC whole-component prompt for the
+   `{Directory, NodeEntry, PTDir}` cycle in nrkernel. Without it,
+   the single-type retry on `PTDir` will keep failing for the same
+   inner-map-lift reason — the dep's view isn't visible in the
+   single-type prompt context.
+5. **Integration smoketest for `--use-view-registry`** (ISSUES.md
+   #5) — a single-target end-to-end run wired into `make check` or
+   equivalent. Would have caught the four broken relative imports
+   in `1751dc1` immediately rather than after a manual rerun.
+6. **Tracked / Ghost-aware narrows (A-1)** and **nested-Err policy
+   (A-3)** are next in line once A-2 lands.
 
 ## Layout
 

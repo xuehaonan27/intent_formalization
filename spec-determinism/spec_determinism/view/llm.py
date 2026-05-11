@@ -1225,6 +1225,88 @@ trailing text
     check(e2.depends_on_views_of == e.depends_on_views_of,
           "CacheEntry: round-trip deps")
 
+    # --- E2E: synthesize_view lint→retry path with a stub LLM
+    class _StubLLM(CopilotViewLLM):
+        def __init__(self, response: str):
+            self._response = response
+        def query(self, prompt: str, run_dir: Path) -> str:
+            run_dir.mkdir(parents=True, exist_ok=True)
+            (run_dir / "response.md").write_text(self._response)
+            return self._response
+
+    _bad = (
+        '```json\n{"viewed_type": "Seq<u8>", '
+        '"view_decl": "impl<S> View for X<S> { type V = Seq<u8>; '
+        'closed spec fn view(&self) -> Seq<u8> { arbitrary() } }", '
+        '"depends_on_views_of": [], "rationale": "r"}\n```'
+    )
+    _good = (
+        '```json\n{"viewed_type": "Seq<u8>", '
+        '"view_decl": "impl<S> View for X<S> { type V = Seq<u8>; '
+        'closed spec fn view(&self) -> Seq<u8> { self.bytes@ } }", '
+        '"depends_on_views_of": [], "rationale": "r"}\n```'
+    )
+    _td_e2e = TypeDef(
+        name="X", qualified_name="X", kind="struct",
+        source_file="", source_line=0,
+    )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        cache_root = Path(tmp) / "view_registry" / "p"
+        c2 = ViewCache(cache_root)
+
+        # 1. arbitrary() → lint_reject, no cache, _rejected.jsonl has 1 row
+        st = {}
+        entry = synthesize_view(
+            _td_e2e, dep_views={}, cache=c2,
+            client=_StubLLM(_bad), project="p",
+            enable_critic=False, status_out=st,
+        )
+        check(entry is None, "e2e: arbitrary() returns None")
+        check(st.get("status") == "lint_reject",
+              f"e2e: status=lint_reject (got {st.get('status')})")
+        rej = cache_root / "_rejected.jsonl"
+        check(rej.exists(), "e2e: _rejected.jsonl written on lint reject")
+        check(not (cache_root / "X.json").exists(),
+              "e2e: no cache file on lint reject")
+
+        # 2. retry path: good body now → ok, cache file present
+        st = {}
+        entry = synthesize_view(
+            _td_e2e, dep_views={}, cache=c2,
+            client=_StubLLM(_good), project="p",
+            enable_critic=False, status_out=st,
+        )
+        check(entry is not None, "e2e: retry produces entry")
+        check(st.get("status") == "ok", f"e2e: retry status=ok (got {st.get('status')})")
+        check((cache_root / "X.json").exists(), "e2e: cache written on retry")
+
+        # 3. third call hits cache, bypasses both LLM and lint
+        st = {}
+        synthesize_view(
+            _td_e2e, dep_views={}, cache=c2,
+            client=_StubLLM(_bad),  # would re-trip lint if not hit
+            project="p", enable_critic=False, status_out=st,
+        )
+        check(st.get("status") == "cache_hit",
+              f"e2e: cache_hit on 3rd call (got {st.get('status')})")
+
+        # 4. force=True bypasses cache, lint re-rejects, existing good cache
+        #    preserved
+        st = {}
+        entry = synthesize_view(
+            _td_e2e, dep_views={}, cache=c2,
+            client=_StubLLM(_bad), project="p",
+            enable_critic=False, force=True, status_out=st,
+        )
+        check(entry is None, "e2e: force+bad → None")
+        check(st.get("status") == "lint_reject",
+              f"e2e: force+bad status=lint_reject (got {st.get('status')})")
+        check((cache_root / "X.json").exists(),
+              "e2e: existing good cache preserved across force-reject")
+        n_lines = len(rej.read_text().strip().split("\n"))
+        check(n_lines == 2, f"e2e: _rejected.jsonl now has 2 lines (got {n_lines})")
+
     if failures:
         for f in failures:
             print(f"FAIL: {f}")

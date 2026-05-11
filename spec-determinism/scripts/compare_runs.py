@@ -62,10 +62,31 @@ def status_counts(targets: list[dict]) -> dict[str, int]:
     return dict(Counter(r.get("status", "?") for r in targets))
 
 
-def render(baseline: dict, candidate: dict) -> str:
+def render(baseline: dict, candidate: dict, *,
+           baseline_commit: str = "", candidate_commit: str = "") -> str:
     lines: list[str] = []
 
     lines.append("# Corpus rerun comparison\n")
+    if baseline_commit or candidate_commit:
+        lines.append(
+            f"| | commit |\n|---|---|\n"
+            f"| baseline  | `{baseline_commit or '?'}` |\n"
+            f"| candidate | `{candidate_commit or '?'}` |\n"
+        )
+    lines.append(
+        "Definitions:\n"
+        "- **ok_with_witness** — Verus accepted the equal-fn but z3 emitted\n"
+        "  a counterexample (`status==\"ok\" AND assumes!=[]`). The A-2\n"
+        "  false-positive metric.\n"
+        "- **fixed** — was ok_with_witness in baseline, now plain ok in\n"
+        "  candidate. **Wins go here.**\n"
+        "- **witness → verus_error** — was ok_with_witness, now Verus\n"
+        "  rejects the equal-fn. View compiled but blocked verification;\n"
+        "  not a clean win.\n"
+        "- **regressed** — was clean ok (no witness) in baseline, now\n"
+        "  verus_error in candidate. **This number must be ~0**\n"
+        "  to consider the change safe to land.\n"
+    )
 
     projects = sorted(set(baseline) | set(candidate))
 
@@ -111,11 +132,6 @@ def render(baseline: dict, candidate: dict) -> str:
 
     # Per-project transitions
     lines.append("\n## Per-project A-2 transitions\n")
-    lines.append(
-        "*fixed* = was ok-with-witness in baseline, now plain ok in candidate. "
-        "*regressed* = was ok in baseline, now verus_error in candidate "
-        "(view broke compilation).\n"
-    )
     for proj in projects:
         b = baseline.get(proj, [])
         c = candidate.get(proj, [])
@@ -132,11 +148,17 @@ def render(baseline: dict, candidate: dict) -> str:
             if b_w and not c_w and cr.get("status") == "ok":
                 fixed.append(k)
 
-        # ok → verus_error
+        # ok → verus_error (true regression: baseline had a clean ok with
+        # no witness; candidate broke compilation). Excludes witness→err
+        # — those go in their own bucket so the reader can tell apart
+        # 'A-2 witness that turned into a verus error' from 'previously
+        # clean target that the new equal-fn broke'.
         regressed = []
         for k in common:
             br, cr = b_map[k], c_map[k]
+            b_w = br.get("status") == "ok" and br.get("assumes")
             if (br.get("status") == "ok"
+                    and not b_w
                     and cr.get("status") == "verus_error"):
                 regressed.append(k)
 
@@ -181,6 +203,20 @@ def render(baseline: dict, candidate: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _git_commit(path: Path) -> str:
+    """Try to recover the last commit that touched ``path`` (or any file
+    under it). Returns ``""`` on failure — comparison still works."""
+    import subprocess
+    try:
+        out = subprocess.run(
+            ["git", "log", "-1", "--format=%h", "--", str(path)],
+            check=True, capture_output=True, text=True,
+        )
+        return out.stdout.strip()
+    except Exception:
+        return ""
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--baseline", type=Path, required=True,
@@ -189,16 +225,33 @@ def main() -> int:
                     help="Candidate results tree (after --use-view-registry).")
     ap.add_argument("--out", type=Path, default=None,
                     help="Write the markdown report here (also stdout).")
+    ap.add_argument("--baseline-commit", default=None,
+                    help="Git commit hash for the baseline run (default: "
+                         "inferred from git log).")
+    ap.add_argument("--candidate-commit", default=None,
+                    help="Git commit hash for the candidate run (default: "
+                         "inferred from git log; falls back to current HEAD).")
     args = ap.parse_args()
 
-    b = load_run(args.baseline.expanduser().resolve())
-    c = load_run(args.candidate.expanduser().resolve())
+    b_root = args.baseline.expanduser().resolve()
+    c_root = args.candidate.expanduser().resolve()
+
+    b = load_run(b_root)
+    c = load_run(c_root)
     if not c:
         print(f"!! candidate {args.candidate} contains no full_run.json",
               file=sys.stderr)
         return 2
 
-    md = render(b, c)
+    baseline_commit = args.baseline_commit or _git_commit(b_root)
+    candidate_commit = args.candidate_commit or _git_commit(c_root)
+    if not candidate_commit:
+        # Candidate is usually un-committed (just written) — fall back to HEAD.
+        candidate_commit = _git_commit(Path.cwd()) + " (HEAD, uncommitted)"
+
+    md = render(b, c,
+                baseline_commit=baseline_commit,
+                candidate_commit=candidate_commit)
     if args.out is not None:
         args.out.write_text(md)
         print(f"wrote {args.out}", file=sys.stderr)
