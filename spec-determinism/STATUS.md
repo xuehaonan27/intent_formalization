@@ -59,22 +59,55 @@ Closed out Phase 2 (A-2 view-aware equal-fn) end-to-end:
 
 ### Currently running
 
-Background batch driver (`scripts/prefill_all.sh`) is rolling through all 7
-projects, then `scripts/auto_chain.sh` will auto-fire the corpus rerun with
-`--use-view-registry` and produce `results-verusage-viewreg/COMPARE.md`
-against the baseline above.
+_(none — PR-D4 landed cleanly; corpus rerun + COMPARE.md are committed)_
 
-Done so far in the prefill batch:
+### Today (2026-05-11, evening update — PR-D4 closed)
 
-| project          | uncovered | ok | critic-reject | critic-error |
-|------------------|----------:|---:|--------------:|-------------:|
-| anvil-library    |         2 |  2 |             0 |            0 |
-| memory-allocator |         6 |  6 |             0 |            1 |
-| vest             |         0 |  0 |             0 |            0 |
-| storage          |        20 | 19 |             1 |            0 |
-| nrkernel         |  in flight | … |               |              |
-| ironkv           |   pending |    |               |              |
-| atmosphere       |   pending |    |               |              |
+| commit    | scope | |
+|-----------|---|---|
+| `943f59c` | PR-D4 rerun + aggregator fix + ISSUES.md #6 + COMPARE.md case studies | results |
+| `a71ff15` | Quarantine 14 broken L4 views (ISSUES.md #7) + lint rule drafts (M1/M2/M3) | quality gate |
+| `33bd09a` | `--include-quarantined` skip mechanism + M1/M2/M3 detector sketches (tree-sitter / AST level) | infra + docs |
+| `<this>`  | Final PR-D4 numbers + STATUS update | docs |
+
+**Headline numbers (vs `42c1248` baseline):**
+
+| metric | baseline | PR-D4 candidate | Δ |
+|---|---:|---:|---:|
+| **ok_with_witness (A-2 false positives)** | **376** | **366** | **−10** |
+| verus_error | 191 | 190 | −1 |
+| ok (clean) | 1455 | 1456 | +1 |
+| runner_crash | 1 | 1 | 0 |
+
+**Transition matrix.** 11 clean fixes (`ok_w → ok`), 0 clean
+regressions (`ok → verus_error`), 1 soft improvement
+(`verus_error → ok_w` on `ironkv/host_model_receive_packet`).
+The net witness count `−10` differs from the 11-win prediction
+solely because the soft-improvement target adds +1 to witnesses
+(was a verus_error in baseline; now compiles with a still-emitting
+witness — strictly better than a parse failure). Full per-target
+analysis in `results-verusage-viewreg/COMPARE.md`.
+
+**The 11 fixes:** 8 from `memory-allocator/CommitMask` (`Vec<u64>` →
+`Seq<u64>` view, fixes 88.9 % of the project's A-2 witnesses), plus
+`atmosphere/PageMap`, `ironkv/Constants`, and `nrkernel/ArchExec`.
+All follow the same algebraic recipe: parent has `Vec<T>` field(s),
+view lifts to `Seq<T>`, z3 closes via the seq-equal axiom.
+
+**The 14 quarantines (PR-D4 ISSUES.md #7):**
+
+| failure mode | count | example |
+|---|---:|---|
+| **M1** `<X as View>::V` / `self.f@` on a head with no View | 5 | atmosphere/Kernel |
+| **M2** `self.f@@` past Ghost into Set/Map | 1 | atmosphere/Endpoint |
+| **M3** parent type is `external_body` / `repr(C)` opaque | 2 | ironkv/CKeyHashMap, atmosphere/Registers |
+| **M4** semantic V-type mismatch (wrong namespace) | 1 | ironkv/EndPoint |
+| cascade (deps on a quarantined root) | 5 | 5 ironkv types transitively view EndPoint |
+
+`docs/critic-criteria.md` carries copy-paste-grade tree-sitter / AST
+detector sketches for M1/M2/M3 (PR-D5 candidate work to
+implement them; the sticky `.json.quarantine` marker in `33bd09a`
+already prevents re-synthesis of any of the 14 broken types).
 
 ## Critic step (`view/critic.py`)
 
@@ -123,32 +156,39 @@ codegen-time lookup resolves it.
 
 ## Next milestones
 
-1. **Wait for the in-flight rerun to finish + COMPARE.md** — the
-   auto-chain (`scripts/auto_chain.sh`) is already running
-   `scripts/rerun_corpus.sh` (the `results-verusage-viewreg/` tree is
-   being populated). Once it completes, the same chain will fire
-   `scripts/compare_runs.py` and produce the headline A-2-drop
-   numbers against the `42c1248` baseline.
-2. **Retry the four `_rejected.jsonl` types** once the rerun is
-   done — `storage/CrcDigest`, `nrkernel/PTDir`,
-   `nrkernel/LoadResult`, plus the freshly-quarantined
-   `storage/MaybeCorruptedBytes` (the `arbitrary()` case). Run with
-   `--force --project <p>` so each type re-prompts the LLM; the new
-   lint + critic rule #8 will gate the second attempt automatically.
-3. **Commit `results-verusage/view_registry/`** (currently
-   untracked; 130 valid cached entries + per-project audit and
-   resolver-audit JSONs + `_rejected.jsonl` durability files).
-4. **PR-E**: SCC whole-component prompt for the
-   `{Directory, NodeEntry, PTDir}` cycle in nrkernel. Without it,
-   the single-type retry on `PTDir` will keep failing for the same
-   inner-map-lift reason — the dep's view isn't visible in the
-   single-type prompt context.
+PR-D4 closed cleanly; the A-2 view-aware equal-fn pipeline is now
+proven safe at the corpus level (11 wins, 0 regressions). Next:
+
+1. **PR-D5 — implement the M1/M2/M3 lint rules** sketched in
+   `docs/critic-criteria.md`. The post-quarantine spike showed
+   that 14 broken views slipped past the critic; lint coverage
+   would have caught all 14 mechanically. Detectors are
+   already specified at tree-sitter / AST traversal level
+   (commit `33bd09a`).
+2. **PR-E — SCC whole-component prompt** for the
+   `{Directory, NodeEntry, PTDir}` cycle in `nrkernel`. Without
+   it, the single-type retry on `PTDir` keeps failing for the
+   inner-map-lift reason; the dep's view isn't visible in the
+   single-type prompt context. Also covers the 5 cascade-quarantined
+   ironkv types (`CSingleDelivery`, `CSingleMessage`, etc.) once
+   their roots have a correct view.
+3. **PR-F — A-1 (Tracked/Ghost-aware narrows)** and
+   **PR-G — A-3 (nested-Err policy)** are the remaining axis-1
+   improvements once A-2 is fully landed.
+4. **Retry the four `_rejected.jsonl` types** —
+   `storage/CrcDigest`, `nrkernel/PTDir`, `nrkernel/LoadResult`,
+   `storage/MaybeCorruptedBytes`. The new lint + critic rule #8 +
+   `--include-quarantined` opt-in mean these can now be safely
+   retried without poisoning the cache.
 5. **Integration smoketest for `--use-view-registry`** (ISSUES.md
-   #5) — a single-target end-to-end run wired into `make check` or
+   #5) — single-target end-to-end run wired into `make check` or
    equivalent. Would have caught the four broken relative imports
    in `1751dc1` immediately rather than after a manual rerun.
-6. **Tracked / Ghost-aware narrows (A-1)** and **nested-Err policy
-   (A-3)** are next in line once A-2 lands.
+6. **Commit `results-verusage/view_registry/`** — currently
+   untracked; 130 valid cached entries + 14 `.json.quarantine`
+   markers + per-project audit JSONs + `_rejected.jsonl`
+   durability files. Decision pending on whether to keep them in
+   git or under DVC.
 
 ## Layout
 
