@@ -229,3 +229,64 @@ alone).
 `load_per_project($OUT)` returns non-empty after `rerun_corpus.sh`
 exits, before `compare_runs.py` is invoked. This is on the same wish
 list as #5 (an `--use-view-registry` integration test).
+
+## #7 — 14 broken L4-llm views quarantined (mass quarantine 2026-05-11)
+
+Per COMPARE.md analysis, 14 L4-synthesised view entries correlated
+with 74 verus_error regressions (66 `ok_w → verus_error` + 8 clean
+`ok → verus_error`). All were `critic_verdict=accept` but had compile-
+or proof-level defects. Quarantined to recover a clean A-2 diff.
+
+Reproducer (already applied):
+
+```sh
+cd spec-determinism
+for entry in \
+  atmosphere/Kernel  atmosphere/SyscallReturnStruct  atmosphere/Endpoint \
+  atmosphere/MapEntry  atmosphere/Registers \
+  ironkv/EndPoint  ironkv/CSingleDelivery  ironkv/CSingleMessage \
+  ironkv/CAckState  ironkv/CSendState  ironkv/ReceiveImplResult \
+  ironkv/CPacket  ironkv/CKeyHashMap  ironkv/CMessage; do
+    mv results-verusage/view_registry/$entry.json \
+       results-verusage/view_registry/$entry.json.quarantine
+done
+```
+
+| project | view | failure mode | reason |
+|---|---|---|---|
+| atmosphere | `Kernel`              | M1-cascade | `V` struct references `<PageAllocator as View>::V` / `<MemoryManager …>` / `<ProcessManager …>` — none of those have a View impl in the project nor in the registry |
+| atmosphere | `SyscallReturnStruct` | M1-cascade | `V` fields use bare `RetValueType` and `Option<Pcid>` types — neither has a registered View, and as raw spec field types they aren't always spec-equal |
+| atmosphere | `Endpoint`            | M1 + M2    | `self.queue_state@` ⇒ trait bound `EndpointState: View` not satisfied at this call site; `self.owning_threads@@` over-projects (`Set` has no `View::view`) |
+| atmosphere | `MapEntry`            | M1-cascade | `V` references bare `PAddr` (not registered as View) — spec equality on `PAddr` is not the same as field-equal on the underlying `usize` |
+| atmosphere | `Registers`           | M3         | `Registers` is `#[repr(C, align(8))]` — Verus often treats explicit-`repr` structs as external-body / opaque; field expressions are then disallowed in spec |
+| ironkv | `EndPoint`               | M4 (semantic) | Body `self.id@` ⇒ `Seq<u8>`, but downstream proof code uses `AbstractEndPoint{id: …}` projections — the synthesiser picked the wrong `V` |
+| ironkv | `CSingleDelivery`        | cascade    | `V` = `{… <CSendState as View>::V}` → fails once `EndPoint` / `CSendState` chain is quarantined |
+| ironkv | `CSingleMessage`         | cascade    | `V` enum variant references `<EndPoint as View>::V`, `<CMessage as View>::V` |
+| ironkv | `CAckState`              | cascade    | `Seq<<CSingleMessage as View>::V>` |
+| ironkv | `CSendState`             | cascade    | `Map<AbstractEndPoint, <CAckState as View>::V>` |
+| ironkv | `ReceiveImplResult`      | cascade    | variant `FreshPacket{<CPacket as View>::V}` |
+| ironkv | `CPacket`                | cascade    | `{dst: <EndPoint as View>::V, msg: <CSingleMessage as View>::V}` |
+| ironkv | `CKeyHashMap`            | M3         | `CKeyHashMap` wraps `collections::HashMap` and is marked `external_body`; `self.m@` ⇒ "field expression for an opaque datatype" |
+| ironkv | `CMessage`               | cascade    | `Redirect{id: EndPoint}`, `Delegate{h: CKeyHashMap}` |
+
+**Three intrinsic root causes**, plus cascade closure:
+
+- **M1 (5 views)**: synthesiser inferred a `<Inner as View>::V` field
+  type whose `Inner` has no `View` impl. Cross-check against
+  `impl_scanner` + L4 cache should reject.
+- **M2 (1 view, `Endpoint`)**: extra `@` after Ghost unwrap when the
+  inner type is `Set`. Same family as #1 (CrcDigest) but at field
+  level. Tree-sitter regex `\w+@@` would have caught it.
+- **M3 (2 views)**: parent type or inner container is `external_body`
+  or `repr(C)`. `impl_scanner` knows this; the synthesiser ignored it.
+- **M4 (1 view, `EndPoint`)**: V-type semantically inconsistent with
+  downstream proof's expected view. Hardest to detect statically;
+  would need either a project convention table or a verus dry-run.
+- **Cascade (7 views, all ironkv)**: V depends transitively on a
+  broken view. After the root is quarantined, the dependent V-decls
+  can no longer compile (gen_det does not auto-inject transitive view
+  declarations). Quarantine eagerly to keep the cascade closed.
+
+**Lessons.** Critic + lint pipeline did not catch any of these. See
+docs/critic-criteria.md "Lint rule drafts (post-quarantine)" for
+draft static checks corresponding to M1/M2/M3.

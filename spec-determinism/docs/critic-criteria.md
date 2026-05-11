@@ -154,3 +154,125 @@ for raw-pointer / extern-fn-pointer wrappers. The static lint
 | `spec_determinism/view/critic.py::_CRITIC_PROMPT_HEADER` | prompt rules |
 | `spec_determinism/view/critic.py::parse_critic_response` | JSON parser |
 | `spec_determinism/view/critic.py::append_rejected` | `_rejected.jsonl` writer |
+
+## Lint rule drafts (post-quarantine 2026-05-11)
+
+After the rerun-against-`results-verusage-viewreg` produced 73
+verus_error regressions, 14 cached views had to be quarantined (see
+`ISSUES.md` #7). Critic + existing lints did not catch any of them.
+Three mechanical lint rules would have rejected most root causes
+*before* expensive verus runs:
+
+### M1 — `field@` / `<Inner as View>::V` on a type with no registered View
+
+**Symptom.** Body or `V` struct references `<Inner as View>::V`, or
+the body contains `self.<field>@` where `<field>` has a type that
+is not in `{Vec<…>, Ghost<…>, Tracked<…>, primitive, vstd-known-View}`
+and is not present in the project's view registry.
+
+**Why critic misses it.** The critic only sees the synthesised
+body, not the registry. It cannot verify that `<PageAllocator as View>::V`
+actually resolves.
+
+**Draft rule.**
+
+```python
+def check_view_field_targets_have_view(decl: str,
+                                        registry_short_names: set[str],
+                                        scanner: ImplScanner) -> Optional[str]:
+    """Reject if the V-type or body references <X as View>::V or .@ on
+    a type ``X`` that is neither (a) in the project's view_registry,
+    (b) a vstd-known View (Vec, Box, Option, Result, primitive, etc.),
+    (c) a Ghost/Tracked wrapper.
+    """
+    refs = re.findall(r"<(\w+) as View>::V", decl)
+    fields = parse_self_field_projections(decl)  # tree-sitter
+    for t in set(refs) | {f.field_type_head for f in fields}:
+        if t in registry_short_names:        continue
+        if t in VSTD_KNOWN_VIEW_HEADS:       continue
+        if scanner.is_ghost_or_tracked(t):   continue
+        return f"References `<{t} as View>::V` or `.@` but no View impl available."
+    return None
+```
+
+Test fixtures: `atmosphere/Kernel`, `atmosphere/MapEntry`,
+`atmosphere/SyscallReturnStruct` all reject.
+
+### M2 — `field@@` over-projection past Ghost into Set/Map/etc.
+
+**Symptom.** Body contains `self.<field>@@`. One `@` is fine when
+`<field>` is `Ghost<T>` (peels Ghost), but the second `@` requires the
+inner `T` to have `View::view`. `Set<…>` and `Map<…>` don't.
+
+**Why critic misses it.** Already partly covered by rule 1 ("primitive
+@-mistake") in the critic prompt, but the critic confuses "Ghost wraps
+Set" with "Ghost wraps Vec" and accepts it anyway.
+
+**Draft rule.**
+
+```python
+_DOUBLE_AT = re.compile(r"\bself\.\w+@@\B")
+
+def check_no_double_at_on_set_or_map(decl: str, scanner: ImplScanner) -> Optional[str]:
+    for m in _DOUBLE_AT.finditer(decl):
+        field_name = re.match(r"self\.(\w+)@@", m.group(0)).group(1)
+        ftype = scanner.field_type(field_name)
+        if ftype is None: continue
+        inner = strip_ghost_tracked(ftype)
+        inner_head = inner.head if isinstance(inner, TypeExpr) else None
+        if inner_head in {"Set", "Map"}:
+            return f"`self.{field_name}@@` projects past Ghost into `{inner_head}`, which has no View::view."
+    return None
+```
+
+Test fixture: `atmosphere/Endpoint` rejects on `self.owning_threads@@`.
+
+### M3 — view body uses `self.<field>` on an `external_body` / opaque parent
+
+**Symptom.** The parent type is marked `external_body` (or has
+`#[repr(C)]` / similar that makes Verus treat it as opaque). Body
+projects `self.m@` or similar, which Verus rejects as "field
+expression for an opaque datatype".
+
+**Why critic misses it.** Critic doesn't see the parent type's
+annotations.
+
+**Draft rule.**
+
+```python
+def check_parent_not_external_body(type_def: TypeDef) -> Optional[str]:
+    if type_def.is_external_body or type_def.has_repr_c:
+        return ("Parent type is external_body / repr(C); Verus treats "
+                "its fields as opaque and forbids field expressions in "
+                "spec functions. Use `arbitrary()` (rejected by rule 8) "
+                "is not a workaround; this type should not have a "
+                "synthesised view at all — drop it from the L4 work list.")
+    return None
+```
+
+Test fixtures: `ironkv/CKeyHashMap`, `atmosphere/Registers` reject.
+
+### Cascade closure
+
+After rules M1/M2/M3 quarantine root-cause views, dependent views
+(V-decls that reference the quarantined type's `View`) will fail to
+compile in any target that needs them. Three options:
+
+1. **(Recommended)** Add a `transitive_resolve()` pass to
+   `view/registry.py` that, before injecting a cached view, walks
+   `entry.depends_on_views_of` and only injects if all transitive deps
+   are resolvable. If not, demote the view to "missing" (gen_det then
+   falls back to per-field equal).
+2. Eagerly quarantine the cascade closure each time a root is
+   quarantined (what we did manually in #7).
+3. Inject transitive views into the target's `injected.rs` so the
+   compile is closed. Less surgical.
+
+(1) is the cleanest long-term fix. (2) is what we currently do.
+
+### Acceptance test for the new rules
+
+When implementing, the unit-test fixtures should be the 14 quarantined
+view JSONs — for each, the relevant lint rule must produce a
+non-None reject reason. This guarantees the regression does not recur
+when those types' source bytes change and the cache is rebuilt.
