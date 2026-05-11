@@ -61,53 +61,102 @@ Closed out Phase 2 (A-2 view-aware equal-fn) end-to-end:
 
 _(none — PR-D4 landed cleanly; corpus rerun + COMPARE.md are committed)_
 
-### Today (2026-05-11, evening update — PR-D4 closed)
+### Today (2026-05-11, evening update — PR-D5 closed)
 
 | commit    | scope | |
 |-----------|---|---|
 | `943f59c` | PR-D4 rerun + aggregator fix + ISSUES.md #6 + COMPARE.md case studies | results |
 | `a71ff15` | Quarantine 14 broken L4 views (ISSUES.md #7) + lint rule drafts (M1/M2/M3) | quality gate |
 | `33bd09a` | `--include-quarantined` skip mechanism + M1/M2/M3 detector sketches (tree-sitter / AST level) | infra + docs |
-| `<this>`  | Final PR-D4 numbers + STATUS update | docs |
+| `4cd29b4` | PR-D4 final numbers + STATUS update | docs |
+| `<this>`  | **PR-D5: M1/M2/M3 lint impl + retroactive scan + 4 new quarantines** | quality gate |
 
-**Headline numbers (vs `42c1248` baseline):**
+**PR-D5 outcome — M1/M2/M3 lints implemented & wired:**
 
-| metric | baseline | PR-D4 candidate | Δ |
+* All three detectors live in `view/llm.py` (`check_m1_view_targets_have_view`,
+  `check_m2_no_double_at_past_ghost`, `check_m3_parent_not_opaque`),
+  plus the priority aggregator `lint_view_decl` (M3 > M2 > M1).
+* Wired into `synthesize_view` between the existing
+  `check_view_body_uses_self` lint and the codex critic, with new
+  `lint_m{1,2,3}_reject` status codes plumbed through the prefill
+  summary's coarse action labels.
+* `lint-scan` CLI sub-command performs retroactive lint on every
+  cached view in a project, writes a JSON report, exits 1 on
+  rejection (for CI wiring).
+* 30+ self-tests in `_run_self_tests` covering each detector,
+  priority order, and the FP-regression pins (Container, KeyIterator,
+  IronfleetIOError, WritablePersistentMemorySubregion, unit-V collapse).
+
+**Retroactive scan on PR-D4 cache (7 projects, 112 active views, 18
+quarantined):**
+
+| project | active | active reject | quarantined | reject (incl.) |
+|---|---:|---:|---:|---:|
+| anvil-library | 2 | 0 | 0 | 0 |
+| atmosphere | 23 | 0 | 5 | 1 (M1) |
+| ironkv | 28 | 0 | 12 | 11 (M1=9, M3=2) |
+| memory-allocator | 6 | 0 | 0 | 0 |
+| nrkernel | 36 | 0 | 0 | 0 |
+| storage | 17 | 0 | 2 | 2 (M3=2) |
+| vest | 0 | 0 | 0 | 0 |
+
+**Active-cache lint emits 0 rejections** after FP iteration. The 4 new
+quarantines from the retroactive scan were silent hidden bugs (cached
+views that PR-D4 left alone but that wouldn't survive any new target
+that referenced them):
+
+| project | type | rule | reason |
+|---|---|---|---|
+| ironkv | HashMap | M3 | external_body + non-trivial body; inherent `uninterp spec fn view` already exists in source |
+| ironkv | ReceiveResult | M1 | cascade through quarantined CPacket |
+| ironkv | CTombstoneTable | M1 | cascade through newly-quarantined HashMap |
+| storage | ExternalDigest | M3 | external_body + body projects `<Digest as View>::V` |
+
+**Total quarantine count: 14 + 4 = 18.** PR-D4 numbers
+(376 → 366 witnesses, 0 clean regressions) unchanged — these 4 views
+were never causing PR-D4 regressions (per-target verus_error deltas
+confirm), so quarantining them is preventive cleanup.
+
+Three intentional deviations from the original PR-D5 sketch are
+documented in `docs/critic-criteria.md` ("PR-D5 — M1/M2/M3 lint
+impl" section): M2's `NON_VIEWABLE_INNER_HEADS` is narrowed to
+`{FnSpec}` because Set/Seq/Map have identity Views; M3 honours a
+unit-V exemption for the documented "legitimate unit collapse"
+pattern; M1 honours impl-generic params (`impl<K: View>`) and uses
+`ViewRegistry.resolve` rather than a flat name union to build
+`known_view_heads`.
+
+### Headline corpus numbers (still vs `42c1248` baseline)
+
+| metric | baseline | PR-D5 candidate | Δ |
 |---|---:|---:|---:|
 | **ok_with_witness (A-2 false positives)** | **376** | **366** | **−10** |
 | verus_error | 191 | 190 | −1 |
 | ok (clean) | 1455 | 1456 | +1 |
 | runner_crash | 1 | 1 | 0 |
+| L4 cached views (active) | 130 | 112 | −18 (quarantined) |
 
-**Transition matrix.** 11 clean fixes (`ok_w → ok`), 0 clean
-regressions (`ok → verus_error`), 1 soft improvement
-(`verus_error → ok_w` on `ironkv/host_model_receive_packet`).
-The net witness count `−10` differs from the 11-win prediction
-solely because the soft-improvement target adds +1 to witnesses
-(was a verus_error in baseline; now compiles with a still-emitting
-witness — strictly better than a parse failure). Full per-target
-analysis in `results-verusage-viewreg/COMPARE.md`.
+PR-D5 does not change the corpus numbers (PR-D4 closed those). It
+hardens the synthesis pipeline so the next prefill batch cannot
+silently re-introduce the same broken shapes.
 
-**The 11 fixes:** 8 from `memory-allocator/CommitMask` (`Vec<u64>` →
+### The 11 fixes (carried forward from PR-D4)
+
+8 from `memory-allocator/CommitMask` (`Vec<u64>` →
 `Seq<u64>` view, fixes 88.9 % of the project's A-2 witnesses), plus
 `atmosphere/PageMap`, `ironkv/Constants`, and `nrkernel/ArchExec`.
 All follow the same algebraic recipe: parent has `Vec<T>` field(s),
 view lifts to `Seq<T>`, z3 closes via the seq-equal axiom.
 
-**The 14 quarantines (PR-D4 ISSUES.md #7):**
+### The 18 quarantines (taxonomy)
 
 | failure mode | count | example |
 |---|---:|---|
 | **M1** `<X as View>::V` / `self.f@` on a head with no View | 5 | atmosphere/Kernel |
-| **M2** `self.f@@` past Ghost into Set/Map | 1 | atmosphere/Endpoint |
-| **M3** parent type is `external_body` / `repr(C)` opaque | 2 | ironkv/CKeyHashMap, atmosphere/Registers |
+| **M2** `self.f@@` past Ghost into Set/Map | 1 | (legacy; M2 acceptance fixture is now `Ghost<FnSpec>`) |
+| **M3** parent type is `external_body` opaque | **4** (+2 new) | ironkv/CKeyHashMap, storage/MaybeCorruptedBytes, ironkv/HashMap, storage/ExternalDigest |
 | **M4** semantic V-type mismatch (wrong namespace) | 1 | ironkv/EndPoint |
-| cascade (deps on a quarantined root) | 5 | 5 ironkv types transitively view EndPoint |
-
-`docs/critic-criteria.md` carries copy-paste-grade tree-sitter / AST
-detector sketches for M1/M2/M3 (PR-D5 candidate work to
-implement them; the sticky `.json.quarantine` marker in `33bd09a`
-already prevents re-synthesis of any of the 14 broken types).
+| cascade (deps on a quarantined root) | **7** (+2 new) | 5 ironkv types transitively view EndPoint; +ReceiveResult, CTombstoneTable |
 
 ## Critic step (`view/critic.py`)
 
@@ -156,39 +205,36 @@ codegen-time lookup resolves it.
 
 ## Next milestones
 
-PR-D4 closed cleanly; the A-2 view-aware equal-fn pipeline is now
-proven safe at the corpus level (11 wins, 0 regressions). Next:
+PR-D5 closed cleanly; the M1/M2/M3 lints are now wired into both
+synthesis and CI-style retroactive scan. The A-2 view-aware
+equal-fn pipeline is hardened against the silent-bug class that the
+PR-D4 spike exposed. Next:
 
-1. **PR-D5 — implement the M1/M2/M3 lint rules** sketched in
-   `docs/critic-criteria.md`. The post-quarantine spike showed
-   that 14 broken views slipped past the critic; lint coverage
-   would have caught all 14 mechanically. Detectors are
-   already specified at tree-sitter / AST traversal level
-   (commit `33bd09a`).
-2. **PR-E — SCC whole-component prompt** for the
+1. **PR-E — SCC whole-component prompt** for the
    `{Directory, NodeEntry, PTDir}` cycle in `nrkernel`. Without
    it, the single-type retry on `PTDir` keeps failing for the
    inner-map-lift reason; the dep's view isn't visible in the
-   single-type prompt context. Also covers the 5 cascade-quarantined
-   ironkv types (`CSingleDelivery`, `CSingleMessage`, etc.) once
-   their roots have a correct view.
-3. **PR-F — A-1 (Tracked/Ghost-aware narrows)** and
+   single-type prompt context. Also covers the 7 cascade-quarantined
+   ironkv types (`CSingleDelivery`, `CSingleMessage`, etc., plus
+   the freshly-quarantined `ReceiveResult` / `CTombstoneTable`)
+   once their roots have a correct view.
+2. **PR-F — A-1 (Tracked/Ghost-aware narrows)** and
    **PR-G — A-3 (nested-Err policy)** are the remaining axis-1
    improvements once A-2 is fully landed.
-4. **Retry the four `_rejected.jsonl` types** —
+3. **Retry the four `_rejected.jsonl` types** —
    `storage/CrcDigest`, `nrkernel/PTDir`, `nrkernel/LoadResult`,
    `storage/MaybeCorruptedBytes`. The new lint + critic rule #8 +
    `--include-quarantined` opt-in mean these can now be safely
    retried without poisoning the cache.
-5. **Integration smoketest for `--use-view-registry`** (ISSUES.md
+4. **Integration smoketest for `--use-view-registry`** (ISSUES.md
    #5) — single-target end-to-end run wired into `make check` or
    equivalent. Would have caught the four broken relative imports
    in `1751dc1` immediately rather than after a manual rerun.
-6. **Commit `results-verusage/view_registry/`** — currently
-   untracked; 130 valid cached entries + 14 `.json.quarantine`
-   markers + per-project audit JSONs + `_rejected.jsonl`
-   durability files. Decision pending on whether to keep them in
-   git or under DVC.
+5. **Commit `results-verusage/view_registry/`** — currently
+   untracked; 112 active L4 entries + 18 `.json.quarantine`
+   markers + per-project `_lint_scan.json` + per-project audit
+   JSONs + `_rejected.jsonl` durability files. Decision pending on
+   whether to keep them in git or under DVC.
 
 ## Layout
 

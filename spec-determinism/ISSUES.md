@@ -290,3 +290,46 @@ done
 **Lessons.** Critic + lint pipeline did not catch any of these. See
 docs/critic-criteria.md "Lint rule drafts (post-quarantine)" for
 draft static checks corresponding to M1/M2/M3.
+
+---
+
+## #8 — 4 additional broken L4-llm views found by PR-D5 retroactive scan (2026-05-11)
+
+**Status:** quarantined (commit pending).
+
+The M1/M2/M3 lints from PR-D5 ran retroactively over PR-D4's
+post-quarantine cache and surfaced 4 cached views that PR-D4 had
+left active but that the lints (correctly) reject. These views did
+not cause PR-D4 regressions — their target rows show no
+verus_error delta — so they were dead-weight cache entries that
+would have surfaced as silent regressions the moment any new
+target referenced them. Quarantining is preventive cleanup.
+
+| project | type | rule | reason |
+|---|---|---|---|
+| ironkv | HashMap | M3 | `#[verifier::external_body]` parent + non-trivial body. Source already has an inherent `pub uninterp spec fn view(self) -> Map<AbstractEndPoint, V>;` (different V-type from the L4 cache), and impl_scanner doesn't see inherent uninterp views — so the L4 cache silently competed with a hand-written authoritative view. |
+| ironkv | ReceiveResult | M1 | cascade: body uses `<CPacket as View>::V`, but CPacket is in the original PR-D4 quarantine set. Was always failing to inject. |
+| ironkv | CTombstoneTable | M1 | cascade: body uses `<HashMap as View>::V`; HashMap was freshly quarantined above. |
+| storage | ExternalDigest | M3 | `#[verifier::external_body]` parent + body projects `<Digest as View>::V` through the opaque boundary. |
+
+**Mass-quarantine command (executed):**
+```sh
+cd /home/chentianyu/intent_formalization/spec-determinism
+for q in \
+  "ironkv/HashMap" \
+  "ironkv/ReceiveResult" \
+  "ironkv/CTombstoneTable" \
+  "storage/ExternalDigest"; do
+  mv "results-verusage/view_registry/${q}.json" \
+     "results-verusage/view_registry/${q}.json.quarantine"
+done
+```
+
+**Total quarantine count after #8:** 14 (PR-D4 #7) + 4 = 18.
+
+**Verification:** `python -m spec_determinism.view.llm lint-scan
+--cache-dir results-verusage/view_registry/<proj> --root … --project
+<proj>` now emits 0 rejections on the active cache across all 7
+projects. With `--include-quarantined` the rules still trip every
+M1/M3-classifiable quarantine (regression pin against future cache
+rebuilds).

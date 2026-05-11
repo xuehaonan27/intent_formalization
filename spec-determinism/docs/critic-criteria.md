@@ -597,3 +597,124 @@ runs — the LLM will not silently re-synthesise the same broken
 shape on the next batch. To intentionally retry a quarantine
 (e.g. after a project-source change), delete the `.quarantine` file
 or pass `--include-quarantined`.
+
+---
+
+## PR-D5 — M1/M2/M3 lint impl + retroactive scan (2026-05-11)
+
+The lints sketched above are now implemented in `view/llm.py` and
+wired into both `synthesize_view` (pre-cache) and a new `lint-scan`
+CLI sub-command (retroactive). Self-tests cover M1/M2/M3 and the
+priority aggregator; `python -m spec_determinism.view.llm test`
+exits 0.
+
+The detectors took **two intentional deviations** from the sketches
+above. Both were forced by the retroactive scan on PR-D4's
+post-quarantine corpus, which surfaced false positives a more naive
+implementation would emit:
+
+### Deviation 1 — M2's "non-viewable inner heads" is just `{FnSpec}`
+
+The sketch listed `{Set, Map, Multiset, FnSpec, Seq, int, nat}`. In
+practice **Set / Seq / Map / Multiset have identity `View` impls in
+vstd** (they are spec-only types; `@` is a noop). atmosphere /
+`Container` uses `Ghost<Set<…>>@@` and `Ghost<Seq<…>>@@` in its
+real cached view and verifies cleanly. `int@` and `nat@` are
+similarly noops. Narrowing the set to `{FnSpec}` retains a
+meaningful M2 (a `Ghost<FnSpec<…>>@@` is still a type error: Fn
+traits have no projectable View) without producing the Container
+false positive.
+
+### Deviation 2 — M3 has a "unit-V" exemption
+
+`#[verifier::external_body]` parents can legitimately collapse their
+view to the unit type via:
+```rust
+impl View for Foo { type V = (); fn view(&self) -> () { () } }
+```
+This is the same escape hatch documented for `check_view_body_uses_self`
+(`legitimate unit collapse`). M3 now consults `_is_unit_v(view_decl)`
+and accepts these silently; the only remaining hard reject is
+`external_body` + non-trivial body (the
+`ironkv/HashMap`, `storage/ExternalDigest`, and the four pre-existing
+M3-quarantined cases all match this shape).
+
+### Deviation 3 — M1 honours impl-generic params
+
+`_extract_impl_generics(view_decl)` parses the leading `impl<...>`
+block and returns the set of generic param names (lifetimes and
+`const` params are dropped). Those names are treated as
+already-viewable by M1: the synthesiser is relying on the impl's
+trait bounds, and Verus will catch any missing `View` bound at
+parse time. This pin lets `ironkv/KeyIterator`
+(`impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K>`)
+and `storage/WriteRestrictedPersistentMemoryRegion`
+(`impl<Perm, PMRegion>`) pass cleanly.
+
+### Other implementation refinements
+
+* `VSTD_VIEW_HEADS` was extended with `String` (vstd has
+  `impl View for String { type V = Seq<char>; }`) and `spec_fn`
+  (the spec function type has identity View).
+* For `self.<field>@`, when the field's type expression has
+  `kind == "fn"` (i.e. `spec_fn(...)`) the head check is skipped —
+  Verus accepts identity views on spec functions.
+* `known_view_heads` is now built by *probing* every parsed short
+  name through `ViewRegistry.resolve` rather than unioning name
+  sets. This single change subsumes L1 prelude rules, L2 alias
+  chains, L3 raw `impl View` blocks, and L4 active cache entries —
+  and crucially does NOT include parsed types that lack any View
+  impl. Earlier drafts that unioned `types_by_short.keys()` made
+  the M1 rule toothless; earlier-still drafts that omitted aliases
+  flagged `ironkv/AckList` / `ironkv/SendState` as
+  unresolvable when they are actually `type X = Seq<...>;` and
+  `type X = Map<...>;` aliases.
+
+### Retroactive scan outcome (per project, post-FP-iteration)
+
+| project | active scanned | active reject | quarantined (incl.) | reject (incl.) |
+|---|---:|---:|---:|---:|
+| anvil-library | 2 | 0 | 0 | 0 |
+| atmosphere | 23 | 0 | 5 | 1 (M1) |
+| ironkv | 28 | 0 | 12 | 11 (M1=9, M3=2) |
+| memory-allocator | 6 | 0 | 0 | 0 |
+| nrkernel | 36 | 0 | 0 | 0 |
+| storage | 17 | 0 | 2 | 2 (M3=2) |
+| vest | 0 | 0 | 0 | 0 |
+
+* Active-cache lint emits **0 rejections** across all 7 projects,
+  confirming the lints don't fire on the PR-D4-blessed corpus.
+* When quarantined entries are included (`--include-quarantined`),
+  the lints recapture every M1/M3-classifiable quarantine — that's
+  the regression-pin against future cache rebuilds.
+
+### 4 retroactive findings → 4 new quarantines
+
+The retroactive scan found 4 cached views that PR-D4 left in active
+cache but that the lints (correctly) reject:
+
+| project | type | rule | reason |
+|---|---|---|---|
+| ironkv | HashMap | M3 | external_body parent; inherent `uninterp spec fn view` in source already provides a (different) View, so the L4 cache entry conflicts |
+| ironkv | ReceiveResult | M1 | cascade: references `<CPacket as View>::V`, CPacket already quarantined |
+| ironkv | CTombstoneTable | M1 | cascade: references `<HashMap as View>::V`, HashMap freshly quarantined above |
+| storage | ExternalDigest | M3 | external_body parent; body projects `<Digest as View>::V` |
+
+These views did not cause PR-D4 regressions (their target rows show
+no verus_error delta), so quarantining them is a cleanup — they were
+dead-weight cache entries that would have surfaced as silent regressions
+the moment any new target tried to use them. Total quarantine count:
+14 (original PR-D4) + 4 = **18**.
+
+### CLI
+
+```
+python -m spec_determinism.view.llm lint-scan \
+  --cache-dir results-verusage/view_registry/<project> \
+  --root /path/to/verusage/source-projects/<project> \
+  --project <project> \
+  [--include-quarantined] \
+  [--show-decl]
+```
+Writes `<cache-dir>/_lint_scan.json`. Exits 1 if any rejection
+fires, 0 otherwise.

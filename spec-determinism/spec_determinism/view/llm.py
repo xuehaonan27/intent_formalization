@@ -50,8 +50,10 @@ import tree_sitter as ts
 import tree_sitter_verus as tsv
 
 from spec_determinism.extract.type_registry import (
+    FieldDecl,
     TypeDef,
     TypeExpr,
+    VariantDecl,
 )
 from spec_determinism.llm.copilot import CopilotCLI
 
@@ -374,6 +376,493 @@ def check_view_body_uses_self(view_decl: str, viewed_type: str) -> tuple[bool, s
 
 
 # ---------------------------------------------------------------------------
+# PR-D5 — M1 / M2 / M3 static lints
+#
+# Detector sketches live in docs/critic-criteria.md (commit 33bd09a). The
+# acceptance test for every rule is the 14-quarantine fixture set from
+# ISSUES.md #7 plus the 4 winning views as negative controls.
+# ---------------------------------------------------------------------------
+
+# Heads that vstd / std unconditionally implement View for. The L1 resolver
+# also picks these up at prelude time; we hard-code them here to avoid
+# importing ``view.prelude`` (would create a cycle with ``view.registry``).
+VSTD_VIEW_HEADS: frozenset[str] = frozenset({
+    # vstd containers / wrappers
+    "Vec", "Box", "Rc", "Arc", "Option", "Result",
+    "Seq", "Set", "Map", "Multiset", "FnSpec",
+    "Ghost", "Tracked",
+    # primitives — Verus auto-derives View
+    "u8", "u16", "u32", "u64", "u128", "usize",
+    "i8", "i16", "i32", "i64", "i128", "isize",
+    "bool", "char", "str", "int", "nat",
+    # vstd containers that view to themselves
+    "Array", "PrimitiveBytes",
+    # vstd has `impl View for String { type V = Seq<char>; }`
+    "String",
+    # spec_fn(...) is a spec-only type; identity View applies.
+    "spec_fn",
+    # spec library widgets that have an identity View
+    "()",
+})
+
+# Heads whose value is NOT projectable via `@` even when wrapped in Ghost
+# or Tracked. Applying `@@` to a `Ghost<X>` where X is one of these is
+# always wrong.
+#
+# IMPORTANT: ``Set``/``Seq``/``Map``/``Multiset`` are **identity-View**
+# in vstd (they're spec-only collections), so ``Ghost<Set<…>>@@`` peels
+# Ghost then returns Set unchanged — atmosphere/Container relies on
+# this pattern in its real view_decl and verifies cleanly. They were
+# initially listed as non-viewable in PR-D5's first draft; the
+# retroactive scan caught the false positive on Container before any
+# real bug used this rule. The list below is now narrowed to the heads
+# that genuinely have no projectable View at all.
+NON_VIEWABLE_INNER_HEADS: frozenset[str] = frozenset({
+    # `FnSpec` is the trait, not the spec function type — projecting
+    # an Fn through `@` is a type error.
+    "FnSpec",
+})
+
+
+def _strip_ghost_tracked(te) -> "tuple[object, list[str]]":
+    """Peel outer ``Ghost<…>`` / ``Tracked<…>`` wrappers off a TypeExpr.
+
+    Returns ``(inner_typeexpr, list_of_wrappers_peeled)``. The wrappers
+    list is in outside-in order — ``Tracked<Ghost<Set<X>>>`` peels to
+    ``(Set<X>, ["Tracked", "Ghost"])``.
+    """
+    wraps: list[str] = []
+    cur = te
+    # Guard: only `generic` TypeExpr with exactly 1 arg counts as a wrap.
+    while (cur is not None
+           and getattr(cur, "kind", None) == "generic"
+           and getattr(cur, "head", None) in ("Ghost", "Tracked")
+           and len(getattr(cur, "args", []) or []) == 1):
+        wraps.append(cur.head)
+        cur = cur.args[0]
+    return cur, wraps
+
+
+def _field_type(td: "TypeDef", name: str):
+    """Find a struct field by name (or tuple position).
+
+    Searches:
+    * top-level ``td.fields`` (struct / tuple-struct / union);
+    * every enum variant's fields (matches the first hit by name).
+
+    Returns the field's ``TypeExpr`` if available, else ``None``.
+    """
+    for f in td.fields or []:
+        if f.name == name:
+            return f.type_expr
+    for v in td.variants or []:
+        for f in v.fields or []:
+            if f.name == name:
+                return f.type_expr
+    return None
+
+
+# ``#[repr(C)]`` / ``#[repr(C, align(N))]`` discovered in the body excerpt.
+# Used by M3 as a soft warning (Verus often opaque-models repr(C) structs).
+# ``#[repr(transparent)]`` newtypes are explicitly NOT flagged: they are
+# spec-projectable.
+_REPR_RE = re.compile(
+    r"#\[\s*repr\s*\(\s*(?P<arg>[A-Za-z0-9_,\s\(\)]+?)\s*\)\s*\]"
+)
+
+
+def _repr_kind_of_source(src_excerpt: str) -> Optional[str]:
+    """Return the head repr kind ('C' / 'transparent' / 'packed' / …)
+    or ``None`` if the type has no ``#[repr(...)]`` attribute.
+
+    Only the FIRST `#[repr(...)]` is consulted; multi-repr is rare.
+    """
+    m = _REPR_RE.search(src_excerpt or "")
+    if not m:
+        return None
+    arg = m.group("arg")
+    # Split off the first head before any "," — keeps "C" out of
+    # "C, align(8)".
+    return arg.split(",", 1)[0].strip()
+
+
+# Matches the generics list on the leading `impl<...>` of a view_decl.
+# View bodies always come from `impl[<G...>] View for X { ... }` so we
+# scan the FIRST `impl<...>` occurrence. The generics list itself may
+# contain nested `<>` (bounds like `Foo<Bar>`), so we balance brackets.
+_IMPL_HEAD_RE = re.compile(r"\bimpl\b\s*<")
+
+
+def _extract_impl_generics(view_decl: str) -> set[str]:
+    """Return the set of generic-parameter names declared on the
+    outermost ``impl<...>`` block of a view_decl.
+
+    For ``impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K>``
+    this returns ``{"K"}``. Lifetimes (``'a``) are skipped. Returns an
+    empty set if the impl block has no generics (or if the decl is a
+    bare ``pub struct …``).
+
+    These names are treated by ``check_m1_view_targets_have_view`` as
+    already-viewable: the synthesiser is trusting the impl's trait
+    bounds, and Verus will catch any missing ``View`` bound at parse
+    time.
+    """
+    if not view_decl:
+        return set()
+    m = _IMPL_HEAD_RE.search(view_decl)
+    if not m:
+        return set()
+    start = m.end()  # position just past the `<`
+    depth = 1
+    i = start
+    n = len(view_decl)
+    while i < n and depth > 0:
+        c = view_decl[i]
+        if c == "<":
+            depth += 1
+        elif c == ">":
+            depth -= 1
+        i += 1
+    if depth != 0:
+        return set()
+    inner = view_decl[start : i - 1]
+    out: set[str] = set()
+    # Split on top-level commas (depth-aware to avoid commas inside
+    # nested bounds like ``Foo<A, B>``).
+    parts: list[str] = []
+    buf: list[str] = []
+    d = 0
+    for c in inner:
+        if c == "<":
+            d += 1
+        elif c == ">":
+            d -= 1
+        if c == "," and d == 0:
+            parts.append("".join(buf))
+            buf = []
+        else:
+            buf.append(c)
+    if buf:
+        parts.append("".join(buf))
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        # `'lifetime` or `const N: usize` — skip.
+        if p.startswith("'"):
+            continue
+        if p.startswith("const "):
+            continue
+        # Take the identifier before the first ':' (bound) / '=' (default).
+        for sep in (":", "="):
+            idx = p.find(sep)
+            if idx != -1:
+                p = p[:idx]
+                break
+        name = p.strip()
+        if name and (name[0].isalpha() or name[0] == "_"):
+            out.add(name)
+    return out
+
+
+# Matches `type V = (...);` on the impl block — used by M3's unit-V
+# exemption. Only the FIRST `type V = ...;` is considered (view impls
+# only declare V once).
+_TYPE_V_RE = re.compile(r"\btype\s+V\s*=\s*(?P<rhs>[^;]+?)\s*;")
+
+
+def _view_v_type(view_decl: str) -> Optional[str]:
+    """Return the textual right-hand side of ``type V = …;`` or
+    ``None`` if the decl has no such declaration (e.g. it's only the
+    V-struct definition without the impl block, in which case M3 is
+    not applicable anyway).
+    """
+    m = _TYPE_V_RE.search(view_decl or "")
+    if not m:
+        return None
+    return m.group("rhs").strip()
+
+
+def _is_unit_v(view_decl: str) -> bool:
+    """True iff the view's V-type is the unit type ``()``.
+
+    Recognises the "legitimate unit collapse" pattern documented in
+    ``docs/critic-criteria.md`` (the same exception that
+    ``check_view_body_uses_self`` already allows): when V is ``()`` the
+    view discards all spec content; this is the canonical way to mark
+    an external_body / FFI type as "no spec story" without bothering
+    the verifier.
+    """
+    v = _view_v_type(view_decl)
+    return v == "()"
+
+
+# ---------------------------------------------------------------------------
+# M3 — parent is `external_body` / `#[repr(C)]` opaque
+# ---------------------------------------------------------------------------
+
+
+def check_m3_parent_not_opaque(
+    td: "TypeDef",
+    *,
+    src_excerpt: str = "",
+    view_decl: str = "",
+) -> Optional[str]:
+    """M3: reject when the parent type is opaque to Verus.
+
+    * Hard reject on ``#[verifier::external_body]`` — Verus refuses
+      ``self.field`` projections inside spec functions on such types.
+    * Unit-V exemption: an external_body parent with ``type V = ();``
+      and a unit body is the documented "legitimate unit collapse"
+      escape hatch (cf. ``check_view_body_uses_self`` and
+      ``docs/critic-criteria.md``). Accept these silently.
+    * Soft reject (None — let M1/M2 produce a more actionable message)
+      on ``#[repr(C)]``; this is often used for FFI / hardware-layout
+      structs that Verus opaque-models, but the failure mode is the
+      same as M1 (field type has no View) so M1 wins.
+    * No flag on ``#[repr(transparent)]``: newtype wrappers are
+      spec-projectable.
+    """
+    if getattr(td, "is_external_body", False):
+        if _is_unit_v(view_decl):
+            return None
+        return (
+            f"M3: `{td.name}` is `#[verifier::external_body]` — Verus "
+            f"treats its fields as opaque and forbids field "
+            f"expressions in spec functions. Either drop `{td.name}` "
+            f"from the L4 work list, rewrite via an "
+            f"`external_type_specification` shim, or collapse the "
+            f"view body to `type V = (); fn view -> () {{ () }}`."
+        )
+    # repr(C) is intentionally NOT a hard reject here; M1/M2 handle the
+    # concrete failure mode (no view on the inner type).
+    return None
+
+
+# ---------------------------------------------------------------------------
+# M2 — `self.field@@` projects past Ghost into Set/Map/Multiset/etc.
+# ---------------------------------------------------------------------------
+
+# ``@@`` is unambiguous in the Verus grammar (no overload, no operator
+# method named ``@@``), so regex over the body is precise enough.
+_DOUBLE_AT_RE = re.compile(r"\bself\.([A-Za-z_][A-Za-z0-9_]*)\s*@\s*@")
+
+
+def check_m2_no_double_at_past_ghost(
+    view_decl: str,
+    *,
+    td: "TypeDef",
+) -> Optional[str]:
+    """M2: reject ``self.<field>@@`` when the inner type has no View.
+
+    Sequence: peel outer Ghost/Tracked, look at the *inner* head; if
+    it's in NON_VIEWABLE_INNER_HEADS, the second ``@`` is a type
+    error. We also reject when the field itself is not Ghost/Tracked
+    (``@@`` only makes sense as "peel Ghost, then view").
+    """
+    body = _extract_view_fn_body(view_decl) or ""
+    # Strip comments so a stray "@@" in a comment doesn't false-fire.
+    body_stripped = re.sub(r"//[^\n]*", "", body)
+    body_stripped = re.sub(r"/\*.*?\*/", "", body_stripped, flags=re.S)
+
+    for m in _DOUBLE_AT_RE.finditer(body_stripped):
+        fname = m.group(1)
+        ftype = _field_type(td, fname)
+        if ftype is None:
+            return (
+                f"M2: `self.{fname}@@` references field `{fname}` not "
+                f"found on `{td.name}`. Either the synthesiser "
+                f"hallucinated a field or impl_scanner missed it."
+            )
+        head = getattr(ftype, "head", None)
+        if head not in ("Ghost", "Tracked"):
+            return (
+                f"M2: `self.{fname}@@` applied to a `{head}` field "
+                f"(not `Ghost<…>` / `Tracked<…>`). Double-`@` only "
+                f"makes sense as 'peel Ghost, then view'; use a single "
+                f"`@` here."
+            )
+        # Peel Ghost/Tracked and inspect the inner head.
+        inner, _wraps = _strip_ghost_tracked(ftype)
+        inner_head = getattr(inner, "head", None) if inner is not None else None
+        if inner_head in NON_VIEWABLE_INNER_HEADS:
+            return (
+                f"M2: `self.{fname}@@` projects past `{head}` into "
+                f"`{inner_head}`, which has no `View::view`. Use a "
+                f"single `@` to unwrap `{head}`; the resulting "
+                f"`{inner_head}` already lives in spec land."
+            )
+    return None
+
+
+# ---------------------------------------------------------------------------
+# M1 — view body / V-struct references a head with no resolvable View
+# ---------------------------------------------------------------------------
+
+# Regex fallbacks for type references — robust to whitespace and
+# nesting. The view_decl is small (< 2 KB) so a few passes are cheap.
+_AS_VIEW_RE = re.compile(
+    r"<\s*(?P<head>[A-Za-z_][A-Za-z0-9_]*)"
+    r"(?:\s*<[^<>]*>)?"           # optional generic args on the head
+    r"\s+as\s+View\s*>\s*::\s*V"
+)
+_SELF_FIELD_AT_RE = re.compile(
+    r"\bself\.(?P<field>[A-Za-z_][A-Za-z0-9_]*)\s*@(?!\s*@)"
+)
+
+
+def check_m1_view_targets_have_view(
+    view_decl: str,
+    *,
+    td: "TypeDef",
+    known_view_heads: set[str],
+    cache: Optional["ViewCache"] = None,
+) -> Optional[str]:
+    """M1: reject if the view body / V-struct references a type whose
+    View is not in the registry.
+
+    Inputs
+    ------
+    view_decl :
+        Full ``impl View for X { type V = …; spec fn view(&self) -> … }``
+        block source.
+    td :
+        Parent ``TypeDef``; used to look up field types referenced via
+        ``self.<field>@``.
+    known_view_heads :
+        Union of (a) every short name with a registered ``impl View``
+        in the project scan, (b) every short name with an active
+        (non-quarantined) cached L4 entry. Caller is responsible for
+        merging.
+    cache :
+        Optional ``ViewCache``; when provided, ``cache.is_quarantined``
+        is consulted to upgrade an otherwise-tolerable miss into an
+        explicit "cascade" reject.
+
+    Returns ``None`` on accept, a reject reason on reject.
+    """
+    refs: set[str] = set()
+    body = _extract_view_fn_body(view_decl) or ""
+    body_stripped = re.sub(r"//[^\n]*", "", body)
+    body_stripped = re.sub(r"/\*.*?\*/", "", body_stripped, flags=re.S)
+    decl_stripped = re.sub(r"//[^\n]*", "", view_decl)
+    decl_stripped = re.sub(r"/\*.*?\*/", "", decl_stripped, flags=re.S)
+
+    # Generic params on the impl block are assumed to satisfy any View
+    # bound the synthesiser intends; Verus will reject at parse time
+    # if the bound is actually missing.
+    impl_generics = _extract_impl_generics(decl_stripped)
+
+    # --- Step 1 — gather <X as View>::V refs across the entire decl.
+    for m in _AS_VIEW_RE.finditer(decl_stripped):
+        refs.add(m.group("head"))
+
+    # --- Step 2 — gather self.<field>@ projections.
+    # We resolve the field type's head through impl_scanner.field_type;
+    # if Ghost / Tracked, peel one level and take the inner head.
+    seen_fields: set[str] = set()
+    for m in _SELF_FIELD_AT_RE.finditer(body_stripped):
+        fname = m.group("field")
+        if fname in seen_fields:
+            continue
+        seen_fields.add(fname)
+        ftype = _field_type(td, fname)
+        if ftype is None:
+            # Field is not in our TypeDef — conservative reject; the
+            # synthesiser may have hallucinated.
+            return (
+                f"M1: `self.{fname}@` references unknown field on "
+                f"`{td.name}`. The synthesiser may have hallucinated; "
+                f"reject conservatively."
+            )
+        # Peel one Ghost/Tracked layer (one `@` peels Ghost), then take
+        # the head.
+        head = getattr(ftype, "head", None)
+        if head in ("Ghost", "Tracked"):
+            inner, _ = _strip_ghost_tracked(ftype)
+            head = getattr(inner, "head", None) if inner is not None else None
+        # `spec_fn(int) -> bool` parses with kind="fn"; treat it as
+        # already-viewable (spec functions are spec-only).
+        if head is None:
+            kind = getattr(ftype, "kind", None)
+            if kind == "fn":
+                continue
+        if head:
+            refs.add(head)
+
+    # --- Step 3 — every referenced head must be View-resolvable.
+    for h in sorted(refs):
+        if h in VSTD_VIEW_HEADS:
+            continue
+        if h in impl_generics:
+            continue
+        if h in known_view_heads:
+            continue
+        if cache is not None and cache.is_quarantined(h):
+            return (
+                f"M1: references `{h}` (via `<{h} as View>::V` or "
+                f"`self.<…>@`), which is currently quarantined. "
+                f"Re-attempting this view would cascade-break."
+            )
+        return (
+            f"M1: references `{h}` (via `<{h} as View>::V` or "
+            f"`self.<…>@`), but no View impl is registered for `{h}` "
+            f"(not in VSTD_VIEW_HEADS, not a generic parameter of "
+            f"this impl, not in project view registry). "
+            f"Either restructure to avoid the dependency, add a "
+            f"manual `impl View for {h}`, or quarantine `{td.name}` "
+            f"until `{h}` is covered."
+        )
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Aggregator — used by ``synthesize_view`` and by ``llm.py lint-scan``.
+# ---------------------------------------------------------------------------
+
+
+def lint_view_decl(
+    view_decl: str,
+    *,
+    td: "TypeDef",
+    src_excerpt: str = "",
+    known_view_heads: Optional[set[str]] = None,
+    cache: Optional["ViewCache"] = None,
+) -> Optional[tuple[str, str]]:
+    """Run M3 → M2 → M1 in order; return ``(rule, reason)`` on first
+    rejection or ``None`` on accept.
+
+    The ordering is intentional:
+
+    * **M3** is cheapest (attribute predicate); rejects external_body
+      types before parsing the body at all.
+    * **M2** is the most specific (double-@ on Ghost<NonView>); fires
+      on a strict subset of the cases where M1 would also fire.
+    * **M1** is the broad catch-all (any missing View head).
+
+    When ``known_view_heads`` is ``None`` (e.g. retroactive scan over
+    cached entries with no registry handy), M1 is skipped — only M3
+    and M2 run.
+    """
+    msg = check_m3_parent_not_opaque(
+        td, src_excerpt=src_excerpt, view_decl=view_decl,
+    )
+    if msg:
+        return ("M3", msg)
+    msg = check_m2_no_double_at_past_ghost(view_decl, td=td)
+    if msg:
+        return ("M2", msg)
+    if known_view_heads is not None:
+        msg = check_m1_view_targets_have_view(
+            view_decl, td=td,
+            known_view_heads=known_view_heads, cache=cache,
+        )
+        if msg:
+            return ("M1", msg)
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Disk cache
 # ---------------------------------------------------------------------------
 
@@ -605,6 +1094,7 @@ def synthesize_view(
     critic: Optional["CodexCritic"] = None,
     enable_critic: bool = True,
     status_out: Optional[dict] = None,
+    known_view_heads: Optional[set[str]] = None,
 ) -> Optional[CacheEntry]:
     """Synthesize a view for one type, with cache-hit short-circuit.
 
@@ -621,7 +1111,14 @@ def synthesize_view(
         "parse_fail"     could not parse JSON from response
         "validate_fail"  tree-sitter parse of view_decl failed
         "lint_reject"    view body fails the static "must reference self" check
+        "lint_m1_reject" view references a type with no registered View
+        "lint_m2_reject" view applies `@@` over Ghost<NonView>
+        "lint_m3_reject" parent type is `external_body` / opaque to Verus
         "critic_reject"  critic rejected the candidate
+
+    ``known_view_heads`` (PR-D5) — set of short type names that have a
+    registered View impl in the project (L3 scan + active L4 cache
+    entries). Passed through to the M1 detector. ``None`` skips M1.
     """
     from spec_determinism.view.critic import (
         CodexCritic, critique_view, append_rejected,
@@ -708,6 +1205,35 @@ def synthesize_view(
             source_hash=src_hash,
         )
         _set("lint_reject")
+        return None
+
+    # PR-D5 — M1 / M2 / M3 lints. Reject the candidate without caching
+    # if any of the three fires. Status is "lint_m{1,2,3}_reject" so
+    # downstream summaries can distinguish.
+    m_hit = lint_view_decl(
+        view_decl,
+        td=td,
+        src_excerpt=src_excerpt,
+        known_view_heads=known_view_heads,
+        cache=cache,
+    )
+    if m_hit is not None:
+        rule, reason = m_hit
+        logger.warning(
+            "L4 synth for %s: %s rejected (%s); "
+            "appending to _rejected.jsonl and NOT caching",
+            td.name, rule, reason,
+        )
+        append_rejected(
+            cache.root,
+            type_short=td.name,
+            qualified_name=td.qualified_name,
+            issues=[f"{rule} lint: {reason}"],
+            viewed_type=viewed_type,
+            view_decl=view_decl,
+            source_hash=src_hash,
+        )
+        _set(f"lint_{rule.lower()}_reject")
         return None
 
     critic_verdict = ""
@@ -860,6 +1386,39 @@ def prefill_project(
         "results": [],
     }
 
+    # PR-D5 — assemble the set of short names that have a resolvable
+    # View, used by the M1 detector. We probe ``view_registry.resolve``
+    # on every parsed short name in the project — that single API
+    # already unifies L1 prelude rules, L2 alias chains, L3 raw
+    # ``impl View`` blocks, and L4 cached entries. A name is "known
+    # viewable" iff a leaf TypeExpr for it resolves.
+    #
+    # Earlier drafts unioned ``types_by_short.keys()`` directly, which
+    # was too lenient (the M1 rule became toothless: atmosphere/Endpoint
+    # references ``<EndpointState as View>::V``; EndpointState had no
+    # View impl yet was accepted because it was a parsed struct). The
+    # earlier-than-that draft used only ``scan.views.keys()`` plus
+    # active cache, which was too strict: it dropped type aliases like
+    # ironkv's ``pub type AckList<MT> = Seq<SingleMessage<MT>>;`` even
+    # though they resolve through L1 + L2.
+    known_view_heads: set[str] = set(view_registry.scan.views.keys())
+    try:
+        for e in cache.all_entries():
+            if e.view_decl:
+                known_view_heads.add(e.type_short)
+    except Exception:
+        pass
+    for short in view_registry.types_by_short.keys():
+        if short in known_view_heads:
+            continue
+        probe = TypeExpr(kind="leaf", head=short, raw=short)
+        try:
+            res = view_registry.resolve(probe)
+            if res.is_resolved:
+                known_view_heads.add(short)
+        except Exception:
+            pass
+
     for td in uncovered:
         dep_views = _dep_views_for(td, view_registry)
         record = {
@@ -884,6 +1443,7 @@ def prefill_project(
                 critic=critic_obj,
                 enable_critic=enable_critic,
                 status_out=status,
+                known_view_heads=known_view_heads,
             )
             record["status"] = status.get("status", "?")
             if entry is None:
@@ -891,7 +1451,8 @@ def prefill_project(
                 # back-compat with downstream summaries.
                 if record["status"] == "critic_reject":
                     record["action"] = "critic_reject"
-                elif record["status"] == "lint_reject":
+                elif record["status"] in ("lint_reject", "lint_m1_reject",
+                                          "lint_m2_reject", "lint_m3_reject"):
                     record["action"] = "lint_reject"
                 elif record["status"] == "validate_fail":
                     record["action"] = "invalid"
@@ -949,8 +1510,139 @@ def _dep_views_for(td: TypeDef, view_registry) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# CLI
+# PR-D5 retroactive lint scan (CLI command)
 # ---------------------------------------------------------------------------
+
+
+def _cmd_lint_scan(args) -> int:
+    """Run M1/M2/M3 against every cached view in ``--cache-dir``.
+
+    For each active entry (i.e. ``*.json``), reconstruct a minimal
+    ``TypeDef`` from the cache record + (if ``--root`` is supplied) the
+    project's type registry, and pass it through ``lint_view_decl``.
+
+    Prints a per-rejection block:
+        - cache entry path
+        - rule (M1 / M2 / M3)
+        - reason
+        - (optional) view_decl
+
+    Exits with 0 if no rejections, 1 otherwise (so the scan can be
+    wired into CI later).
+    """
+    cache = ViewCache(args.cache_dir)
+    entries = list(cache.all_entries())
+    quarantined_count = 0
+    if args.include_quarantined:
+        for qname in cache.quarantined_names():
+            qpath = args.cache_dir / f"{qname}.json.quarantine"
+            try:
+                d = json.loads(qpath.read_text())
+                entries.append(CacheEntry.from_dict(d))
+                quarantined_count += 1
+            except Exception as e:
+                logger.warning("Could not load %s: %s", qpath, e)
+
+    # Optional registry — needed for M1 (known_view_heads) and for
+    # well-typed TypeDef recovery (so we can resolve field types).
+    types_by_short: dict[str, list[TypeDef]] = {}
+    known_view_heads: Optional[set[str]] = None
+    if args.root is not None:
+        from spec_determinism.view.registry import ViewRegistry
+        reg = ViewRegistry.from_project(args.root)
+        types_by_short = reg.types_by_short
+        # Same semantics as ``prefill_project``: probe ``reg.resolve``
+        # on every parsed short name so the set covers L1/L2/L3/L4
+        # uniformly.
+        known_view_heads = set(reg.scan.views.keys())
+        for e in cache.all_entries():
+            if e.view_decl:
+                known_view_heads.add(e.type_short)
+        for short in reg.types_by_short.keys():
+            if short in known_view_heads:
+                continue
+            probe = TypeExpr(kind="leaf", head=short, raw=short)
+            try:
+                res = reg.resolve(probe)
+                if res.is_resolved:
+                    known_view_heads.add(short)
+            except Exception:
+                pass
+
+    n_total = 0
+    n_reject = 0
+    by_rule: dict[str, int] = {}
+    rejections: list[dict] = []
+
+    for e in entries:
+        if not e.view_decl:
+            continue
+        n_total += 1
+        # Reconstruct a TypeDef. Prefer the project registry; fall back
+        # to a stub. The stub lacks field types, which means M1 will
+        # be unable to peel ghost wrappers — that's a known limitation.
+        td = None
+        if types_by_short:
+            defs = types_by_short.get(e.type_short, [])
+            td = next((d for d in defs if d.kind != "alias"), None)
+        if td is None:
+            td = TypeDef(name=e.type_short,
+                         qualified_name=e.qualified_name,
+                         kind="struct",
+                         source_file="", source_line=0)
+
+        # The cache holds the view_decl text but not the original
+        # type source excerpt; the only is_external_body signal we
+        # have is the TypeDef we recovered from the registry.
+        hit = lint_view_decl(
+            e.view_decl,
+            td=td,
+            src_excerpt="",
+            known_view_heads=known_view_heads,
+            cache=cache,
+        )
+        if hit is None:
+            continue
+        rule, reason = hit
+        n_reject += 1
+        by_rule[rule] = by_rule.get(rule, 0) + 1
+        rejections.append({
+            "type_short": e.type_short,
+            "qualified_name": e.qualified_name,
+            "rule": rule,
+            "reason": reason,
+        })
+        marker = " [QUARANTINED]" if cache.is_quarantined(e.type_short) else ""
+        print(f"\n=== {e.type_short}{marker}  ({rule}) ===")
+        print(f"qualified_name: {e.qualified_name}")
+        print(f"reason: {reason}")
+        if args.show_decl:
+            print("\nview_decl:")
+            print(e.view_decl)
+
+    qbits = (f" (incl. {quarantined_count} quarantined)"
+             if args.include_quarantined else "")
+    by = ", ".join(f"{k}={v}" for k, v in sorted(by_rule.items()))
+    print(f"\n[lint-scan] project={args.project or '?'}  "
+          f"scanned={n_total}{qbits}  "
+          f"reject={n_reject}  "
+          f"by_rule=[{by}]")
+
+    # Persist a JSON report next to the cache for diff'ing.
+    report = {
+        "project": args.project,
+        "scanned": n_total,
+        "rejected": n_reject,
+        "by_rule": by_rule,
+        "rejections": rejections,
+    }
+    out_path = args.cache_dir / "_lint_scan.json"
+    out_path.write_text(json.dumps(report, indent=2) + "\n")
+    print(f"[lint-scan] report written: {out_path}")
+
+    return 1 if n_reject > 0 else 0
+
+
 
 
 def _cli() -> int:
@@ -994,6 +1686,24 @@ def _cli() -> int:
     insp.add_argument("--show-decl", action="store_true",
                       help="Print full view_decl text (otherwise just summary).")
 
+    ls = sub.add_parser("lint-scan",
+                        help="PR-D5 retroactive scan: run M1/M2/M3 on "
+                             "every active cache entry; print any "
+                             "rejection that would have been emitted "
+                             "had the lint existed at synth time.")
+    ls.add_argument("--cache-dir", required=True, type=Path,
+                    help="Cache directory.")
+    ls.add_argument("--root", default=None, type=Path,
+                    help="Project source root. When omitted, M1 is "
+                         "skipped (no known_view_heads to compare).")
+    ls.add_argument("--project", default="",
+                    help="Project name (header only).")
+    ls.add_argument("--include-quarantined", action="store_true",
+                    help="Also scan .json.quarantine entries (e.g. to "
+                         "confirm they all still trip the lint).")
+    ls.add_argument("--show-decl", action="store_true",
+                    help="Print the view_decl alongside each rejection.")
+
     ts_test = sub.add_parser("test",
                              help="Run module self-tests "
                                   "(no network calls).")
@@ -1022,6 +1732,9 @@ def _cli() -> int:
                 print(e.view_decl)
         print(f"\n[{len(entries)} entries]")
         return 0
+
+    if args.cmd == "lint-scan":
+        return _cmd_lint_scan(args)
 
     if args.cmd == "prefill":
         from spec_determinism.view.registry import ViewRegistry
@@ -1289,6 +2002,411 @@ trailing text
     check("Target type" in p, "prompt: has target section")
     check("Page" in p, "prompt: mentions type")
     check("primitive" in p, "prompt: includes dep")
+
+    # ------------------------------------------------------------------
+    # PR-D5 — M1 / M2 / M3 detector unit tests
+    # ------------------------------------------------------------------
+
+    # --- helpers --------------------------------------------------------
+    def _te_leaf(h):
+        return TypeExpr(kind="leaf", head=h, raw=h)
+    def _te_gen(h, *args):
+        return TypeExpr(kind="generic", head=h, args=list(args), raw=h)
+    def _fd(name, te):
+        return FieldDecl(name=name, type_text=te.raw, type_refs=[],
+                         is_pub=False, span=(0, 0), type_expr=te)
+    def _struct(name, *fields, **kw):
+        return TypeDef(
+            name=name, qualified_name=name, kind="struct",
+            fields=list(fields), source_file="", source_line=0,
+            **kw,
+        )
+
+    # --- M3 — external_body parent ------------------------------------
+    td_ext = _struct("CKeyHashMap", _fd("m", _te_gen("HashMap")),
+                     is_external_body=True)
+    out = check_m3_parent_not_opaque(td_ext)
+    check(out is not None and out.startswith("M3:"),
+          f"M3: external_body should reject (got {out!r})")
+
+    td_plain = _struct("Foo", _fd("x", _te_leaf("u64")))
+    out = check_m3_parent_not_opaque(td_plain)
+    check(out is None, f"M3: plain struct should accept (got {out!r})")
+
+    # repr(C) is intentionally NOT a hard reject — M1/M2 carry the
+    # message instead.
+    td_reprc = _struct("Registers", _fd("rax", _te_leaf("u64")))
+    out = check_m3_parent_not_opaque(td_reprc,
+                                     src_excerpt="#[repr(C, align(8))]\npub struct Registers { rax: u64 }")
+    check(out is None, "M3: repr(C) is a soft warning, not a hard reject")
+
+    # --- M2 — `self.f@@` past Ghost ------------------------------------
+    # PR-D5 fix iteration: Set/Seq/Map/Multiset HAVE identity Views in
+    # vstd, so `Ghost<Set<…>>@@` is fine (Container relies on this).
+    # The retained M2 contract: `Ghost<FnSpec>@@` is still a type error
+    # (Fn traits have no `View::view`).
+    td_endpoint = _struct(
+        "EndpointStub",
+        _fd("predicate",
+            _te_gen("Ghost", _te_leaf("FnSpec"))),
+    )
+    decl_bad = (
+        "impl View for EndpointStub {\n"
+        "    type V = EndpointStubView;\n"
+        "    closed spec fn view(&self) -> EndpointStubView {\n"
+        "        EndpointStubView { p: self.predicate@@ }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_bad, td=td_endpoint)
+    check(out is not None and out.startswith("M2:"),
+          f"M2: Ghost<FnSpec>@@ should reject (got {out!r})")
+
+    # Ghost<Set<…>>@@ is the legitimate atmosphere/Container pattern —
+    # Set has an identity View in vstd, so `@@` peels Ghost then
+    # identity-views. Must ACCEPT (regression pin for the FP that
+    # PR-D5 first-draft caught).
+    td_container = _struct(
+        "Container",
+        _fd("subtree_set",
+            _te_gen("Ghost", _te_gen("Set", _te_leaf("ContainerPtr")))),
+        _fd("uppertree_seq",
+            _te_gen("Ghost", _te_gen("Seq", _te_leaf("ContainerPtr")))),
+    )
+    decl_container = (
+        "impl View for Container {\n"
+        "    type V = ContainerView;\n"
+        "    closed spec fn view(&self) -> ContainerView {\n"
+        "        ContainerView {\n"
+        "            subtree_set: self.subtree_set@@,\n"
+        "            uppertree_seq: self.uppertree_seq@@,\n"
+        "        }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_container, td=td_container)
+    check(out is None,
+          f"M2: Ghost<Set<…>>@@ should ACCEPT (Set has identity View; "
+          f"got {out!r})")
+
+    # Ghost<Vec<u8>> field → @@ is fine (Vec has View)
+    td_ok = _struct(
+        "Wrap",
+        _fd("g", _te_gen("Ghost", _te_gen("Vec", _te_leaf("u8")))),
+    )
+    decl_ok = (
+        "impl View for Wrap {\n"
+        "    type V = WrapView;\n"
+        "    closed spec fn view(&self) -> WrapView {\n"
+        "        WrapView { g: self.g@@ }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_ok, td=td_ok)
+    check(out is None,
+          f"M2: Ghost<Vec<u8>>@@ should accept (got {out!r})")
+
+    # Plain Vec<u8> with @@ → reject (not Ghost/Tracked).
+    td_vec = _struct("V", _fd("bytes", _te_gen("Vec", _te_leaf("u8"))))
+    decl_atat_on_vec = (
+        "impl View for V {\n"
+        "    type V = Seq<u8>;\n"
+        "    closed spec fn view(&self) -> Seq<u8> { self.bytes@@ }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_atat_on_vec, td=td_vec)
+    check(out is not None and "not `Ghost" in out,
+          f"M2: Vec@@ should reject as non-Ghost (got {out!r})")
+
+    # No `@@` anywhere → accept regardless of field shape.
+    decl_single_at = (
+        "impl View for V {\n"
+        "    type V = Seq<u8>;\n"
+        "    closed spec fn view(&self) -> Seq<u8> { self.bytes@ }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_single_at, td=td_vec)
+    check(out is None, "M2: single @ should accept")
+
+    # Comment-only `@@` doesn't count.
+    decl_comment = (
+        "impl View for V {\n"
+        "    type V = Seq<u8>;\n"
+        "    closed spec fn view(&self) -> Seq<u8> {\n"
+        "        // we are NOT using self.x@@ here\n"
+        "        self.bytes@\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m2_no_double_at_past_ghost(decl_comment, td=td_vec)
+    check(out is None, "M2: @@ inside comment must not fire")
+
+    # --- M1 — referenced head has no View ------------------------------
+    # `<PageAllocator as View>::V` is not in known_view_heads.
+    td_kernel = _struct(
+        "Kernel",
+        _fd("alloc", _te_leaf("PageAllocator")),
+    )
+    decl_kernel = (
+        "impl View for Kernel {\n"
+        "    type V = KernelView;\n"
+        "    closed spec fn view(&self) -> KernelView {\n"
+        "        KernelView { alloc: <PageAllocator as View>::V::default() }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_kernel, td=td_kernel,
+        known_view_heads={"Kernel", "Endpoint"},  # PageAllocator absent
+    )
+    check(out is not None and "PageAllocator" in out,
+          f"M1: missing PageAllocator should reject (got {out!r})")
+
+    # With PageAllocator in the set → accept.
+    out = check_m1_view_targets_have_view(
+        decl_kernel, td=td_kernel,
+        known_view_heads={"Kernel", "PageAllocator"},
+    )
+    check(out is None,
+          f"M1: known head should accept (got {out!r})")
+
+    # `self.field@` head check — when the field's head has a View, accept.
+    decl_self_at = (
+        "impl View for Kernel {\n"
+        "    type V = Seq<PageAllocator>;\n"
+        "    closed spec fn view(&self) -> Seq<PageAllocator> { self.alloc@ }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_self_at, td=td_kernel,
+        known_view_heads={"PageAllocator"},
+    )
+    check(out is None, "M1: self.alloc@ with PageAllocator known → accept")
+
+    out = check_m1_view_targets_have_view(
+        decl_self_at, td=td_kernel,
+        known_view_heads=set(),
+    )
+    check(out is not None and "PageAllocator" in out,
+          f"M1: self.alloc@ missing PageAllocator → reject (got {out!r})")
+
+    # vstd heads pass without registration.
+    td_winner = _struct(
+        "CommitMask", _fd("mask", _te_gen("Vec", _te_leaf("u64"))),
+    )
+    decl_winner = (
+        "impl View for CommitMask {\n"
+        "    type V = Seq<u64>;\n"
+        "    closed spec fn view(&self) -> Seq<u64> { self.mask@ }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_winner, td=td_winner, known_view_heads=set(),
+    )
+    check(out is None, "M1: Vec<u64> via VSTD_VIEW_HEADS → accept")
+
+    # Quarantine cascade — head is in `cache.is_quarantined`.
+    with tempfile.TemporaryDirectory() as tmp:
+        c_q = ViewCache(Path(tmp))
+        (Path(tmp) / "EndPoint.json.quarantine").write_text("{}")
+        td_csm = _struct(
+            "CSingleMessage",
+            _fd("dst", _te_leaf("EndPoint")),
+        )
+        decl_csm = (
+            "impl View for CSingleMessage {\n"
+            "    type V = CSingleMessageView;\n"
+            "    closed spec fn view(&self) -> CSingleMessageView {\n"
+            "        CSingleMessageView { dst: <EndPoint as View>::V::default() }\n"
+            "    }\n"
+            "}"
+        )
+        out = check_m1_view_targets_have_view(
+            decl_csm, td=td_csm, known_view_heads=set(), cache=c_q,
+        )
+        check(out is not None and "quarantined" in out,
+              f"M1: cascade through quarantine should reject (got {out!r})")
+
+    # Hallucinated field reference → reject.
+    td_no_field = _struct("Foo", _fd("real", _te_leaf("u64")))
+    decl_hallucinated = (
+        "impl View for Foo {\n"
+        "    type V = Seq<u64>;\n"
+        "    closed spec fn view(&self) -> Seq<u64> { self.imaginary@ }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_hallucinated, td=td_no_field,
+        known_view_heads=set(),
+    )
+    check(out is not None and "imaginary" in out,
+          f"M1: hallucinated field should reject (got {out!r})")
+
+    # --- lint_view_decl aggregator order: M3 > M2 > M1 -----------------
+    # An external_body parent with a broken body should report M3 first.
+    td_both = _struct(
+        "Bad",
+        _fd("g", _te_gen("Ghost", _te_leaf("FnSpec"))),
+        is_external_body=True,
+    )
+    decl_both = (
+        "impl View for Bad {\n"
+        "    type V = BadView;\n"
+        "    closed spec fn view(&self) -> BadView {\n"
+        "        BadView { g: self.g@@ }\n"
+        "    }\n"
+        "}"
+    )
+    hit = lint_view_decl(decl_both, td=td_both, known_view_heads=set())
+    check(hit is not None and hit[0] == "M3",
+          f"lint: M3 has priority (got {hit!r})")
+
+    # M2 fires before M1 when M3 doesn't.
+    hit = lint_view_decl(decl_bad, td=td_endpoint, known_view_heads=set())
+    check(hit is not None and hit[0] == "M2",
+          f"lint: M2 fires before M1 (got {hit!r})")
+
+    # Winning view from PR-D4 case studies must pass all three.
+    hit = lint_view_decl(decl_winner, td=td_winner, known_view_heads=set())
+    check(hit is None,
+          f"lint: PR-D4 winner CommitMask should pass all 3 (got {hit!r})")
+
+    # --- PR-D5 retroactive scan: FP regression-pins -------------------
+    # (a) M3 unit-V exemption: external_body + `type V = ()` + body `()`
+    # is the documented "legitimate unit collapse" pattern
+    # (ironkv/NetClientCPointers, nrkernel/Token).
+    td_ffi = _struct("NetClientCPointers", is_external_body=True)
+    decl_unit_collapse = (
+        "impl View for NetClientCPointers {\n"
+        "    type V = ();\n"
+        "    closed spec fn view(&self) -> () { () }\n"
+        "}"
+    )
+    out = check_m3_parent_not_opaque(
+        td_ffi, view_decl=decl_unit_collapse,
+    )
+    check(out is None,
+          f"M3: unit-V collapse on external_body should ACCEPT (got {out!r})")
+    hit = lint_view_decl(
+        decl_unit_collapse, td=td_ffi, known_view_heads=set(),
+    )
+    check(hit is None,
+          f"lint: unit-V collapse should pass all 3 rules (got {hit!r})")
+
+    # (b) M1 impl-generics: a generic param like `K: View` introduced
+    # in the `impl<K: …View>` header is treated as already-viewable.
+    # Regression pin for ironkv/KeyIterator.
+    td_keyiter = _struct(
+        "KeyIterator", _fd("k", _te_gen("Option", _te_leaf("K"))),
+    )
+    decl_keyiter = (
+        "impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K> {\n"
+        "    type V = Option<<K as View>::V>;\n"
+        "    closed spec fn view(&self) -> Self::V { self.k@ }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_keyiter, td=td_keyiter, known_view_heads=set(),
+    )
+    check(out is None,
+          f"M1: impl-generic K should be treated as known (got {out!r})")
+    # Also tests `_extract_impl_generics` directly.
+    gens = _extract_impl_generics(decl_keyiter)
+    check(gens == {"K"},
+          f"_extract_impl_generics: KeyIterator → {{K}} (got {gens!r})")
+    # Multi-param impl block (WriteRestrictedPersistentMemoryRegion).
+    td_wrpr = _struct(
+        "WriteRestrictedPersistentMemoryRegion",
+        _fd("pm_region", _te_leaf("PMRegion")),
+    )
+    decl_wrpr = (
+        "impl<Perm, PMRegion> View for "
+        "WriteRestrictedPersistentMemoryRegion<Perm, PMRegion>\n"
+        "    where\n"
+        "        Perm: CheckPermission<Seq<u8>>,\n"
+        "        PMRegion: PersistentMemoryRegion,\n"
+        "{\n"
+        "    type V = PersistentMemoryRegionView;\n"
+        "    closed spec fn view(&self) -> Self::V { self.pm_region@ }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_wrpr, td=td_wrpr, known_view_heads=set(),
+    )
+    check(out is None,
+          f"M1: impl<Perm, PMRegion> with `self.pm_region@` should ACCEPT "
+          f"(got {out!r})")
+
+    # (c) String field via `self.message@` — String has built-in View
+    # in vstd (regression pin for ironkv/IronfleetIOError).
+    td_ioerr = _struct(
+        "IronfleetIOError", _fd("message", _te_leaf("String")),
+    )
+    decl_ioerr = (
+        "impl View for IronfleetIOError {\n"
+        "    type V = IronfleetIOErrorView;\n"
+        "    closed spec fn view(&self) -> IronfleetIOErrorView {\n"
+        "        IronfleetIOErrorView { message: self.message@ }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_ioerr, td=td_ioerr, known_view_heads=set(),
+    )
+    check(out is None,
+          f"M1: `self.message@` on `String` field should ACCEPT "
+          f"(got {out!r})")
+
+    # (d) `Ghost<spec_fn(int) -> bool>` field via `self.fn_@` — spec_fn
+    # has identity View (regression pin for
+    # storage/WritablePersistentMemorySubregion).
+    td_subreg = _struct(
+        "WritablePersistentMemorySubregion",
+        _fd("is_writable_absolute_addr_fn_",
+            _te_gen("Ghost",
+                    TypeExpr(kind="fn", head="spec_fn", args=[],
+                             raw="spec_fn(int) -> bool"))),
+    )
+    decl_subreg = (
+        "impl View for WritablePersistentMemorySubregion {\n"
+        "    type V = WritablePersistentMemorySubregionView;\n"
+        "    open spec fn view(&self) -> WritablePersistentMemorySubregionView {\n"
+        "        WritablePersistentMemorySubregionView {\n"
+        "            is_writable_absolute_addr_fn_: "
+        "self.is_writable_absolute_addr_fn_@,\n"
+        "        }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m1_view_targets_have_view(
+        decl_subreg, td=td_subreg, known_view_heads=set(),
+    )
+    check(out is None,
+          f"M1: `Ghost<spec_fn(...)>` field via `@` should ACCEPT "
+          f"(got {out!r})")
+
+    # (e) `_extract_impl_generics` edge cases.
+    check(_extract_impl_generics("") == set(),
+          "_extract_impl_generics: empty input → empty set")
+    check(_extract_impl_generics("pub struct Foo { x: u32 }") == set(),
+          "_extract_impl_generics: bare struct (no impl) → empty set")
+    check(_extract_impl_generics("impl View for Foo { }") == set(),
+          "_extract_impl_generics: impl with no <...> → empty set")
+    # Lifetimes and const params are filtered out.
+    gens2 = _extract_impl_generics(
+        "impl<'a, const N: usize, T: View> View for Foo<'a, N, T> { }"
+    )
+    check(gens2 == {"T"},
+          f"_extract_impl_generics: lifetimes/consts filtered "
+          f"(got {gens2!r})")
+
+    # (f) `_view_v_type` / `_is_unit_v` smoke tests.
+    check(_view_v_type(decl_unit_collapse) == "()",
+          "_view_v_type: unit-V decl extracts ()")
+    check(_is_unit_v(decl_unit_collapse) is True,
+          "_is_unit_v: unit-V decl")
+    check(_is_unit_v(decl_winner) is False,
+          "_is_unit_v: CommitMask is NOT unit-V")
 
     # --- CacheEntry round-trip via to_dict / from_dict
     e2 = CacheEntry.from_dict(e.to_dict())
