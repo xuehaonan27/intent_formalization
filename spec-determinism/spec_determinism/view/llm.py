@@ -324,6 +324,11 @@ class CacheEntry:
     rationale: str = ""
     schema_version: int = CACHE_SCHEMA_VERSION
     raw_response: str = ""
+    # Critic fields (PR-D2.5). Optional — entries written before the
+    # critic step landed have ``critic_verdict == ""`` and the registry
+    # treats them as unchecked.
+    critic_verdict: str = ""
+    critic_issues: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -337,6 +342,8 @@ class CacheEntry:
             "depends_on_views_of": list(self.depends_on_views_of),
             "rationale": self.rationale,
             "raw_response": self.raw_response,
+            "critic_verdict": self.critic_verdict,
+            "critic_issues": list(self.critic_issues),
         }
 
     @classmethod
@@ -352,6 +359,8 @@ class CacheEntry:
             depends_on_views_of=list(d.get("depends_on_views_of") or []),
             rationale=d.get("rationale", ""),
             raw_response=d.get("raw_response", ""),
+            critic_verdict=str(d.get("critic_verdict", "") or ""),
+            critic_issues=list(d.get("critic_issues") or []),
         )
 
 
@@ -494,12 +503,19 @@ def synthesize_view(
     project: str = "",
     extra_context: str = "",
     force: bool = False,
+    critic: Optional["CodexCritic"] = None,
+    enable_critic: bool = True,
 ) -> Optional[CacheEntry]:
     """Synthesize a view for one type, with cache-hit short-circuit.
 
     Returns the cached/freshly-generated :class:`CacheEntry`, or
-    ``None`` when synthesis or validation failed.
+    ``None`` when synthesis or validation failed or the critic
+    rejected the candidate.
     """
+    from spec_determinism.view.critic import (
+        CodexCritic, critique_view, append_rejected,
+    )
+
     src_excerpt = _extract_type_source(td)
     src_hash = _source_hash(src_excerpt or td.qualified_name)
 
@@ -548,16 +564,57 @@ def synthesize_view(
         cache.put(entry)
         return None
 
+    viewed_type = d["viewed_type"]
+    rationale = d.get("rationale", "")
+
+    critic_verdict = ""
+    critic_issues: list[str] = []
+    if enable_critic:
+        if critic is None:
+            critic = CodexCritic()
+        cr = critique_view(
+            type_short=td.name,
+            qualified_name=td.qualified_name,
+            type_source=src_excerpt,
+            viewed_type=viewed_type,
+            view_decl=view_decl,
+            dep_views=dep_views,
+            rationale=rationale,
+            project=project,
+            run_dir=run_dir,
+            critic=critic,
+        )
+        critic_verdict = cr.verdict
+        critic_issues = list(cr.issues)
+        if cr.verdict == "reject":
+            logger.warning(
+                "L4 synth for %s: critic rejected (%d issues); "
+                "appending to _rejected.jsonl and NOT caching",
+                td.name, len(cr.issues),
+            )
+            append_rejected(
+                cache.root,
+                type_short=td.name,
+                qualified_name=td.qualified_name,
+                issues=cr.issues,
+                viewed_type=viewed_type,
+                view_decl=view_decl,
+                source_hash=src_hash,
+            )
+            return None
+
     entry = CacheEntry(
         type_short=td.name,
         qualified_name=td.qualified_name,
         source_hash=src_hash,
         view_source=VIEW_SOURCE_TAG,
-        viewed_type=d["viewed_type"],
+        viewed_type=viewed_type,
         view_decl=view_decl,
         depends_on_views_of=list(d.get("depends_on_views_of") or []),
-        rationale=d.get("rationale", ""),
+        rationale=rationale,
         raw_response=raw,
+        critic_verdict=critic_verdict,
+        critic_issues=critic_issues,
     )
     cache.put(entry)
     return entry
@@ -604,6 +661,9 @@ def prefill_project(
     limit: Optional[int] = None,
     dry_run: bool = False,
     force: bool = False,
+    enable_critic: bool = True,
+    critic_model: Optional[str] = None,
+    critic_timeout: int = 180,
 ) -> dict:
     """Batch-synthesize views for every uncovered type in the project.
 
@@ -626,9 +686,15 @@ def prefill_project(
     if limit is not None:
         uncovered = uncovered[:limit]
 
+    critic_obj = None
+    if enable_critic and not dry_run:
+        from spec_determinism.view.critic import CodexCritic
+        critic_obj = CodexCritic(model=critic_model, timeout=critic_timeout)
+
     summary = {
         "project": project_name,
         "total_uncovered": len(uncovered),
+        "enable_critic": enable_critic,
         "results": [],
     }
 
@@ -652,12 +718,17 @@ def prefill_project(
                 client=client,
                 project=project_name,
                 force=force,
+                critic=critic_obj,
+                enable_critic=enable_critic,
             )
             if entry is None:
                 record["action"] = "failed"
             elif entry.view_source == VIEW_SOURCE_TAG and entry.view_decl:
                 record["action"] = "ok"
                 record["viewed_type"] = entry.viewed_type
+                record["critic_verdict"] = entry.critic_verdict
+                if entry.critic_issues:
+                    record["critic_issues"] = list(entry.critic_issues)
             else:
                 record["action"] = "invalid"
         summary["results"].append(record)
@@ -732,6 +803,13 @@ def _cli() -> int:
     pf.add_argument("--dry-run", action="store_true")
     pf.add_argument("--force", action="store_true",
                     help="Ignore cache hits, re-query the LLM.")
+    pf.add_argument("--no-critic", dest="critic", action="store_false",
+                    default=True,
+                    help="Skip the codex critic pass after each synth.")
+    pf.add_argument("--critic-model", default=None,
+                    help="Codex model for the critic (default: codex default).")
+    pf.add_argument("--critic-timeout", type=int, default=180,
+                    help="Per-call codex timeout in seconds (default 180).")
 
     insp = sub.add_parser("inspect",
                           help="Print cache contents for a project.")
@@ -789,15 +867,23 @@ def _cli() -> int:
             limit=args.limit,
             dry_run=args.dry_run,
             force=args.force,
+            enable_critic=args.critic,
+            critic_model=args.critic_model,
+            critic_timeout=args.critic_timeout,
         )
         n_ok = sum(1 for r in summary["results"] if r["action"] == "ok")
         n_fail = sum(1 for r in summary["results"] if r["action"] == "failed")
         n_invalid = sum(1 for r in summary["results"]
                         if r["action"] == "invalid")
         n_dry = sum(1 for r in summary["results"] if r["action"] == "dry-run")
+        n_revise = sum(1 for r in summary["results"]
+                       if r.get("critic_verdict") == "revise")
+        n_critic_err = sum(1 for r in summary["results"]
+                           if r.get("critic_verdict") == "error")
         print(f"prefill {args.project}: total={summary['total_uncovered']}  "
               f"ok={n_ok}  fail={n_fail}  invalid={n_invalid}  "
-              f"dry-run={n_dry}")
+              f"dry-run={n_dry}  "
+              f"critic[revise={n_revise} err={n_critic_err}]")
         return 0
 
     return 1
