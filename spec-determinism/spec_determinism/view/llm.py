@@ -425,6 +425,34 @@ class ViewCache:
             return None
         return entry
 
+    def get_any(self, short_name: str) -> Optional[CacheEntry]:
+        """Hash-less lookup for the registry resolve path.
+
+        Used at codegen time where we don't have ready access to the
+        type's source bytes — we trust that the cache file's
+        ``type_short`` is authoritative. Returns ``None`` if no file
+        exists or the file is corrupt / wrong-shaped.
+        """
+        p = self.path_for(short_name)
+        if not p.exists():
+            return None
+        try:
+            d = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            return None
+        try:
+            entry = CacheEntry.from_dict(d)
+        except Exception:
+            return None
+        if entry.type_short != short_name:
+            return None
+        return entry
+
+    # ViewRegistry uses this short-circuit when looking up by short name
+    # without re-hashing the type definition source.
+    def _get_any_for_short(self, short_name: str) -> Optional[CacheEntry]:
+        return self.get_any(short_name)
+
     def put(self, entry: CacheEntry) -> Path:
         p = self.path_for(entry.type_short)
         p.write_text(json.dumps(entry.to_dict(), indent=2) + "\n")

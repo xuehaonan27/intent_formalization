@@ -990,11 +990,14 @@ def _build_equal_fn(
 
     if policy.custom_body is not None and policy.custom_body.strip():
         body = policy.custom_body.strip()
+        prelude_decls: list[str] = []
     else:
+        prelude_decls = []
         clauses = []
         for (lhs, rhs, ty) in arg_pairs:
             clauses.append(build_equal_expr(ty, lhs, rhs, policy,
-                                            view_registry=view_registry))
+                                            view_registry=view_registry,
+                                            prelude_collector=prelude_decls))
 
         if not clauses:
             body = "true"
@@ -1022,12 +1025,33 @@ def _build_equal_fn(
         generics_decl, where_decl, param_decls)
 
     where_block = f"\n    {pruned_where}" if pruned_where else ""
-    return (
+    fn_def = (
         f"{header}\n"
         f"spec fn {fn_name}{pruned_generics}({param_decls}) -> bool{where_block} {{\n"
         f"    {body}\n"
         f"}}"
     )
+
+    # PR-D2: prepend L4 LLM-synthesised `impl View for T { … }` decls so the
+    # `.view()` calls embedded in the equal-fn resolve at compile time.
+    # Dedupe while preserving first-seen order — the same prelude may be
+    # collected multiple times when the type appears in several arg pairs.
+    if prelude_decls:
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for d in prelude_decls:
+            key = d.strip()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(d.strip())
+        prelude_text = (
+            "// L4-llm view declarations (generated, see "
+            "view_registry cache)\n"
+            + "\n\n".join(deduped)
+        )
+        fn_def = prelude_text + "\n\n" + fn_def
+    return fn_def
 
 
 def _type_annotation(ty: TypeInfo) -> str:
@@ -1041,6 +1065,7 @@ def build_equal_expr(
     rhs: str,
     policy: EqualPolicy | None = None,
     view_registry: Optional["ViewRegistry"] = None,
+    prelude_collector: Optional[list[str]] = None,
 ) -> str:
     """Recursively emit a Verus boolean expression that structurally compares
     two values of the given type. The output is always inside `spec` mode.
@@ -1056,10 +1081,16 @@ def build_equal_expr(
     ``opaque_ok`` does the same for ``Ok``, ``opaque_types`` treats whole
     named types as equivalent, and ``ignore_fields`` omits struct fields.
 
-    ``view_registry`` (Phase 2 L1+L2+L3 resolver) — when provided, the
+    ``view_registry`` (Phase 2 L1+L2+L3+L4 resolver) — when provided, the
     STRUCT / UNKNOWN fallback first consults the registry for a
-    view-aware-equal projection (prelude container, alias deref, or
-    discovered ``impl View``). When ``None``, behaviour is unchanged.
+    view-aware-equal projection (prelude container, alias deref, discovered
+    ``impl View``, or LLM-synthesised view from the on-disk cache). When
+    ``None``, behaviour is unchanged.
+
+    ``prelude_collector`` — list passed in by ``_build_equal_fn`` to gather
+    L4 ``impl View for T { … }`` declarations that gen_det must emit before
+    the equal-fn so the synthesized ``.view()`` calls resolve at compile
+    time. Caller dedupes.
     """
     if policy is None:
         policy = default_policy()
@@ -1097,7 +1128,8 @@ def build_equal_expr(
             ok_clause = f"(({lhs} is Ok) ==> true)"
         else:
             ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0", policy,
-                                     view_registry=view_registry)
+                                     view_registry=view_registry,
+                                     prelude_collector=prelude_collector)
             ok_clause = f"(({lhs} is Ok) ==> ({ok_eq}))"
         # Err side — collapse all Errs or recurse
         if policy.errs_equivalent:
@@ -1107,7 +1139,8 @@ def build_equal_expr(
                 f" && {ok_clause}"
             )
         err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0", policy,
-                                  view_registry=view_registry)
+                                  view_registry=view_registry,
+                                  prelude_collector=prelude_collector)
         return (
             f"(({lhs} is Ok) == ({rhs} is Ok))"
             f" && {ok_clause}"
@@ -1117,7 +1150,8 @@ def build_equal_expr(
     if k == TypeKind.OPTION:
         inner_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.UNKNOWN, "unknown")
         some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0", policy,
-                                   view_registry=view_registry)
+                                   view_registry=view_registry,
+                                   prelude_collector=prelude_collector)
         return (
             f"(({lhs} is Some) == ({rhs} is Some))"
             f" && (({lhs} is Some) ==> ({some_eq}))"
@@ -1128,7 +1162,8 @@ def build_equal_expr(
             # No variant info — try the view registry before raw `==` so
             # macro-generated enums (e.g. `state_machine!`) can still get
             # a view-aware equal.
-            vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+            vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
+                                               prelude_collector)
             if vreg_eq is not None:
                 return vreg_eq
             return f"{lhs} == {rhs}"
@@ -1150,6 +1185,7 @@ def build_equal_expr(
                 inner_eq = build_equal_expr(
                     v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0", policy,
                     view_registry=view_registry,
+                    prelude_collector=prelude_collector,
                 )
                 parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
         return " && ".join(parts)
@@ -1166,6 +1202,7 @@ def build_equal_expr(
                 clauses.append(build_equal_expr(
                     fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
                     view_registry=view_registry,
+                    prelude_collector=prelude_collector,
                 ))
             if not clauses:
                 return "true"
@@ -1178,11 +1215,13 @@ def build_equal_expr(
             # should supply a custom_body for this function.
             return f"({lhs})@ == ({rhs})@"
         # Phase-2 hook: no inline `TypeInfo.spec_view` was discovered.
-        # Consult the L1+L2+L3 resolver before falling back to a recursive
+        # Consult the L1+L2+L3+L4 resolver before falling back to a recursive
         # field-by-field structural comparison. The resolver's hit covers
         # alias-to-primitive (e.g. `Pcid = usize`), prelude containers
-        # appearing as struct types, and explicit `impl View for X`.
-        vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+        # appearing as struct types, explicit `impl View for X`, and
+        # cached LLM-synthesised `impl View` declarations.
+        vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
+                                           prelude_collector)
         if vreg_eq is not None:
             return vreg_eq
         if ty.fields:
@@ -1193,6 +1232,7 @@ def build_equal_expr(
                 clauses.append(build_equal_expr(
                     fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
                     view_registry=view_registry,
+                    prelude_collector=prelude_collector,
                 ))
             if not clauses:
                 return "true"
@@ -1201,7 +1241,8 @@ def build_equal_expr(
         return f"{lhs} == {rhs}"
 
     # UNKNOWN: try the view registry before falling back to raw `==`.
-    vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+    vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
+                                       prelude_collector)
     if vreg_eq is not None:
         return vreg_eq
     return f"{lhs} == {rhs}"
@@ -1212,18 +1253,30 @@ def _try_view_registry_equal(
     ty: TypeInfo,
     lhs: str,
     rhs: str,
+    prelude_collector: Optional[list[str]] = None,
 ) -> Optional[str]:
     """Phase 2 hook: ask the resolver for a view-aware equality
     expression. Returns ``None`` when the registry isn't supplied or
     the type is uncovered — caller falls through to its existing
     structural fallback. Failures inside the resolver are swallowed
     and logged (we never want a registry bug to break codegen).
+
+    When the resolver returns an L4 hit (LLM-synthesised view), the
+    cached ``impl View for T { … }`` declaration is appended to
+    ``prelude_collector`` (deduplicated by the caller). The caller
+    must prepend the collector to the synthesized equal-fn so the
+    ``.view()`` projection actually resolves at compile time.
     """
     if view_registry is None or not ty.name:
         return None
     try:
         type_expr = _typeinfo_to_typeexpr(ty)
-        return view_registry.equal_expr(lhs, rhs, type_expr)
+        res = view_registry.resolve(type_expr)
+        if not res.is_resolved:
+            return None
+        if res.prelude_decl and prelude_collector is not None:
+            prelude_collector.append(res.prelude_decl)
+        return f"({res.view_expr(lhs)} == {res.view_expr(rhs)})"
     except Exception as e:  # pragma: no cover — safety net
         logger.warning("ViewRegistry.equal_expr failed for %s: %s",
                        ty.name, e)

@@ -64,6 +64,9 @@ class Resolution:
     view_expr: Callable[[str], str]          # expr-text → viewed expr-text
     rationale: str = ""
     needs: list[str] = field(default_factory=list)  # uncovered short names
+    prelude_decl: Optional[str] = None       # L4 cache: Verus `impl View …`
+                                             # block the caller must emit
+                                             # before the equal-fn.
 
     @property
     def is_resolved(self) -> bool:
@@ -80,7 +83,7 @@ def _identity(x: str) -> str:
 
 
 class ViewRegistry:
-    """Layer-1+2+3 view resolver.
+    """Layer-1+2+3+4 view resolver.
 
     Parameters
     ----------
@@ -90,24 +93,40 @@ class ViewRegistry:
         :meth:`from_project`.
     scan :
         Aggregated :class:`ImplScan` across the project — the L3 input.
+    llm_cache :
+        Optional L4 LLM-synthesis cache (see
+        :class:`spec_determinism.view.llm.ViewCache`). When supplied,
+        types that L1/L2/L3 miss are looked up in the cache; on hit the
+        resolver returns a ``layer="L4"`` :class:`Resolution` whose
+        ``prelude_decl`` carries the cached ``impl View for T { … }``
+        text — gen_det prepends this to the synthesized equal-fn.
+        Pass ``None`` to disable L4 (legacy PR-B behaviour).
     """
 
     def __init__(self,
                  types: dict[str, list[TypeDef]],
-                 scan: ImplScan) -> None:
+                 scan: ImplScan,
+                 llm_cache: Optional["object"] = None) -> None:
         self.types_by_short = types
         self.scan = scan
+        # We accept any object that implements ``.get(short_name,
+        # source_hash) -> CacheEntry | None`` — typed as Object to
+        # avoid the import cycle (view.llm imports view.registry).
+        self.llm_cache = llm_cache
 
     # --- factory ---------------------------------------------------------
 
     @classmethod
     def from_project(cls, root: Path,
-                     limit: Optional[int] = None) -> "ViewRegistry":
+                     limit: Optional[int] = None,
+                     llm_cache: Optional["object"] = None) -> "ViewRegistry":
         """Build a ``ViewRegistry`` for an entire project directory.
 
         Walks every ``.rs`` file under ``root``, merges the
         per-file :class:`TypeRegistry` and :class:`ImplScan` into a
-        single in-memory registry.
+        single in-memory registry. Pass ``llm_cache`` to enable L4
+        lookups against a pre-populated cache (see
+        :class:`spec_determinism.view.llm.ViewCache`).
         """
         types_by_short: dict[str, list[TypeDef]] = {}
         merged = ImplScan(source_file=str(root))
@@ -131,7 +150,7 @@ class ViewRegistry:
                 merged.views.setdefault(t, []).extend(impls)
             for t, impls in scan.eqs.items():
                 merged.eqs.setdefault(t, []).extend(impls)
-        return cls(types_by_short, merged)
+        return cls(types_by_short, merged, llm_cache=llm_cache)
 
     # --- public API ------------------------------------------------------
 
@@ -198,7 +217,14 @@ class ViewRegistry:
                         rationale=f"alias {e.head} → {alias.alias_target} "
                                   f"({inner.layer})",
                         needs=inner.needs,
+                        prelude_decl=inner.prelude_decl,
                     )
+                # alias body itself unresolved — try L4 on the alias
+                # itself before giving up (the LLM may have a view
+                # cached for the alias name).
+                l4 = self._resolve_l4(e)
+                if l4 is not None:
+                    return l4
                 return Resolution(
                     layer="uncovered",
                     view_type_text=e.raw,
@@ -208,14 +234,19 @@ class ViewRegistry:
                     needs=inner.needs or [e.head],
                 )
 
-        # Fallthrough — struct/enum/union with no L3 hit, fn pointer,
+            # L4 — LLM-synthesised view in the on-disk cache.
+            l4 = self._resolve_l4(e)
+            if l4 is not None:
+                return l4
+
+        # Fallthrough — struct/enum/union with no L3/L4 hit, fn pointer,
         # dyn/impl trait object, unknown shape.
         head = e.head or e.raw
         return Resolution(
             layer="uncovered",
             view_type_text=e.raw,
             view_expr=_identity,
-            rationale=f"no L1/L2/L3 rule for {head} (kind={e.kind})",
+            rationale=f"no L1/L2/L3/L4 rule for {head} (kind={e.kind})",
             needs=[head] if head else [],
         )
 
@@ -228,6 +259,11 @@ class ViewRegistry:
         """View-aware equality. Returns ``None`` when uncovered — the
         caller (gen_det) should fall back to its structural-equal
         builder.
+
+        For L4 hits the equality text is the same ``(lhs).view() ==
+        (rhs).view()`` shape as L3 — the caller must consult
+        :meth:`resolve` directly to recover the ``prelude_decl`` that
+        defines ``impl View`` for the type.
 
         The output text is parenthesized to be safe inside arbitrary
         contexts (and-chains, comma lists, etc.).
@@ -292,6 +328,68 @@ class ViewRegistry:
             view_type_text=viewed_type,
             view_expr=render,
             rationale=rationale,
+        )
+
+    def _resolve_l4(self, e: TypeExpr) -> Optional[Resolution]:
+        """Consult the L4 LLM-synthesis cache for ``e``.
+
+        Returns ``None`` when no cache is attached, the cache is
+        empty for this type, or the cached entry was an invalid /
+        validation-failed synthesis. On a real hit, the cached
+        ``impl View for T { … }`` text is bundled into
+        ``Resolution.prelude_decl`` for gen_det to inline; the
+        view expression is the canonical ``(x).view()`` form so the
+        synthesised impl actually fires.
+
+        We treat ``source_hash`` permissively here — at the resolve
+        site we don't have access to the type's source bytes (only
+        its short name). The cache file already guarantees that the
+        entry was produced *for this short name*, so we accept any
+        entry with a non-empty ``view_decl`` and the canonical
+        ``view_source=="L4-llm"`` tag.
+        """
+        if self.llm_cache is None or not e.head:
+            return None
+        # Iterate every cached entry for this short name and pick the
+        # first valid one. We deliberately use the cache's directory
+        # layout (one file per short) rather than a hash lookup,
+        # because at this point we don't have the source bytes — the
+        # cache files self-describe via their ``type_short`` field.
+        get = getattr(self.llm_cache, "_get_any_for_short", None)
+        if get is None:
+            # Fall back to public API: try the cache with a sentinel
+            # source_hash. If the cache implements hash-checking it
+            # will miss; we then probe via list-style API.
+            entries_for = getattr(self.llm_cache, "all_entries", None)
+            if entries_for is None:
+                return None
+            for entry in entries_for():
+                if entry.type_short == e.head:
+                    return self._l4_resolution_from_entry(e, entry)
+            return None
+        entry = get(e.head)
+        if entry is None:
+            return None
+        return self._l4_resolution_from_entry(e, entry)
+
+    @staticmethod
+    def _l4_resolution_from_entry(e: TypeExpr,
+                                  entry) -> Optional[Resolution]:
+        """Convert a :class:`CacheEntry` into a :class:`Resolution`."""
+        if entry.view_source != "L4-llm" or not entry.view_decl:
+            return None
+        viewed_type = entry.viewed_type or f"<{e.head} as View>::V"
+
+        def render(expr: str) -> str:
+            return f"({expr}).view()"
+
+        rationale = f"L4-llm cached view (deps={entry.depends_on_views_of})"
+        return Resolution(
+            layer="L4",
+            view_type_text=viewed_type,
+            view_expr=render,
+            rationale=rationale,
+            prelude_decl=entry.view_decl,
         )
 
 
@@ -502,6 +600,82 @@ def _cmd_selftest(args: argparse.Namespace) -> int:
          lambda: (
              _empty_reg().equal_expr(
                  "lhs", "rhs", _t("Page")) is None
+         ))
+
+    # --- L4: LLM cache hookup -------------------------------------------
+    class _FakeCache:
+        """Minimal duck-typed stand-in for view.llm.ViewCache."""
+        def __init__(self, entries: dict):
+            self.entries = entries
+        def _get_any_for_short(self, short_name: str):
+            return self.entries.get(short_name)
+        def all_entries(self):
+            return list(self.entries.values())
+
+    class _FakeEntry:
+        def __init__(self, type_short, viewed_type, view_decl,
+                     deps=None, source="L4-llm"):
+            self.type_short = type_short
+            self.viewed_type = viewed_type
+            self.view_decl = view_decl
+            self.depends_on_views_of = deps or []
+            self.view_source = source
+
+    case("L4 cache hit returns L4 layer with prelude_decl",
+         lambda: (
+             (lambda r: (r.layer == "L4"
+                         and r.prelude_decl == "impl View for Page { …}"
+                         and r.view_expr("x") == "(x).view()"
+                         and r.view_type_text == "PageView"))(
+                 ViewRegistry(
+                     types={"Page": []},
+                     scan=ImplScan(source_file="<mem>"),
+                     llm_cache=_FakeCache({
+                         "Page": _FakeEntry("Page", "PageView",
+                                            "impl View for Page { …}"),
+                     }),
+                 ).resolve(_t("Page"))
+             )
+         ))
+
+    case("L4 cache miss falls through to uncovered",
+         lambda: (
+             (lambda r: r.layer == "uncovered")(
+                 ViewRegistry(
+                     types={"Page": []},
+                     scan=ImplScan(source_file="<mem>"),
+                     llm_cache=_FakeCache({}),
+                 ).resolve(_t("Page"))
+             )
+         ))
+
+    case("L4 invalid cache entry (empty view_decl) is ignored",
+         lambda: (
+             (lambda r: r.layer == "uncovered")(
+                 ViewRegistry(
+                     types={"Page": []},
+                     scan=ImplScan(source_file="<mem>"),
+                     llm_cache=_FakeCache({
+                         "Page": _FakeEntry("Page", "PageView", "",
+                                            source="L4-llm-invalid"),
+                     }),
+                 ).resolve(_t("Page"))
+             )
+         ))
+
+    case("L4 hit pushes prelude_decl via Resolution",
+         lambda: (
+             (lambda r: r.prelude_decl == "impl View for Foo { type V = u32; }")(
+                 ViewRegistry(
+                     types={"Foo": []},
+                     scan=ImplScan(source_file="<mem>"),
+                     llm_cache=_FakeCache({
+                         "Foo": _FakeEntry(
+                             "Foo", "u32",
+                             "impl View for Foo { type V = u32; }"),
+                     }),
+                 ).resolve(_t("Foo"))
+             )
          ))
 
     # --- run -------------------------------------------------------------

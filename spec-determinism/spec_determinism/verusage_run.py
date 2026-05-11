@@ -107,10 +107,18 @@ def main() -> int:
                     help="Preserve the injected .rs / verus_log tmpdirs per "
                          "target (debug).")
     ap.add_argument("--use-view-registry", action="store_true",
-                    help="Phase-2: build a per-project L1+L2+L3 ViewRegistry "
-                         "(prelude / alias / impl-View) and consult it from "
-                         "gen_det.build_equal_expr. No LLM; uncovered types "
-                         "still fall through to structural ==.")
+                    help="Phase-2: build a per-project L1+L2+L3+L4 "
+                         "ViewRegistry (prelude / alias / impl-View / "
+                         "LLM cache) and consult it from "
+                         "gen_det.build_equal_expr. No LLM is called at "
+                         "run time — L4 only reads the pre-populated cache "
+                         "(see `view.llm prefill`). Uncovered types still "
+                         "fall through to structural ==.")
+    ap.add_argument("--view-cache-dir", type=Path, default=None,
+                    help="Path to an L4 view cache (overrides the canonical "
+                         "results-verusage/view_registry/<project>/ "
+                         "location). Pass an empty/nonexistent path to "
+                         "explicitly disable L4.")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -131,13 +139,38 @@ def main() -> int:
     view_registry = None
     if args.use_view_registry:
         from .view.registry import ViewRegistry
+        from .view.llm import ViewCache
         proj_root = roots / args.project
         log.info("Building ViewRegistry from %s ...", proj_root)
         t_reg = time.monotonic()
-        view_registry = ViewRegistry.from_project(proj_root)
-        log.info("ViewRegistry: %d types, %d view impls, built in %.2fs",
+        # PR-D2: attach the L4 LLM cache if one exists on disk.  We
+        # look under the same default path that ``view.llm prefill``
+        # writes to.  Absence is fine — registry falls back to
+        # L1+L2+L3 only.
+        cache_root = (out_root.parent / "view_registry" / args.project
+                      if out_root.name != "view_registry"
+                      else out_root / args.project)
+        # Default canonical location matches the prefill CLI:
+        #   results-verusage/view_registry/<project>/
+        canonical = (Path(__file__).resolve().parent.parent
+                     / "results-verusage" / "view_registry"
+                     / args.project)
+        llm_cache = None
+        if args.view_cache_dir is not None:
+            llm_cache = ViewCache(args.view_cache_dir)
+        elif canonical.exists():
+            llm_cache = ViewCache(canonical)
+        elif cache_root.exists():
+            llm_cache = ViewCache(cache_root)
+        if llm_cache is not None:
+            log.info("Attaching L4 view cache from %s", llm_cache.root)
+        view_registry = ViewRegistry.from_project(proj_root,
+                                                  llm_cache=llm_cache)
+        log.info("ViewRegistry: %d types, %d view impls, %d L4 cache "
+                 "entries, built in %.2fs",
                  len(view_registry.types_by_short),
                  sum(len(v) for v in view_registry.scan.views.values()),
+                 (len(llm_cache.all_entries()) if llm_cache else 0),
                  time.monotonic() - t_reg)
 
     results: list[dict] = []
