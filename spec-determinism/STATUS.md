@@ -53,6 +53,8 @@ Closed out Phase 2 (A-2 view-aware equal-fn) end-to-end:
 | `aa0744e` | `view/llm`: fine-grained `status_out` (cache_hit / ok / llm_fail / parse_fail / validate_fail / critic_reject) + `scripts/rerun_corpus.sh` + `scripts/compare_runs.py` | infra |
 | `7531eeb` | `scripts/auto_chain.sh` — wait-for-prefill → rerun → compare automation | infra |
 | `1751dc1` | fix: 4 cross-subpackage relative imports silently broken by the layout refactor (caught by manual smoketest) | bug |
+| `a343a56` | docs: COMPARE.md template + tricky-shape audit + ISSUES.md (4 + 1 entries, including the newly-found `arbitrary()` over-collapse) | docs |
+| `ad691cd` | **lint: `view body must reference self`** static check + critic prompt rule #8 + `docs/critic-criteria.md` | quality gate |
 
 ### Currently running
 
