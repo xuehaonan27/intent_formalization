@@ -502,6 +502,34 @@ class ViewCache:
         p.write_text(json.dumps(entry.to_dict(), indent=2) + "\n")
         return p
 
+    def is_quarantined(self, short_name: str) -> bool:
+        """Return True iff ``<short>.json.quarantine`` exists.
+
+        A quarantined entry means a human (or audit script) has decided
+        the previously-synthesised view for ``short_name`` was unsound
+        and must not be re-synthesised on the next prefill run. The
+        prefill driver consults this and skips quarantined types unless
+        ``--include-quarantined`` is passed.
+
+        Quarantine is intentionally a separate sticky file on disk
+        rather than a flag inside the regular cache JSON, so that
+        accidental deletion of the cache (e.g. ``rm *.json``) does
+        not also delete the quarantine record.
+        """
+        safe = re.sub(r"[^A-Za-z0-9_]+", "_", short_name)
+        return (self.root / f"{safe}.json.quarantine").is_file()
+
+    def quarantined_names(self) -> list[str]:
+        """List short names with an active ``.json.quarantine`` marker."""
+        out: list[str] = []
+        for p in sorted(self.root.glob("*.json.quarantine")):
+            # path_for() sanitises ``[^A-Za-z0-9_]+`` → ``_``; we cannot
+            # reverse that transform, so we report the on-disk stem as
+            # authoritative. Callers compare against td.name which is
+            # already sanitised at synth time.
+            out.append(p.name[: -len(".json.quarantine")])
+        return out
+
     def all_entries(self) -> list[CacheEntry]:
         entries: list[CacheEntry] = []
         for p in sorted(self.root.glob("*.json")):
@@ -781,6 +809,7 @@ def prefill_project(
     enable_critic: bool = True,
     critic_model: Optional[str] = None,
     critic_timeout: int = 180,
+    include_quarantined: bool = False,
 ) -> dict:
     """Batch-synthesize views for every uncovered type in the project.
 
@@ -794,12 +823,27 @@ def prefill_project(
         If True, just emit the plan (skip LLM calls).
     force :
         If True, ignore cache hits and re-query.
+    include_quarantined :
+        If True, ignore the ``.json.quarantine`` skip-list and
+        re-attempt synthesis for those types too. Default is False so
+        that a quarantine decision sticks across runs.
 
     Returns a summary dict suitable for JSON dumping.
     """
     uncovered = _uncovered_types(view_registry)
     if only is not None:
         uncovered = [td for td in uncovered if td.name in only]
+
+    quarantined: list[str] = []
+    if not include_quarantined:
+        quarantined = [td.name for td in uncovered if cache.is_quarantined(td.name)]
+        if quarantined:
+            logger.info(
+                "Skipping %d quarantined type(s): %s",
+                len(quarantined), ", ".join(quarantined),
+            )
+        uncovered = [td for td in uncovered if not cache.is_quarantined(td.name)]
+
     if limit is not None:
         uncovered = uncovered[:limit]
 
@@ -811,6 +855,7 @@ def prefill_project(
     summary = {
         "project": project_name,
         "total_uncovered": len(uncovered),
+        "skipped_quarantined": quarantined,
         "enable_critic": enable_critic,
         "results": [],
     }
@@ -939,6 +984,9 @@ def _cli() -> int:
                     help="Codex model for the critic (default: codex default).")
     pf.add_argument("--critic-timeout", type=int, default=180,
                     help="Per-call codex timeout in seconds (default 180).")
+    pf.add_argument("--include-quarantined", action="store_true",
+                    help="Re-attempt synthesis for types with a "
+                         "<name>.json.quarantine marker (default: skip).")
 
     insp = sub.add_parser("inspect",
                           help="Print cache contents for a project.")
@@ -999,6 +1047,7 @@ def _cli() -> int:
             enable_critic=args.critic,
             critic_model=args.critic_model,
             critic_timeout=args.critic_timeout,
+            include_quarantined=args.include_quarantined,
         )
         n_ok = sum(1 for r in summary["results"] if r["action"] == "ok")
         n_reject = sum(1 for r in summary["results"]
@@ -1013,9 +1062,11 @@ def _cli() -> int:
                        if r.get("critic_verdict") == "revise")
         n_critic_err = sum(1 for r in summary["results"]
                            if r.get("critic_verdict") == "error")
+        n_quar = len(summary.get("skipped_quarantined") or [])
         print(f"prefill {args.project}: total={summary['total_uncovered']}  "
               f"ok={n_ok}  reject={n_reject}  lint_reject={n_lint}  "
               f"fail={n_fail}  invalid={n_invalid}  dry-run={n_dry}  "
+              f"quarantined-skipped={n_quar}  "
               f"critic[revise={n_revise} err={n_critic_err}]")
         return 0
 
@@ -1195,6 +1246,26 @@ trailing text
 
         all_e = c.all_entries()
         check(len(all_e) == 1, f"cache: all_entries len {len(all_e)}")
+
+        # quarantine: rename .json → .json.quarantine, verify lookup
+        # tools all reflect the new state
+        check(not c.is_quarantined("Foo"),
+              "quarantine: Foo not yet quarantined")
+        check(c.quarantined_names() == [],
+              "quarantine: list empty before any rename")
+        p.rename(p.with_suffix(".json.quarantine"))
+        check(c.is_quarantined("Foo"),
+              "quarantine: is_quarantined reflects .quarantine file")
+        check(c.quarantined_names() == ["Foo"],
+              "quarantine: listed by short name")
+        # active cache lookup still misses (file at <name>.json gone)
+        check(c.get("Foo", "abc123") is None,
+              "quarantine: get() still misses after rename")
+        check(c.get_any("Foo") is None,
+              "quarantine: get_any() still misses after rename")
+        # all_entries should now show 0 since the .json is gone
+        check(len(c.all_entries()) == 0,
+              "quarantine: all_entries excludes quarantined files")
 
     # --- _find_impl_item: locates inside verus_block wrapper
     src = "verus! {\n" + good + "\n}"

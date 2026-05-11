@@ -174,29 +174,142 @@ and is not present in the project's view registry.
 body, not the registry. It cannot verify that `<PageAllocator as View>::V`
 actually resolves.
 
-**Draft rule.**
+**Detector sketch.**
 
 ```python
-def check_view_field_targets_have_view(decl: str,
-                                        registry_short_names: set[str],
-                                        scanner: ImplScanner) -> Optional[str]:
-    """Reject if the V-type or body references <X as View>::V or .@ on
-    a type ``X`` that is neither (a) in the project's view_registry,
-    (b) a vstd-known View (Vec, Box, Option, Result, primitive, etc.),
-    (c) a Ghost/Tracked wrapper.
+# spec_determinism/view/llm.py
+
+# Heads that vstd / std unconditionally implement View for. The
+# resolver also picks these up at L1/L2; we hard-code them to avoid
+# a circular dep on the registry.
+VSTD_VIEW_HEADS: frozenset[str] = frozenset({
+    "Vec", "Box", "Rc", "Arc", "Option", "Result", "Set", "Map",
+    "Seq", "Multiset", "Ghost", "Tracked", "FnSpec",
+    # primitives — Verus auto-derives View for these
+    "u8","u16","u32","u64","u128","usize",
+    "i8","i16","i32","i64","i128","isize",
+    "bool","char","str",
+})
+
+def check_view_field_targets_have_view(
+    decl: str,
+    *,
+    parent_type: TypeDef,           # impl_scanner.get_type(short_name)
+    cache: ViewCache,               # for is_quarantined() + active sibling views
+    registry_short_names: set[str], # ViewRegistry.short_names()
+    scanner: ImplScanner,
+) -> Optional[str]:
+    """Lint M1 (see docs/critic-criteria.md).
+
+    Inputs are all read-only; the function is pure.
+
+    Returns ``None`` on accept, a reject reason string on reject.
     """
-    refs = re.findall(r"<(\w+) as View>::V", decl)
-    fields = parse_self_field_projections(decl)  # tree-sitter
-    for t in set(refs) | {f.field_type_head for f in fields}:
-        if t in registry_short_names:        continue
-        if t in VSTD_KNOWN_VIEW_HEADS:       continue
-        if scanner.is_ghost_or_tracked(t):   continue
-        return f"References `<{t} as View>::V` or `.@` but no View impl available."
+    refs: set[str] = set()
+
+    # --- Step 1 — gather <X as View>::V references via tree-sitter.
+    # In the Verus grammar a `<X as View>::V` is parsed as
+    #   qualified_type_path → type_path { type ; trait_path } → "::" V
+    # but tsv exposes it as a generic type_arguments / scoped_identifier
+    # subtree. Robust matcher: walk every "scoped_type_identifier" node
+    # whose suffix is "V" and whose qualifier text contains " as View".
+    wrapped = "verus! {\n" + decl + "\n}"
+    tree = _parser.parse(wrapped.encode("utf-8"))
+    cursor = tree.walk()
+    def walk(node):
+        if node.type in ("qualified_type", "scoped_type_identifier",
+                         "qualified_identifier"):
+            txt = wrapped[node.start_byte:node.end_byte]
+            m = re.match(r"<\s*(\w+)\s+as\s+View\s*>", txt)
+            if m: refs.add(m.group(1))
+        for ch in node.named_children: walk(ch)
+    walk(tree.root_node)
+
+    # --- Step 2 — gather self.<field>@ projections from the view body.
+    # We do NOT walk the V-struct (those references are caught above).
+    body = _extract_view_fn_body(decl) or ""
+    body_tree = _parser.parse(("verus! { fn _v() { " + body + " } }").encode())
+    self_at_fields: set[str] = set()
+    def walk_body(node):
+        # tsv emits `field_expression` for self.x and `unary_expression`
+        # (op="@") for x@. Catch the field name when @ is applied.
+        if node.type == "unary_expression" and \
+           node.child_by_field_name("operator") is not None and \
+           wrapped_text(node).endswith("@"):
+            inner = node.child_by_field_name("argument")
+            if inner is not None and inner.type == "field_expression" \
+               and wrapped_text(inner.child_by_field_name("value")) == "self":
+                fname = wrapped_text(inner.child_by_field_name("field"))
+                self_at_fields.add(fname)
+        for ch in node.named_children: walk_body(ch)
+    walk_body(body_tree.root_node)
+
+    # --- Step 3 — resolve each field's declared type head via impl_scanner.
+    field_heads: set[str] = set()
+    for fname in self_at_fields:
+        ftype = scanner.field_type(parent_type.qualified_name, fname)
+        if ftype is None:
+            # impl_scanner couldn't find the field — bail out to a permissive
+            # reject (with field name in message) so the critic can ask the
+            # synthesiser to justify it.
+            return (f"`self.{fname}@` references unknown field on "
+                    f"`{parent_type.name}`. impl_scanner missed it; the "
+                    f"synthesiser may have hallucinated a field.")
+        inner = _strip_ghost_tracked(ftype)
+        field_heads.add(inner.head)
+
+    # --- Step 4 — every referenced head must be View-resolvable.
+    candidate_heads = refs | field_heads
+    available = (registry_short_names
+                 | VSTD_VIEW_HEADS
+                 | scanner.known_view_impls(parent_type.crate))
+    for h in candidate_heads:
+        if h in available: continue
+        if cache.is_quarantined(h):
+            # Belt + suspenders: a previously-quarantined dep is the same
+            # as missing.
+            return (f"`<{h} as View>::V` or `self.<…>@` references "
+                    f"`{h}`, which is quarantined. Re-attempting this "
+                    f"view would cascade-break.")
+        return (f"View target `{h}` has no registered View impl "
+                f"(not in {sorted(available)[:5]}…). Either "
+                f"(a) restructure the V-type to avoid the dep, "
+                f"(b) quarantine `{parent_type.name}` until `{h}` has a "
+                f"view, or (c) add a manual `impl View for {h}` to the "
+                f"project source.")
     return None
 ```
 
-Test fixtures: `atmosphere/Kernel`, `atmosphere/MapEntry`,
-`atmosphere/SyscallReturnStruct` all reject.
+**Helper to wire up.** Patch `synthesize_view` to call this between
+`check_view_body_uses_self` (rule 8) and the codex critic:
+
+```python
+m1_reject = check_view_field_targets_have_view(
+    view_decl, parent_type=td, cache=cache,
+    registry_short_names=set(view_registry.short_names()),
+    scanner=impl_scanner,
+)
+if m1_reject:
+    status_out["status"] = "lint_reject"
+    append_rejected(cache.root, td.name, m1_reject, view_decl,
+                    rule="M1-field-view-target")
+    return None
+```
+
+**Acceptance fixtures (must reject all):**
+
+| view | head that triggers reject |
+|---|---|
+| `atmosphere/Kernel`              | `PageAllocator` / `MemoryManager` / `ProcessManager` |
+| `atmosphere/MapEntry`            | `PAddr` |
+| `atmosphere/SyscallReturnStruct` | `RetValueType` (or `Pcid`) |
+| `atmosphere/Endpoint`            | `EndpointState` (also a target of M2 below) |
+
+**False-positive guard.** Be sure to also accept the 11 winning views
+(see COMPARE.md "Case studies"): they only reference Vec/Seq/Array
+heads which are in `VSTD_VIEW_HEADS`. Unit-test must include
+`memory-allocator/CommitMask`, `atmosphere/PageMap`,
+`ironkv/Constants`, `nrkernel/ArchExec` as `expect=None`.
 
 ### M2 — `field@@` over-projection past Ghost into Set/Map/etc.
 
@@ -208,24 +321,67 @@ inner `T` to have `View::view`. `Set<…>` and `Map<…>` don't.
 @-mistake") in the critic prompt, but the critic confuses "Ghost wraps
 Set" with "Ghost wraps Vec" and accepts it anyway.
 
-**Draft rule.**
+**Detector sketch.**
 
 ```python
-_DOUBLE_AT = re.compile(r"\bself\.\w+@@\B")
+# spec_determinism/view/llm.py
 
-def check_no_double_at_on_set_or_map(decl: str, scanner: ImplScanner) -> Optional[str]:
-    for m in _DOUBLE_AT.finditer(decl):
-        field_name = re.match(r"self\.(\w+)@@", m.group(0)).group(1)
-        ftype = scanner.field_type(field_name)
-        if ftype is None: continue
-        inner = strip_ghost_tracked(ftype)
-        inner_head = inner.head if isinstance(inner, TypeExpr) else None
-        if inner_head in {"Set", "Map"}:
-            return f"`self.{field_name}@@` projects past Ghost into `{inner_head}`, which has no View::view."
+# Heads whose values are NOT View-projectable even when wrapped in
+# Ghost / Tracked. Adding @@ here is guaranteed-wrong.
+NON_VIEWABLE_INNER_HEADS: frozenset[str] = frozenset({
+    "Set", "Map", "Multiset", "FnSpec", "Seq",  # Seq has identity view, no @
+    "int", "nat",                                  # ghost ints; @ is noop
+})
+
+# Regex is sufficient because @@ is unambiguous in the verus grammar
+# (no overload / no operator method named `@@`).
+_DOUBLE_AT_RE = re.compile(r"\bself\.(\w+)\s*@\s*@")
+
+def check_no_double_at_past_ghost(
+    decl: str,
+    *,
+    parent_type: TypeDef,
+    scanner: ImplScanner,
+) -> Optional[str]:
+    """Lint M2 (see docs/critic-criteria.md).
+
+    For each `self.<field>@@` in the body, check whether the inner
+    type after peeling Ghost / Tracked has a registered View.
+    """
+    body = _extract_view_fn_body(decl) or ""
+    for m in _DOUBLE_AT_RE.finditer(body):
+        fname = m.group(1)
+        ftype = scanner.field_type(parent_type.qualified_name, fname)
+        if ftype is None:
+            return (f"`self.{fname}@@` references unknown field on "
+                    f"`{parent_type.name}`.")
+        if ftype.head not in ("Ghost", "Tracked"):
+            return (f"`self.{fname}@@` applied to a non-Ghost / non-Tracked "
+                    f"field (type `{ftype.head}`). Use a single `@` "
+                    f"or drop the projection entirely.")
+        inner = ftype.generic_args[0] if ftype.generic_args else None
+        if inner is None: continue
+        if inner.head in NON_VIEWABLE_INNER_HEADS:
+            return (f"`self.{fname}@@` projects past Ghost<{inner.head}<…>>; "
+                    f"`{inner.head}` has no `View::view`. Use a single "
+                    f"`@` to unwrap Ghost, then the resulting `{inner.head}` "
+                    f"already lives in spec land.")
     return None
 ```
 
-Test fixture: `atmosphere/Endpoint` rejects on `self.owning_threads@@`.
+**Wiring.** Same insertion point as M1. M2 should run *before* M1 so
+its more specific message takes precedence when both fire.
+
+**Acceptance fixtures:**
+
+| view | field that triggers reject |
+|---|---|
+| `atmosphere/Endpoint` | `self.owning_threads@@` (Ghost\<Set\<…\>\>) |
+
+**False-positive guard.** Other instances of `Ghost<Map<…>>`
+legitimately need `@@` only when the map's value type itself has a
+View. None of the winning views use `@@`; unit-test pulls the entire
+130-entry cache and asserts only Endpoint rejects.
 
 ### M3 — view body uses `self.<field>` on an `external_body` / opaque parent
 
@@ -237,20 +393,113 @@ expression for an opaque datatype".
 **Why critic misses it.** Critic doesn't see the parent type's
 annotations.
 
-**Draft rule.**
+**Detector sketch.**
 
 ```python
-def check_parent_not_external_body(type_def: TypeDef) -> Optional[str]:
-    if type_def.is_external_body or type_def.has_repr_c:
-        return ("Parent type is external_body / repr(C); Verus treats "
-                "its fields as opaque and forbids field expressions in "
-                "spec functions. Use `arbitrary()` (rejected by rule 8) "
-                "is not a workaround; this type should not have a "
-                "synthesised view at all — drop it from the L4 work list.")
+# spec_determinism/view/impl_scanner.py — extend TypeDef
+#
+#   @dataclass
+#   class TypeDef:
+#       name: str
+#       qualified_name: str
+#       kind: str                # "struct" | "enum" | "union" | "alias"
+#       fields: list[Field]
+#       variants: list[Variant]
+#       source_file: Path
+#       source_line: int
+#       # NEW
+#       attrs: list[str] = field(default_factory=list)  # raw textual attrs
+#       is_external_body: bool = False
+#       is_external_type_specification: bool = False
+#       repr_kind: Optional[str] = None  # "C", "transparent", None, …
+#
+# Populated by parse_type_def() which already walks the
+# `attribute_item` / `outer_attribute` siblings of the struct_item /
+# enum_item tree-sitter nodes. Pseudocode:
+
+def _attrs_for(node: ts.Node, src: bytes) -> list[str]:
+    out = []
+    sib = node.prev_named_sibling
+    while sib is not None and sib.type in ("attribute_item",
+                                            "outer_attribute"):
+        out.append(src[sib.start_byte:sib.end_byte].decode())
+        sib = sib.prev_named_sibling
+    return list(reversed(out))
+
+def _classify_attrs(attrs: list[str]) -> tuple[bool, bool, Optional[str]]:
+    is_ext_body = any("external_body" in a for a in attrs)
+    is_ext_spec = any("external_type_specification" in a for a in attrs)
+    repr_kind = None
+    for a in attrs:
+        m = re.search(r"#\[\s*repr\s*\(\s*([A-Za-z0-9_, ]+?)\s*\)", a)
+        if m:
+            # "C", "C, align(8)" → "C"
+            repr_kind = m.group(1).split(",", 1)[0].strip()
+            break
+    return is_ext_body, is_ext_spec, repr_kind
+
+# spec_determinism/view/llm.py
+
+def check_parent_not_external_body(
+    *,
+    parent_type: TypeDef,
+) -> Optional[str]:
+    """Lint M3 (see docs/critic-criteria.md).
+
+    Pure parent-type predicate; does not even look at view_decl.
+    """
+    if parent_type.is_external_body:
+        return (f"`{parent_type.name}` is marked `#[verifier::external_body]` "
+                f"— Verus treats its fields as opaque and forbids field "
+                f"expressions in spec functions. Drop `{parent_type.name}` "
+                f"from the L4 work list (or rewrite via an "
+                f"`external_type_specification` shim).")
+    if parent_type.repr_kind == "C":
+        return (f"`{parent_type.name}` is `#[repr(C)]` — typically used for "
+                f"FFI / hardware-layout structs that Verus opaque-models. "
+                f"Field projections in spec are likely to fail. Audit "
+                f"manually; if Verus does accept field access, mark this "
+                f"type explicitly viewable and bypass the lint.")
     return None
 ```
 
-Test fixtures: `ironkv/CKeyHashMap`, `atmosphere/Registers` reject.
+**Wiring.** Insert M3 *first* of the three (it's the cheapest — a
+single attr check, no parsing). If M3 rejects, the synthesiser doesn't
+even need to be invoked for this type at all; the right action is to
+add the type to a project-level skip list:
+
+```python
+# In synthesize_view, right after _extract_type_source:
+m3_reject = check_parent_not_external_body(parent_type=td)
+if m3_reject:
+    status_out["status"] = "lint_reject"
+    append_rejected(cache.root, td.name, m3_reject, view_decl="",
+                    rule="M3-parent-opaque")
+    return None
+```
+
+**Acceptance fixtures:**
+
+| view | parent attribute |
+|---|---|
+| `ironkv/CKeyHashMap` | `#[verifier::external_body]` |
+| `atmosphere/Registers` | `#[repr(C, align(8))]` |
+
+**False-positive guard.** `#[repr(transparent)]` newtypes ARE
+spec-projectable; the `repr_kind == "C"` clause skips them. Also,
+`atmosphere/Endpoint` has `#[repr(C, align(8))]` per the source diff
+above but its breakage is M1/M2, not M3 — so M3 alone would not
+reject it, but M3+M1 together would (and we want both to fire so the
+critic feedback is rich).
+
+Wait — that contradicts the goal of running M3 first. Reconcile:
+either drop the `repr_kind == "C"` clause (only flag
+`external_body`), or keep it as a "warn but continue" rather than a
+reject. **Recommended:** demote `repr_kind == "C"` to a warning that
+appends a `note` to the rejected.jsonl entry but lets synth proceed,
+so that M1/M2 can still produce the more actionable reject reason.
+`external_body` stays as a hard reject because it really is
+impossible.
 
 ### Cascade closure
 
@@ -262,9 +511,40 @@ compile in any target that needs them. Three options:
    `view/registry.py` that, before injecting a cached view, walks
    `entry.depends_on_views_of` and only injects if all transitive deps
    are resolvable. If not, demote the view to "missing" (gen_det then
-   falls back to per-field equal).
+   falls back to per-field equal). Sketch:
+
+   ```python
+   # spec_determinism/view/registry.py — inside _l4_resolution_from_entry
+   def _all_deps_resolvable(self, entry, visiting=None) -> bool:
+       visiting = visiting or set()
+       for dep in (entry.depends_on_views_of or []):
+           if dep in visiting: continue  # cycle break
+           visiting.add(dep)
+           # vstd / primitive: always OK
+           if dep in VSTD_VIEW_HEADS:                continue
+           # impl-scanner sees an `impl View` in source: OK
+           if self.l3_has(dep):                       continue
+           # cache has an active (non-quarantined) entry: recurse
+           inner = self.llm_cache.get_any(dep) if self.llm_cache else None
+           if inner is None:                          return False
+           if not self._all_deps_resolvable(inner, visiting): return False
+       return True
+   # in _l4_resolution_from_entry, gate the resolution:
+   if not self._all_deps_resolvable(entry): return None
+   ```
+
 2. Eagerly quarantine the cascade closure each time a root is
-   quarantined (what we did manually in #7).
+   quarantined (what we did manually in #7). Implemented as a CLI
+   helper:
+
+   ```sh
+   python -m spec_determinism.view.llm quarantine \
+       --cache-dir results-verusage/view_registry/ironkv \
+       --short EndPoint --close-cascade
+   ```
+   where `--close-cascade` walks every cache entry with `EndPoint` in
+   `depends_on_views_of` and quarantines them too, transitively.
+
 3. Inject transitive views into the target's `injected.rs` so the
    compile is closed. Less surgical.
 
@@ -274,5 +554,46 @@ compile in any target that needs them. Three options:
 
 When implementing, the unit-test fixtures should be the 14 quarantined
 view JSONs — for each, the relevant lint rule must produce a
-non-None reject reason. This guarantees the regression does not recur
-when those types' source bytes change and the cache is rebuilt.
+non-None reject reason. Plus the 11 winning views as
+`expect=None` controls.
+
+Test harness sketch (drop into `view/llm.py::_run_self_tests`):
+
+```python
+QUARANTINE_FIXTURES = [
+    # (proj, name, rule_that_must_reject)
+    ("atmosphere","Kernel",              "M1"),
+    ("atmosphere","SyscallReturnStruct", "M1"),
+    ("atmosphere","Endpoint",            "M2"),  # M1 also OK, M2 preferred
+    ("atmosphere","MapEntry",            "M1"),
+    ("atmosphere","Registers",           "M3"),
+    ("ironkv","EndPoint",                "M1"),  # M4 too but unimpl
+    ("ironkv","CKeyHashMap",             "M3"),
+    # cascade group — rejected by transitive resolve once M1/M2/M3
+    # quarantine the roots; we test the resolve gate separately.
+    *(("ironkv", n, "cascade") for n in (
+        "CSingleDelivery","CSingleMessage","CAckState","CSendState",
+        "ReceiveImplResult","CPacket","CMessage",
+    )),
+]
+GOOD_FIXTURES = [
+    ("memory-allocator","CommitMask"),
+    ("atmosphere","PageMap"),
+    ("ironkv","Constants"),
+    ("nrkernel","ArchExec"),
+]
+```
+
+This guarantees the regression does not recur when those types'
+source bytes change and the cache is rebuilt.
+
+### Quarantine sticky-marker (implemented 2026-05-11)
+
+`ViewCache.is_quarantined(short)` checks for a sibling
+`<short>.json.quarantine` file, and `prefill_project` skips those
+types by default (override with `--include-quarantined`). This means
+the quarantines from ISSUES.md #7 survive future `prefill_all.sh`
+runs — the LLM will not silently re-synthesise the same broken
+shape on the next batch. To intentionally retry a quarantine
+(e.g. after a project-source change), delete the `.quarantine` file
+or pass `--include-quarantined`.
