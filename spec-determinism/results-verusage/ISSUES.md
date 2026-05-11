@@ -448,3 +448,41 @@ Updated 2026-05-08 after the B-1, B-6, and B-5 investigations.
 | ⏸ | B-7 storage `deps_hack` | deferred | −43 verus_err | high (vendor stub) |
 | ⏸ | B-8 / B-9 / B-10 long tail | deferred | ~−25 verus_err total | varies; lowest priority |
 
+---
+
+## MOD-1 — `spec_determinism/` flat layout
+
+**Symptom.** 17 `.py` files at the top level of `spec_determinism/` (parser,
+type registry, narrow, predicates, equal_policy, gen_det, policy_llm,
+verify, workspace, run_all, single_file, regen_artifacts, verusage_run,
+verusage_summary, plus cli/config/types/__init__). Adding 4 more for
+Phase 2 would push it to 21 — too noisy.
+
+**Decision (2026-05-11, user choice "A").** Phase 2 modules go under a
+*new* `spec_determinism/view/` subpackage. Existing top-level files stay
+where they are for now to avoid an import-update flag day during Phase 2.
+
+**Deferred refactor.** Move existing files into 5 functional subpackages:
+
+- `analysis/` — `extract.py`, `types.py`, `predicates.py`,
+  `type_registry.py`, `narrow.py`
+- `policy/` — `equal_policy.py`, `policy_llm.py`
+- `generation/` — `gen_det.py`
+- `view/` — Phase 2 modules (already under this subpackage)
+- `run/` — `verify.py`, `workspace.py`, `run_all.py`,
+  `regen_artifacts.py`, `single_file.py`, `verusage_run.py`,
+  `verusage_summary.py`
+
+`config.py` / `cli.py` stay at the top because they are entry / shared
+glue. `schema_search/` already lives in its own subpackage.
+
+**Execution plan** (when scheduled):
+1. `git mv` files into new subpackages (one commit, no other edits).
+2. Bulk-update imports + add shim `from .analysis.extract import *`
+   modules at the old top-level names for any external callers (one
+   commit). Run full test + corpus to confirm zero behaviour change.
+3. Drop the shim re-exports after a soak period.
+
+**Impact.** Pure organizational; no behaviour change. Should be done
+between Phase 2 PRs at a low-churn moment.
+
