@@ -1,0 +1,25 @@
+{
+  "by_layer_count": {
+    "uncovered": 4
+  },
+  "by_layer_examples": {
+    "uncovered": [
+      "ActionPred",
+      "Execution",
+      "StatePred",
+      "TempPred"
+    ]
+  },
+  "needs_top50": [
+    "Execution",
+    "TempPred",
+    "spec_fn"
+  ],
+  "uncovered_count": 4,
+  "uncovered_top50": [
+    "ActionPred",
+    "Execution",
+    "StatePred",
+    "TempPred"
+  ]
+}

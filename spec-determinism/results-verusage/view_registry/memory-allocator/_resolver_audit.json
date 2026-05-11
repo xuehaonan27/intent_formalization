@@ -1,0 +1,32 @@
+{
+  "by_layer_count": {
+    "uncovered": 6
+  },
+  "by_layer_examples": {
+    "uncovered": [
+      "BlockId",
+      "CommitMask",
+      "HeapId",
+      "Node",
+      "PageId",
+      "SegmentId"
+    ]
+  },
+  "needs_top50": [
+    "BlockId",
+    "CommitMask",
+    "HeapId",
+    "Node",
+    "PageId",
+    "SegmentId"
+  ],
+  "uncovered_count": 6,
+  "uncovered_top50": [
+    "BlockId",
+    "CommitMask",
+    "HeapId",
+    "Node",
+    "PageId",
+    "SegmentId"
+  ]
+}

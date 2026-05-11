@@ -1,0 +1,19 @@
+{
+  "by_layer_count": {
+    "L2": 1,
+    "L3": 3
+  },
+  "by_layer_examples": {
+    "L2": [
+      "UInt"
+    ],
+    "L3": [
+      "Repeat",
+      "RepeatN",
+      "UnsignedLEB128"
+    ]
+  },
+  "needs_top50": [],
+  "uncovered_count": 0,
+  "uncovered_top50": []
+}
