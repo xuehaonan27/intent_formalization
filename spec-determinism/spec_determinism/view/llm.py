@@ -42,7 +42,6 @@ import hashlib
 import json
 import logging
 import re
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -54,6 +53,7 @@ from spec_determinism.extract.type_registry import (
     TypeDef,
     TypeExpr,
 )
+from spec_determinism.llm.copilot import CopilotCLI
 
 logger = logging.getLogger(__name__)
 
@@ -71,45 +71,9 @@ VIEW_SOURCE_TAG = "L4-llm"
 # ---------------------------------------------------------------------------
 
 
-@dataclass
-class CopilotViewLLM:
-    """Backend client — same shape as :class:`CopilotPolicyLLM`."""
-    model: str | None = None
-    reasoning_effort: str | None = None
-    timeout: int = 600
-
-    def query(self, prompt: str, run_dir: Path) -> str:
-        run_dir.mkdir(parents=True, exist_ok=True)
-        prompt_path = run_dir / "prompt.md"
-        response_path = run_dir / "response.md"
-        prompt_path.write_text(prompt)
-        if response_path.exists():
-            response_path.unlink()
-
-        meta = (
-            f"Read the full task at {prompt_path} and execute it. "
-            f"Write your reply — the single fenced ```json block described "
-            f"in that task — to {response_path}. Do not modify any other "
-            f"file. Do not print the reply to stdout. After writing the "
-            f"file, exit."
-        )
-        cmd = ["copilot", "-p", meta, "--allow-all-tools",
-               "--allow-all-paths", "--no-color"]
-        if self.model:
-            cmd += ["--model", self.model]
-        if self.reasoning_effort:
-            cmd += ["--effort", self.reasoning_effort]
-
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=self.timeout)
-        (run_dir / "copilot_stdout.txt").write_text(proc.stdout or "")
-        (run_dir / "copilot_stderr.txt").write_text(proc.stderr or "")
-        if not response_path.exists():
-            raise RuntimeError(
-                f"copilot exited rc={proc.returncode} without writing "
-                f"{response_path}. See stdout/stderr in {run_dir}."
-            )
-        return response_path.read_text()
+# Thin alias so call-sites can keep referring to a view-specific name; the
+# subprocess logic lives in :mod:`spec_determinism.llm.copilot`.
+CopilotViewLLM = CopilotCLI
 
 
 # ---------------------------------------------------------------------------
@@ -554,7 +518,11 @@ def synthesize_view(
                                project=project,
                                extra_context=extra_context)
     logger.info("L4 LLM synth for %s …", td.name)
-    raw = client.query(prompt, run_dir)
+    try:
+        raw = client.query(prompt, run_dir)
+    except RuntimeError as e:
+        logger.warning("L4 synth for %s: LLM query failed (%s)", td.name, e)
+        return None
     try:
         d = parse_view_response(raw)
     except ValueError as e:

@@ -34,7 +34,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -44,51 +43,20 @@ from spec_determinism.extract.types import (
     DetCheckSpec, FunctionSpec, ProjectionInfo, Symbol, TypeInfo,
     TypeKind, TypeProjections,
 )
+from spec_determinism.llm.copilot import CopilotCLI
 
 
 logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Minimal Copilot CLI client (mirror of spec-debug's CopilotLLMClient)
+# Copilot CLI backend (shared with view/llm.py)
 # ---------------------------------------------------------------------------
 
-@dataclass
-class CopilotPolicyLLM:
-    model: str | None = None
-    reasoning_effort: str | None = None
-    timeout: int = 600
 
-    def query(self, prompt: str, run_dir: Path) -> str:
-        """Send `prompt` to Copilot CLI; return raw response text."""
-        run_dir.mkdir(parents=True, exist_ok=True)
-        prompt_path = run_dir / "prompt.md"
-        response_path = run_dir / "response.md"
-        prompt_path.write_text(prompt)
-        if response_path.exists():
-            response_path.unlink()
-
-        meta = (
-            f"Read the full task at {prompt_path} and execute it. "
-            f"Write your reply — the single fenced ```json block described "
-            f"in that task — to {response_path}. Do not modify any other file. "
-            f"Do not print the reply to stdout. After writing the file, exit."
-        )
-        cmd = ["copilot", "-p", meta, "--allow-all-tools", "--allow-all-paths", "--no-color"]
-        if self.model:
-            cmd += ["--model", self.model]
-        if self.reasoning_effort:
-            cmd += ["--effort", self.reasoning_effort]
-
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout)
-        (run_dir / "copilot_stdout.txt").write_text(proc.stdout or "")
-        (run_dir / "copilot_stderr.txt").write_text(proc.stderr or "")
-        if not response_path.exists():
-            raise RuntimeError(
-                f"copilot exited rc={proc.returncode} without writing {response_path}. "
-                f"See stdout/stderr in {run_dir}."
-            )
-        return response_path.read_text()
+# Thin alias so call-sites can keep referring to a policy-specific name;
+# the subprocess logic now lives in :mod:`spec_determinism.llm.copilot`.
+CopilotPolicyLLM = CopilotCLI
 
 
 # ---------------------------------------------------------------------------
