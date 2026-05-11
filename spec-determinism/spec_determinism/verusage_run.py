@@ -106,6 +106,11 @@ def main() -> int:
     ap.add_argument("--keep-tmp", action="store_true",
                     help="Preserve the injected .rs / verus_log tmpdirs per "
                          "target (debug).")
+    ap.add_argument("--use-view-registry", action="store_true",
+                    help="Phase-2: build a per-project L1+L2+L3 ViewRegistry "
+                         "(prelude / alias / impl-View) and consult it from "
+                         "gen_det.build_equal_expr. No LLM; uncovered types "
+                         "still fall through to structural ==.")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -123,6 +128,18 @@ def main() -> int:
     log.info("Discovered %d target(s) under %s/%s/%s",
              len(targets), roots, args.project, args.subdir)
 
+    view_registry = None
+    if args.use_view_registry:
+        from .view.registry import ViewRegistry
+        proj_root = roots / args.project
+        log.info("Building ViewRegistry from %s ...", proj_root)
+        t_reg = time.monotonic()
+        view_registry = ViewRegistry.from_project(proj_root)
+        log.info("ViewRegistry: %d types, %d view impls, built in %.2fs",
+                 len(view_registry.types_by_short),
+                 sum(len(v) for v in view_registry.scan.views.values()),
+                 time.monotonic() - t_reg)
+
     results: list[dict] = []
     t0 = time.monotonic()
     for i, (file_path, fn, key) in enumerate(targets, 1):
@@ -135,6 +152,7 @@ def main() -> int:
                 timeout=args.timeout,
                 artifact_dir=art_dir,
                 keep_tmp=args.keep_tmp,
+                view_registry=view_registry,
             )
         except Exception as e:
             r = {"file": str(file_path), "function": fn,

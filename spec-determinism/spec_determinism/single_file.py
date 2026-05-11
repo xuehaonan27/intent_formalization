@@ -144,6 +144,7 @@ def run_single_file(
     timeout: int = 120,
     artifact_dir: Path | None = None,
     keep_tmp: bool = False,
+    view_registry=None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
 
@@ -152,6 +153,12 @@ def run_single_file(
     If ``artifact_dir`` is given, writes ``det_spec.json`` and the
     patched ``.det.rs`` alongside for debugging; otherwise uses a
     temp dir.
+
+    ``view_registry`` (optional) is a Phase-2 L1+L2+L3 resolver. When
+    provided, ``gen_det.build_equal_expr`` consults it for any struct
+    / unknown type whose ``TypeInfo.spec_view`` is unset, before
+    falling back to recursive structural equality. ``None`` preserves
+    the legacy (pre-Phase-2) behaviour.
     """
     result: dict = {
         "file": str(file_path),
@@ -171,7 +178,7 @@ def run_single_file(
         result["status"] = "no_ensures"
         return result
 
-    det_spec = build_det_check_spec(spec)
+    det_spec = build_det_check_spec(spec, view_registry=view_registry)
     fn_det_name = det_spec.check_fn_name
 
     # Write artifact for post-mortem.

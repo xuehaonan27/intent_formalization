@@ -7,7 +7,7 @@ Produces a DetCheckSpec (template + symbol table) that Step 2 consumes.
 
 import logging
 import re
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import tree_sitter as ts
 import tree_sitter_verus as tsv
@@ -18,10 +18,65 @@ from .types import (
 )
 from .equal_policy import EqualPolicy, default_policy
 
+if TYPE_CHECKING:
+    from .view.registry import ViewRegistry
+
 logger = logging.getLogger(__name__)
 
 _lang = ts.Language(tsv.language())
 _parser = ts.Parser(_lang)
+
+
+# ---------------------------------------------------------------------------
+# TypeInfo → TypeExpr bridge for the L1+L2+L3 view resolver
+# ---------------------------------------------------------------------------
+
+# TypeKind → TypeExpr.kind map for primitive / unit so the resolver picks
+# the identity-view path. For composite kinds we hand-craft TypeExpr below.
+_PRIMITIVE_KINDS = {
+    TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
+    TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
+    TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
+    TypeKind.BOOL, TypeKind.STR,
+}
+
+
+def _typeinfo_to_typeexpr(ty: "TypeInfo"):
+    """Convert a ``TypeInfo`` (gen_det's runtime type model) into a
+    ``TypeExpr`` (type_registry's symbolic tree) so the
+    :class:`ViewRegistry` can resolve it.
+
+    The conversion is lossy on the head-name side (Verus's
+    ``Vec<u32>`` and ``Vec<Foo>`` collapse to head ``"Vec"`` in the
+    registry's short-name index), but that's exactly what the
+    resolver wants — prelude rules fire on head name regardless of
+    instantiation.
+    """
+    from .type_registry import TypeExpr
+
+    if ty.kind in _PRIMITIVE_KINDS:
+        return TypeExpr(kind="primitive", head=ty.name or "u32",
+                        raw=ty.name or "u32")
+    if ty.kind == TypeKind.UNIT:
+        return TypeExpr(kind="unit", raw="()")
+    if ty.kind in (TypeKind.SEQ, TypeKind.SET):
+        head = "Seq" if ty.kind == TypeKind.SEQ else "Set"
+        args = [_typeinfo_to_typeexpr(a) for a in (ty.type_args or [])]
+        return TypeExpr(kind="generic" if args else "leaf",
+                        head=head, args=args, raw=ty.name or head)
+    if ty.kind == TypeKind.OPTION:
+        args = [_typeinfo_to_typeexpr(a) for a in (ty.type_args or [])]
+        return TypeExpr(kind="generic" if args else "leaf",
+                        head="Option", args=args, raw=ty.name or "Option")
+    if ty.kind == TypeKind.RESULT:
+        args = [_typeinfo_to_typeexpr(a) for a in (ty.type_args or [])]
+        return TypeExpr(kind="generic" if args else "leaf",
+                        head="Result", args=args, raw=ty.name or "Result")
+    # Struct / Enum / Unknown — use whatever name we have
+    head = ty.name or "?"
+    args = [_typeinfo_to_typeexpr(a) for a in (ty.type_args or [])]
+    return TypeExpr(kind="generic" if args else "leaf",
+                    head=head, args=args, raw=ty.name or "")
 
 
 class Unsupported(Exception):
@@ -332,6 +387,7 @@ def _build_template(
     spec: FunctionSpec,
     check_name: str | None = None,
     policy: EqualPolicy | None = None,
+    view_registry: Optional["ViewRegistry"] = None,
 ) -> str:
     """
     Generate the det check proof fn with {ASSUMES} placeholder.
@@ -469,6 +525,7 @@ def _build_template(
         generics_decl=spec.generics_decl,
         where_decl=spec.where_decl,
         self_type=spec.self_type,
+        view_registry=view_registry,
     )
 
     return code, equal_fn_def, equal_fn_name, equal_call_args
@@ -483,6 +540,7 @@ def build_det_check_spec(
     check_name: str | None = None,
     verus_config: dict | None = None,
     equal_policy: EqualPolicy | None = None,
+    view_registry: Optional["ViewRegistry"] = None,
 ) -> DetCheckSpec:
     """
     Build a DetCheckSpec from a FunctionSpec.
@@ -492,11 +550,18 @@ def build_det_check_spec(
     ``equal_policy`` controls how the generated ``det_<fn>_equal`` spec fn
     coarsens structural equality. Defaults to ``default_policy()`` — all
     ``Err`` values equivalent; everything else strict.
+
+    ``view_registry`` (Phase 2) is the L1+L2+L3 view-aware-equal resolver.
+    When supplied, struct types lacking an inline ``TypeInfo.spec_view``
+    will be looked up by short name in the project's prelude / alias /
+    impl-View tables, and a ``.view()`` / ``@`` projection will be
+    emitted instead of recursive structural comparison. Pass ``None`` for
+    the legacy (pre-Phase-2) behaviour.
     """
     if equal_policy is None:
         equal_policy = default_policy()
     template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(
-        spec, check_name, equal_policy
+        spec, check_name, equal_policy, view_registry=view_registry,
     )
     symbols = _build_symbols(spec)
     check_fn_name = check_name or f"det_{spec.name}"
@@ -900,6 +965,7 @@ def _build_equal_fn(
     generics_decl: str = "",
     where_decl: str = "",
     self_type: str | None = None,
+    view_registry: Optional["ViewRegistry"] = None,
 ) -> str:
     """Emit a Verus spec fn that structurally compares each (lhs, rhs) pair.
 
@@ -927,7 +993,8 @@ def _build_equal_fn(
     else:
         clauses = []
         for (lhs, rhs, ty) in arg_pairs:
-            clauses.append(build_equal_expr(ty, lhs, rhs, policy))
+            clauses.append(build_equal_expr(ty, lhs, rhs, policy,
+                                            view_registry=view_registry))
 
         if not clauses:
             body = "true"
@@ -973,6 +1040,7 @@ def build_equal_expr(
     lhs: str,
     rhs: str,
     policy: EqualPolicy | None = None,
+    view_registry: Optional["ViewRegistry"] = None,
 ) -> str:
     """Recursively emit a Verus boolean expression that structurally compares
     two values of the given type. The output is always inside `spec` mode.
@@ -987,6 +1055,11 @@ def build_equal_expr(
     e.g. ``errs_equivalent`` collapses all ``Err`` to one equivalence class,
     ``opaque_ok`` does the same for ``Ok``, ``opaque_types`` treats whole
     named types as equivalent, and ``ignore_fields`` omits struct fields.
+
+    ``view_registry`` (Phase 2 L1+L2+L3 resolver) — when provided, the
+    STRUCT / UNKNOWN fallback first consults the registry for a
+    view-aware-equal projection (prelude container, alias deref, or
+    discovered ``impl View``). When ``None``, behaviour is unchanged.
     """
     if policy is None:
         policy = default_policy()
@@ -1023,7 +1096,8 @@ def build_equal_expr(
         if policy.opaque_ok:
             ok_clause = f"(({lhs} is Ok) ==> true)"
         else:
-            ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0", policy)
+            ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0", policy,
+                                     view_registry=view_registry)
             ok_clause = f"(({lhs} is Ok) ==> ({ok_eq}))"
         # Err side — collapse all Errs or recurse
         if policy.errs_equivalent:
@@ -1032,7 +1106,8 @@ def build_equal_expr(
                 f"(({lhs} is Ok) == ({rhs} is Ok))"
                 f" && {ok_clause}"
             )
-        err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0", policy)
+        err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0", policy,
+                                  view_registry=view_registry)
         return (
             f"(({lhs} is Ok) == ({rhs} is Ok))"
             f" && {ok_clause}"
@@ -1041,7 +1116,8 @@ def build_equal_expr(
 
     if k == TypeKind.OPTION:
         inner_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.UNKNOWN, "unknown")
-        some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0", policy)
+        some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0", policy,
+                                   view_registry=view_registry)
         return (
             f"(({lhs} is Some) == ({rhs} is Some))"
             f" && (({lhs} is Some) ==> ({some_eq}))"
@@ -1049,7 +1125,12 @@ def build_equal_expr(
 
     if k == TypeKind.ENUM:
         if not ty.variants:
-            # No variant info — fall back to `==` (may or may not work)
+            # No variant info — try the view registry before raw `==` so
+            # macro-generated enums (e.g. `state_machine!`) can still get
+            # a view-aware equal.
+            vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+            if vreg_eq is not None:
+                return vreg_eq
             return f"{lhs} == {rhs}"
         # C-like enums (unit variants with integer discriminants) collapse
         # to a single integer comparison. This matches how the spec
@@ -1067,7 +1148,8 @@ def build_equal_expr(
             if v.inner is not None:
                 # Single-field variant (e.g. Foo(T)). Compare ->{name}_0
                 inner_eq = build_equal_expr(
-                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0", policy
+                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0", policy,
+                    view_registry=view_registry,
                 )
                 parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
         return " && ".join(parts)
@@ -1082,7 +1164,8 @@ def build_equal_expr(
                 if fld.name in policy.ignore_fields:
                     continue
                 clauses.append(build_equal_expr(
-                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
+                    view_registry=view_registry,
                 ))
             if not clauses:
                 return "true"
@@ -1094,13 +1177,22 @@ def build_equal_expr(
             # a raw `@ == @` comparison — if the caller needs that, they
             # should supply a custom_body for this function.
             return f"({lhs})@ == ({rhs})@"
+        # Phase-2 hook: no inline `TypeInfo.spec_view` was discovered.
+        # Consult the L1+L2+L3 resolver before falling back to a recursive
+        # field-by-field structural comparison. The resolver's hit covers
+        # alias-to-primitive (e.g. `Pcid = usize`), prelude containers
+        # appearing as struct types, and explicit `impl View for X`.
+        vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+        if vreg_eq is not None:
+            return vreg_eq
         if ty.fields:
             clauses = []
             for fld in ty.fields:
                 if fld.name in policy.ignore_fields:
                     continue
                 clauses.append(build_equal_expr(
-                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy
+                    fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
+                    view_registry=view_registry,
                 ))
             if not clauses:
                 return "true"
@@ -1108,9 +1200,34 @@ def build_equal_expr(
         # No field info at all — fall back to `==`
         return f"{lhs} == {rhs}"
 
-    # UNKNOWN: fall back to raw `==`; it may still work or may cause a verify
-    # error if the type lacks Eq. Better than dropping the comparison entirely.
+    # UNKNOWN: try the view registry before falling back to raw `==`.
+    vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs)
+    if vreg_eq is not None:
+        return vreg_eq
     return f"{lhs} == {rhs}"
+
+
+def _try_view_registry_equal(
+    view_registry: Optional["ViewRegistry"],
+    ty: TypeInfo,
+    lhs: str,
+    rhs: str,
+) -> Optional[str]:
+    """Phase 2 hook: ask the resolver for a view-aware equality
+    expression. Returns ``None`` when the registry isn't supplied or
+    the type is uncovered — caller falls through to its existing
+    structural fallback. Failures inside the resolver are swallowed
+    and logged (we never want a registry bug to break codegen).
+    """
+    if view_registry is None or not ty.name:
+        return None
+    try:
+        type_expr = _typeinfo_to_typeexpr(ty)
+        return view_registry.equal_expr(lhs, rhs, type_expr)
+    except Exception as e:  # pragma: no cover — safety net
+        logger.warning("ViewRegistry.equal_expr failed for %s: %s",
+                       ty.name, e)
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -1118,12 +1235,17 @@ def build_equal_expr(
 # become more informative, e.g. UNKNOWN -> struct).
 # ---------------------------------------------------------------------------
 
-def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
+def rebuild_equal_fn(det_spec: DetCheckSpec,
+                     view_registry: Optional["ViewRegistry"] = None,
+                     ) -> DetCheckSpec:
     """Regenerate ``equal_fn_def`` / ``equal_fn_name`` / ``equal_arg_pairs`` from
     the (possibly refined) ``det_spec.symbols`` and return the updated spec.
 
     Strategy: find the output symbols by phase (output_simple / output_compound),
     group into pairs (r1/r2, post1_X/post2_X), then replay ``_build_equal_fn``.
+
+    ``view_registry`` — optional Phase-2 L1+L2+L3 view resolver, propagated
+    to ``build_equal_expr``. ``None`` preserves legacy behaviour.
     """
     base = det_spec.check_fn_name or f"det_{det_spec.function}"
     equal_fn_name = f"{base}_equal"
@@ -1182,6 +1304,7 @@ def rebuild_equal_fn(det_spec: DetCheckSpec) -> DetCheckSpec:
         generics_decl=det_spec.generics_decl,
         where_decl=det_spec.where_decl,
         self_type=det_spec.self_type,
+        view_registry=view_registry,
     )
     det_spec.equal_fn_def = equal_fn_def
     det_spec.equal_fn_name = equal_fn_name
