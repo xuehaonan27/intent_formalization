@@ -505,16 +505,31 @@ def synthesize_view(
     force: bool = False,
     critic: Optional["CodexCritic"] = None,
     enable_critic: bool = True,
+    status_out: Optional[dict] = None,
 ) -> Optional[CacheEntry]:
     """Synthesize a view for one type, with cache-hit short-circuit.
 
     Returns the cached/freshly-generated :class:`CacheEntry`, or
     ``None`` when synthesis or validation failed or the critic
     rejected the candidate.
+
+    If ``status_out`` is provided, the function writes a single key
+    ``"status"`` into it on entry, ranging over::
+
+        "cache_hit"      cache hit, no LLM call
+        "ok"             fresh synth, accepted (critic accept/revise/error)
+        "llm_fail"       copilot.query raised RuntimeError
+        "parse_fail"     could not parse JSON from response
+        "validate_fail"  tree-sitter parse of view_decl failed
+        "critic_reject"  critic rejected the candidate
     """
     from spec_determinism.view.critic import (
         CodexCritic, critique_view, append_rejected,
     )
+
+    def _set(s: str) -> None:
+        if status_out is not None:
+            status_out["status"] = s
 
     src_excerpt = _extract_type_source(td)
     src_hash = _source_hash(src_excerpt or td.qualified_name)
@@ -523,6 +538,7 @@ def synthesize_view(
         hit = cache.get(td.name, src_hash)
         if hit is not None:
             logger.info("L4 cache hit for %s (hash=%s)", td.name, src_hash)
+            _set("cache_hit")
             return hit
 
     if client is None:
@@ -538,11 +554,13 @@ def synthesize_view(
         raw = client.query(prompt, run_dir)
     except RuntimeError as e:
         logger.warning("L4 synth for %s: LLM query failed (%s)", td.name, e)
+        _set("llm_fail")
         return None
     try:
         d = parse_view_response(raw)
     except ValueError as e:
         logger.warning("L4 synth for %s: bad response (%s)", td.name, e)
+        _set("parse_fail")
         return None
 
     view_decl = d["view_decl"]
@@ -562,6 +580,7 @@ def synthesize_view(
             raw_response=raw,
         )
         cache.put(entry)
+        _set("validate_fail")
         return None
 
     viewed_type = d["viewed_type"]
@@ -601,6 +620,7 @@ def synthesize_view(
                 view_decl=view_decl,
                 source_hash=src_hash,
             )
+            _set("critic_reject")
             return None
 
     entry = CacheEntry(
@@ -617,6 +637,7 @@ def synthesize_view(
         critic_issues=critic_issues,
     )
     cache.put(entry)
+    _set("ok")
     return entry
 
 
@@ -713,6 +734,7 @@ def prefill_project(
         if dry_run:
             record["action"] = "dry-run"
         else:
+            status: dict = {}
             entry = synthesize_view(
                 td, dep_views=dep_views, cache=cache,
                 client=client,
@@ -720,9 +742,18 @@ def prefill_project(
                 force=force,
                 critic=critic_obj,
                 enable_critic=enable_critic,
+                status_out=status,
             )
+            record["status"] = status.get("status", "?")
             if entry is None:
-                record["action"] = "failed"
+                # Map fine-grained status into a coarse action label for
+                # back-compat with downstream summaries.
+                if record["status"] == "critic_reject":
+                    record["action"] = "critic_reject"
+                elif record["status"] == "validate_fail":
+                    record["action"] = "invalid"
+                else:
+                    record["action"] = "failed"
             elif entry.view_source == VIEW_SOURCE_TAG and entry.view_decl:
                 record["action"] = "ok"
                 record["viewed_type"] = entry.viewed_type
@@ -872,6 +903,8 @@ def _cli() -> int:
             critic_timeout=args.critic_timeout,
         )
         n_ok = sum(1 for r in summary["results"] if r["action"] == "ok")
+        n_reject = sum(1 for r in summary["results"]
+                       if r["action"] == "critic_reject")
         n_fail = sum(1 for r in summary["results"] if r["action"] == "failed")
         n_invalid = sum(1 for r in summary["results"]
                         if r["action"] == "invalid")
@@ -881,8 +914,8 @@ def _cli() -> int:
         n_critic_err = sum(1 for r in summary["results"]
                            if r.get("critic_verdict") == "error")
         print(f"prefill {args.project}: total={summary['total_uncovered']}  "
-              f"ok={n_ok}  fail={n_fail}  invalid={n_invalid}  "
-              f"dry-run={n_dry}  "
+              f"ok={n_ok}  reject={n_reject}  fail={n_fail}  "
+              f"invalid={n_invalid}  dry-run={n_dry}  "
               f"critic[revise={n_revise} err={n_critic_err}]")
         return 0
 
