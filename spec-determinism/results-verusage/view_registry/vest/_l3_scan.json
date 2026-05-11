@@ -1,0 +1,1362 @@
+{
+  "eqs": {},
+  "source_file": "vest",
+  "views": {
+    "Repeat": [
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl15__lemma_serialize_add.rs",
+        "source_line": 52,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "Repeat",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "Repeat<C>"
+        },
+        "target_name": "Repeat",
+        "view_assoc_type": "Repeat<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "Repeat",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "Repeat<<C as View>::V>"
+        },
+        "view_fn_body": "Repeat(self.0@)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl15__lemma_serialize_add.rs",
+        "source_line": 44,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "Repeat",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "Repeat<C>"
+        },
+        "target_name": "Repeat",
+        "view_assoc_type": "Repeat<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "Repeat",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "Repeat<<C as View>::V>"
+        },
+        "view_fn_body": "Repeat(self.0@)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      }
+    ],
+    "RepeatN": [
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl1__lemma_spec_parse_err_unrecoverable.rs",
+        "source_line": 26,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl5__lemma_spec_serialize_max_length_2.rs",
+        "source_line": 49,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl2__theorem_parse_serialize_roundtrip_helper.rs",
+        "source_line": 83,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl5__lemma_spec_serialize_max_length.rs",
+        "source_line": 49,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl2__theorem_serialize_parse_roundtrip_helper.rs",
+        "source_line": 75,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl2__lemma_parse_length_helper.rs",
+        "source_line": 52,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl15__lemma_serialize_add.rs",
+        "source_line": 27,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl2__lemma_parse_productive_helper.rs",
+        "source_line": 56,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__repetition__impl2__lemma_prefix_secure_helper.rs",
+        "source_line": 53,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl1__lemma_spec_parse_err_unrecoverable.rs",
+        "source_line": 20,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl5__lemma_spec_serialize_max_length_2.rs",
+        "source_line": 34,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl2__theorem_parse_serialize_roundtrip_helper.rs",
+        "source_line": 53,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl5__lemma_spec_serialize_max_length.rs",
+        "source_line": 35,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl2__theorem_serialize_parse_roundtrip_helper.rs",
+        "source_line": 45,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl2__lemma_parse_length_helper.rs",
+        "source_line": 38,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl15__lemma_serialize_add.rs",
+        "source_line": 22,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl2__lemma_parse_productive_helper.rs",
+        "source_line": 41,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [
+          {
+            "bounds": [
+              "View"
+            ],
+            "kind": "type",
+            "name": "C",
+            "raw": "C: View"
+          }
+        ],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__repetition__impl2__lemma_prefix_secure_helper.rs",
+        "source_line": 40,
+        "target_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "const_arg",
+              "head": "C",
+              "is_mut": false,
+              "kind": "unknown",
+              "raw": "C"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<C>"
+        },
+        "target_name": "RepeatN",
+        "view_assoc_type": "RepeatN<<C as View>::V>",
+        "view_assoc_type_expr": {
+          "args": [
+            {
+              "args": [],
+              "extra": "",
+              "head": "V",
+              "is_mut": false,
+              "kind": "leaf",
+              "raw": "<C as View>::V"
+            }
+          ],
+          "extra": "",
+          "head": "RepeatN",
+          "is_mut": false,
+          "kind": "generic",
+          "raw": "RepeatN<<C as View>::V>"
+        },
+        "view_fn_body": "RepeatN(self.0@, self.1)",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      }
+    ],
+    "UnsignedLEB128": [
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__leb128__impl2__lemma_serialize_last_byte_high_8_bit_not_set.rs",
+        "source_line": 26,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__leb128__impl2__lemma_spec_parse_low_7_bits.rs",
+        "source_line": 28,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__leb128__impl2__lemma_spec_parse_non_zero.rs",
+        "source_line": 29,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__leb128__impl2__lemma_parse_high_8_bits_set_until_last.rs",
+        "source_line": 68,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/unverified/regular__leb128__impl2__lemma_spec_serialize_length.rs",
+        "source_line": 29,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__leb128__impl2__lemma_serialize_last_byte_high_8_bit_not_set.rs",
+        "source_line": 40,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__leb128__impl2__lemma_spec_parse_low_7_bits.rs",
+        "source_line": 22,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__leb128__impl2__lemma_spec_parse_non_zero.rs",
+        "source_line": 22,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__leb128__impl2__lemma_parse_high_8_bits_set_until_last.rs",
+        "source_line": 54,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      },
+      {
+        "cfg": [],
+        "impl_generics": [],
+        "is_closed": false,
+        "source_file": "../verusage/source-projects/vest/verified/regular/regular__leb128__impl2__lemma_spec_serialize_length.rs",
+        "source_line": 21,
+        "target_expr": {
+          "args": [],
+          "extra": "",
+          "head": "UnsignedLEB128",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "UnsignedLEB128"
+        },
+        "target_name": "UnsignedLEB128",
+        "view_assoc_type": "Self",
+        "view_assoc_type_expr": {
+          "args": [],
+          "extra": "",
+          "head": "Self",
+          "is_mut": false,
+          "kind": "leaf",
+          "raw": "Self"
+        },
+        "view_fn_body": "Self",
+        "view_fn_signature": "open spec fn view(&self) -> Self::V"
+      }
+    ]
+  }
+}

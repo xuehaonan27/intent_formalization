@@ -1,0 +1,21 @@
+{
+  "alias_types_count": 2,
+  "by_kind": {
+    "alias": 2,
+    "struct": 2
+  },
+  "eq_impls_total": 0,
+  "files_scanned": 208,
+  "have_derive_eq_or_partialeq_count": 0,
+  "have_partialeq_or_eq_impl_count": 0,
+  "have_view_impl": [],
+  "have_view_impl_count": 0,
+  "l1_l2_l3_uncovered_count": 2,
+  "l1_l2_l3_uncovered_top50": [
+    "Execution",
+    "TempPred"
+  ],
+  "parse_errors": [],
+  "total_defined_types": 4,
+  "view_impls_total": 0
+}
