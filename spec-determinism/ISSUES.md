@@ -171,3 +171,61 @@ function-local imports that the existing selftests don't exercise.
 check` target) that runs `verusage_run --use-view-registry` on a tiny
 hand-rolled corpus (one project, one function) and asserts exit code
 0. This would have caught the broken imports immediately.
+
+## #6 — `rerun_corpus.sh` flat `--out` overwrote 6 projects' results
+
+**Symptom.** Corpus rerun `setsid bash scripts/auto_chain.sh`
+(2026-05-11 15:22 → 17:07, all 7 projects, rc=0 in driver) produced
+1649 artifact subdirs (all 7 prefixes present), but `SUMMARY.json` was
+`{}` and `SUMMARY.md` showed 0 everywhere. `compare_runs.py` then
+exited with code 2 (`empty candidate`).
+
+Inspection of `results-verusage-viewreg/full_run.json` revealed
+**only 1363 entries — all atmosphere**. The other 6 projects' status
+records were silently lost.
+
+**Root cause.** Two-part bug:
+
+1. `spec_determinism/corpus/verusage_run.py` writes
+   `<out_root>/full_run.json` and `<out_root>/artifacts/<key>/`
+   **flat** at `out_root`, with no per-project nesting.
+2. `scripts/rerun_corpus.sh` looped 7 projects all passing
+   `--out "$OUT"` (`$OUT = results-verusage-viewreg/`). Each project's
+   `full_run.json` clobbered the previous one. Atmosphere ran last
+   (15:26 → 17:07), so only its data survived.
+
+   The post-iteration `if [[ -f "$OUT/$proj/full_run.json" ]]` looked
+   in the wrong path (per-project subdir didn't exist) and silently
+   skipped the per-project status print in `_run_summary.log` —
+   masking the problem.
+
+3. `spec_determinism/corpus/verusage_summary.py::load_per_project`
+   iterates `results_root.iterdir()` looking for
+   `<dir>/full_run.json`. Without per-project subdirs it found only
+   the flat `artifacts/` dir and returned `{}` — yielding the empty
+   `SUMMARY.json`.
+
+`compare_runs.py::load_run` shares the same per-project assumption.
+
+**Fix.** `scripts/rerun_corpus.sh` now creates `$OUT/$proj/` and
+passes `--out "$OUT/$proj"` to each `verusage_run` invocation. The
+per-project status print path is updated to match. Also added an
+optional `ONLY="proj1 proj2 ..."` env var to allow resuming a partial
+rerun without redoing the long projects.
+
+**Why not patch `verusage_run.py`?** That would have changed the API
+for any other caller; `rerun_corpus.sh` was the only one with the
+multi-project loop, and the per-project `--out` is the more common
+convention (matches how baseline `results-verusage/` was produced).
+
+**Salvage.** Atmosphere data at the top-level `full_run.json` and
+1363 `atmosphere__*` artifact subdirs were moved into
+`results-verusage-viewreg/atmosphere/`. Other 6 projects' artifacts
+were stale (overwritten between runs) and were deleted; those 6 will
+be rerun under the fix (~5 min total — much smaller than atmosphere
+alone).
+
+**Lesson.** Add a smoketest (or assertion) that
+`load_per_project($OUT)` returns non-empty after `rerun_corpus.sh`
+exits, before `compare_runs.py` is invoked. This is on the same wish
+list as #5 (an `--use-view-registry` integration test).
