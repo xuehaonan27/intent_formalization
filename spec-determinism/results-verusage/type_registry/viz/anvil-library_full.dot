@@ -1,0 +1,25 @@
+digraph "anvil-library_deps" {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Helvetica", fontsize=12, splines=true, overlap=false, nodesep=0.25, ranksep=0.75];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.10,0.05"];
+  edge [arrowsize=0.6, color="#90A4AE", penwidth=0.8];
+  { rank=same; "TempPred" }
+  { rank=same; "ActionPred" "Execution" "StatePred" }
+  "ActionPred" [label="ActionPred\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "Execution" [label="Execution\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "StatePred" [label="StatePred\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "TempPred" [label="TempPred\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "TempPred" -> "Execution";
+  subgraph cluster_legend {
+    label="legend"; style="rounded"; color="#9E9E9E";
+    fontcolor="#616161"; fontsize=10;
+    node [shape=box, style="rounded,filled", fontsize=9, margin="0.06,0.03"];
+    leg_struct [label="struct", fillcolor="#E3F2FD", color="#1976D2"];
+    leg_enum [label="enum", fillcolor="#FFF3E0", color="#F57C00"];
+    leg_alias [label="alias", fillcolor="#F3E5F5", color="#7B1FA2"];
+    leg_union [label="union", fillcolor="#E0F7FA", color="#0097A7"];
+    leg_container [label="container", fillcolor="#E8F5E9", color="#388E3C"];
+    leg_primitive [label="primitive", fillcolor="#FAFAFA", color="#616161"];
+    leg_external [label="external", fillcolor="#FFEBEE", color="#C62828"];
+  }
+}

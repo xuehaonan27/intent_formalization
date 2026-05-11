@@ -1,0 +1,85 @@
+digraph "atmosphere_deps" {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Helvetica", fontsize=12, splines=true, overlap=false, nodesep=0.25, ranksep=0.75];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.10,0.05"];
+  edge [arrowsize=0.6, color="#90A4AE", penwidth=0.8];
+  { rank=same; "Kernel" }
+  { rank=same; "PageAllocator" }
+  { rank=same; "StaticLinkedList" }
+  { rank=same; "Array" "Node" "Page" "PagePerm1g" "PagePerm2m" "PagePerm4k" }
+  { rank=same; "ContainerPtr" "Ghost" "IOid" "Map" "Option" "PagePtr" "PageState" "Pcid" "PointsTo" "SLLIndex" "Seq" "Set" "Tracked" "VAddr" }
+  "Array" [label="Array\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "ContainerPtr" [label="ContainerPtr\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "Ghost" [label="Ghost\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "IOid" [label="IOid\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "Kernel" [label="Kernel\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Map" [label="Map\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "Node" [label="Node\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Option" [label="Option\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "Page" [label="Page\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PageAllocator" [label="PageAllocator\n<struct>", fillcolor="#E3F2FD", color="#1976D2", penwidth=3.0];
+  "PagePerm1g" [label="PagePerm1g\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "PagePerm2m" [label="PagePerm2m\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "PagePerm4k" [label="PagePerm4k\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "PagePtr" [label="PagePtr\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "PageState" [label="PageState\n<enum>", fillcolor="#FFF3E0", color="#F57C00"];
+  "Pcid" [label="Pcid\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "PointsTo" [label="PointsTo\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "SLLIndex" [label="SLLIndex\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "Seq" [label="Seq\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "Set" [label="Set\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "StaticLinkedList" [label="StaticLinkedList\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Tracked" [label="Tracked\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "VAddr" [label="VAddr\n<alias>", fillcolor="#F3E5F5", color="#7B1FA2"];
+  "Array" -> "Ghost";
+  "Array" -> "Seq";
+  "Kernel" -> "Ghost";
+  "Kernel" -> "Map";
+  "Kernel" -> "PageAllocator";
+  "Kernel" -> "PagePtr";
+  "Kernel" -> "Set";
+  "Kernel" -> "VAddr";
+  "Node" -> "Option";
+  "Node" -> "SLLIndex";
+  "Page" -> "ContainerPtr";
+  "Page" -> "Ghost";
+  "Page" -> "IOid";
+  "Page" -> "Option";
+  "Page" -> "PagePtr";
+  "Page" -> "PageState";
+  "Page" -> "Pcid";
+  "Page" -> "SLLIndex";
+  "Page" -> "Set";
+  "Page" -> "VAddr";
+  "PageAllocator" -> "Array";
+  "PageAllocator" -> "ContainerPtr";
+  "PageAllocator" -> "Ghost";
+  "PageAllocator" -> "Map";
+  "PageAllocator" -> "Page";
+  "PageAllocator" -> "PagePerm1g";
+  "PageAllocator" -> "PagePerm2m";
+  "PageAllocator" -> "PagePerm4k";
+  "PageAllocator" -> "PagePtr";
+  "PageAllocator" -> "Set";
+  "PageAllocator" -> "StaticLinkedList";
+  "PageAllocator" -> "Tracked";
+  "PagePerm1g" -> "PointsTo";
+  "PagePerm2m" -> "PointsTo";
+  "PagePerm4k" -> "PointsTo";
+  "StaticLinkedList" -> "Ghost";
+  "StaticLinkedList" -> "Node";
+  "StaticLinkedList" -> "SLLIndex";
+  "StaticLinkedList" -> "Seq";
+  subgraph cluster_legend {
+    label="legend"; style="rounded"; color="#9E9E9E";
+    fontcolor="#616161"; fontsize=10;
+    node [shape=box, style="rounded,filled", fontsize=9, margin="0.06,0.03"];
+    leg_struct [label="struct", fillcolor="#E3F2FD", color="#1976D2"];
+    leg_enum [label="enum", fillcolor="#FFF3E0", color="#F57C00"];
+    leg_alias [label="alias", fillcolor="#F3E5F5", color="#7B1FA2"];
+    leg_union [label="union", fillcolor="#E0F7FA", color="#0097A7"];
+    leg_container [label="container", fillcolor="#E8F5E9", color="#388E3C"];
+    leg_primitive [label="primitive", fillcolor="#FAFAFA", color="#616161"];
+    leg_external [label="external", fillcolor="#FFEBEE", color="#C62828"];
+  }
+}

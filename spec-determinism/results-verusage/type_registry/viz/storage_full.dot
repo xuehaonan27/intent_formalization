@@ -1,0 +1,73 @@
+digraph "storage_deps" {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Helvetica", fontsize=12, splines=true, overlap=false, nodesep=0.25, ranksep=0.75];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.10,0.05"];
+  edge [arrowsize=0.6, color="#90A4AE", penwidth=0.8];
+  { rank=same; "PersistentMemoryRegionsView" "WritablePersistentMemorySubregion" "WriteRestrictedPersistentMemorySubregion" }
+  { rank=same; "CrcDigest" "PersistentMemoryRegionView" "UntrustedLogImpl" }
+  { rank=same; "AbstractLogState" "ExternalDigest" "LogErr" "MaybeCorruptedBytes" "PersistentMemoryByte" "PersistentMemorySubregion" "TrustedPermission" "WriteRestrictedPersistentMemoryRegion" }
+  { rank=same; "Box" "Digest" "Ghost" "GlobalMetadata" "LogInfo" "LogMetadata" "MaybeUninit" "Option" "PersistentMemoryConstants" "PmemError" "RegionMetadata" "Seq" }
+  "AbstractLogState" [label="AbstractLogState\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Box" [label="Box\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "CrcDigest" [label="CrcDigest\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Digest" [label="Digest\n<external>", fillcolor="#FFEBEE", color="#C62828"];
+  "ExternalDigest" [label="ExternalDigest\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Ghost" [label="Ghost\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "GlobalMetadata" [label="GlobalMetadata\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "LogErr" [label="LogErr\n<enum>", fillcolor="#FFF3E0", color="#F57C00"];
+  "LogInfo" [label="LogInfo\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "LogMetadata" [label="LogMetadata\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "MaybeCorruptedBytes" [label="MaybeCorruptedBytes\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "MaybeUninit" [label="MaybeUninit\n<external>", fillcolor="#FFEBEE", color="#C62828"];
+  "Option" [label="Option\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "PersistentMemoryByte" [label="PersistentMemoryByte\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PersistentMemoryConstants" [label="PersistentMemoryConstants\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PersistentMemoryRegionView" [label="PersistentMemoryRegionView\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PersistentMemoryRegionsView" [label="PersistentMemoryRegionsView\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PersistentMemorySubregion" [label="PersistentMemorySubregion\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "PmemError" [label="PmemError\n<enum>", fillcolor="#FFF3E0", color="#F57C00"];
+  "RegionMetadata" [label="RegionMetadata\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "Seq" [label="Seq\n<container>", fillcolor="#E8F5E9", color="#388E3C"];
+  "TrustedPermission" [label="TrustedPermission\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "UntrustedLogImpl" [label="UntrustedLogImpl\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "WritablePersistentMemorySubregion" [label="WritablePersistentMemorySubregion\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "WriteRestrictedPersistentMemoryRegion" [label="WriteRestrictedPersistentMemoryRegion\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "WriteRestrictedPersistentMemorySubregion" [label="WriteRestrictedPersistentMemorySubregion\n<struct>", fillcolor="#E3F2FD", color="#1976D2"];
+  "AbstractLogState" -> "Seq";
+  "CrcDigest" -> "ExternalDigest";
+  "CrcDigest" -> "Ghost";
+  "CrcDigest" -> "Seq";
+  "ExternalDigest" -> "Digest";
+  "LogErr" -> "PmemError";
+  "MaybeCorruptedBytes" -> "Box";
+  "MaybeCorruptedBytes" -> "MaybeUninit";
+  "PersistentMemoryByte" -> "Option";
+  "PersistentMemoryRegionView" -> "PersistentMemoryByte";
+  "PersistentMemoryRegionView" -> "Seq";
+  "PersistentMemoryRegionsView" -> "PersistentMemoryRegionView";
+  "PersistentMemoryRegionsView" -> "Seq";
+  "PersistentMemorySubregion" -> "Ghost";
+  "TrustedPermission" -> "Seq";
+  "UntrustedLogImpl" -> "AbstractLogState";
+  "UntrustedLogImpl" -> "Ghost";
+  "UntrustedLogImpl" -> "LogInfo";
+  "WritablePersistentMemorySubregion" -> "Ghost";
+  "WritablePersistentMemorySubregion" -> "PersistentMemoryConstants";
+  "WritablePersistentMemorySubregion" -> "PersistentMemoryRegionView";
+  "WriteRestrictedPersistentMemoryRegion" -> "Option";
+  "WriteRestrictedPersistentMemorySubregion" -> "Ghost";
+  "WriteRestrictedPersistentMemorySubregion" -> "PersistentMemoryConstants";
+  "WriteRestrictedPersistentMemorySubregion" -> "PersistentMemoryRegionView";
+  subgraph cluster_legend {
+    label="legend"; style="rounded"; color="#9E9E9E";
+    fontcolor="#616161"; fontsize=10;
+    node [shape=box, style="rounded,filled", fontsize=9, margin="0.06,0.03"];
+    leg_struct [label="struct", fillcolor="#E3F2FD", color="#1976D2"];
+    leg_enum [label="enum", fillcolor="#FFF3E0", color="#F57C00"];
+    leg_alias [label="alias", fillcolor="#F3E5F5", color="#7B1FA2"];
+    leg_union [label="union", fillcolor="#E0F7FA", color="#0097A7"];
+    leg_container [label="container", fillcolor="#E8F5E9", color="#388E3C"];
+    leg_primitive [label="primitive", fillcolor="#FAFAFA", color="#616161"];
+    leg_external [label="external", fillcolor="#FFEBEE", color="#C62828"];
+  }
+}
