@@ -138,8 +138,8 @@ def main() -> int:
 
     view_registry = None
     if args.use_view_registry:
-        from .view.registry import ViewRegistry
-        from .view.llm import ViewCache
+        from spec_determinism.view.registry import ViewRegistry
+        from spec_determinism.view.llm import ViewCache
         proj_root = roots / args.project
         log.info("Building ViewRegistry from %s ...", proj_root)
         t_reg = time.monotonic()

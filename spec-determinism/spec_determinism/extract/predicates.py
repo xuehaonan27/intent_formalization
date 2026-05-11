@@ -32,7 +32,7 @@ from dataclasses import dataclass
 from typing import Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .schema_search.schemas import SchemaBinding
+    from spec_determinism.schema_search.schemas import SchemaBinding
 
 
 # Schema kind name strings (avoid importing SchemaKind to prevent layering

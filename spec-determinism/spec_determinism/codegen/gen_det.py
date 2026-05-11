@@ -52,7 +52,7 @@ def _typeinfo_to_typeexpr(ty: "TypeInfo"):
     resolver wants — prelude rules fire on head name regardless of
     instantiation.
     """
-    from .type_registry import TypeExpr
+    from spec_determinism.extract.type_registry import TypeExpr
 
     if ty.kind in _PRIMITIVE_KINDS:
         return TypeExpr(kind="primitive", head=ty.name or "u32",
