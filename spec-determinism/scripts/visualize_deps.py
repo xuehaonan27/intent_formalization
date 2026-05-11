@@ -1,5 +1,5 @@
 """Render a per-project dep graph (the JSON produced by
-``python -m spec_determinism.type_registry deps``) as a Graphviz DOT
+``python -m spec_determinism.extract.type_registry deps``) as a Graphviz DOT
 file and SVG / PNG.
 
 Usage:

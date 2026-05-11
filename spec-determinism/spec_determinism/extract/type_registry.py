@@ -48,7 +48,7 @@ from typing import Iterable, Optional
 
 import tree_sitter as ts
 
-from .extract import _child_by_type, _children_by_type, _parser, _text
+from .extractor import _child_by_type, _children_by_type, _parser, _text
 
 logger = logging.getLogger(__name__)
 

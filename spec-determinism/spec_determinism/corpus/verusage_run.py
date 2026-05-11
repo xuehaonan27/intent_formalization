@@ -21,8 +21,8 @@ import sys
 import time
 from pathlib import Path
 
-from .extract import extract_spec
-from .single_file import (
+from spec_determinism.extract.extractor import extract_spec
+from spec_determinism.verus.single_file import (
     _DEFAULT_VERUS,
     discover_exec_fns,
     run_single_file,

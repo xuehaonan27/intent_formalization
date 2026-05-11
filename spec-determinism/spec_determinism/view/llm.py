@@ -50,7 +50,7 @@ from typing import Optional
 import tree_sitter as ts
 import tree_sitter_verus as tsv
 
-from spec_determinism.type_registry import (
+from spec_determinism.extract.type_registry import (
     TypeDef,
     TypeExpr,
 )

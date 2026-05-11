@@ -12,14 +12,14 @@ from typing import TYPE_CHECKING, Optional
 import tree_sitter as ts
 import tree_sitter_verus as tsv
 
-from .types import (
+from spec_determinism.extract.types import (
     TypeKind, TypeInfo, Param, FunctionSpec, Assume,
     Symbol, DetCheckSpec,
 )
 from .equal_policy import EqualPolicy, default_policy
 
 if TYPE_CHECKING:
-    from .view.registry import ViewRegistry
+    from spec_determinism.view.registry import ViewRegistry
 
 logger = logging.getLogger(__name__)
 

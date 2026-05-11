@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from spec_determinism.type_registry import (
+from spec_determinism.extract.type_registry import (
     TypeDef,
     TypeExpr,
     TypeRegistry,
@@ -430,7 +430,7 @@ def audit_resolver(reg: ViewRegistry) -> dict:
 
 
 def _cmd_selftest(args: argparse.Namespace) -> int:
-    from spec_determinism.type_registry import build_registry
+    from spec_determinism.extract.type_registry import build_registry
 
     cases: list[tuple[str, Callable[[], bool]]] = []
 

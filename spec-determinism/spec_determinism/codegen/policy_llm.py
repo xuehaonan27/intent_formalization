@@ -40,7 +40,7 @@ from pathlib import Path
 from typing import Optional
 
 from .equal_policy import EqualPolicy
-from .types import (
+from spec_determinism.extract.types import (
     DetCheckSpec, FunctionSpec, ProjectionInfo, Symbol, TypeInfo,
     TypeKind, TypeProjections,
 )

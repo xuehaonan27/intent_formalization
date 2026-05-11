@@ -12,7 +12,7 @@ import time
 import logging
 from pathlib import Path
 
-from .types import VerifyResult
+from spec_determinism.extract.types import VerifyResult
 
 logger = logging.getLogger(__name__)
 

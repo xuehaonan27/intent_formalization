@@ -3,26 +3,40 @@
 This document walks through every file in `spec_determinism/` and explains how they
 fit together. The pipeline is a straight line with one fork; there are
 no legacy branches — everything described here is reachable from
-`run_all.py`.
+`corpus/run_all.py`.
 
 ## One-line per module
 
 ```
-spec_determinism/extract.py         Verus source → FunctionSpec (tree-sitter-verus)
-spec_determinism/equal_policy.py    Choose which equal_fn to use for a given function
-spec_determinism/gen_det.py         Synthesize the det_fn proof template
-spec_determinism/verify.py          One cargo-verus invocation; capture .smt2 transcript
-spec_determinism/types.py           FunctionSpec / DetCheckSpec / Assume / Witness dataclasses
-spec_determinism/predicates.py      Structured AssumePred classes; pred ↔ schema match
-spec_determinism/narrow.py   AssumeTree + narrow_* strategies + SearchContext Protocol
+spec_determinism/extract/extractor.py     Verus source → FunctionSpec (tree-sitter-verus)
+spec_determinism/extract/types.py         FunctionSpec / DetCheckSpec / Assume / Witness dataclasses
+spec_determinism/extract/predicates.py    Structured AssumePred classes; pred ↔ schema match
+spec_determinism/extract/narrow.py        AssumeTree + narrow_* strategies + SearchContext Protocol
+spec_determinism/extract/type_registry.py Type/field dependency graph (Phase 1 — feeds View resolver)
+spec_determinism/codegen/equal_policy.py  Choose which equal_fn to use for a given function
+spec_determinism/codegen/gen_det.py       Synthesize the det_fn proof template
+spec_determinism/codegen/policy_llm.py    LLM-driven EqualPolicy + projection discovery
+spec_determinism/verus/verify.py          One cargo-verus invocation; capture .smt2 transcript
+spec_determinism/verus/single_file.py     Single-file verus driver (verusage style)
+spec_determinism/verus/workspace.py       Workspace discovery / source-file IO
+spec_determinism/view/                    Phase 2 — 4-layer view resolver
+    prelude.py         L1 prelude container views (Vec/Option/Map/Ghost/&T)
+    impl_scanner.py    L3 scan for raw `impl View for T` blocks
+    registry.py        L1+L2+L3+L4 resolver, equal_expr + Resolution.prelude_decl
+    llm.py             L4 offline LLM view synthesizer + cache (Copilot CLI)
 spec_determinism/schema_search/
     schemas.py         Schema enumeration, guarded template, assume translation
     search.py          z3.Solver-driven search loop (the only driver today)
+spec_determinism/corpus/
+    run_all.py         End-to-end runner (workspace mode)
+    verusage_run.py    Batch runner for verusage-style single-file corpora
+    verusage_summary.py  Stats aggregator over verusage results
+    regen_artifacts.py   Regen DetCheckSpec / proof files from cached config
 ```
 
 ## The pipeline, top to bottom
 
-### 1. `extract.py` — source → FunctionSpec
+### 1. `extract/extractor.py` — source → FunctionSpec
 
 Tree-sitter-verus parses the target crate and walks the CST to build
 a `FunctionSpec`: parameter types (with full `TypeInfo` — struct
@@ -31,13 +45,13 @@ expressions (as Rust source strings), and the selected return type.
 Types recurse as deep as needed for nested generics (e.g.
 `Option<Result<Seq<SlabView>, Error>>`).
 
-### 2. `equal_policy.py` — equality selection
+### 2. `codegen/equal_policy.py` — equality selection
 
 Given a `FunctionSpec`, decides which equality function to use for
 `r1 != r2` in the distinctness goal. The default is a structural
 equality over the return type; users can override per-function.
 
-### 3. `gen_det.py` — det_fn template
+### 3. `codegen/gen_det.py` — det_fn template
 
 Generates the proof function
 
@@ -58,7 +72,7 @@ The template is parameterised by the schema set produced in step 5.
 The combined output is a single `DetCheckSpec` (see `types.py`) that
 contains the Rust source, the symbol table, and the `equal_fn` body.
 
-### 4. `types.py` — core data classes
+### 4. `extract/types.py` — core data classes
 
 - `FunctionSpec` — static description of the target function.
 - `DetCheckSpec` — `FunctionSpec` + `det_fn` source + symbol table +
@@ -95,7 +109,7 @@ Rust source with every `if guard_i { assume(...); }` wired up.
 on each; the first non-None match wins. Returns `None` if no schema
 covers this pred (caller falls through as `pass_untranslatable`).
 
-### 6. `predicates.py` — structured preds + pred↔schema dispatch
+### 6. `extract/predicates.py` — structured preds + pred↔schema dispatch
 
 Each `AssumePred` subclass is a small frozen dataclass with two methods:
 
@@ -112,7 +126,7 @@ To add a 13th: append one dataclass with the two methods and add it
 to the `AssumePred` union at the bottom of the file. No other file
 needs editing.
 
-### 7. `verify.py` — single cargo-verus call
+### 7. `verus/verify.py` — single cargo-verus call
 
 `run_cargo_verus(crate, fn_name)` wraps the `cargo +<toolchain> verus
 verify` invocation with the right target, features, log-dir flags,
@@ -120,7 +134,7 @@ and path filters. The side effect is a `mm__<module>.smt2` dumped
 under `/tmp/aprime_<crate>_<fn>_XXXX/`. Returns a `VerifyResult` with
 status, stdout, stderr, and the smt2 path.
 
-### 8. `narrow.py` — AssumeTree + narrow_* strategies
+### 8. `extract/narrow.py` — AssumeTree + narrow_* strategies
 
 #### `AssumeNode` (the tree)
 
@@ -227,7 +241,7 @@ strong distinctness assertion.
    `(get-model)` responses. This is the resolution to the two problems
    documented in `JOURNEY.md`.
 
-5. **One driver, one entry point.** `run_all.py` → `run_schema_search`.
+5. **One driver, one entry point.** `corpus/run_all.py` → `run_schema_search`.
    The old `binary_search()` driver, `Z3Backend`, `ModelProvidingBackend`,
    and `model_eval.py` are gone (see commit history if you need to
    recover them).

@@ -13,8 +13,8 @@ from typing import Optional
 
 import z3
 
-from ..types import Assume, DetCheckSpec, Witness
-from ..narrow import AssumeNode, narrow, _add_distinctness_witnesses
+from spec_determinism.extract.types import Assume, DetCheckSpec, Witness
+from spec_determinism.extract.narrow import AssumeNode, narrow, _add_distinctness_witnesses
 from .schemas import SchemaBinding, SchemaKind, translate_assume
 
 logger = logging.getLogger(__name__)

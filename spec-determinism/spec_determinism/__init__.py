@@ -1,2 +1,2 @@
 """spec-determinism tool"""
-from .types import *
+from .extract.types import *

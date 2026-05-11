@@ -25,11 +25,11 @@ import time
 import traceback
 from pathlib import Path
 
-from .extract import extract_spec
-from .gen_det import build_det_check_spec
-from .schema_search import enumerate_schemas, render_guarded_template
-from .schema_search.search import build_schema_ctx, run_schema_search
-from .types import DetCheckSpec
+from spec_determinism.extract.extractor import extract_spec
+from spec_determinism.codegen.gen_det import build_det_check_spec
+from spec_determinism.schema_search import enumerate_schemas, render_guarded_template
+from spec_determinism.schema_search.search import build_schema_ctx, run_schema_search
+from spec_determinism.extract.types import DetCheckSpec
 
 logger = logging.getLogger(__name__)
 

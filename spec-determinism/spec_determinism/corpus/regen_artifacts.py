@@ -11,11 +11,11 @@ import logging
 from pathlib import Path
 
 from spec_determinism.config import CorpusConfig, default_config_path, load_config
-from spec_determinism.equal_policy import EqualPolicy
-from spec_determinism.extract import extract_spec
-from spec_determinism.gen_det import build_det_check_spec, render_template
-from spec_determinism.types import TypeKind, TypeProjections
-from spec_determinism.workspace import discover_workspace_rs_files, read_source
+from spec_determinism.codegen.equal_policy import EqualPolicy
+from spec_determinism.extract.extractor import extract_spec
+from spec_determinism.codegen.gen_det import build_det_check_spec, render_template
+from spec_determinism.extract.types import TypeKind, TypeProjections
+from spec_determinism.verus.workspace import discover_workspace_rs_files, read_source
 
 
 logger = logging.getLogger(__name__)
@@ -187,7 +187,7 @@ def _call_llm_projections(
     llm_model: str | None,
 ) -> dict[str, TypeProjections]:
     """Query LLM for opaque-type projections; log failures and return empty."""
-    from spec_determinism.policy_llm import (
+    from spec_determinism.codegen.policy_llm import (
         CopilotPolicyLLM, generate_projections_with_llm,
     )
     run_dir = (llm_run_root or art_dir) / "llm_projections"
@@ -209,7 +209,7 @@ def _call_llm_policy(
     llm_run_root: Path | None, llm_model: str | None,
 ) -> EqualPolicy:
     """Query LLM for EqualPolicy; log failures and fall back to default."""
-    from spec_determinism.policy_llm import (
+    from spec_determinism.codegen.policy_llm import (
         CopilotPolicyLLM, generate_policy_with_llm,
     )
     # For the prompt we need the det_spec's symbol list; build once with

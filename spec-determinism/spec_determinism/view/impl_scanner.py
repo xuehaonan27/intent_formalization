@@ -31,13 +31,13 @@ from typing import Iterable, Optional
 
 import tree_sitter as ts
 
-from spec_determinism.extract import (
+from spec_determinism.extract.extractor import (
     _child_by_type,
     _children_by_type,
     _parser,
     _text,
 )
-from spec_determinism.type_registry import (
+from spec_determinism.extract.type_registry import (
     GenericParam,
     TypeExpr,
     TypeRegistry,

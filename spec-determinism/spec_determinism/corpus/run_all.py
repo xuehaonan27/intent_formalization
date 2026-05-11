@@ -17,8 +17,8 @@ from spec_determinism.schema_search import (
     run_schema_search,
 )
 from spec_determinism.schema_search.search import build_schema_ctx
-from spec_determinism.types import DetCheckSpec
-from spec_determinism.verify import inject_proof_fn, restore_file, run_cargo_verus
+from spec_determinism.extract.types import DetCheckSpec
+from spec_determinism.verus.verify import inject_proof_fn, restore_file, run_cargo_verus
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("spec_determinism.run_all")

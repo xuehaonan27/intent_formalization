@@ -1,7 +1,7 @@
 """Aggregate verusage batch results into a single summary.
 
 Usage:
-    python -m spec_determinism.verusage_summary \\
+    python -m spec_determinism.corpus.verusage_summary \\
         --results results-verusage \\
         --out results-verusage/SUMMARY.md
 

@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from spec_determinism.type_registry import TypeExpr
+from spec_determinism.extract.type_registry import TypeExpr
 
 
 @dataclass(frozen=True)

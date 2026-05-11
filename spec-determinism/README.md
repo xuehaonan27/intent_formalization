@@ -51,17 +51,32 @@ spec-determinism/
 │   └── artifacts/<crate>__<fn>/det_spec.json
 │                          ← DetCheckSpec inputs, one per target function
 └── spec_determinism/      ← Python package
-    ├── run_all.py         ← primary driver (schema-search pipeline)
-    ├── regen_artifacts.py ← regenerate det_spec.json / template.rs from source
     ├── config.py          ← TOML corpus config loader
     ├── cli.py             ← entry-point wrappers for console_scripts
-    ├── extract.py         ← tree-sitter-verus: source → FunctionSpec (cfg-aware)
-    ├── equal_policy.py    ← equal_fn selection policy
-    ├── gen_det.py         ← det_fn template synthesis
-    ├── verify.py          ← single cargo-verus invocation + SMT capture
-    ├── types.py           ← FunctionSpec / DetCheckSpec / Assume / Witness
-    ├── predicates.py      ← structured AssumePred classes (pred ↔ schema match)
-    ├── narrow.py          ← AssumeTree + narrow_* strategies + SearchContext Protocol
+    ├── corpus/
+    │   ├── run_all.py             ← primary driver (schema-search pipeline)
+    │   ├── verusage_run.py        ← batch runner for verusage-style corpora
+    │   ├── verusage_summary.py    ← stats aggregator over verusage results
+    │   └── regen_artifacts.py     ← regen det_spec.json / template.rs from source
+    ├── extract/
+    │   ├── extractor.py           ← tree-sitter-verus: source → FunctionSpec (cfg-aware)
+    │   ├── types.py               ← FunctionSpec / DetCheckSpec / Assume / Witness
+    │   ├── type_registry.py       ← type/field dependency graph (Phase 1)
+    │   ├── predicates.py          ← structured AssumePred classes (pred ↔ schema match)
+    │   └── narrow.py              ← AssumeTree + narrow_* strategies + SearchContext
+    ├── codegen/
+    │   ├── equal_policy.py        ← equal_fn selection policy
+    │   ├── gen_det.py             ← det_fn template synthesis
+    │   └── policy_llm.py          ← LLM-driven EqualPolicy + projection discovery
+    ├── verus/
+    │   ├── verify.py              ← single cargo-verus invocation + SMT capture
+    │   ├── single_file.py         ← single-file verus driver
+    │   └── workspace.py           ← workspace discovery / source-file IO
+    ├── view/                      ← Phase 2: 4-layer View resolver
+    │   ├── prelude.py             ← L1 prelude container views (Vec/Option/Map/&T/…)
+    │   ├── impl_scanner.py        ← L3 scan of raw `impl View for T` blocks
+    │   ├── registry.py            ← L1+L2+L3+L4 resolver, equal_expr generator
+    │   └── llm.py                 ← L4 offline LLM view synthesizer + cache
     └── schema_search/
         ├── schemas.py     ← schema enumeration + guarded template rendering +
         │                    Rust-assume → (schema_id, k_bindings) translation
@@ -73,11 +88,11 @@ spec-determinism/
 ```
 Verus source
     │
-    ├─[extract.py]──────────→ FunctionSpec (types, requires, ensures)
+    ├─[extract/extractor.py]──────────→ FunctionSpec (types, requires, ensures)
     │
     ├─[equal_policy]────────→ equal_fn         (what counts as "same result")
     │
-    ├─[gen_det.py]──────────→ DetCheckSpec     (det_fn template + symbol table
+    ├─[codegen/gen_det.py]──────────→ DetCheckSpec     (det_fn template + symbol table
     │                                           + equal_fn def)
     │                            → results/artifacts/<crate>__<fn>/det_spec.json
     │
@@ -126,7 +141,7 @@ Prerequisites:
 - Nanvix workspace at `~/nanvix` (Rust `nightly-2025-12-08` + Verus
   bundled at `toolchain/verus/`). Paths configurable via `configs/nanvix.toml`.
 - `z3-solver==4.12.5.0` (matching Verus's bundled Z3).
-- `tree-sitter-verus` Python binding (consumed by `spec_determinism/extract.py`).
+- `tree-sitter-verus` Python binding (consumed by `spec_determinism/extract/extractor.py`).
 
 Install once:
 
