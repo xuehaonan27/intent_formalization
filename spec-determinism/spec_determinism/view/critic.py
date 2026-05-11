@@ -159,6 +159,13 @@ Report only mistakes that matter. Do not nitpick style.
    as `self.field` instead of `self.field@`, leaving structural eq.
 7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
    on element) when spec actually inspects element fields.
+8. **Body does not read `self`.** The body of `spec fn view(&self)` does
+   not reference `self` at all — e.g. `arbitrary()`, a constant struct
+   literal, or `Seq::empty()`. This makes the view a fixed witness, so
+   `equal_v(a, b)` is provably `true` for **every** pair `(a, b)` and
+   silently masks non-determinism. **The only legitimate exception** is
+   `type V = ();` with body `()` — a deliberate "this type carries no
+   spec content" collapse for raw-pointer / extern-fn-pointer wrappers.
 
 ## Output
 

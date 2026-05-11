@@ -302,6 +302,77 @@ def validate_view_decl(view_decl: str) -> tuple[bool, str]:
     return True, "ok"
 
 
+_VIEW_FN_BODY_RE = re.compile(
+    r"fn\s+view\s*\(\s*&?\s*self\b[^)]*\)\s*->\s*[^{]+\{",
+)
+
+
+def _extract_view_fn_body(view_decl: str) -> Optional[str]:
+    """Return the textual body of ``spec fn view(&self) -> ... { … }``.
+
+    Returns ``None`` if no ``fn view`` is found.
+    """
+    m = _VIEW_FN_BODY_RE.search(view_decl)
+    if not m:
+        return None
+    start = m.end() - 1
+    depth = 0
+    for i in range(start, len(view_decl)):
+        c = view_decl[i]
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return view_decl[start + 1:i]
+    return None
+
+
+def _normalize_unit_type(t: str) -> bool:
+    """True iff ``t`` denotes the unit type.
+
+    Accepts ``()``, ``Self::V`` won't match — caller should pass the
+    *normalized* viewed type. Whitespace and ``type V = ();`` tail are
+    tolerated.
+    """
+    s = (t or "").strip().rstrip(";").strip()
+    return s in ("()", "Unit")
+
+
+def check_view_body_uses_self(view_decl: str, viewed_type: str) -> tuple[bool, str]:
+    """Reject view bodies whose RHS does not reference ``self``.
+
+    A view body that doesn't read from ``self`` collapses every value of
+    the type to the same spec witness — e.g. ``arbitrary()``, a constant
+    struct literal, or ``Seq::empty()``. The resulting
+    ``equal_v(a, b)`` is then provably ``true`` for *every* pair ``a, b``,
+    silently masking real non-determinism.
+
+    The only legitimate exception is ``type V = ();`` with body ``()`` —
+    a deliberate "this type carries no spec content" collapse (used for
+    raw-pointer / extern-fn-pointer wrappers). We let that through.
+
+    Returns ``(ok, message)``. ``ok=False`` means the view should be
+    treated as a hard reject (do not cache, route to ``_rejected.jsonl``).
+    """
+    body = _extract_view_fn_body(view_decl)
+    if body is None:
+        return True, "no view fn body found (skipped)"
+    # Strip line and block comments before scanning.
+    body_stripped = re.sub(r"//[^\n]*", "", body)
+    body_stripped = re.sub(r"/\*.*?\*/", "", body_stripped, flags=re.S)
+    if re.search(r"\bself\b", body_stripped):
+        return True, "ok"
+    if _normalize_unit_type(viewed_type):
+        return True, "ok (legitimate unit collapse)"
+    return (
+        False,
+        "view body does not reference `self`; this collapses every "
+        "instance to the same spec value (e.g. `arbitrary()` returns a "
+        "fixed witness), silently making equal_v(a, b) provably true",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Disk cache
 # ---------------------------------------------------------------------------
@@ -521,6 +592,7 @@ def synthesize_view(
         "llm_fail"       copilot.query raised RuntimeError
         "parse_fail"     could not parse JSON from response
         "validate_fail"  tree-sitter parse of view_decl failed
+        "lint_reject"    view body fails the static "must reference self" check
         "critic_reject"  critic rejected the candidate
     """
     from spec_determinism.view.critic import (
@@ -585,6 +657,30 @@ def synthesize_view(
 
     viewed_type = d["viewed_type"]
     rationale = d.get("rationale", "")
+
+    # Static lint: a view body whose RHS does not reference `self` is
+    # almost certainly an over-collapse (arbitrary() / constant literal /
+    # Seq::empty()). We catch this *before* the codex critic round-trip
+    # because (a) the critic has been observed to miss this class of bug
+    # (see ISSUES.md #4) and (b) it costs ~0 to check, vs. a codex call.
+    ok, msg = check_view_body_uses_self(view_decl, viewed_type)
+    if not ok:
+        logger.warning(
+            "L4 synth for %s: static lint rejected (%s); "
+            "appending to _rejected.jsonl and NOT caching",
+            td.name, msg,
+        )
+        append_rejected(
+            cache.root,
+            type_short=td.name,
+            qualified_name=td.qualified_name,
+            issues=[f"static lint: {msg}"],
+            viewed_type=viewed_type,
+            view_decl=view_decl,
+            source_hash=src_hash,
+        )
+        _set("lint_reject")
+        return None
 
     critic_verdict = ""
     critic_issues: list[str] = []
@@ -750,6 +846,8 @@ def prefill_project(
                 # back-compat with downstream summaries.
                 if record["status"] == "critic_reject":
                     record["action"] = "critic_reject"
+                elif record["status"] == "lint_reject":
+                    record["action"] = "lint_reject"
                 elif record["status"] == "validate_fail":
                     record["action"] = "invalid"
                 else:
@@ -905,6 +1003,8 @@ def _cli() -> int:
         n_ok = sum(1 for r in summary["results"] if r["action"] == "ok")
         n_reject = sum(1 for r in summary["results"]
                        if r["action"] == "critic_reject")
+        n_lint = sum(1 for r in summary["results"]
+                     if r["action"] == "lint_reject")
         n_fail = sum(1 for r in summary["results"] if r["action"] == "failed")
         n_invalid = sum(1 for r in summary["results"]
                         if r["action"] == "invalid")
@@ -914,8 +1014,8 @@ def _cli() -> int:
         n_critic_err = sum(1 for r in summary["results"]
                            if r.get("critic_verdict") == "error")
         print(f"prefill {args.project}: total={summary['total_uncovered']}  "
-              f"ok={n_ok}  reject={n_reject}  fail={n_fail}  "
-              f"invalid={n_invalid}  dry-run={n_dry}  "
+              f"ok={n_ok}  reject={n_reject}  lint_reject={n_lint}  "
+              f"fail={n_fail}  invalid={n_invalid}  dry-run={n_dry}  "
               f"critic[revise={n_revise} err={n_critic_err}]")
         return 0
 
@@ -988,6 +1088,78 @@ trailing text
     # --- validate_view_decl: empty
     ok, msg = validate_view_decl("")
     check(not ok, "validate empty: should have failed")
+
+    # --- check_view_body_uses_self: body references self
+    good_self = (
+        "impl View for Page {\n"
+        "    type V = PageView;\n"
+        "    closed spec fn view(&self) -> PageView {\n"
+        "        PageView { id: self.id, name: self.name@ }\n"
+        "    }\n"
+        "}"
+    )
+    ok, msg = check_view_body_uses_self(good_self, "PageView")
+    check(ok, f"self-ref: body with self.* should pass: {msg}")
+
+    # --- check_view_body_uses_self: arbitrary() bug (the
+    #     storage/MaybeCorruptedBytes case)
+    arbitrary_body = (
+        "impl<S> View for MaybeCorruptedBytes<S> where S: PmCopy {\n"
+        "    type V = Seq<u8>;\n"
+        "    closed spec fn view(&self) -> Seq<u8> {\n"
+        "        arbitrary()\n"
+        "    }\n"
+        "}"
+    )
+    ok, msg = check_view_body_uses_self(arbitrary_body, "Seq<u8>")
+    check(not ok, f"self-ref: arbitrary() should be rejected, got: {msg}")
+    check("does not reference `self`" in msg, "self-ref: helpful message")
+
+    # --- check_view_body_uses_self: legitimate unit collapse — body has
+    #     no `self` but viewed_type is `()` (the NetClientCPointers and
+    #     memory-allocator/Node case)
+    unit_collapse = (
+        "impl View for OpaqueFnPtrs {\n"
+        "    type V = ();\n"
+        "    closed spec fn view(&self) -> () {\n"
+        "        ()\n"
+        "    }\n"
+        "}"
+    )
+    ok, msg = check_view_body_uses_self(unit_collapse, "()")
+    check(ok, f"self-ref: legitimate () collapse should pass: {msg}")
+
+    # --- check_view_body_uses_self: constant struct literal (subtler
+    #     over-collapse — viewed_type is non-unit but body never reads self)
+    const_struct = (
+        "impl View for X {\n"
+        "    type V = XView;\n"
+        "    closed spec fn view(&self) -> XView {\n"
+        "        XView { id: 0, name: Seq::empty() }\n"
+        "    }\n"
+        "}"
+    )
+    ok, msg = check_view_body_uses_self(const_struct, "XView")
+    check(not ok, f"self-ref: constant literal should be rejected, got: {msg}")
+
+    # --- check_view_body_uses_self: comment containing the word "self"
+    #     does not count as a reference
+    only_in_comment = (
+        "impl View for X {\n"
+        "    type V = Seq<u8>;\n"
+        "    closed spec fn view(&self) -> Seq<u8> {\n"
+        "        // self is allocator-opaque\n"
+        "        Seq::empty()\n"
+        "    }\n"
+        "}"
+    )
+    ok, msg = check_view_body_uses_self(only_in_comment, "Seq<u8>")
+    check(not ok, f"self-ref: `self` in comment should not count, got: {msg}")
+
+    # --- check_view_body_uses_self: no view fn at all → skip
+    no_view_fn = "impl View for X { type V = (); }"
+    ok, msg = check_view_body_uses_self(no_view_fn, "()")
+    check(ok, "self-ref: no view fn → skip")
 
     # --- _source_hash: stable
     h1 = _source_hash("pub struct Foo { x: usize }")
