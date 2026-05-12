@@ -340,3 +340,238 @@ done
 projects. With `--include-quarantined` the rules still trip every
 M1/M3-classifiable quarantine (regression pin against future cache
 rebuilds).
+
+---
+
+## #9 — `PointsTo.value()` narrows are not guarded by `is_init()`
+
+**Status:** closed (fix landed in `ff5eac2`, 2026-05-12). `narrow_points_to` now
+probes `is_init=true` first and only recurses on `value()` when that branch
+sticks; `schemas._emit` POINTS_TO branch wraps every `value()` schema with a
+`(is_init(), __bool_true__)` sentinel guard that `_render_body` emits as
+`assume((pt).is_init());` ahead of the value() assume. Selftest at
+`narrow.py::_run_self_tests` (`replies=[True, False]`) verifies no `value`
+nodes are recorded under is_init=false.
+
+**Symptom.** PR-F added `PointsTo<V>` support in both equality and
+narrowing. The narrowing strategy probes:
+
+```rust
+(pt).is_init()
+(pt).value()
+(pt).addr()
+```
+
+but `value()` is only meaningful when `pt.is_init()` holds. The schema
+enumerator also emits `(var).value()` schemas unconditionally. This
+means a witness branch can try to activate a `value()` assume without a
+corresponding `is_init() == true` guard in the same activation chain.
+
+**Root cause.** `narrow_points_to` records `is_init`, `value`, and
+`addr` as sibling tree nodes. `schema_search/schemas.py` mirrors that
+shape with independent schemas and no parent guard tying `value()` to
+`is_init()`. The comment in `narrow.py` says the assume tree carries the
+right polarity, but the current tree shape does not enforce that.
+
+**Risk.** Depending on Verus' SMT encoding for `PointsTo.value()`, this
+can produce invalid/unstable guarded templates, `search_error`, or
+witnesses whose `value()` facts are not justified by `is_init()`.
+
+**Fix idea.**
+
+- Only narrow `value()` after `is_init() == true` is kept; skip value
+  narrowing on false/unknown init branches.
+- In schema enumeration, make `(var).value()` schemas carry a parent
+  condition equivalent to `(var).is_init() == true`, or add a dedicated
+  schema kind for guarded `PointsTo.value()`.
+- Add a self-test where `is_init()==false` is the kept branch and assert
+  no `.value()` assume is emitted.
+
+Relevant files:
+
+- `spec_determinism/extract/narrow.py::narrow_points_to`
+- `spec_determinism/schema_search/schemas.py` `TypeKind.POINTS_TO`
+  branch
+- `spec_determinism/codegen/gen_det.py` `TypeKind.POINTS_TO` equality
+  branch
+
+## #10 — `Set<T>` element probing assumes integer elements
+
+**Status:** closed (fix landed in `ba18ca8`, 2026-05-12). `narrow_set` now
+returns early after the length narrow when `elem_ty.kind not in
+_INT_RANGE_KINDS`, mirroring the existing `narrow_map` guard. Empty /
+non-empty / length witnesses are preserved; element-content discovery is
+skipped for non-integer sets. Selftests added in `narrow.py::_run_self_tests`:
+`Set<Foo>` (must NOT record any `.contains(...)` / `::empty().insert(...)`)
+plus a `Set<u32>` control to catch element-kind-vs-length regressions.
+
+**Symptom.** `narrow_set` works for integer sets, but it does not check
+the element kind before trying to discover concrete elements. For a
+non-integer set such as `Set<Foo>`, it can emit assumptions like:
+
+```rust
+s.contains(-8)
+s == Set::<Foo>::empty().insert(-8)
+```
+
+Both are ill-typed because `contains` / `insert` expect a `Foo`, not an
+integer.
+
+**Root cause.** `_bisect_set_element` calls `_int_range(elem_ty)` for
+all element types. `_int_range` treats any non-unsigned kind as signed
+and returns `[-8, 8]`, so unknown/user-defined element types are probed
+with integer literals. `narrow_map` already has the required guard
+(`if k_ty.kind not in _INT_RANGE_KINDS: return`); `narrow_set` does not.
+
+**Risk.** Non-integer sets may produce type-invalid templates or sort
+mismatches when schema search binds a Z3 constant of element sort `Foo`
+to a Python integer. At best the witness becomes partial; at worst the
+target reports `search_error`.
+
+**Fix idea.**
+
+- In `narrow_set`, after length narrowing, return early unless
+  `elem_ty.kind in _INT_RANGE_KINDS`.
+- Keep empty / non-empty / length witnesses for non-integer sets, but do
+  not emit `contains(k)` or set-literal assumptions.
+- Add a unit test for `Set<Foo>` asserting no `contains(-8)` or
+  `.insert(-8)` assumptions are produced.
+- Future extension: add type-specific finite-domain probing for bool,
+  C-like enums, and small literal domains.
+
+Relevant files:
+
+- `spec_determinism/extract/narrow.py::narrow_set`
+- `spec_determinism/extract/narrow.py::_bisect_set_element`
+- `spec_determinism/schema_search/schemas.py` `TypeKind.SET` branch
+- `spec_determinism/extract/predicates.py::SetContainsPred` and
+  `SetLiteralPred`
+
+## #11 — `verusage_run --use-view-registry` default L4 cache path is wrong
+
+**Status:** closed (fix landed in `0309567`, 2026-05-12). Canonical L4 path
+now resolves from `Path(__file__).resolve().parents[2]` (the repo root,
+`spec-determinism/`) instead of `.parent.parent` (the package dir,
+`spec_determinism/`). Added an explicit WARNING log when
+`--use-view-registry` is set but no cache is attached, listing every
+checked path. Verified on this checkout: canonical resolves to
+`spec-determinism/results-verusage/view_registry/atmosphere` (28 entries).
+
+**Symptom.** Direct CLI usage of
+
+```sh
+python -m spec_determinism.corpus.verusage_run \
+  --project ironkv --roots ... --out results-verusage-viewreg/ironkv \
+  --use-view-registry
+```
+
+does not automatically attach the canonical L4 cache at
+`results-verusage/view_registry/<project>`. The batch script avoids this
+only because it passes `--view-cache-dir "$cache"` explicitly.
+
+**Root cause.** The "canonical" path in `verusage_run.py` is computed
+relative to the Python package directory:
+
+```python
+Path(__file__).resolve().parent.parent / "results-verusage" / "view_registry" / project
+```
+
+For this repository that resolves to
+`spec_determinism/results-verusage/view_registry/<project>`, but the real
+cache lives at repo root:
+`spec-determinism/results-verusage/view_registry/<project>`.
+
+**Risk.** A user can believe they are running with L4 cached views while
+actually getting only L1/L2/L3 resolution and structural fallback. This
+silently changes A-2 numbers and makes one-off reproductions disagree
+with `scripts/rerun_corpus.sh`.
+
+**Fix idea.**
+
+- Compute the repo root as `Path(__file__).resolve().parents[2]` (or use
+  a shared config/root helper) before appending `results-verusage/...`.
+- Log a clear warning when `--use-view-registry` is set but no L4 cache
+  is attached.
+- Add a smoketest that creates a fake repo-root
+  `results-verusage/view_registry/<project>` and checks that
+  `verusage_run` attaches it without `--view-cache-dir`.
+
+Relevant file:
+
+- `spec_determinism/corpus/verusage_run.py`
+
+## #12 — L4 view cache lookup ignores `source_hash` at codegen time
+
+**Status:** open / design debt (found in code review 2026-05-12).
+
+**Symptom.** `ViewCache.get(short_name, source_hash)` validates that a
+cached L4 view was generated for the current type source, but the
+codegen-time resolver cannot supply a hash and instead calls
+`_get_any_for_short(short_name)`. That accepts any active cache file
+whose `type_short` matches.
+
+**Root cause.** `ViewRegistry.resolve(TypeExpr)` only receives a
+type-expression head, not the `TypeDef` / source bytes for that head.
+The implementation therefore does a permissive short-name lookup.
+
+**Risk.**
+
+- If a type changes after prefill, a stale `impl View` may still be
+  injected.
+- If two modules define the same short type name, the resolver may pick
+  the wrong cache entry.
+- The failure can be obvious (`verus_error`) or subtle if the stale view
+  still compiles but no longer matches intended spec equality.
+
+**Fix idea.**
+
+- Thread enough type-definition metadata into `ViewRegistry.resolve` to
+  compute/check the source hash for L4 hits.
+- At minimum, reject cache entries whose `qualified_name` does not match
+  the resolved `TypeDef` when that information is available.
+- Log stale/mismatched hash misses as explicit L4 cache misses rather
+  than silently accepting by short name.
+- Add tests for "same short name, different qualified_name" and "source
+  hash changed" cache entries.
+
+Relevant files:
+
+- `spec_determinism/view/registry.py::_resolve_l4`
+- `spec_determinism/view/llm.py::ViewCache.get_any`
+- `spec_determinism/view/llm.py::synthesize_view`
+
+## #13 — verusage single-file targets are keyed only by function name
+
+**Status:** open (found in code review 2026-05-12).
+
+**Symptom.** `discover_exec_fns` returns a de-duplicated list of function
+names, and `extract_spec(source, fn_name)` selects the first function
+with that name. In a file with multiple impl blocks that each define
+common method names such as `new`, `get`, `len`, or `clone`, later
+methods are skipped or accidentally bound to the first same-named
+function.
+
+**Root cause.** The target identity is only `fn_name`; it does not
+include an impl/type path, byte range, or fully qualified method path.
+`_artifact_key` similarly uses only project + relative path + function
+name, so same-file duplicate names would collide.
+
+**Risk.** The verusage corpus may undercount targets, analyze the wrong
+method body/spec, or overwrite artifacts for same-name methods. This is
+especially likely in trait-heavy single-file corpora.
+
+**Fix idea.**
+
+- Change discovery to return a richer target descriptor:
+  `(file_path, fn_name, byte_range, impl_self_type, optional module path)`.
+- Teach `extract_spec` to accept a byte range or function node identity
+  instead of only a name.
+- Include the impl/type qualifier or byte offset in `_artifact_key`.
+- Add a fixture with two impls both defining `fn new(...) ensures ...`
+  and assert both targets are discovered and extracted separately.
+
+Relevant files:
+
+- `spec_determinism/verus/single_file.py::discover_exec_fns`
+- `spec_determinism/extract/extractor.py::extract_spec`
+- `spec_determinism/corpus/verusage_run.py::_artifact_key`
