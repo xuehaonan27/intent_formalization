@@ -151,8 +151,12 @@ def main() -> int:
                       if out_root.name != "view_registry"
                       else out_root / args.project)
         # Default canonical location matches the prefill CLI:
-        #   results-verusage/view_registry/<project>/
-        canonical = (Path(__file__).resolve().parent.parent
+        #   <repo_root>/results-verusage/view_registry/<project>/
+        # The repo root is the package's grandparent — `parents[2]` from
+        # this file is `spec-determinism/` (the repo root); using
+        # `parent.parent` would give `spec_determinism/` (the *package*
+        # directory) and silently miss the real cache (ISSUES #11).
+        canonical = (Path(__file__).resolve().parents[2]
                      / "results-verusage" / "view_registry"
                      / args.project)
         llm_cache = None
@@ -164,6 +168,16 @@ def main() -> int:
             llm_cache = ViewCache(cache_root)
         if llm_cache is not None:
             log.info("Attaching L4 view cache from %s", llm_cache.root)
+        else:
+            # User asked for the registry but no L4 cache is reachable.
+            # Be explicit so reproductions don't silently degrade to
+            # L1+L2+L3 only (ISSUES #11).
+            log.warning(
+                "--use-view-registry set but no L4 cache attached "
+                "(checked --view-cache-dir, canonical=%s, fallback=%s); "
+                "proceeding with L1+L2+L3 only.",
+                canonical, cache_root,
+            )
         view_registry = ViewRegistry.from_project(proj_root,
                                                   llm_cache=llm_cache)
         log.info("ViewRegistry: %d types, %d view impls, %d L4 cache "
