@@ -56,14 +56,17 @@ runner_crash        1
 
 ```rust
 // source
-fn build_log() -> (r: Ghost<Seq<u32>>)
-    ensures r@.len() == 5
+fn snapshot(state: &State) -> (r: Ghost<Seq<u32>>)
+    ensures r@ == state.log@
 ```
+
+The `ensures` pins `r@` to `state.log@` — fully spec-deterministic: calling
+`snapshot(state)` twice with the same state must return the same ghost seq.
 
 | | generated equal-fn | z3 narrow dimensions | outcome |
 |---|---|---|---|
-| pre-PR-F | `r1 == r2` | 0 (only `g_neq_tuple`) | **verus_error / witness** — z3 has no `len()` dimension to chain against the ensures |
-| post-PR-F | `((r1)@ == (r2)@)` | 4 (`r1@.len` `_leneq` + `_lenrng`, same for r2) | **ok** — ensures supplies `len==5`, z3 chains directly |
+| pre-PR-F | `r1 == r2` | 0 (the Ghost wrapper is opaque) | **verus_error** — Verus rejects `==` on `Ghost` directly; even if it accepted, z3 has no bridge between the Ghost wrapper and the inner `Seq` |
+| post-PR-F | `((r1)@ == (r2)@)` | 4 (`r1@.len` `_leneq` + `_lenrng`, same for r2) | **ok** — ensures supplies `r1@ == state.log@`, `r2@ == state.log@`; z3 chains by transitivity; `len` narrow lets the Seq equality converge fast |
 
 #### A-1 example 2 — `Tracked<PointsTo<u32>>` output (storage shape)
 

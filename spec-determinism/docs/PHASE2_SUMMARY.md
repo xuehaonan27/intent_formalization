@@ -49,14 +49,17 @@ runner_crash    1
 
 ```rust
 // 源
-fn build_log() -> (r: Ghost<Seq<u32>>)
-    ensures r@.len() == 5
+fn snapshot(state: &State) -> (r: Ghost<Seq<u32>>)
+    ensures r@ == state.log@
 ```
+
+ensures 把 `r@` 钉死为 `state.log@` —— spec 层完全确定（同一 state 两次调用必然
+返回同一 ghost seq）。
 
 | | 生成的 equal-fn | z3 narrow 维度 | 结果 |
 |---|---|---|---|
-| PRE-PR-F | `r1 == r2` | 0（只有 `g_neq_tuple` 一个 boolean） | **verus_error / witness** —— z3 看不到 `len()` 维度 |
-| POST-PR-F | `((r1)@ == (r2)@)` | 4（r1@.len 的 `_leneq` 和 `_lenrng`，r2 同） | **ok** —— ensures 提供 `len==5`，z3 直接 chain |
+| PRE-PR-F | `r1 == r2` | 0（Ghost 整体 opaque） | **verus_error** —— Verus 拒绝在 Ghost wrapper 上直接 `==`；即便接受，z3 也看不到 Ghost↔Seq 之间的桥 |
+| POST-PR-F | `((r1)@ == (r2)@)` | 4（`r1@.len` 的 `_leneq` 和 `_lenrng`，r2 同） | **ok** —— ensures 给 `r1@ == state.log@`、`r2@ == state.log@`，z3 由 transitivity 直接 chain；`len` narrow 帮 Seq 等式快速收敛 |
 
 #### A-1 例 2 ── `Tracked<PointsTo<u32>>` 输出（storage 形态）
 
