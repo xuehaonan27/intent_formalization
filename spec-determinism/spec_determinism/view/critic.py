@@ -166,6 +166,22 @@ Report only mistakes that matter. Do not nitpick style.
    silently masks non-determinism. **The only legitimate exception** is
    `type V = ();` with body `()` — a deliberate "this type carries no
    spec content" collapse for raw-pointer / extern-fn-pointer wrappers.
+9. **Self-recursive container projected by bare `@`.** When the target
+   type `T` is self-recursive (a field type contains `T` transitively
+   through `Seq` / `Option` / `Vec` / `Map` / `Box`), `@` does **not**
+   auto-descend into the container. `self.<field>@` on a
+   `Seq<Option<T>>` field yields `Seq<Option<T>>` (identity), **not**
+   `Seq<Option<TView>>`. So a V-struct declared with
+   `Seq<Option<TView>>` (or similar) plus a body that assigns
+   `self.<field>@` to it is a guaranteed typecheck failure. Acceptable
+   fixes: (preferred) `type V = T` with body `*self` when every field
+   is spec-friendly; or V keeps the concrete `T` head inside the
+   container and the body uses `self.<field>` directly (no `@`); or
+   the body uses an explicit `Seq::new(self.<field>.len(), |i| match
+   self.<field>[i] { Some(d) => Some(d@), None => None })` lift. The
+   recursive-lift form is strictly more expensive than the identity
+   form and only buys abstraction when the inner type's `View::V` is
+   different from the inner type itself.
 
 ## Output
 

@@ -76,11 +76,18 @@ projection isn't automatic. Verus has no implicit "lift" from
   perform the lift".
 
 **Status.** Recorded in
-`results-verusage/view_registry/nrkernel/_rejected.jsonl`. Note this
-type is part of the **mutually-recursive `{Directory, NodeEntry, PTDir}`
-cycle** which PR-E (deferred SCC whole-component prompt) is intended to
-address; until then, a single-type retry will keep failing for the same
-structural reason.
+`results-verusage/view_registry/nrkernel/_rejected.jsonl`. **Updated
+2026-05-12 (PR-E):** the SCC framing was wrong — `{Directory,
+NodeEntry, PTDir}` is **not** a cycle; `PTDir` is single-type
+self-recursive (`entries: Seq<Option<PTDir>>`), and `Directory` /
+`NodeEntry` are already covered. The real bug class is now caught
+preventively by **M4** lint (`check_m4_self_recursion_bare_at` in
+`view/llm.py`) + critic rule #9 + a new self-recursion alert in
+`build_view_prompt`. The new prompt offers three legal shapes
+(Options A/B/C documented in `docs/critic-criteria.md`); for PTDir
+specifically, **Option C** (`type V = Self; view { *self }`) is
+recommended because all fields are spec-friendly. LLM retry of PTDir
+not yet performed; the static gate is in place.
 
 ## #3 — `nrkernel/LoadResult`: already-spec field re-projected
 

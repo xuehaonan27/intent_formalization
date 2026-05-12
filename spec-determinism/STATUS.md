@@ -69,7 +69,67 @@ _(none — PR-D4 landed cleanly; corpus rerun + COMPARE.md are committed)_
 | `a71ff15` | Quarantine 14 broken L4 views (ISSUES.md #7) + lint rule drafts (M1/M2/M3) | quality gate |
 | `33bd09a` | `--include-quarantined` skip mechanism + M1/M2/M3 detector sketches (tree-sitter / AST level) | infra + docs |
 | `4cd29b4` | PR-D4 final numbers + STATUS update | docs |
-| `<this>`  | **PR-D5: M1/M2/M3 lint impl + retroactive scan + 4 new quarantines** | quality gate |
+| `e61a504` | **PR-D5: M1/M2/M3 lint impl + retroactive scan + 4 new quarantines** | quality gate |
+
+### Today (2026-05-12 — PR-E closed)
+
+| commit    | scope | |
+|-----------|---|---|
+| `<this>`  | **PR-E: M4 self-recursive view lint + Option C/B/A prompt guidance** | quality gate |
+
+**Pre-PR-E reality check** (`/tmp/discover_sccs.py` across all 9
+verusage projects): only **one** non-trivial multi-type SCC in the
+whole corpus — `{Directory, NodeEntry}` in nrkernel, both **already
+covered** via L4 cache. The original PR-E scope ("SCC whole-component
+prompt") had no real target. The remaining problem is `T` referencing
+`T` (self-recursion via container generics), which is what PR-E
+v2 addresses.
+
+Nanvix regression sweep before PR-E: **15/15 ok, 0 regressions** — the
+post-PR-D5 subpackage layout has no fallout on the kernel corpus.
+
+**PR-E outcome — M4 detector + recursive-view prompt guidance:**
+
+* New static lint `check_m4_self_recursion_bare_at` in `view/llm.py`.
+  Catches the PTDir bug class: type declares V with `T@`-lifted inner
+  (e.g. `Seq<Option<TView>>`) while the body writes bare `self.f@` —
+  but `<Seq<Option<T>> as View>::V = Seq<Option<T>>` (identity), so the
+  inner View is never applied and the equal-fn collapses.
+* `lint_view_decl` priority is now **M3 > M2 > M4 > M1**. M4 is more
+  specific than M1 and emits a more useful suggestion.
+* New status code `lint_m4_reject` wired through `synthesize_view`
+  status_out and `prefill_project`'s status-mapping tuple.
+* Prompt header (`_VIEW_SCHEMA_DOC`) gained a ~80-line
+  "Self-recursive types" section documenting Option A (recursive lift,
+  expensive), Option B (V mirrors concrete inner), Option C
+  (`type V = Self`, cheapest). Cost-and-when-to-use guidance encoded.
+* `build_view_prompt` injects a self-recursion alert block immediately
+  before the schema doc whenever `_is_self_recursive(td)` is True, so
+  the LLM sees a concrete callout (with offending field names) rather
+  than only the generic schema text.
+* `_FEW_SHOT` extended with a Tree (Option C) example.
+* New critic rule #9 in `view/critic.py` as semantic backstop.
+* ~150 lines of M4 self-tests (PTDir Option A buggy → reject;
+  Options A-correct / B / C → accept; non-recursive → skip;
+  priority M3>M4 and M4>M1).
+
+**Retroactive scan on PR-D5 cache (7 projects, 112 active views,
+19 quarantined):**
+
+* **0 active-cache rejections.** M4 has no FP across the corpus.
+* PTDir (the bug class M4 was designed for) lives in
+  `nrkernel/_rejected.jsonl`, not active cache, so this is expected.
+* `--include-quarantined` scan retrips the existing M1/M3 quarantines
+  exactly as before; M4 does not fire on any quarantine (the 19
+  quarantines are M1/M2/M3/M4-semantic/cascade, none are
+  self-recursive bare-@ bugs).
+
+**Headline corpus numbers — unchanged.** PR-E is preventive: it
+hardens the synthesis pipeline against a bug class that already
+manifested on PTDir (caught by critic, lives in `_rejected.jsonl`).
+The 376→366 (−10 witnesses, 0 regressions) PR-D4/D5 numbers hold.
+
+PTDir LLM retry with the new prompt is left as a follow-up.
 
 **PR-D5 outcome — M1/M2/M3 lints implemented & wired:**
 
@@ -205,33 +265,29 @@ codegen-time lookup resolves it.
 
 ## Next milestones
 
-PR-D5 closed cleanly; the M1/M2/M3 lints are now wired into both
-synthesis and CI-style retroactive scan. The A-2 view-aware
-equal-fn pipeline is hardened against the silent-bug class that the
-PR-D4 spike exposed. Next:
+PR-D5 hardened the synthesis pipeline (M1/M2/M3). PR-E added M4 +
+recursive-view prompt guidance — covering all four known L4
+failure modes. Next:
 
-1. **PR-E — SCC whole-component prompt** for the
-   `{Directory, NodeEntry, PTDir}` cycle in `nrkernel`. Without
-   it, the single-type retry on `PTDir` keeps failing for the
-   inner-map-lift reason; the dep's view isn't visible in the
-   single-type prompt context. Also covers the 7 cascade-quarantined
-   ironkv types (`CSingleDelivery`, `CSingleMessage`, etc., plus
-   the freshly-quarantined `ReceiveResult` / `CTombstoneTable`)
-   once their roots have a correct view.
-2. **PR-F — A-1 (Tracked/Ghost-aware narrows)** and
-   **PR-G — A-3 (nested-Err policy)** are the remaining axis-1
-   improvements once A-2 is fully landed.
+1. **PR-F — A-1 (Tracked/Ghost-aware narrows)** (~29 errors). Strategy
+   work + ghost-wrapper transparency. Now the front of the queue for
+   axis-1 (verus_error) progress.
+2. **PR-G — A-3 (nested-Err policy)** (~30 errors). Propagate the
+   existing `errs_equivalent` policy.
 3. **Retry the four `_rejected.jsonl` types** —
    `storage/CrcDigest`, `nrkernel/PTDir`, `nrkernel/LoadResult`,
-   `storage/MaybeCorruptedBytes`. The new lint + critic rule #8 +
-   `--include-quarantined` opt-in mean these can now be safely
-   retried without poisoning the cache.
+   `storage/MaybeCorruptedBytes`. The combined M1/M2/M3/M4 lints +
+   critic rules #8/#9 + `--include-quarantined` opt-in mean these
+   can now be safely retried (PR-E's M4 specifically pre-empts the
+   PTDir bug class). Whether the LLM follows the new prompt guidance
+   is the open question; a fallback auto-emit Option C path is
+   recorded as a contingency.
 4. **Integration smoketest for `--use-view-registry`** (ISSUES.md
    #5) — single-target end-to-end run wired into `make check` or
    equivalent. Would have caught the four broken relative imports
    in `1751dc1` immediately rather than after a manual rerun.
 5. **Commit `results-verusage/view_registry/`** — currently
-   untracked; 112 active L4 entries + 18 `.json.quarantine`
+   untracked; 112 active L4 entries + 19 `.json.quarantine`
    markers + per-project `_lint_scan.json` + per-project audit
    JSONs + `_rejected.jsonl` durability files. Decision pending on
    whether to keep them in git or under DVC.

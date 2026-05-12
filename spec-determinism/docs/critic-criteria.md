@@ -718,3 +718,162 @@ python -m spec_determinism.view.llm lint-scan \
 ```
 Writes `<cache-dir>/_lint_scan.json`. Exits 1 if any rejection
 fires, 0 otherwise.
+
+## PR-E — M4 self-recursive view lint + Option C/B/A prompt guidance (2026-05-12)
+
+### Motivation
+
+PR-E was originally scoped as "SCC whole-component prompt for the
+`{Directory, NodeEntry, PTDir}` cycle". An SCC discovery pass over all
+9 verusage projects (`/tmp/discover_sccs.py`) revealed the assumption
+was wrong:
+
+* The only non-trivial multi-type SCC across the entire corpus is
+  `{Directory, NodeEntry}` in `nrkernel`, and both members are
+  **already covered** via L4 cache.
+* `PTDir` is **single-type self-recursive**, not part of a cycle:
+  `PTDir.entries: Seq<Option<PTDir>>`.
+* `ironkv`'s 16 uncovered types (`AbstractHostState`, `CMessage`,
+  `CPacket`, `EndPoint`, …) are **cascade-quarantined**, not cycle
+  members.
+
+So the real PR-E problem is `T` referencing `T` (self-recursion via
+container generics), not whole-SCC handling. The L4 prompt did not warn
+the LLM that bare `@` does **not** auto-descend through container
+generics: on a `Seq<Option<T>>` field, `self.f@` yields
+`Seq<Option<T>>` (because vstd's `Seq<T>::V = Seq<T>` is identity),
+**not** `Seq<Option<TView>>`. PTDir's first LLM attempt fell into
+exactly this trap (`_rejected.jsonl` entry).
+
+### Three legal view shapes for a self-recursive type T
+
+Documented in `_VIEW_SCHEMA_DOC` and reinforced by the `build_view_prompt`
+self-recursion alert block. Decision tree (cheapest first):
+
+* **Option C — `type V = Self; view -> Self { *self }`**. Use when all
+  of `T`'s fields are *spec-friendly* (primitives, vstd containers,
+  identity-V types). The view collapses to structural equality and
+  z3 closes without any recursive trigger pressure.
+* **Option B — `V` mirrors concrete inner**, body uses bare field
+  copies (no `@`). Use when some fields are `Ghost<X>` / `Tracked<X>`
+  but the rest is spec-friendly. `V` keeps the inner `T` inside the
+  container generics instead of lifting to `TView`.
+* **Option A — recursive lift**: `V` declares `Seq<Option<TView>>`,
+  body writes `entries: self.entries@.map_values(|o| match o { None
+  => None, Some(d) => Some(d@) })` or `Seq::new(len, |i| …)`. Most
+  expensive — SMT extensional Seq equality + recursive trigger
+  pressure + schema-search state space exponential in recursion depth.
+  Only use when the inner type's `View::V` genuinely abstracts away
+  information that Option C/B can't hide.
+
+Heuristic encoded in the prompt: **prefer Option C unless an explicit
+constraint forces otherwise**. For PTDir (all fields are
+`MemRegion` / `Seq<Option<PTDir>>` / `Set<MemRegion>`), Option C is
+strictly cheaper than Option A and equivalent in spec content.
+
+### M4 — RHS recursive `@` on a self-recursive field without explicit lift
+
+**What it catches.** The exact PTDir bug class: a self-recursive type
+declares its view's V with `T@`-lifted inner type (e.g.
+`Seq<Option<TView>>`), but the body writes `self.field@` on the
+self-recursive field. Because `<Seq<Option<T>> as View>::V = Seq<Option<T>>`
+(identity), the body's `self.entries@` does *not* perform the recursive
+lift the V type declares — every nested PTDir collapses through the
+non-`@` path back to the structural value, breaking the equal-fn.
+
+**Detector logic** (`check_m4_self_recursion_bare_at` in `view/llm.py`):
+
+1. Skip if `td` is not self-recursive
+   (`_is_self_recursive(td) == False`).
+2. Compute `_self_recursive_fields(td)` — fields whose `TypeExpr`
+   transitively contains `td.name`.
+3. Inspect the `view_decl` text. If V's head is `Self` or `td.name`
+   itself, this is Option C → **accept** (skip; correct shape).
+4. For each self-recursive field name `f`, search the body
+   `view -> V { … }` block for `\bself\.f@` pattern.
+   * If absent → field is being passed bare (Option B). Verify V's
+     declaration uses the concrete inner type (`T`), not `TView`, for
+     that field — if mismatched, this is a true bug but caught by M1
+     transitively; M4 leaves it to M1.
+   * If present → check whether V's RHS for the same field references
+     `TView` head (e.g. `Seq<Option<PTDirView>>` for `td.name == PTDir`,
+     `view_v_head == PTDirView`). If yes → **reject (M4)** with the
+     suggestion: "Body uses `self.f@` (identity on `Seq<Option<T>>`)
+     but V declares the lifted inner `TView`; the inner View is never
+     applied. Use Option C (`type V = Self`) if all fields are
+     spec-friendly, else write the explicit lift
+     `Seq::new(len, |i| match … { Some(x) => Some(x@), None => None })`."
+
+**Priority in `lint_view_decl`: M3 > M2 > M4 > M1.** M4 is more
+specific than M1 (which would also fire on the same case with a less
+helpful suggestion) and unambiguous; M3/M2 catch unrelated structural
+issues that should be reported first.
+
+**Status code.** `lint_m4_reject`. Routed through `synthesize_view`
+status_out and `prefill_project`'s status-mapping tuple alongside the
+other lint reject codes.
+
+### Prompt-side support (`build_view_prompt`)
+
+When `_is_self_recursive(td)` is True, the prompt builder injects an
+alert block above `_VIEW_SCHEMA_DOC`:
+
+```
+**Self-recursion alert.** Type `PTDir` is self-recursive: field(s)
+{entries} contain PTDir. Bare `self.<field>@` on these fields does
+NOT auto-descend — Verus has no implicit lift from Seq<Option<T>> to
+Seq<Option<T::V>>. Prefer Option C (`type V = Self; view { *self }`)
+unless a field needs spec abstraction. If you must lift, write the
+explicit Seq::new(...) or map_values(...) call.
+```
+
+`_FEW_SHOT` was extended with a Tree (Option C) example to ground the
+LLM in the simplest legal shape.
+
+### Critic rule #9
+
+Added to `view/critic.py:_CRITIC_PROMPT_HEADER` as a semantic
+backstop: even if the static lint somehow misses the case (e.g. body
+shape doesn't pattern-match `self.f@` exactly), the critic should
+**reject** any candidate where V's RHS lifts inner type to `TView` but
+the body fails to perform the lift explicitly.
+
+### Acceptance fixtures (self-tests)
+
+In `_run_self_tests`:
+
+* PTDir (Option A buggy: V lifts to `Seq<Option<PTDirView>>`, body uses
+  `self.entries@`) → **M4 reject**.
+* PTDir (Option A correct: body uses `Seq::new(...)` explicit lift) →
+  **accept**.
+* PTDir (Option B: V keeps `Seq<Option<PTDir>>`, body uses
+  bare `self.entries`) → **accept**.
+* PTDir (Option C: `type V = PTDir; view { *self }`) → **accept**.
+* Non-recursive `Page { state: PageState }` → **skip** (precondition
+  unmet).
+* Priority: a view that violates both M3 and M4 reports M3 (M3 first).
+* Priority: a view that violates both M4 and M1 reports M4 (M4 first
+  among the post-M3/M2 group).
+
+### Retroactive scan outcome
+
+`lint-scan` over all 7 active project caches with the new M4 rule:
+
+| project | active | M4 reject |
+|---|---:|---:|
+| anvil-library | 2 | 0 |
+| atmosphere | 23 | 0 |
+| ironkv | 28 | 0 |
+| memory-allocator | 6 | 0 |
+| nrkernel | 36 | 0 |
+| storage | 17 | 0 |
+| vest | 0 | 0 |
+
+**Zero active-cache rejections** — M4 has no FP on the corpus. The
+PTDir case (the bug class M4 was designed for) is in
+`nrkernel/_rejected.jsonl`, not active cache, so this is expected.
+
+PTDir LLM retry is left as a follow-up (it requires a Copilot call;
+the static lint + new prompt guidance + critic rule together pre-empt
+the bug class for any future synthesis attempts, including the
+deferred re-attempt).

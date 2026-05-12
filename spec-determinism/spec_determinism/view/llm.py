@@ -145,6 +145,90 @@ Rules of thumb:
 - A `Map<K, V>` field always views to `Map<K@, V@>`.
 - An allocator handle / opaque ID → omit from the view.
 - A field that the ensures clause never inspects → omit.
+
+## Self-recursive types  (PR-E)
+
+A type `T` is **self-recursive** when one of its fields (or one of its
+enum-variant fields) — directly or through a container — references
+`T` itself. Examples:
+
+- `pub struct PTDir { entries: Seq<Option<PTDir>>, ... }`   // tree
+- `pub struct Node  { children: Vec<Node>, ... }`           // n-ary tree
+- `pub enum List<T> { Cons(T, Box<List<T>>), Nil }`         // linked list
+
+The `@` operator does **NOT** auto-descend through container
+generics. `self.entries@` on a `Seq<Option<T>>` field yields
+`Seq<Option<T>>` (identity), **not** `Seq<Option<TView>>`. So the
+bare-`@` pattern that works for non-recursive fields silently
+type-mismatches on a self-recursive container. You have three legal
+shapes — pick the cheapest that compiles:
+
+### Option C — identity view (`type V = Self`)  *preferred*
+
+Use when **every** field is already spec-friendly: each field type
+either is a Verus primitive (`int`/`nat`/`bool`/`usize`/`char`/...),
+a vstd spec container (`Seq`/`Set`/`Map`/`Multiset`) **all the way
+down**, or has identity `View::V` (V = T). Then:
+
+```rust
+impl View for T {
+    type V = T;
+    closed spec fn view(&self) -> T { *self }
+}
+```
+
+This is identical to spec-level structural compare — no abstraction
+loss, no extra schemas, no SMT trigger noise.
+
+### Option B — V mirrors concrete inner
+
+Use when some fields are `Ghost<X>`/`Tracked<X>` ghost wrappers but
+the surviving fields are all spec-friendly. V looks like the concrete
+type with ghost wrappers stripped (and ghost-only fields elided).
+**Recursive fields keep `T` (NOT `<T>View`)** inside their container,
+and the body copies them through unchanged:
+
+```rust
+pub struct TView { region: MemRegion, entries: Seq<Option<T>>, ... }
+impl View for T {
+    type V = TView;
+    closed spec fn view(&self) -> TView {
+        TView { region: self.region, entries: self.entries, ... }
+    }
+}
+```
+
+### Option A — recursive lift  *most expensive — avoid if possible*
+
+Use **only** when the inner type's view genuinely abstracts away
+information (its `V` is a smaller / different shape than `T`).
+V replaces `T` with `<T>View` inside the container, and the body
+**must** lift explicitly with `Seq::new` / `Map::new` / `match`:
+
+```rust
+pub struct TView { ..., entries: Seq<Option<TView>>, ... }
+impl View for T {
+    type V = TView;
+    closed spec fn view(&self) -> TView {
+        TView {
+            ...,
+            entries: Seq::new(
+                self.entries.len(),
+                |i: int| match self.entries[i] {
+                    Some(d) => Some(d@),
+                    None => None,
+                },
+            ),
+        }
+    }
+}
+```
+
+⚠ **Cost note.** Each container layer over `Self` inside V multiplies
+schema-search work (one extra dimension to enumerate per layer), and
+SMT extensionality on the recursive `view()` function adds trigger
+pressure. Always prefer **C** (or **B**) over **A** when both
+compile.
 """
 
 _FEW_SHOT = """\
@@ -173,6 +257,31 @@ Already-resolved views of dependencies:
   "view_decl": "pub struct PageView { pub size: usize, pub state: PageState, pub owner: OwnerId }\\n\\nimpl View for Page {\\n    type V = PageView;\\n    closed spec fn view(&self) -> PageView {\\n        PageView { size: self.size, state: self.state, owner: self.owner@ }\\n    }\\n}",
   "depends_on_views_of": [],
   "rationale": "Drop ptr (allocator-opaque), keep size/state which are spec-meaningful, project Ghost<OwnerId> to its inner identity view. PageState's structural eq is already semantic so we use it as-is."
+}
+```
+
+## Example: self-recursive  (preferred Option C path)
+
+### Type
+```
+pub struct Tree {
+    pub value: i64,
+    pub children: Seq<Tree>,
+}
+```
+
+Already-resolved views of dependencies:
+- `i64`: primitive (no `View::view`).
+- `Seq<T>`: identity view (vstd container — `type V = Seq<T>`).
+
+### Response
+
+```json
+{
+  "viewed_type": "Tree",
+  "view_decl": "impl View for Tree {\\n    type V = Tree;\\n    closed spec fn view(&self) -> Tree { *self }\\n}",
+  "depends_on_views_of": [],
+  "rationale": "Tree is self-recursive via Seq<Tree>. Every field (i64 primitive, Seq<Tree> vstd-identity) is already spec-friendly, so identity view (Option C) is the cheapest correct choice. Writing a separate TreeView with Seq<TreeView> would force an explicit Seq::new lift (Option A) that costs schema search and SMT triggers without buying any abstraction."
 }
 ```
 """
@@ -213,6 +322,27 @@ def build_view_prompt(
         "\n\n## Already-resolved views of dependency types\n\n",
         _render_deps(dep_views),
     ]
+    # PR-E — surface self-recursion early. The LLM has been observed
+    # to default to ``self.<field>@`` on container-wrapped self fields,
+    # which silently mis-types against a ``Seq<Option<TView>>`` V
+    # declaration (cf. ``check_m4_self_recursion_bare_at`` for the
+    # post-hoc lint).
+    if _is_self_recursive(td):
+        rec_fields = sorted(_self_recursive_fields(td).keys())
+        parts.append(
+            "\n\n## ⚠ Self-recursion alert\n\n"
+            f"This type is **self-recursive** via field(s): "
+            f"`{', '.join(rec_fields)}`. **Re-read the "
+            f"\"Self-recursive types\" section above before answering.** "
+            "The most common failure mode is declaring V as "
+            f"`Seq<Option<{td.name}View>>` (or similar) but assigning "
+            f"`self.<field>@` to it: `@` does not auto-descend through "
+            "containers. Prefer **Option C** (`type V = "
+            f"{td.name};` with body `*self`) when every field is "
+            "spec-friendly. Use **Option A** (`Seq::new`/`map_values` "
+            "lift) only when the inner type's `View::V` is genuinely "
+            "smaller than the inner type."
+        )
     if extra_context:
         parts.append("\n\n## Additional context\n\n")
         parts.append(extra_context)
@@ -817,8 +947,167 @@ def check_m1_view_targets_have_view(
 
 
 # ---------------------------------------------------------------------------
-# Aggregator — used by ``synthesize_view`` and by ``llm.py lint-scan``.
+# M4 — self-recursive type projected by bare `@` on a container field
+#
+# Pattern caught:
+#
+#   pub struct PTDirView { ..., entries: Seq<Option<PTDirView>>, ... }
+#   impl View for PTDir {
+#       spec fn view(&self) -> PTDirView {
+#           PTDirView { ..., entries: self.entries@, ... }  // type mismatch
+#       }
+#   }
+#
+# `@` does NOT auto-descend through container generics: `self.entries`
+# has type ``Seq<Option<PTDir>>`` and `self.entries@` returns
+# ``Seq<Option<PTDir>>`` (identity), NOT ``Seq<Option<PTDirView>>``.
+# So the assignment in the V-struct typechecks only when V's recursive
+# field keeps the concrete ``PTDir`` head (Options B/C) — or the body
+# uses an explicit ``Seq::new`` / ``map_values`` lift (Option A).
 # ---------------------------------------------------------------------------
+
+
+def _self_recursive_fields(td: "TypeDef") -> dict[str, "object"]:
+    """Return ``{display_name: type_expr}`` for fields whose type
+    transitively references ``td.name``.
+
+    Display names are bare field names for struct fields, and
+    ``Variant:field`` for variant fields (kept distinct so a struct
+    can't shadow a variant field's diagnostic).
+    """
+    out: dict[str, object] = {}
+    for f in td.fields:
+        if td.name in (f.type_refs or []):
+            out[f.name] = f.type_expr
+    for v in td.variants:
+        for f in v.fields:
+            if td.name in (f.type_refs or []):
+                out[f"{v.name}:{f.name}"] = f.type_expr
+    return out
+
+
+def _is_self_recursive(td: "TypeDef") -> bool:
+    """True iff ``td`` has at least one field (struct or variant) whose
+    parsed ``type_refs`` mention ``td.name``."""
+    return bool(_self_recursive_fields(td))
+
+
+# Matches a (sub-)field declaration in either a V struct or the parent
+# struct: ``name: <type>,``. We use the surrounding decl text to filter
+# down to V-struct decls (see M4 detector below).
+_V_FIELD_DECL_RE = re.compile(
+    r"\b(?:pub\s+)?(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?P<rhs>[^,\n}]+)"
+)
+
+
+def check_m4_self_recursion_bare_at(
+    view_decl: str,
+    *,
+    td: "TypeDef",
+) -> Optional[str]:
+    """M4: when ``td`` is self-recursive, reject bare ``self.<field>@``
+    projections on container-wrapped self fields whose V-side type
+    mentions the V head (e.g. ``<T>View``).
+
+    Accepts:
+
+    * non-self-recursive types (no-op);
+    * self-recursive types whose V-side field keeps the concrete head
+      (Option B — body's bare ``@`` is identity-correct);
+    * self-recursive types with ``type V = Self`` / ``type V = T``
+      (Option C — body uses ``*self`` and no bare ``@``);
+    * self-recursive types using explicit ``Seq::new`` / ``map_values``
+      lift inside the body for the recursive field (Option A — no
+      bare ``self.<field>@`` on that field).
+
+    Rejects:
+
+    * the LLM's most common self-recursion bug — declaring V as
+      ``Seq<Option<TView>>`` but assigning ``self.entries@`` to it.
+      The mismatch is a guaranteed typecheck failure; we catch it
+      pre-critic so it never reaches the cache.
+    """
+    self_rec = _self_recursive_fields(td)
+    if not self_rec:
+        return None
+
+    body = _extract_view_fn_body(view_decl) or ""
+    body_stripped = re.sub(r"//[^\n]*", "", body)
+    body_stripped = re.sub(r"/\*.*?\*/", "", body_stripped, flags=re.S)
+    decl_stripped = re.sub(r"//[^\n]*", "", view_decl)
+    decl_stripped = re.sub(r"/\*.*?\*/", "", decl_stripped, flags=re.S)
+
+    # The V-type head, e.g. ``PTDirView`` for ``type V = PTDirView;``.
+    # If absent we can't compute the M4 pattern.
+    v_text = _view_v_type(view_decl) or ""
+    v_head = re.match(r"\s*([A-Za-z_][A-Za-z0-9_]*)", v_text)
+    if not v_head:
+        return None
+    v_head_name = v_head.group(1)
+    # Identity-V (`type V = Self` or `type V = T`) is sound by
+    # construction — body uses ``*self`` and there's no bare ``@`` to
+    # mismatch on. Skip immediately.
+    if v_head_name in ("Self", td.name):
+        return None
+
+    # Which fields does the body bare-@-project?
+    bare_at_fields: set[str] = set()
+    for m in _SELF_FIELD_AT_RE.finditer(body_stripped):
+        bare_at_fields.add(m.group("field"))
+
+    # Reduce keys to bare-field-names for cross-matching with the body
+    # (variants share field names across arms; we only care about the
+    # simple identifier).
+    self_rec_names = {
+        (k.split(":", 1)[1] if ":" in k else k) for k in self_rec
+    }
+
+    if not (bare_at_fields & self_rec_names):
+        # No bare-@ on a self-recursive field → no M4 issue, regardless
+        # of V's shape.
+        return None
+
+    # Decide whether V's field declaration for any of the implicated
+    # field names mentions ``v_head_name`` (the V head — i.e. wraps the
+    # recursive position in ``<T>View``).
+    #
+    # Heuristic: scan all ``name: <type>,`` occurrences in decl_stripped
+    # (we don't try to demarcate the V-struct from the impl block — if
+    # the V head appears anywhere in a field RHS for a self-rec field
+    # name, the bug pattern is present). To avoid false-positive on the
+    # parent's own field decl ``entries: Seq<Option<PTDir>>``, we
+    # restrict the match to RHS-es that contain ``v_head_name`` as a
+    # whole word (the parent's RHS uses ``td.name``, not the V head).
+    rec_at = bare_at_fields & self_rec_names
+    for m in _V_FIELD_DECL_RE.finditer(decl_stripped):
+        fname = m.group("name")
+        rhs = m.group("rhs").strip()
+        if fname not in rec_at:
+            continue
+        if not re.search(rf"\b{re.escape(v_head_name)}\b", rhs):
+            continue
+        # Found the bug.
+        return (
+            f"M4: `{td.name}` is self-recursive (field `{fname}` "
+            f"transitively contains `{td.name}`) and V declares "
+            f"`{fname}: {rhs}` — wrapping the recursive position in "
+            f"`{v_head_name}` — but the body uses bare "
+            f"`self.{fname}@`. `@` does not descend through containers "
+            f"like `Seq` / `Option` / `Vec`: `self.{fname}@` yields the "
+            f"concrete container of `{td.name}` (identity), not "
+            f"`{rhs}`. Fix options: "
+            f"(C, preferred) `type V = {td.name};` with body `*self`; "
+            f"(B) drop `{v_head_name}` from the recursive position in V "
+            f"(keep `{td.name}`) and assign `self.{fname}` directly; "
+            f"(A) write an explicit "
+            f"`Seq::new(self.{fname}.len(), |i| match self.{fname}[i] "
+            f"{{ Some(d) => Some(d@), None => None }})` lift — but A "
+            f"only buys abstraction when the inner type's `View::V` "
+            f"differs from itself; otherwise A is strictly more "
+            f"expensive than C/B."
+        )
+    return None
+
 
 
 def lint_view_decl(
@@ -829,20 +1118,24 @@ def lint_view_decl(
     known_view_heads: Optional[set[str]] = None,
     cache: Optional["ViewCache"] = None,
 ) -> Optional[tuple[str, str]]:
-    """Run M3 → M2 → M1 in order; return ``(rule, reason)`` on first
-    rejection or ``None`` on accept.
+    """Run M3 → M2 → M4 → M1 in order; return ``(rule, reason)`` on
+    first rejection or ``None`` on accept.
 
     The ordering is intentional:
 
     * **M3** is cheapest (attribute predicate); rejects external_body
       types before parsing the body at all.
-    * **M2** is the most specific (double-@ on Ghost<NonView>); fires
-      on a strict subset of the cases where M1 would also fire.
+    * **M2** is the most specific (double-``@`` on ``Ghost<NonView>``);
+      fires on a strict subset of the cases where M1 would also fire.
+    * **M4** is shape-specific to self-recursive types; catches the
+      bare-``@``-on-container-of-Self bug that M1 cannot see (the head
+      ``T`` is in ``known_view_heads`` so M1 silently accepts).
     * **M1** is the broad catch-all (any missing View head).
 
     When ``known_view_heads`` is ``None`` (e.g. retroactive scan over
-    cached entries with no registry handy), M1 is skipped — only M3
-    and M2 run.
+    cached entries with no registry handy), M1 is skipped — only
+    M3 / M2 / M4 run. M4 needs no registry: it derives everything
+    from ``td.fields[].type_refs`` plus the decl text.
     """
     msg = check_m3_parent_not_opaque(
         td, src_excerpt=src_excerpt, view_decl=view_decl,
@@ -852,6 +1145,9 @@ def lint_view_decl(
     msg = check_m2_no_double_at_past_ghost(view_decl, td=td)
     if msg:
         return ("M2", msg)
+    msg = check_m4_self_recursion_bare_at(view_decl, td=td)
+    if msg:
+        return ("M4", msg)
     if known_view_heads is not None:
         msg = check_m1_view_targets_have_view(
             view_decl, td=td,
@@ -1114,6 +1410,7 @@ def synthesize_view(
         "lint_m1_reject" view references a type with no registered View
         "lint_m2_reject" view applies `@@` over Ghost<NonView>
         "lint_m3_reject" parent type is `external_body` / opaque to Verus
+        "lint_m4_reject" self-recursive type uses bare `@` on container of Self
         "critic_reject"  critic rejected the candidate
 
     ``known_view_heads`` (PR-D5) — set of short type names that have a
@@ -1452,7 +1749,8 @@ def prefill_project(
                 if record["status"] == "critic_reject":
                     record["action"] = "critic_reject"
                 elif record["status"] in ("lint_reject", "lint_m1_reject",
-                                          "lint_m2_reject", "lint_m3_reject"):
+                                          "lint_m2_reject", "lint_m3_reject",
+                                          "lint_m4_reject"):
                     record["action"] = "lint_reject"
                 elif record["status"] == "validate_fail":
                     record["action"] = "invalid"
@@ -2407,6 +2705,171 @@ trailing text
           "_is_unit_v: unit-V decl")
     check(_is_unit_v(decl_winner) is False,
           "_is_unit_v: CommitMask is NOT unit-V")
+
+    # ------------------------------------------------------------------
+    # PR-E — M4 (self-recursive view) detector unit tests
+    # ------------------------------------------------------------------
+
+    def _fd_refs(name, te, refs):
+        return FieldDecl(name=name, type_text=te.raw, type_refs=list(refs),
+                         is_pub=False, span=(0, 0), type_expr=te)
+
+    # PTDir-shaped fixture: `entries: Seq<Option<PTDir>>` self-references PTDir.
+    td_ptdir = _struct(
+        "PTDir",
+        _fd_refs("region", _te_leaf("MemRegion"), ["MemRegion"]),
+        _fd_refs("entries",
+                 _te_gen("Seq", _te_gen("Option", _te_leaf("PTDir"))),
+                 ["Seq", "Option", "PTDir"]),
+        _fd_refs("used_regions", _te_gen("Set", _te_leaf("MemRegion")),
+                 ["Set", "MemRegion"]),
+    )
+
+    check(_is_self_recursive(td_ptdir) is True,
+          "_is_self_recursive: PTDir is self-recursive via entries")
+    rec = _self_recursive_fields(td_ptdir)
+    check(set(rec.keys()) == {"entries"},
+          f"_self_recursive_fields: PTDir → {{entries}} (got {sorted(rec)!r})")
+
+    # Non-recursive baseline.
+    td_page = _struct("Page", _fd("size", _te_leaf("usize")))
+    check(_is_self_recursive(td_page) is False,
+          "_is_self_recursive: Page is NOT self-recursive")
+    check(_self_recursive_fields(td_page) == {},
+          "_self_recursive_fields: Page → {}")
+
+    # --- M4 rejection: Option A bug (the historical PTDir failure).
+    # V declares Seq<Option<PTDirView>> but body assigns self.entries@.
+    decl_ptdir_buggy = (
+        "pub struct PTDirView {\n"
+        "    pub region: MemRegion,\n"
+        "    pub entries: Seq<Option<PTDirView>>,\n"
+        "    pub used_regions: Set<MemRegion>,\n"
+        "}\n\n"
+        "impl View for PTDir {\n"
+        "    type V = PTDirView;\n"
+        "    closed spec fn view(&self) -> PTDirView {\n"
+        "        PTDirView {\n"
+        "            region: self.region,\n"
+        "            entries: self.entries@,\n"
+        "            used_regions: self.used_regions,\n"
+        "        }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m4_self_recursion_bare_at(decl_ptdir_buggy, td=td_ptdir)
+    check(out is not None and out.startswith("M4:") and "PTDirView" in out,
+          f"M4: PTDir Seq<Option<TView>> + self.entries@ should REJECT (got {out!r})")
+    # Aggregator: M4 should fire (M3/M2 don't apply, M1 sees PTDir as known head).
+    hit = lint_view_decl(
+        decl_ptdir_buggy, td=td_ptdir, known_view_heads={"PTDir"},
+    )
+    check(hit is not None and hit[0] == "M4",
+          f"lint_view_decl: PTDir buggy → M4 (got {hit!r})")
+
+    # --- M4 acceptance: Option C — identity view.
+    decl_ptdir_c = (
+        "impl View for PTDir {\n"
+        "    type V = PTDir;\n"
+        "    closed spec fn view(&self) -> PTDir { *self }\n"
+        "}"
+    )
+    out = check_m4_self_recursion_bare_at(decl_ptdir_c, td=td_ptdir)
+    check(out is None,
+          f"M4: PTDir Option C (type V = PTDir, *self) should ACCEPT (got {out!r})")
+    hit = lint_view_decl(
+        decl_ptdir_c, td=td_ptdir, known_view_heads={"PTDir"},
+    )
+    check(hit is None,
+          f"lint_view_decl: PTDir Option C passes all rules (got {hit!r})")
+
+    # --- M4 acceptance: Option B — V keeps concrete PTDir in container.
+    decl_ptdir_b = (
+        "pub struct PTDirView {\n"
+        "    pub region: MemRegion,\n"
+        "    pub entries: Seq<Option<PTDir>>,\n"
+        "    pub used_regions: Set<MemRegion>,\n"
+        "}\n\n"
+        "impl View for PTDir {\n"
+        "    type V = PTDirView;\n"
+        "    closed spec fn view(&self) -> PTDirView {\n"
+        "        PTDirView {\n"
+        "            region: self.region,\n"
+        "            entries: self.entries,\n"
+        "            used_regions: self.used_regions,\n"
+        "        }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m4_self_recursion_bare_at(decl_ptdir_b, td=td_ptdir)
+    check(out is None,
+          f"M4: PTDir Option B (V wraps Seq<Option<PTDir>>, body uses self.entries) "
+          f"should ACCEPT (got {out!r})")
+
+    # --- M4 acceptance: Option A done correctly — Seq::new lift, no bare @.
+    decl_ptdir_a = (
+        "pub struct PTDirView {\n"
+        "    pub region: MemRegion,\n"
+        "    pub entries: Seq<Option<PTDirView>>,\n"
+        "    pub used_regions: Set<MemRegion>,\n"
+        "}\n\n"
+        "impl View for PTDir {\n"
+        "    type V = PTDirView;\n"
+        "    closed spec fn view(&self) -> PTDirView {\n"
+        "        PTDirView {\n"
+        "            region: self.region,\n"
+        "            entries: Seq::new(\n"
+        "                self.entries.len(),\n"
+        "                |i: int| match self.entries[i] {\n"
+        "                    Some(d) => Some(d@),\n"
+        "                    None => None,\n"
+        "                },\n"
+        "            ),\n"
+        "            used_regions: self.used_regions,\n"
+        "        }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m4_self_recursion_bare_at(decl_ptdir_a, td=td_ptdir)
+    check(out is None,
+          f"M4: PTDir Option A (explicit Seq::new lift, no bare entries@) "
+          f"should ACCEPT (got {out!r})")
+
+    # --- M4 short-circuit: non-self-recursive types are skipped.
+    decl_page_at = (
+        "pub struct PageView { pub size: usize }\n"
+        "impl View for Page {\n"
+        "    type V = PageView;\n"
+        "    closed spec fn view(&self) -> PageView {\n"
+        "        PageView { size: self.size }\n"
+        "    }\n"
+        "}"
+    )
+    out = check_m4_self_recursion_bare_at(decl_page_at, td=td_page)
+    check(out is None,
+          f"M4: non-recursive Page should be skipped (got {out!r})")
+
+    # --- M4 priority: aggregator runs M3 > M2 > M4 > M1.
+    # A self-recursive external_body type with the M4 bug should report M3 first.
+    td_ptdir_ext = _struct(
+        "PTDir",
+        _fd_refs("entries",
+                 _te_gen("Seq", _te_gen("Option", _te_leaf("PTDir"))),
+                 ["Seq", "Option", "PTDir"]),
+        is_external_body=True,
+    )
+    hit = lint_view_decl(
+        decl_ptdir_buggy, td=td_ptdir_ext, known_view_heads={"PTDir"},
+    )
+    check(hit is not None and hit[0] == "M3",
+          f"lint: M3 still wins over M4 on external_body (got {hit!r})")
+
+    # M4 wins over M1 when M3/M2 don't fire.
+    hit = lint_view_decl(
+        decl_ptdir_buggy, td=td_ptdir, known_view_heads=set(),
+    )
+    check(hit is not None and hit[0] == "M4",
+          f"lint: M4 fires before M1 when both could (got {hit!r})")
 
     # --- CacheEntry round-trip via to_dict / from_dict
     e2 = CacheEntry.from_dict(e.to_dict())
