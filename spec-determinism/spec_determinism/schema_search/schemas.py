@@ -335,10 +335,16 @@ def _emit(
 
     # --- Seq ---
     if ty.kind == TypeKind.SEQ:
+        # ISSUES #14 — Vec<T> is tagged with spec_view=Seq<T> by the
+        # extractor to mark "Verus needs `@` to project". Mirror
+        # narrow_seq: emit schemas against `{var}@` rather than `{var}`
+        # when spec_view is set; native Seq / array / slice keep the
+        # bare accessor.
+        accessor = f"{var}@" if ty.spec_view else var
         sid = _uniq(f"{tag_base}_leneq")
         out.append(SchemaBinding(
             id=sid, kind=SchemaKind.SEQ_LEN_EQ, rust_var=var,
-            rust_expr_tmpl=f"{var}.len() == {{k}}",
+            rust_expr_tmpl=f"{accessor}.len() == {{k}}",
             guard_name=f"g_{sid}",
             k_params=[(f"k_{sid}", "nat")],
             parent_chain=list(parent_chain),
@@ -346,21 +352,22 @@ def _emit(
         sid = _uniq(f"{tag_base}_lenrng")
         out.append(SchemaBinding(
             id=sid, kind=SchemaKind.SEQ_LEN_RANGE, rust_var=var,
-            rust_expr_tmpl=f"{var}.len() >= {{k_lo}} && {var}.len() <= {{k_hi}}",
+            rust_expr_tmpl=f"{accessor}.len() >= {{k_lo}} && {accessor}.len() <= {{k_hi}}",
             guard_name=f"g_{sid}",
             k_params=[(f"k_{sid}_lo", "nat"), (f"k_{sid}_hi", "nat")],
             parent_chain=list(parent_chain),
         ))
         # Pre-enumerate element schemas for the first MAX_SEQ_LEN indices so
-        # narrow_seq's `{var}[i]` recursion has a schema to hit. Cap nesting
-        # at the outermost container layer (see _MAX_NESTED_CONTAINER_DEPTH);
-        # nested Seqs emit only len schemas, preventing 8^k cartesian blowup
-        # on types like `Ghost<Seq<Seq<Seq<…>>>>`.
+        # narrow_seq's `{accessor}[i]` recursion has a schema to hit. Cap
+        # nesting at the outermost container layer (see
+        # _MAX_NESTED_CONTAINER_DEPTH); nested Seqs emit only len schemas,
+        # preventing 8^k cartesian blowup on types like
+        # `Ghost<Seq<Seq<Seq<…>>>>`.
         if ty.type_args and container_depth <= _MAX_NESTED_CONTAINER_DEPTH:
             MAX_SEQ_LEN = 8
             elem_ty = ty.type_args[0]
             for i in range(MAX_SEQ_LEN):
-                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags,
+                _emit(f"{accessor}[{i}]", elem_ty, parent_chain, out, seen_tags,
                       projections_by_type,
                       container_depth=container_depth + 1)
         return

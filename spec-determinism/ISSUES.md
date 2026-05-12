@@ -662,3 +662,63 @@ Relevant files:
 - `spec_determinism/extract/narrow.py` (selftests only)
 - `docs/incompleteness-examples.md` (example 1 witness regenerated)
 
+### Follow-up — `Vec<T>` sub-case (closed by HEAD on 2026-05-12)
+
+**Symptom.** Same shape as #14 above but for `Vec<u8>` parameters / returns.
+`vest::set_range(data: &mut Vec<u8>, …)` produced a weak 3-assume witness
+(`i==0; input.len()==0; !equal(r1,r2,post1_data,post2_data)`) because
+`pre_data` / `post1_data` / `post2_data` resolved to `TypeKind.UNKNOWN`,
+so narrow + schemas never instantiated them.
+
+**Why a separate fix from #14b (array_type).** `[T; N]` and `[T]` accept
+bare `arr.len()` / `arr[i]` in Verus spec (confirmed empirically by the
+post-#14 set_range run on its `&[u8]` parameter). `Vec<T>`, however,
+requires the `@` accessor: `vec@.len()`, `vec@[i]`. Modeling `Vec<T>`
+as a plain `TypeKind.SEQ` (like slices/arrays) would emit bare accessors
+and Verus would reject the schemas.
+
+**Fix.** Reuse the `spec_view` convention already established for
+`narrow_struct` (which renders `var@` when `ty.spec_view` is set).
+The extractor now:
+
+1. Adds `"Vec": TypeKind.SEQ` to `_KNOWN_GENERICS`.
+2. In the `generic_type` branch, after constructing the SEQ `TypeInfo`,
+   tags it with `spec_view = TypeInfo(kind=SEQ, name="Seq<T>", type_args=[T])`
+   when the head identifier is `Vec`.
+
+`narrow_seq` and `schemas._emit`'s SEQ branch now compute
+`accessor = f"{var}@" if ty.spec_view else var` at branch entry and use
+`accessor` everywhere `var` was previously substituted into expressions.
+Native `Seq<T>` / `[T]` / `[T; N]` keep `spec_view=None` and emit bare
+identifiers as before.
+
+**Codegen interaction.** `gen_det._typeinfo_to_typeexpr` already maps
+`TypeKind.SEQ → TypeExpr(head="Seq", …)` based on `kind`, not `name`.
+That means equal-fn parameter signatures for `Vec<u8>` are now rendered
+as `Seq<u8>`, and the call site uses `det_xxx_equal(…, vec1@, vec2@)`.
+This is the correct spec-level form — Verus's seq-equal axiom closes
+the goal directly when both branches' ensures pin the same seq view.
+
+**Result on the trigger case.**
+
+| | before #14b | after #14b (slice fixed, Vec UNKNOWN) | after Vec spec_view |
+|---|---|---|---|
+| `set_range` | 2-assume weak witness | 3-assume weak witness | **status=ok, 1 round, 0 assumes** |
+
+The earlier "weak witness" was a false-positive A-2: structural
+`Vec<u8> == Vec<u8>` had no semantic relation to the spec-level
+`Seq<u8>` view in z3's eyes, so any non-trivial `seq_splice` ensures
+admitted a model with different capacities. The lift to seq-equal
+removes that gap.
+
+**Corpus smoketest.** No regressions on memory-allocator (15/1/0, identical
+to PR-D4 viewreg baseline), ironkv Vec-bearing samples (4/4 stay ok), and
+vest gains 1 fix (set_range 1 → 0 ok_with_witness). Atmosphere & nrkernel
+have no Vec-bearing targets in baseline.
+
+**Files touched.**
+- `spec_determinism/extract/extractor.py::_parse_type_node` (generic_type branch + `_KNOWN_GENERICS`)
+- `spec_determinism/extract/narrow.py::narrow_seq`
+- `spec_determinism/schema_search/schemas.py::_emit` (SEQ branch)
+- `docs/incompleteness-examples.md` (example 2 reframed: no longer a real A-2, witness disappeared)
+

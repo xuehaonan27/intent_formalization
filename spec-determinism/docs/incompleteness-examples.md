@@ -134,7 +134,7 @@ results-verusage-viewreg/memory-allocator/artifacts/
 
 ---
 
-## 2. `vest::set_range` — verdict **A-2**
+## 2. `vest::set_range` — **resolved** by spec_view-aware Vec narrows (ISSUES #14b follow-up)
 
 ### Source
 
@@ -155,54 +155,50 @@ pub fn set_range<'a>(data: &mut Vec<u8>, i: usize, input: &[u8])
         && data@ == seq_splice(old(data)@, i, input@),
 ```
 
-### Synthesised equal-fn
+### Status after fix
+
+After tagging `Vec<T>` with `spec_view = Seq<T>` in the extractor
+(`spec_determinism/extract/extractor.py` `_KNOWN_GENERICS` + the
+`generic_type` branch), codegen now lifts equal-fn signatures from
+`Vec<u8>` to `Seq<u8>` and emits `det_set_range_equal(r1, r2,
+post1_data@, post2_data@)` at the call site. Narrow + schemas
+likewise probe `pre_data@.len()`, `post1_data@[i]`, etc.
+
+End-to-end result: `set_range` now resolves to `status=ok` in
+**1 round, 0 assumes** — Verus's seq-equal axiom closes the
+goal directly from the ensures `post@ == seq_splice(pre@, i, input@)`
+on both branches. The previous "weak A-2 witness" was indeed a
+false positive caused by structural `Vec<u8> == Vec<u8>` (which
+z3 had no way to relate to the Seq view).
+
+### What the synthesised equal-fn looks like now
 
 ```rust
 spec fn det_set_range_equal(
     r1: (), r2: (),
-    post1_data: Vec<u8>, post2_data: Vec<u8>,
+    post1_data: Seq<u8>, post2_data: Seq<u8>,
 ) -> bool {
     r1 == r2 && post1_data == post2_data
 }
 ```
 
-### Witness test case
+— note the parameter types are `Seq<u8>`, not `Vec<u8>`. The call
+site passes `post1_data@`/`post2_data@` to bridge.
 
-```rust
-proof fn witness_set_range(
-    pre_data: Vec<u8>,
-    i: usize,
-    input: &[u8],
-    post1_data: Vec<u8>, r1: (),
-    post2_data: Vec<u8>, r2: (),
-)
-    requires 0 <= i + input@.len() <= pre_data@.len() <= usize::MAX,
-    ensures
-        (post1_data@.len() == pre_data@.len()
-         && post1_data@ == seq_splice(pre_data@, i, input@))
-        && (post2_data@.len() == pre_data@.len()
-            && post2_data@ == seq_splice(pre_data@, i, input@))
-        ==> det_set_range_equal(r1, r2, post1_data, post2_data),
-{
-    assume(i as int == 0);
-    assume(!det_set_range_equal(r1, r2, post1_data, post2_data));
-}
-```
+### Regression test
 
-### Verdict — A-2 (spec pins `Seq<u8>` view; equal-fn compares `Vec<u8>`)
-
-The ensures only pins `data@` (the `Seq<u8>` view); two `Vec<u8>`
-values with equal element sequences can still differ structurally
-(capacity, allocator metadata) and therefore differ under the `==`
-that the synthesised equal-fn applies.
+Locked in by `spec_determinism.extract.narrow` selftest
+(`narrow(Vec<u8>, "d", …)` must emit `d@.len()` / `d@[i]`,
+*not* `d.len()` / `d[i]`) and end-to-end by the corpus run on
+`vest::set_range` itself.
 
 ### Artifact pointers
 
 ```
 results-verusage-viewreg/vest/artifacts/
   vest__verified__utils__utils__set_range__set_range/
-    det_spec.json
-    injected.rs
+    det_spec.json    # symbols pre_data/post1_data/post2_data: spec_view=Seq<u8>
+    injected.rs      # equal_fn params: Seq<u8>; call site uses post1_data@
 ```
 
 ---

@@ -65,6 +65,14 @@ _KNOWN_GENERICS = {
     # can project through `@` / `.value()` instead of degrading to UNKNOWN.
     "Tracked": TypeKind.TRACKED, "Ghost": TypeKind.GHOST,
     "PointsTo": TypeKind.POINTS_TO,
+    # ISSUES #14 — Vec<T> is a Seq<T> at the spec level (vstd's
+    # `impl<T> View for Vec<T> { type V = Seq<T>; }`), but accesses
+    # require the `@` projection in spec contexts (verusage / vest's
+    # invariants use `data@[k]` / `data@.len()` throughout). We pin
+    # the SEQ kind here and tag the TypeInfo with a spec_view marker
+    # in the generic_type branch below so narrow_seq / schemas know
+    # to emit `var@[i]` / `var@.len()` rather than `var[i]` / `var.len()`.
+    "Vec": TypeKind.SEQ,
 }
 
 
@@ -105,6 +113,18 @@ def _parse_type_node(node: ts.Node) -> TypeInfo:
         elif kind == TypeKind.OPTION and len(type_args) >= 1:
             info.variants = [VariantInfo("Some", type_args[0]),
                              VariantInfo("None")]
+        # ISSUES #14 — Vec<T> needs `@` to project at the spec level.
+        # Tag the TypeInfo with a synthetic Seq<T> spec_view so narrow
+        # and schemas insert the `@` accessor. Native Verus Seq<T> /
+        # Set<T> / Map<…> stay spec_view=None — their bare-identifier
+        # access works as-is in spec contexts.
+        elif short == "Vec" and type_args:
+            inner = type_args[0]
+            info.spec_view = TypeInfo(
+                kind=TypeKind.SEQ,
+                name=f"Seq<{inner.name}>",
+                type_args=[inner],
+            )
         return info
 
     if node.type == "scoped_type_identifier":

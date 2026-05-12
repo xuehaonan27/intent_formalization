@@ -471,9 +471,18 @@ def _bisect_contains(var: str, lo: int, hi: int, node: AssumeNode, ctx: "SearchC
 
 @strategy_for(TypeKind.SEQ)
 def narrow_seq(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
-    """Narrow Seq<T>: length first, then elements."""
+    """Narrow Seq<T>: length first, then elements.
+
+    ISSUES #14 — when ``ty.spec_view`` is set (Vec<T> tagged with a
+    synthetic Seq<T> view by the extractor, signalling "Verus needs
+    `@` to project at the spec level"), prepend an ``@`` to the
+    accessor so emissions are ``var@.len()`` / ``var@[i]`` rather
+    than ``var.len()`` / ``var[i]``. Native Seq<T> / fixed array
+    [T; N] / slice [T] keep spec_view=None and use the bare accessor.
+    """
+    accessor = f"{var}@" if ty.spec_view else var
     len_node = node.get_or_create("len")
-    length = _narrow_length(var, len_node, ctx)
+    length = _narrow_length(accessor, len_node, ctx)
 
     if length is None:
         return
@@ -481,7 +490,7 @@ def narrow_seq(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     if ty.type_args and length > 0:
         for i in range(length):
             elem_node = node.get_or_create(f"elem_{i}")
-            narrow(ty.type_args[0], f"{var}[{i}]", elem_node, ctx)
+            narrow(ty.type_args[0], f"{accessor}[{i}]", elem_node, ctx)
 
 
 @strategy_for(TypeKind.MAP)
@@ -891,6 +900,82 @@ def _run_self_tests() -> int:
             "Array-as-SEQ: narrow must recurse into self_.mask[0]; "
             f"recorded:\n  {joined}"
         )
+
+    # ISSUES #14 follow-up — Vec<T> is modelled as TypeKind.SEQ with a
+    # synthetic spec_view=Seq<T> tag. narrow_seq must honour that tag
+    # and emit `var@.len()` / `var@[i]`, NOT bare `var.len()` / `var[i]`.
+    # The latter form is invalid Verus spec syntax on Vec<T>, so the
+    # synthesised proof fn would compile-fail. Native Seq<T> / [T] / [T; N]
+    # (spec_view=None) must continue to emit bare accessors.
+    #
+    # This locks in vest::set_range as a permanent regression:
+    # before the fix, `pre_data: Vec<u8>` resolved to UNKNOWN and produced
+    # a weak 3-assume witness; after the fix it lifts to Seq<u8> at the
+    # equal-fn level and Verus closes via the seq-equal axiom (rounds=1,
+    # assumes=0, no witness). Companion docs: docs/incompleteness-examples.md §2.
+    u8_ty = TypeInfo(kind=TypeKind.U8, name="u8")
+    vec_u8 = TypeInfo(
+        kind=TypeKind.SEQ, name="Vec<u8>",
+        type_args=[u8_ty],
+        spec_view=TypeInfo(kind=TypeKind.SEQ, name="Seq<u8>", type_args=[u8_ty]),
+    )
+    # replies: len: 0=F, 1=F, 2=T → narrow commits length=2
+    ctx = _StubCtx(replies=[False, False, True])
+    narrow(vec_u8, "pre_data", AssumeNode(key="pre_data"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "pre_data@.len()" not in joined:
+        failures.append(
+            "Vec<u8> w/ spec_view: must emit pre_data@.len() (the `@` accessor); "
+            f"recorded:\n  {joined}"
+        )
+    if "pre_data@[0]" not in joined:
+        failures.append(
+            "Vec<u8> w/ spec_view: must recurse into pre_data@[0]; "
+            f"recorded:\n  {joined}"
+        )
+    if "pre_data.len()" in joined or "pre_data[0]" in joined:
+        failures.append(
+            "Vec<u8> w/ spec_view: must NOT emit bare pre_data.len() or pre_data[0] "
+            "(Verus rejects these on Vec in spec); "
+            f"recorded:\n  {joined}"
+        )
+    # And the dual: a native Seq<u8> (spec_view=None) must keep bare form.
+    bare_seq = TypeInfo(kind=TypeKind.SEQ, name="Seq<u8>", type_args=[u8_ty])
+    ctx = _StubCtx(replies=[False, True])  # len: 0=F, 1=T
+    narrow(bare_seq, "s", AssumeNode(key="s"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "s.len()" not in joined or "s@" in joined:
+        failures.append(
+            "Native Seq<u8>: must emit bare s.len(), NOT s@.len(); "
+            f"recorded:\n  {joined}"
+        )
+
+    # ISSUES #14 — full memory-allocator::CommitMask::next_run shape
+    # regression. The composite test combines STRUCT-with-array-field
+    # for `self: CommitMask { mask: [usize; N] }`. The actual next_run
+    # uses N=8, but length 8 lies in narrow's bisect phase and would
+    # require ~20 scripted replies — to keep this self-test focused
+    # we model `mask: [usize; 2]` (Phase-1 exact-probe range). If this
+    # STRUCT-then-array path regresses, the next_run witness reverts
+    # to the useless 2-assume "just r1 != r2" form (no self.mask state,
+    # no per-position tuple probes).
+    arr_usize_2 = TypeInfo(
+        kind=TypeKind.SEQ, name="[usize; 2]",
+        type_args=[TypeInfo(kind=TypeKind.USIZE, name="usize")],
+    )
+    commit_mask = TypeInfo(
+        kind=TypeKind.STRUCT, name="CommitMask",
+        fields=[FieldInfo(name="mask", type=arr_usize_2)],
+    )
+    # mask.len() probes: 0=F, 1=F, 2=T → commit length=2
+    ctx = _StubCtx(replies=[False, False, True])
+    narrow(commit_mask, "self_", AssumeNode(key="self_"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    for needle in ("self_.mask.len()", "self_.mask[0]", "self_.mask[1]"):
+        if needle not in joined:
+            failures.append(
+                f"CommitMask regression: missing {needle!r}; recorded:\n  {joined}"
+            )
 
     if failures:
         print(f"\n{len(failures)} failure(s):")
