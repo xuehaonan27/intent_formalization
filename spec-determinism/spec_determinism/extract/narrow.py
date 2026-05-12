@@ -402,6 +402,17 @@ def narrow_set(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     if length is None or length == 0:
         return
 
+    # Non-integer element types: keep empty / non-empty / length witnesses,
+    # but don't try to discover concrete elements. `_bisect_set_element`
+    # below probes `[-8, 8]` integer literals regardless of `elem_ty`, which
+    # for `Set<Foo>` produces ill-typed `s.contains(-8)` / `Set::<Foo>::
+    # empty().insert(-8)` assumptions and a Z3 sort mismatch when binding
+    # the schema's `k_..._contains: Foo` param to a Python int. Matches the
+    # graceful degradation `narrow_map` already does for non-integer keys
+    # (`if k_ty.kind not in _INT_RANGE_KINDS: return`).
+    if elem_ty.kind not in _INT_RANGE_KINDS:
+        return
+
     # Find elements via contains() probing, skipping already-found values
     elements: list[int] = []
     for i in range(length):
@@ -761,6 +772,36 @@ def _run_self_tests() -> int:
         handler = _registry.get(kind)
         if handler is None or handler is _no_strategy:
             failures.append(f"No narrow handler registered for {kind}")
+
+    # ISSUES #10 — narrow_set must skip element-level probes for non-integer
+    # element types (otherwise it would emit `s.contains(-8)` /
+    # `Set::<Foo>::empty().insert(-8)`, which are ill-typed against a
+    # `Foo`-sorted Z3 element and produce sort mismatches at schema search).
+    foo_ty = TypeInfo(kind=TypeKind.STRUCT, name="Foo")
+    set_foo_ty = TypeInfo(kind=TypeKind.SET, name="Set<Foo>", type_args=[foo_ty])
+    # replies: empty=F, pos_len=T, len=0=F, len=1=T → length committed to 1
+    ctx = _StubCtx(replies=[False, True, False, True])
+    narrow(set_foo_ty, "s", AssumeNode(key="s"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if ".contains(" in joined or "::empty().insert(" in joined:
+        failures.append(
+            "Set<Foo>: element-probing must be skipped for non-int elements; "
+            f"recorded:\n  {joined}"
+        )
+
+    # Control: Set<u32> with the same replies SHOULD reach element probing
+    # (verifies the early-return is gated specifically on element kind, not
+    # on length narrowing returning None).
+    u32_ty_for_set = TypeInfo(kind=TypeKind.U32, name="u32")
+    set_u32_ty = TypeInfo(kind=TypeKind.SET, name="Set<u32>", type_args=[u32_ty_for_set])
+    ctx = _StubCtx(replies=[False, True, False, True])
+    narrow(set_u32_ty, "s", AssumeNode(key="s"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if ".contains(" not in joined:
+        failures.append(
+            "Set<u32>: element-probing regressed for integer elements; "
+            f"recorded:\n  {joined}"
+        )
 
     if failures:
         print(f"\n{len(failures)} failure(s):")
