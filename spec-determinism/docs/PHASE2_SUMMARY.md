@@ -45,21 +45,46 @@ runner_crash    1
 
 ### 1.3 三轴的具体例子
 
+**前置说明 ── spec-determinism 是 incompleteness 探测器，不是 prover**
+
+spec-determinism 给每个目标 fn **自动生成一个 equal-fn `eq(r1, r2)`**，然后让
+Verus + z3 检查：在 ensures 下 `eq(r1, r2)` 是否恒成立。
+
+**关键约束**：equal-fn **完全由返回类型决定**（外加可配置 policy，比如 PR-G 的
+errs-equivalent）。它**不会**根据 ensures 的内容"挑一个能证的版本"。所以：
+
+| verdict | 含义 |
+|---|---|
+| `ok` | spec（ensures）足以推出 spec 层确定性 |
+| `ok_with_witness` | ensures 不够强 —— 工具给出 spec-meaningful 反例（→ 提示用户补 ensures） |
+| `verus_error` / `runner_crash` | **工具坏掉**，verdict 不带信号 |
+
+PR-F / PR-G 的目的**不是**"让更多 fn 显得 complete"，而是：
+
+1. 把"工具坏掉"（verus_error）翻成"工具能用 + 真实信号"（ok / ok_with_witness）
+2. 在 ensures 已经紧的少数情形下顺便给出 `ok`
+3. 把 spurious witness（来自 byte-level noise，A-2 轴）变成 meaningful witness 或 `ok`
+
+下面 6 个例子分别展示这三种翻转。
+
 #### A-1 例 1 ── `Ghost<Seq<u32>>` 输出（atmosphere 形态）
 
 ```rust
 // 源
-fn snapshot(state: &State) -> (r: Ghost<Seq<u32>>)
-    ensures r@ == state.log@
+fn build_log() -> (r: Ghost<Seq<u32>>)
+    ensures r@.len() == 5
 ```
 
-ensures 把 `r@` 钉死为 `state.log@` —— spec 层完全确定（同一 state 两次调用必然
-返回同一 ghost seq）。
+ensures **故意只钉长度，不钉元素** —— 这是真实 atmosphere 里常见的形态。
 
-| | 生成的 equal-fn | z3 narrow 维度 | 结果 |
+| | 生成的 equal-fn（**由类型决定**） | Verus + z3 推理 | verdict |
 |---|---|---|---|
-| PRE-PR-F | `r1 == r2` | 0（Ghost 整体 opaque） | **verus_error** —— Verus 拒绝在 Ghost wrapper 上直接 `==`；即便接受，z3 也看不到 Ghost↔Seq 之间的桥 |
-| POST-PR-F | `((r1)@ == (r2)@)` | 4（`r1@.len` 的 `_leneq` 和 `_lenrng`，r2 同） | **ok** —— ensures 给 `r1@ == state.log@`、`r2@ == state.log@`，z3 由 transitivity 直接 chain；`len` narrow 帮 Seq 等式快速收敛 |
+| PRE-PR-F | `r1 == r2`（Ghost 未识别 → UNKNOWN fallback） | Verus 拒绝 Ghost wrapper 上的结构 `==`（或 z3 把 Ghost 当 opaque sort，给一个 vacuous SAT） | **verus_error** —— 工具坏掉，verdict **没有 spec 信号** |
+| POST-PR-F | `((r1)@ == (r2)@)`（GHOST 分支：剥 wrapper） | Verus 接受（Seq 是 spec 类型）；z3 narrow 给 `_leneq` / `_lenrng`；ensures 给 `r1@.len()==5` `r2@.len()==5` 但元素自由 → z3 找到合法反例 `r1@=seq![0;5]`、`r2@=seq![1;5]` | **ok_with_witness** —— 工具能用了，verdict 是**真实信号**：ensures 没钉元素，请补 `forall\|i\| r@[i] == …` |
+
+**PR-F 的胜利**：把 verdict 从"工具坏掉"翻成"工具正常 + 真实 incompleteness
+信号"。如果用户后续把 ensures 紧到 `r@ == state.log@`，verdict 会进一步变成
+`ok`（z3 用 transitivity chain 过去）—— 但那是用户的事，不是 PR-F 的事。
 
 #### A-1 例 2 ── `Tracked<PointsTo<u32>>` 输出（storage 形态）
 

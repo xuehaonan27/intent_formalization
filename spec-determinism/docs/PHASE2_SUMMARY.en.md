@@ -52,21 +52,50 @@ runner_crash        1
 
 ### 1.3 Concrete examples per axis
 
+**Framing — spec-determinism is an incompleteness detector, not a prover**
+
+spec-determinism **auto-generates an `eq(r1, r2)` function for every target**
+and asks Verus + z3 to check whether `eq(r1, r2)` holds under the function's
+`ensures`.
+
+**Key invariant**: the equal-fn is **fully determined by the return type**
+(plus configurable policies, e.g. PR-G's errs-equivalent). It **never** adapts
+to whatever the `ensures` happens to say. So the verdict means:
+
+| verdict | meaning |
+|---|---|
+| `ok` | the `ensures` is tight enough to imply spec-level determinism |
+| `ok_with_witness` | the `ensures` is too loose — the tool produced a spec-meaningful counterexample (→ user should tighten) |
+| `verus_error` / `runner_crash` | **the tool is broken** for this target, verdict carries no signal |
+
+The goal of PR-F / PR-G is **not** "make more functions look complete". It is:
+
+1. Promote "tool broken" states (`verus_error`) into "tool works + real signal" (`ok` / `ok_with_witness`)
+2. Where the `ensures` happens to be tight, let z3 chain through to `ok`
+3. Turn spurious witnesses (caused by byte-level noise — the A-2 axis) into meaningful witnesses or `ok`
+
+The six examples below illustrate the three kinds of flip.
+
 #### A-1 example 1 — `Ghost<Seq<u32>>` output (atmosphere shape)
 
 ```rust
 // source
-fn snapshot(state: &State) -> (r: Ghost<Seq<u32>>)
-    ensures r@ == state.log@
+fn build_log() -> (r: Ghost<Seq<u32>>)
+    ensures r@.len() == 5
 ```
 
-The `ensures` pins `r@` to `state.log@` — fully spec-deterministic: calling
-`snapshot(state)` twice with the same state must return the same ghost seq.
+The `ensures` **deliberately pins only the length, not the contents** — this
+is the common shape in real atmosphere code.
 
-| | generated equal-fn | z3 narrow dimensions | outcome |
+| | generated equal-fn (**type-determined**) | Verus + z3 reasoning | verdict |
 |---|---|---|---|
-| pre-PR-F | `r1 == r2` | 0 (the Ghost wrapper is opaque) | **verus_error** — Verus rejects `==` on `Ghost` directly; even if it accepted, z3 has no bridge between the Ghost wrapper and the inner `Seq` |
-| post-PR-F | `((r1)@ == (r2)@)` | 4 (`r1@.len` `_leneq` + `_lenrng`, same for r2) | **ok** — ensures supplies `r1@ == state.log@`, `r2@ == state.log@`; z3 chains by transitivity; `len` narrow lets the Seq equality converge fast |
+| pre-PR-F | `r1 == r2` (Ghost not recognised → UNKNOWN fallback) | Verus rejects structural `==` on the Ghost wrapper (or z3 treats Ghost as an opaque sort and produces a vacuous SAT) | **verus_error** — tool broken, verdict carries **no spec signal** |
+| post-PR-F | `((r1)@ == (r2)@)` (GHOST branch: strip the wrapper) | Verus accepts (`Seq` is a spec type); z3 narrow adds `_leneq` / `_lenrng`; `ensures` gives `r1@.len()==5` and `r2@.len()==5` but elements are free → z3 finds a legitimate witness `r1@=seq![0;5]`, `r2@=seq![1;5]` | **ok_with_witness** — tool works, verdict is a **real signal**: the spec doesn't pin element values, the user should add `forall\|i\| r@[i] == …` |
+
+**The PR-F win here**: the verdict flips from "tool broken" to "tool working +
+genuine incompleteness signal". If the user later tightens `ensures` to
+`r@ == state.log@`, the verdict will further flip to `ok` (z3 chains via
+transitivity) — but that's the user's job, not PR-F's.
 
 #### A-1 example 2 — `Tracked<PointsTo<u32>>` output (storage shape)
 
