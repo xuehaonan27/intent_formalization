@@ -983,7 +983,7 @@ def extract_spec(
 
     # Resolve type definitions from all sources
     all_sources = [source] + (type_sources or [])
-    type_defs = _resolve_types(params, return_type, all_sources, active_features)
+    type_defs, return_type = _resolve_types(params, return_type, all_sources, active_features)
 
     return FunctionSpec(
         name=fn_name,
@@ -1004,7 +1004,7 @@ def _resolve_types(
     return_type: TypeInfo,
     sources: list[str],
     active_features: Optional[set[str]] = None,
-) -> dict[str, TypeInfo]:
+) -> tuple[dict[str, TypeInfo], TypeInfo]:
     """Resolve unknown types by searching source files for struct/enum definitions.
 
     Does a transitive resolution: if `Error` is resolved to a struct with
@@ -1012,6 +1012,14 @@ def _resolve_types(
     resolved types into any TypeInfo slot (params, return type_args, struct
     field types, enum variant inners) that still has kind=UNKNOWN with the
     matching name.
+
+    Returns (type_defs, resolved_return_type). The return_type is returned
+    explicitly because if it is itself UNKNOWN at the top level (e.g. a
+    bare user-defined struct like `-> (cloned_ep: EndPoint)`), the
+    in-place mutation of nested slots can't replace the top-level
+    TypeInfo. Without the explicit return, parameters resolve correctly
+    (via `p.type = _substitute(p.type)`) but the return type stays
+    UNKNOWN, leaving `r1`/`r2` un-narrowable in witness search.
     """
     type_defs: dict[str, TypeInfo] = {}
     # tree-sitter-rust trips on inner attributes (`#![...]`) at the top of
@@ -1081,7 +1089,7 @@ def _resolve_types(
     # Propagate resolved types into all TypeInfo slots
     for p in params:
         p.type = _substitute(p.type)
-    _substitute(return_type)
+    return_type = _substitute(return_type)
     for td in list(type_defs.values()):
         _substitute(td)
 
@@ -1128,10 +1136,67 @@ def _resolve_types(
     # Second-pass substitution so newly-resolved names propagate into every slot
     for p in params:
         p.type = _substitute(p.type)
-    _substitute(return_type)
+    return_type = _substitute(return_type)
     for td in list(type_defs.values()):
         _substitute(td)
         if td.spec_view:
             _substitute(td.spec_view)
 
-    return type_defs
+    return type_defs, return_type
+
+
+# ---------------------------------------------------------------------------
+# Self-tests — invoke via `python -m spec_determinism.extract.extractor test`.
+# Keep these scoped to internal helpers that don't depend on a full tree-sitter
+# parse pipeline (the latter is exercised by the corpus runner).
+# ---------------------------------------------------------------------------
+
+def _run_self_tests() -> int:
+    failures: list[str] = []
+
+    # ISSUES #14 follow-up — `_resolve_types` must resolve user-defined
+    # struct names appearing AT THE TOP LEVEL of the return type, not
+    # just nested inside type_args / fields. Pre-fix, `p.type = _substitute(p.type)`
+    # captured the substitution result, while `_substitute(return_type)`
+    # discarded it: an UNKNOWN top-level return type like
+    # `-> (cloned_ep: EndPoint)` stayed UNKNOWN even after a matching
+    # `struct EndPoint { id: Vec<u8> }` was found in `sources`. The
+    # consequence: r1/r2 in the synthesised proof fn could not be
+    # narrowed (no fields → narrow_struct dead-ended), so witnesses
+    # for clone-shaped fns regressed to the degenerate bare-neq form.
+    src = "pub struct EndPoint { pub id: Vec<u8>, }"
+    ep_unknown = TypeInfo(kind=TypeKind.UNKNOWN, name="EndPoint")
+    type_defs, resolved_ret = _resolve_types([], ep_unknown, [src])
+    if resolved_ret.kind != TypeKind.STRUCT:
+        failures.append(
+            f"Top-level UNKNOWN return type must be substituted to STRUCT; "
+            f"got kind={resolved_ret.kind}"
+        )
+    if not any(f.name == "id" for f in resolved_ret.fields):
+        failures.append(
+            "Resolved EndPoint must expose `id` field; "
+            f"fields={[f.name for f in resolved_ret.fields]}"
+        )
+    # Inner Vec<u8> must inherit the spec_view tag from the generic_type branch.
+    id_field = next((f for f in resolved_ret.fields if f.name == "id"), None)
+    if id_field is None or id_field.type.spec_view is None:
+        failures.append(
+            "EndPoint.id (Vec<u8>) must carry spec_view=Seq<u8>; "
+            f"got spec_view={id_field.type.spec_view if id_field else None!r}"
+        )
+
+    if failures:
+        print(f"\n{len(failures)} failure(s):")
+        for f in failures:
+            print(f"  - {f}")
+        return 1
+    print("All extractor self-tests passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        raise SystemExit(_run_self_tests())
+    print("usage: python -m spec_determinism.extract.extractor test")
+    raise SystemExit(2)
