@@ -106,10 +106,17 @@ fn split_cell(pt: Tracked<PointsTo<u32>>) -> (r: Tracked<PointsTo<u32>>)
             r@.addr() == pt@.addr()
 ```
 
-| | generated equal-fn | outcome |
-|---|---|---|
-| pre-PR-F | `r1 == r2` — `Tracked` is an `external_body` newtype, structural `==` is unprovable in Verus spec mode | **verus_error** |
-| post-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | **ok** |
+The `ensures` pins `is_init` and `addr` but **deliberately leaves `value()` free** —
+typical in real code where storage callers don't care about the current payload.
+
+| | generated equal-fn (**type-determined**) | Verus + z3 reasoning | verdict |
+|---|---|---|---|
+| pre-PR-F | `r1 == r2` — `Tracked` / `PointsTo` are `external_body` newtypes | Verus rejects at compile time: external_body types have no structural `==` | **verus_error** — tool broken |
+| post-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | `ensures` pins `is_init`, `addr`; but `value()` is free in the init branch → z3 finds a legitimate witness `r1@.value()=0`, `r2@.value()=42` (same addr, both init, different payloads) | **ok_with_witness** (meaningful) — signal: `ensures` doesn't pin `value` when initialised, the user should add `r@.is_init() ==> r@.value() == …` |
+
+**PR-F win**: verus_error → ok_with_witness. Translates "tool stuck on the
+external_body wrapper" into "tool peels off the wrapper and exposes the real
+hole in the spec (no `value` pin)".
 
 #### A-2 example 1 — struct field is `Vec<u8>`
 
@@ -121,10 +128,17 @@ fn make_endpoint(bytes: Vec<u8>) -> (r: AbstractEndPoint)
     ensures r.id@ == bytes@
 ```
 
-| | generated equal-fn | z3 counterexample | outcome |
+The `ensures` pins `r.id@` (the spec projection of `id` onto `Seq<u8>`) —
+**this spec is tight**.
+
+| | generated equal-fn | z3 counterexample | verdict |
 |---|---|---|---|
-| no view-registry | `r1 == r2` — `Vec` structural `==` compares ptr/capacity/len; z3 can produce "two Vecs with the same logical bytes but different `cap`" | `r1.cap=8, r2.cap=16, contents equal to bytes@` | **ok_with_witness** (false positive) |
-| L4-synth view | `r1.view() == r2.view()` where `view()` projects to `Seq<u8>` | (unsat — `Seq` is a mathematical sequence) | **ok** |
+| no view-registry | `r1 == r2` — `Vec` structural `==` compares `ptr / cap / len`, all runtime noise | `r1.cap=8, r2.cap=16, contents equal to bytes@` — **byte-level spurious** witness, no spec meaning | **ok_with_witness (spurious)** — low signal-to-noise |
+| L4-synth view | `r1.view() == r2.view()` where `view()` projects to `Seq<u8>` — spec-layer comparison | (unsat: `r1.view().id == bytes@ == r2.view().id`) | **ok** |
+
+**view-registry win**: spurious witness → `ok`. Equivalent to "after stripping
+runtime noise the spec is actually tight enough; the tool can chain to
+determinism".
 
 #### A-2 example 2 — enum + self-recursive struct
 
@@ -137,10 +151,17 @@ fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
     ensures r.entries.len() == t.entries.len()
 ```
 
-| | generated equal-fn | outcome |
-|---|---|---|
-| no view-registry | recurses into `Subdir`'s `Box<PTDir>` — Verus spec mode cannot deref `Box`, falls back to `==` on the box pointer | **ok_with_witness** (pointer-identity false positive) |
-| L4-synth view + PR-E M4 lint | LLM picks Option C: `type V = Self` for `PTDir` → `r1.view() == r2.view()` degenerates to `r1 == r2` but **at the spec layer** (box noise stripped) | **ok** |
+The `ensures` deliberately pins only the length.
+
+| | generated equal-fn | z3 counterexample | verdict |
+|---|---|---|---|
+| no view-registry | recurses into `Subdir(Box<PTDir>)` — Verus spec mode cannot deref `Box`, falls back to `==` on the box pointer | `r1.entries[0] = Subdir(Box@0x1000)`, `r2.entries[0] = Subdir(Box@0x2000)` — **different pointers, same tree** (byte-level spurious) | **ok_with_witness (spurious)** |
+| L4-synth view + PR-E M4 lint | LLM picks Option C: `type V = Self` for `PTDir`, `view()` recursively strips `Box` → equal-fn = `r1.view() == r2.view()` at the spec layer | `r1.entries = seq![None, …]`, `r2.entries = seq![Some(child), …]` — same length, different content (**true spec-layer difference**) | **ok_with_witness (meaningful)** |
+
+**PR-E win**: **verdict stays the same** (still ok_with_witness) but the
+witness quality flips from spurious (pointer noise) to meaningful (spec-layer
+underdetermination). If the user later tightens `ensures` to `r =~= t`, post
+flips to `ok` while pre remains spurious.
 
 #### A-3 example 1 — `Seq<Result<u32, MyErr>>` output
 
@@ -149,13 +170,20 @@ fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
 fn batch_lookup(keys: Vec<u32>) -> (r: Seq<Result<u32, MyErr>>)
     ensures r.len() == keys.len()
 
-// assume the policy says errs_equivalent=True (all Err variants are equivalent)
+// policy: errs_equivalent = True (all Err variants treated as equivalent)
 ```
 
-| | generated equal-fn | z3 input | outcome |
+The `ensures` pins only the length — not the per-index Ok/Err distribution
+nor the Ok values.
+
+| | generated equal-fn (**type + policy determined**) | z3 counterexample | verdict |
 |---|---|---|---|
-| pre-PR-G | `r1 == r2` — `Seq` was in the primitive `==` list | `r1 = [Err(Foo("a"))]`, `r2 = [Err(Foo("b"))]` — different payloads | `r1 == r2` is false → **verus_error** (policy never fires) |
-| post-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | same | both elements have `Err` discriminator, Ok branch is vacuous → **ok** |
+| pre-PR-G | `r1 == r2` — `Seq` was in the primitive `==` list; policy never fires | `r1 = [Err(Foo("a"))]`, `r2 = [Err(Foo("b"))]`: structural `==` is false; `MyErr` may be `external_body` → Verus rejects | **verus_error** — tool stuck on `Err` payloads, never reaches the spec layer |
+| post-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | `r1 = [Ok(5)]`, `r2 = [Ok(7)]`: same length, same discriminator (both Ok), different Ok values | **ok_with_witness (meaningful)** — signal: the spec doesn't pin per-index Ok/Err distribution or Ok values |
+
+**PR-G win**: verus_error → ok_with_witness. The policy
+(`errs_equivalent`) prevents `Err`-payload differences from blocking the tool;
+but the genuine spec hole (no Ok-value pin) is now exposed.
 
 #### A-3 example 2 — `Map<Key, Result<Val, Err>>` field
 
@@ -167,10 +195,14 @@ fn populate(keys: Set<Key>) -> (r: ResultCache)
     ensures r.entries.dom() == keys
 ```
 
-| | generated equal-fn fragment | outcome |
-|---|---|---|
-| pre-PR-G | `r1.entries == r2.entries` — `Map` fell through to UNKNOWN's `==` fallback | two `Err` payloads differ → false → **verus_error** |
-| post-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (...))` | `dom()` pinned by ensures, Err branch collapses → **ok** |
+The `ensures` pins `dom`, not the per-key value.
+
+| | generated equal-fn fragment | z3 counterexample | verdict |
+|---|---|---|---|
+| pre-PR-G | `r1.entries == r2.entries` — `Map` fell through to UNKNOWN's `==` fallback | two `Err` payloads differ; `CacheErr` external_body | **verus_error** |
+| post-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (r1.entries[k]->Ok_0 == r2.entries[k]->Ok_0))` | `dom={k0}`, `r1.entries[k0]=Ok(v1)`, `r2.entries[k0]=Ok(v2)`: same dom, same discriminator, different Ok values | **ok_with_witness (meaningful)** — signal: the spec doesn't pin per-key Result content |
+
+**PR-G win**: same as A-3 example 1, verus_error → meaningful witness.
 
 ---
 

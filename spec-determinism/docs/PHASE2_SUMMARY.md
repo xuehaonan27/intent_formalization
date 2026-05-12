@@ -95,10 +95,16 @@ fn split_cell(pt: Tracked<PointsTo<u32>>) -> (r: Tracked<PointsTo<u32>>)
             r@.addr() == pt@.addr()
 ```
 
-| | 生成的 equal-fn | 结果 |
-|---|---|---|
-| PRE-PR-F | `r1 == r2` —— Tracked 是 `external_body` newtype，结构 `==` 在 Verus spec 模式下不可证 | **verus_error** |
-| POST-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | **ok** |
+ensures 钉了 `is_init` 和 `addr` 两个投影，**故意没钉 `value()`** —— 真实代码
+里很常见，因为 storage 调用方往往不关心当前 cell 装的值。
+
+| | 生成的 equal-fn（**由 `Tracked<PointsTo<u32>>` 类型决定**） | Verus + z3 推理 | verdict |
+|---|---|---|---|
+| PRE-PR-F | `r1 == r2` —— Tracked / PointsTo 是 `external_body` newtype | Verus 编译时报错：external_body 类型没有结构 `==` | **verus_error** —— 工具坏掉 |
+| POST-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | ensures 钉 `is_init`、`addr`；但 `value()` 在 init 分支下自由 → z3 找到合法反例 `r1@.value()=0`、`r2@.value()=42`（同 addr 同 init，但内容不同） | **ok_with_witness** —— 信号：ensures 没钉 init 时的 value，请补 `r@.is_init() ==> r@.value() == …` |
+
+**PR-F 的胜利**：verus_error → ok_with_witness。把"工具卡在 external_body
+壳上"翻成"工具拆开壳后，把 spec 的真实漏洞（value 没钉）暴露出来"。
 
 #### A-2 例 1 ── 自定义 struct 字段是 `Vec<u8>`
 
@@ -110,10 +116,15 @@ fn make_endpoint(bytes: Vec<u8>) -> (r: AbstractEndPoint)
     ensures r.id@ == bytes@
 ```
 
-| | 生成的 equal-fn | z3 反例 | 结果 |
+ensures 钉了 `r.id@`（即 `id` 投到 `Seq<u8>` 的视图）—— **这次 spec 是 tight 的**。
+
+| | 生成的 equal-fn | z3 反例 | verdict |
 |---|---|---|---|
-| 无 view-registry | `r1 == r2` —— Vec 结构 `==` 比指针/容量/len，z3 可以构造 "两个 Vec 内容相同但容量不同" | `r1.cap=8, r2.cap=16, 内容都是 bytes@` | **ok_with_witness**（false positive） |
-| L4-synth view | `r1.view() == r2.view()` 其中 `view()` 投到 `Seq<u8>` | （unsat，Seq 是数学序列） | **ok** |
+| 无 view-registry | `r1 == r2` —— `Vec` 结构 `==` 比 `ptr / cap / len`，是 runtime 噪音 | `r1.cap=8, r2.cap=16, 内容都等于 bytes@` —— **byte 层的 spurious 反例**，spec 层无意义 | **ok_with_witness（spurious）** —— 信号噪比低 |
+| L4-synth view | `r1.view() == r2.view()`，`view()` 投到 `Seq<u8>` —— spec 层比较 | （unsat：`r1.view().id == bytes@ == r2.view().id`） | **ok** |
+
+**view-registry 的胜利**：把 spurious witness 翻成 `ok`。等价于"剥掉 runtime
+噪音后，spec 实际上够 tight，工具能 chain 出确定性"。
 
 #### A-2 例 2 ── enum + 自递归类型
 
@@ -126,10 +137,16 @@ fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
     ensures r.entries.len() == t.entries.len()
 ```
 
-| | 生成的 equal-fn | 结果 |
-|---|---|---|
-| 无 view-registry | 递归比 `Subdir` 内部 `Box<PTDir>` —— Verus spec 模式无 box-deref → fallback `==` 比指针 | **ok_with_witness**（指针差异） |
-| L4-synth view + PR-E M4 lint | LLM 走 Option C: `type V = Self` for PTDir → `r1.view() == r2.view()` 退化成 `r1 == r2` 但在 spec 层（已剥离 Box pointer noise） | **ok** |
+ensures 故意只钉长度。
+
+| | 生成的 equal-fn | z3 反例 | verdict |
+|---|---|---|---|
+| 无 view-registry | 递归落到 `Subdir(Box<PTDir>)` —— Verus spec 模式无 box-deref → fallback 用 box 指针 `==` | `r1.entries[0] = Subdir(Box@0x1000)`、`r2.entries[0] = Subdir(Box@0x2000)`，**指针不同但所指树同**（byte 层 spurious） | **ok_with_witness（spurious）** |
+| L4-synth view + PR-E M4 lint | LLM 给 PTDir 选 Option C：`type V = Self`，view() 递归剥 Box —— equal-fn = `r1.view() == r2.view()`，在 spec 层做结构比较 | `r1.entries = seq![None, …]`、`r2.entries = seq![Some(child), …]`，长度相同但内容不同（**真正 spec 层差异**） | **ok_with_witness（meaningful）** |
+
+**PR-E 的胜利**：**verdict 状态不变**（都是 ok_with_witness），但 witness 质量
+从 spurious（指针噪音）翻成 meaningful（spec 层 underdetermined）。如果用户后续
+把 ensures 紧到 `r =~= t` 之类，post 会变成 `ok`，pre 仍是 spurious witness。
 
 #### A-3 例 1 ── `Seq<Result<u32, MyErr>>` 输出
 
@@ -138,13 +155,18 @@ fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
 fn batch_lookup(keys: Vec<u32>) -> (r: Seq<Result<u32, MyErr>>)
     ensures r.len() == keys.len()
 
-// 假设语义上 errs_equivalent=True（不同 Err 视为同一类）
+// policy: errs_equivalent = True（不同 Err 视为同一类）
 ```
 
-| | 生成的 equal-fn | z3 输入 | 结果 |
+ensures 只钉长度，不钉每位 Ok/Err 的分布也不钉 Ok 值。
+
+| | 生成的 equal-fn（**由类型 + policy 决定**） | z3 反例 | verdict |
 |---|---|---|---|
-| PRE-PR-G | `r1 == r2` —— `Seq` 在 primitive `==` 列表里 | `r1 = [Err(Foo("a"))], r2 = [Err(Foo("b"))]` —— 内容不同 | `r1 == r2` 为 false → **verus_error**（policy 没生效） |
-| POST-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | 同上 | 两 `Err` 的 discriminator 都是 `Err`，OK 分支 vacuous → **ok** |
+| PRE-PR-G | `r1 == r2` —— Seq 在 primitive `==` 列表里，policy 未生效 | `r1 = [Err(Foo("a"))], r2 = [Err(Foo("b"))]`：内容不同 → `==` false；MyErr 可能是 external_body，Verus 报错 | **verus_error** —— 工具被 Err 内容卡住，看不到 spec 层 |
+| POST-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | `r1 = [Ok(5)]`、`r2 = [Ok(7)]`：长度同、discriminator 同（都 Ok），但 Ok 值不同 | **ok_with_witness（meaningful）** —— 信号：ensures 没钉 per-index 的 Ok/Err 分布和 Ok 值 |
+
+**PR-G 的胜利**：verus_error → ok_with_witness。policy（errs_equivalent）让 Err
+内容差异不再阻碍工具；但 spec 没钉 Ok 值这件事被真实暴露。
 
 #### A-3 例 2 ── `Map<Key, Result<Val, Err>>` 字段
 
@@ -156,10 +178,14 @@ fn populate(keys: Set<Key>) -> (r: ResultCache)
     ensures r.entries.dom() == keys
 ```
 
-| | 生成的 equal-fn 片段 | 结果 |
-|---|---|---|
-| PRE-PR-G | `r1.entries == r2.entries` —— Map 落到 UNKNOWN 的 `==` 回退 | 两个 `Err` 内容不同 → false → **verus_error** |
-| POST-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (...))` | dom 由 ensures fix，Err 分支 collapse → **ok** |
+ensures 只钉 `dom`，不钉每个 key 上的值。
+
+| | 生成的 equal-fn 片段 | z3 反例 | verdict |
+|---|---|---|---|
+| PRE-PR-G | `r1.entries == r2.entries` —— Map 落到 UNKNOWN 的 `==` 回退 | 两个 `Err` 内容不同 → false；CacheErr external_body | **verus_error** |
+| POST-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (r1.entries[k]->Ok_0 == r2.entries[k]->Ok_0))` | `dom={k0}`、`r1.entries[k0]=Ok(v1)`、`r2.entries[k0]=Ok(v2)`：dom 同、discriminator 同（都 Ok）、Ok 值不同 | **ok_with_witness（meaningful）** —— 信号：ensures 没钉每个 key 上的 Result 内容 |
+
+**PR-G 的胜利**：同 A-3 例 1，verus_error → meaningful witness。
 
 ---
 
