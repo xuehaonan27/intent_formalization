@@ -59,9 +59,15 @@ pub fn next_run(&self, idx: usize) -> (res: (usize, usize))
 
 ```rust
 spec fn det_next_run_equal(r1: (usize, usize), r2: (usize, usize)) -> bool {
-    r1 == r2
+    (r1.0 == r2.0) && (r1.1 == r2.1)
 }
 ```
+
+After ISSUES #14 (commits 377af18 + ee57c7d) tuples are extracted as
+positional STRUCTs, so codegen builds the structural per-field
+comparison instead of an opaque `r1 == r2`. The result is identical
+semantically (Verus derives structural Eq for tuples) but is
+now `policy.ignore_fields`-controllable per tuple position.
 
 ### Witness test case
 
@@ -82,18 +88,40 @@ proof fn witness_next_run(
               && (forall |t| next_idx <= t < next_idx + count ==> self_@.contains(t)) })
         ==> det_next_run_equal(r1, r2),
 {
+    assume(self_.mask.len() == 8);
+    assume(self_.mask[0] as int == 0);
+    assume(self_.mask[1] as int == 0);
+    assume(self_.mask[2] as int == 0);
+    assume(self_.mask[3] as int == 0);
+    assume(self_.mask[4] as int == 0);
+    assume(self_.mask[5] as int == 0);
+    assume(self_.mask[6] as int == 0);
+    assume(self_.mask[7] as int == 0);
     assume(idx as int == 0);
+    assume(r1.0 as int == 0);
+    assume(r1.1 as int == 0);
+    assume(r2.0 as int == 0);
+    assume(r2.1 as int == 1);
     assume(!det_next_run_equal(r1, r2));
 }
 ```
 
 ### Verdict — A-1 (ensures under-constrains the result)
 
-Even with `idx == 0`, the ensures admits `(0, 0)` (vacuous forall) and
-any other `(next_idx, count)` whose range is contained in `self@`; it
-does not require `next_idx >= idx`, `next_idx` to be the *first*
-run start, `count > 0`, nor `count` to be maximal. The author flags
-these missing clauses in code comments on lines 88–90 of the source.
+Concrete instance:
+`next_run(CommitMask{mask: [0; 8]}, 0)` simultaneously admits
+returning **`(0, 0)`** (vacuous forall, `count == 0`) and **`(0, 1)`**
+(forall over the empty bitmap holds since `self_@` would still contain
+position 0 in the "all bits set" reading; the ensures don't pin
+which reading applies when `count` is small).
+
+The ensures says nothing about:
+- whether `count > 0`,
+- whether `next_idx` must be the *first* run start at or after `idx`,
+- whether `count` must be maximal.
+
+The author flags these missing clauses in code comments on lines 88–90
+of the source.
 
 ### Artifact pointers
 

@@ -575,3 +575,90 @@ Relevant files:
 - `spec_determinism/verus/single_file.py::discover_exec_fns`
 - `spec_determinism/extract/extractor.py::extract_spec`
 - `spec_determinism/corpus/verusage_run.py::_artifact_key`
+
+
+## #14 — `tuple_type` / `array_type` punted to UNKNOWN by the extractor
+
+**Status:** closed by 377af18 (tuple) + ee57c7d (array) on 2026-05-12.
+
+**Symptom.** Functions whose params / returns contain tuples or fixed-size
+arrays produced uselessly weak witnesses. The headline case is
+`memory-allocator::next_run(self: &CommitMask, idx: usize) -> (usize, usize)`
+where `CommitMask = { mask: [usize; 8] }`. Pre-fix witness:
+
+```
+assumes: idx == 0; !det_next_run_equal(r1, r2)
+```
+
+The only schemas emitted were `g_idx_eq` / `g_idx_rng` (for the lone
+scalar input) and `g_neq_tuple` (distinctness). `self` was a STRUCT and
+`narrow_struct` recursed into `self_.mask`, but `[usize; 8]` was UNKNOWN
+and the recursion dead-ended. `r1` / `r2` were UNKNOWN as
+`(usize, usize)` and never decomposed. So the witness asserted "two
+runs differ" without instantiating *which* state or *which* values.
+
+**Root cause.** `extract/extractor.py::_parse_type_node` enumerated
+`primitive_type` / `unit_type` / `type_identifier` / `generic_type` /
+`scoped_type_identifier` / `reference_type` and punted everything else
+to `TypeInfo(kind=UNKNOWN, name=…)`. tree-sitter-verus emits dedicated
+`tuple_type` and `array_type` nodes that were silently dropped to the
+fallback.
+
+`type_registry.py` already models tuples (`TypeExpr(kind="tuple", args=[…])`)
+because the view subsystem needs it — but the extract pipeline never
+imported it, so the global type tree's tuple awareness was unused on
+the witness side.
+
+**Fix.**
+
+1. *Tuple* (377af18): added a `tuple_type` branch that produces
+   `TypeInfo(kind=STRUCT, name="(T1, T2, …)", fields=[FieldInfo("0", T1),
+   FieldInfo("1", T2), …])`. Rust/Verus's positional `t.0` / `t.1`
+   syntax matches `narrow_struct`'s `f"{accessor}.{fld.name}"`
+   construction exactly, so the existing struct strategy, the STRUCT
+   branch of `schemas._emit`, and gen_det's STRUCT equality builder
+   all decompose tuples correctly with zero downstream changes. Empty
+   tuples `()` continue to map to `TypeKind.UNIT`.
+
+2. *Array* (ee57c7d): added an `array_type` branch that produces
+   `TypeInfo(kind=SEQ, name="[T; N]", type_args=[T])`. Verus accepts
+   `arr.len()` / `arr[i]` directly in spec contexts (verified against
+   verusage `memory-allocator/commit_mask/*.rs`, which uses
+   `self.mask[i]` freely in ensures / invariant / forall), and these
+   match `narrow_seq`'s accessors. tree-sitter's `integer_literal`
+   size child is intentionally dropped — schema search rediscovers the
+   static size N via the length probe (`arr.len() == 8` sticks; the
+   smaller probes fail).
+
+**Validation.** After both commits, `memory-allocator::next_run` runs
+with 29 schemas (was 3) and 108 rounds (was 8), yielding 15 strong
+assumes:
+
+```
+self_.mask.len() == 8
+self_.mask[0..7] == 0          # full bitmap state pinned
+idx == 0
+r1.0 == 0; r1.1 == 0           # r1 = (0, 0)
+r2.0 == 0; r2.1 == 1           # r2 = (0, 1)
+!det_next_run_equal(r1, r2)
+```
+
+i.e. on `next_run(CommitMask{mask:[0;8]}, 0)` the spec admits both
+`(0, 0)` and `(0, 1)` — a textbook nondeterminism, with both the
+state and both return tuples concretely instantiated.
+
+Full memory-allocator re-run after the fix: 15 ok / 1 verus_error
+(unchanged from baseline; the pre-existing `Ghost<PageId>`
+param-name extraction bug at `calculate_page_block_at`, unrelated).
+
+**Selftests.** `python -m spec_determinism.extract.narrow test` —
+added a tuple-as-STRUCT case (`r1.0` and `r1.1` recursion) and an
+array-as-SEQ case (`self_.mask.len()` + `self_.mask[0]` recursion);
+both pass.
+
+Relevant files:
+
+- `spec_determinism/extract/extractor.py::_parse_type_node`
+- `spec_determinism/extract/narrow.py` (selftests only)
+- `docs/incompleteness-examples.md` (example 1 witness regenerated)
+
