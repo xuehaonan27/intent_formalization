@@ -89,6 +89,19 @@ _INT_KINDS = {
 
 _STR_LITERALS = ["", "string 1", "string 2"]
 
+# Hard cap on nested SEQ/MAP element pre-enumeration. The SEQ/MAP branches
+# pre-emit element/value schemas for 8 / 17 indices respectively so that
+# `narrow_seq` / `narrow_map`'s `{var}[i]` recursion has a schema to hit.
+# Nested containers (Seq<Seq<…>>, Ghost<Seq<Seq<…>>>, Map<K, Map<K2, V>>, …)
+# previously produced a cartesian product of these expansions (8^k or 17^k),
+# which overflowed Verus's stack while compiling the synthesized det fn.
+# Pre-enumeration is now gated on `container_depth == 0`; deeper containers
+# emit only their structural-summary schemas (len / dom-empty / len-eq /
+# contains), enough for length-only narrowing without the explosion. The
+# wrapper kinds (GHOST/TRACKED/POINTS_TO) and STRUCT/VARIANT recursion
+# preserve container_depth — they don't add a container layer.
+_MAX_NESTED_CONTAINER_DEPTH = 0
+
 
 def _sanitize(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_]", "_", name)
@@ -101,8 +114,15 @@ def _emit(
     out: list[SchemaBinding],
     seen_tags: set[str],
     projections_by_type: Optional[dict[str, list[ProjectionInfo]]] = None,
+    container_depth: int = 0,
 ) -> None:
-    """Emit all schemas for (var, ty), recursing through the type tree."""
+    """Emit all schemas for (var, ty), recursing through the type tree.
+
+    ``container_depth`` is the number of enclosing SEQ/MAP layers we
+    descended through via element/value recursion. Used by the SEQ/MAP
+    branches to cap per-element pre-enumeration, preventing cartesian
+    blow-up on nested containers (e.g. ``Ghost<Seq<Seq<Seq<…>>>>``).
+    """
     tag_base = _sanitize(var)
 
     def _uniq(tag: str) -> str:
@@ -192,7 +212,8 @@ def _emit(
             if inner_ty is not None:
                 inner_var = f"{var}->{vname}_0"
                 child_chain = parent_chain + [(var, vname)]
-                _emit(inner_var, inner_ty, child_chain, out, seen_tags, projections_by_type)
+                _emit(inner_var, inner_ty, child_chain, out, seen_tags,
+                      projections_by_type, container_depth=container_depth)
 
         # C-like enums (all unit variants with explicit discriminants, e.g.
         # `enum SlabSize { Slab8 = 8, ... }`) get an additional SCALAR_EQ
@@ -216,7 +237,9 @@ def _emit(
         view = ty.spec_view or ty
         accessor = f"{var}@" if ty.spec_view else var
         for fld in view.fields:
-            _emit(f"{accessor}.{fld.name}", fld.type, parent_chain, out, seen_tags, projections_by_type)
+            _emit(f"{accessor}.{fld.name}", fld.type, parent_chain, out,
+                  seen_tags, projections_by_type,
+                  container_depth=container_depth)
         return
 
     # --- Set ---
@@ -277,13 +300,18 @@ def _emit(
         # Dom as Set<K>: emits SET_EMPTY/SET_LEN_GT/SET_LEN_EQ/SET_LEN_RANGE/SET_CONTAINS.
         dom_var = f"{var}.dom()"
         dom_set_ty = TypeInfo(kind=TypeKind.SET, name=f"Set<{k_ty.name}>", type_args=[k_ty])
-        _emit(dom_var, dom_set_ty, parent_chain, out, seen_tags, projections_by_type)
+        _emit(dom_var, dom_set_ty, parent_chain, out, seen_tags,
+              projections_by_type, container_depth=container_depth)
 
         # Value slots: pre-enumerate `{var}[{i}]` for small integer keys so
         # recursive narrow on V has schemas to hit. For non-integer key types
         # we currently skip — narrow_map will still assert `.dom().contains(k)`
         # but can't pin down values (graceful degradation, like Seq > MAX_SEQ_LEN).
-        if k_ty.kind in _INT_KINDS:
+        # Cap nesting: only enumerate values at the outermost container layer
+        # (see _MAX_NESTED_CONTAINER_DEPTH above). Deeper Maps emit only
+        # dom-summary schemas.
+        if (k_ty.kind in _INT_KINDS
+                and container_depth <= _MAX_NESTED_CONTAINER_DEPTH):
             # Mirror narrow's _SMALL_UNSIGNED/_SMALL_SIGNED ranges so every
             # key the set-element probing may find has a matching value schema.
             unsigned = k_ty.kind in {
@@ -291,7 +319,9 @@ def _emit(
             }
             key_range = range(0, 17) if unsigned else range(-8, 9)
             for i in key_range:
-                _emit(f"{var}[{i}]", v_ty, parent_chain, out, seen_tags, projections_by_type)
+                _emit(f"{var}[{i}]", v_ty, parent_chain, out, seen_tags,
+                      projections_by_type,
+                      container_depth=container_depth + 1)
         return
 
     # --- Seq ---
@@ -313,38 +343,48 @@ def _emit(
             parent_chain=list(parent_chain),
         ))
         # Pre-enumerate element schemas for the first MAX_SEQ_LEN indices so
-        # narrow_seq's `{var}[i]` recursion has a schema to hit.
-        if ty.type_args:
+        # narrow_seq's `{var}[i]` recursion has a schema to hit. Cap nesting
+        # at the outermost container layer (see _MAX_NESTED_CONTAINER_DEPTH);
+        # nested Seqs emit only len schemas, preventing 8^k cartesian blowup
+        # on types like `Ghost<Seq<Seq<Seq<…>>>>`.
+        if ty.type_args and container_depth <= _MAX_NESTED_CONTAINER_DEPTH:
             MAX_SEQ_LEN = 8
             elem_ty = ty.type_args[0]
             for i in range(MAX_SEQ_LEN):
-                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags, projections_by_type)
+                _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags,
+                      projections_by_type,
+                      container_depth=container_depth + 1)
         return
 
     # PR-F: Tracked<T> / Ghost<T> — emit schemas for the projected value
     # `(var)@` as if it were the inner T. narrow.narrow_tracked_or_ghost
     # uses this same projection, so the assumes it emits match the
-    # schemas enumerated here.
+    # schemas enumerated here. Wrappers preserve container_depth — they
+    # don't introduce a new container layer themselves.
     if ty.kind in (TypeKind.TRACKED, TypeKind.GHOST):
         if ty.type_args:
             inner_ty = ty.type_args[0]
             _emit(f"({var})@", inner_ty, parent_chain, out, seen_tags,
-                  projections_by_type)
+                  projections_by_type, container_depth=container_depth)
         return
 
     # PR-F: PointsTo<V> — emit schemas for `(var).is_init()` (bool),
     # `(var).value()` (V, only meaningful when is_init), `(var).addr()`
     # (usize). Match the projection expressions narrow_points_to emits.
+    # Like Ghost/Tracked, PointsTo is a wrapper — preserve container_depth.
     if ty.kind == TypeKind.POINTS_TO:
         _emit(f"({var}).is_init()",
               TypeInfo(kind=TypeKind.BOOL, name="bool"),
-              parent_chain, out, seen_tags, projections_by_type)
+              parent_chain, out, seen_tags, projections_by_type,
+              container_depth=container_depth)
         if ty.type_args:
             _emit(f"({var}).value()", ty.type_args[0],
-                  parent_chain, out, seen_tags, projections_by_type)
+                  parent_chain, out, seen_tags, projections_by_type,
+                  container_depth=container_depth)
         _emit(f"({var}).addr()",
               TypeInfo(kind=TypeKind.USIZE, name="usize"),
-              parent_chain, out, seen_tags, projections_by_type)
+              parent_chain, out, seen_tags, projections_by_type,
+              container_depth=container_depth)
         return
 
     # Other kinds (Unit/Unknown) — skipped, except UNKNOWN with registered
@@ -356,7 +396,7 @@ def _emit(
             # same parent_chain — projections are total over the opaque
             # type (no variant guard needed to call them).
             _emit(proj_var, proj.return_type, parent_chain, out, seen_tags,
-                  projections_by_type)
+                  projections_by_type, container_depth=container_depth)
         return
 
     return
