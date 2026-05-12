@@ -50,6 +50,96 @@ verus_error       191   ← A-1 + A-3 battleground
 runner_crash        1
 ```
 
+### 1.3 Concrete examples per axis
+
+#### A-1 example 1 — `Ghost<Seq<u32>>` output (atmosphere shape)
+
+```rust
+// source
+fn build_log() -> (r: Ghost<Seq<u32>>)
+    ensures r@.len() == 5
+```
+
+| | generated equal-fn | z3 narrow dimensions | outcome |
+|---|---|---|---|
+| pre-PR-F | `r1 == r2` | 0 (only `g_neq_tuple`) | **verus_error / witness** — z3 has no `len()` dimension to chain against the ensures |
+| post-PR-F | `((r1)@ == (r2)@)` | 4 (`r1@.len` `_leneq` + `_lenrng`, same for r2) | **ok** — ensures supplies `len==5`, z3 chains directly |
+
+#### A-1 example 2 — `Tracked<PointsTo<u32>>` output (storage shape)
+
+```rust
+// source
+fn split_cell(pt: Tracked<PointsTo<u32>>) -> (r: Tracked<PointsTo<u32>>)
+    ensures r@.is_init() == pt@.is_init(),
+            r@.addr() == pt@.addr()
+```
+
+| | generated equal-fn | outcome |
+|---|---|---|
+| pre-PR-F | `r1 == r2` — `Tracked` is an `external_body` newtype, structural `==` is unprovable in Verus spec mode | **verus_error** |
+| post-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | **ok** |
+
+#### A-2 example 1 — struct field is `Vec<u8>`
+
+```rust
+// source
+pub struct AbstractEndPoint { pub id: Vec<u8> }
+
+fn make_endpoint(bytes: Vec<u8>) -> (r: AbstractEndPoint)
+    ensures r.id@ == bytes@
+```
+
+| | generated equal-fn | z3 counterexample | outcome |
+|---|---|---|---|
+| no view-registry | `r1 == r2` — `Vec` structural `==` compares ptr/capacity/len; z3 can produce "two Vecs with the same logical bytes but different `cap`" | `r1.cap=8, r2.cap=16, contents equal to bytes@` | **ok_with_witness** (false positive) |
+| L4-synth view | `r1.view() == r2.view()` where `view()` projects to `Seq<u8>` | (unsat — `Seq` is a mathematical sequence) | **ok** |
+
+#### A-2 example 2 — enum + self-recursive struct
+
+```rust
+// source
+pub enum NodeEntry { Leaf(usize), Subdir(Box<PTDir>) }
+pub struct PTDir { pub entries: Seq<Option<PTDir>> }
+
+fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
+    ensures r.entries.len() == t.entries.len()
+```
+
+| | generated equal-fn | outcome |
+|---|---|---|
+| no view-registry | recurses into `Subdir`'s `Box<PTDir>` — Verus spec mode cannot deref `Box`, falls back to `==` on the box pointer | **ok_with_witness** (pointer-identity false positive) |
+| L4-synth view + PR-E M4 lint | LLM picks Option C: `type V = Self` for `PTDir` → `r1.view() == r2.view()` degenerates to `r1 == r2` but **at the spec layer** (box noise stripped) | **ok** |
+
+#### A-3 example 1 — `Seq<Result<u32, MyErr>>` output
+
+```rust
+// source
+fn batch_lookup(keys: Vec<u32>) -> (r: Seq<Result<u32, MyErr>>)
+    ensures r.len() == keys.len()
+
+// assume the policy says errs_equivalent=True (all Err variants are equivalent)
+```
+
+| | generated equal-fn | z3 input | outcome |
+|---|---|---|---|
+| pre-PR-G | `r1 == r2` — `Seq` was in the primitive `==` list | `r1 = [Err(Foo("a"))]`, `r2 = [Err(Foo("b"))]` — different payloads | `r1 == r2` is false → **verus_error** (policy never fires) |
+| post-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | same | both elements have `Err` discriminator, Ok branch is vacuous → **ok** |
+
+#### A-3 example 2 — `Map<Key, Result<Val, Err>>` field
+
+```rust
+// source
+pub struct ResultCache { pub entries: Map<Key, Result<Val, CacheErr>> }
+
+fn populate(keys: Set<Key>) -> (r: ResultCache)
+    ensures r.entries.dom() == keys
+```
+
+| | generated equal-fn fragment | outcome |
+|---|---|---|
+| pre-PR-G | `r1.entries == r2.entries` — `Map` fell through to UNKNOWN's `==` fallback | two `Err` payloads differ → false → **verus_error** |
+| post-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (...))` | `dom()` pinned by ensures, Err branch collapses → **ok** |
+
 ---
 
 ## 2. The approach: View Registry

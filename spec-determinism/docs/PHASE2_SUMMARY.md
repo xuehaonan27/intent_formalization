@@ -43,6 +43,96 @@ verus_error   191   ← A-1 + A-3 主战场
 runner_crash    1
 ```
 
+### 1.3 三轴的具体例子
+
+#### A-1 例 1 ── `Ghost<Seq<u32>>` 输出（atmosphere 形态）
+
+```rust
+// 源
+fn build_log() -> (r: Ghost<Seq<u32>>)
+    ensures r@.len() == 5
+```
+
+| | 生成的 equal-fn | z3 narrow 维度 | 结果 |
+|---|---|---|---|
+| PRE-PR-F | `r1 == r2` | 0（只有 `g_neq_tuple` 一个 boolean） | **verus_error / witness** —— z3 看不到 `len()` 维度 |
+| POST-PR-F | `((r1)@ == (r2)@)` | 4（r1@.len 的 `_leneq` 和 `_lenrng`，r2 同） | **ok** —— ensures 提供 `len==5`，z3 直接 chain |
+
+#### A-1 例 2 ── `Tracked<PointsTo<u32>>` 输出（storage 形态）
+
+```rust
+// 源
+fn split_cell(pt: Tracked<PointsTo<u32>>) -> (r: Tracked<PointsTo<u32>>)
+    ensures r@.is_init() == pt@.is_init(),
+            r@.addr() == pt@.addr()
+```
+
+| | 生成的 equal-fn | 结果 |
+|---|---|---|
+| PRE-PR-F | `r1 == r2` —— Tracked 是 `external_body` newtype，结构 `==` 在 Verus spec 模式下不可证 | **verus_error** |
+| POST-PR-F | `(r1)@.is_init() == (r2)@.is_init() && (r1)@.addr() == (r2)@.addr() && ((r1)@.is_init() ==> (r1)@.value() == (r2)@.value())` | **ok** |
+
+#### A-2 例 1 ── 自定义 struct 字段是 `Vec<u8>`
+
+```rust
+// 源
+pub struct AbstractEndPoint { pub id: Vec<u8> }
+
+fn make_endpoint(bytes: Vec<u8>) -> (r: AbstractEndPoint)
+    ensures r.id@ == bytes@
+```
+
+| | 生成的 equal-fn | z3 反例 | 结果 |
+|---|---|---|---|
+| 无 view-registry | `r1 == r2` —— Vec 结构 `==` 比指针/容量/len，z3 可以构造 "两个 Vec 内容相同但容量不同" | `r1.cap=8, r2.cap=16, 内容都是 bytes@` | **ok_with_witness**（false positive） |
+| L4-synth view | `r1.view() == r2.view()` 其中 `view()` 投到 `Seq<u8>` | （unsat，Seq 是数学序列） | **ok** |
+
+#### A-2 例 2 ── enum + 自递归类型
+
+```rust
+// 源
+pub enum NodeEntry { Leaf(usize), Subdir(Box<PTDir>) }
+pub struct PTDir { pub entries: Seq<Option<PTDir>> }
+
+fn modify_tree(t: PTDir, k: usize) -> (r: PTDir)
+    ensures r.entries.len() == t.entries.len()
+```
+
+| | 生成的 equal-fn | 结果 |
+|---|---|---|
+| 无 view-registry | 递归比 `Subdir` 内部 `Box<PTDir>` —— Verus spec 模式无 box-deref → fallback `==` 比指针 | **ok_with_witness**（指针差异） |
+| L4-synth view + PR-E M4 lint | LLM 走 Option C: `type V = Self` for PTDir → `r1.view() == r2.view()` 退化成 `r1 == r2` 但在 spec 层（已剥离 Box pointer noise） | **ok** |
+
+#### A-3 例 1 ── `Seq<Result<u32, MyErr>>` 输出
+
+```rust
+// 源
+fn batch_lookup(keys: Vec<u32>) -> (r: Seq<Result<u32, MyErr>>)
+    ensures r.len() == keys.len()
+
+// 假设语义上 errs_equivalent=True（不同 Err 视为同一类）
+```
+
+| | 生成的 equal-fn | z3 输入 | 结果 |
+|---|---|---|---|
+| PRE-PR-G | `r1 == r2` —— `Seq` 在 primitive `==` 列表里 | `r1 = [Err(Foo("a"))], r2 = [Err(Foo("b"))]` —— 内容不同 | `r1 == r2` 为 false → **verus_error**（policy 没生效） |
+| POST-PR-G | `r1.len() == r2.len() && forall\|i: int\| 0 <= i < r1.len() ==> ((r1[i] is Ok) == (r2[i] is Ok)) && ((r1[i] is Ok) ==> (r1[i]->Ok_0 == r2[i]->Ok_0))` | 同上 | 两 `Err` 的 discriminator 都是 `Err`，OK 分支 vacuous → **ok** |
+
+#### A-3 例 2 ── `Map<Key, Result<Val, Err>>` 字段
+
+```rust
+// 源
+pub struct ResultCache { pub entries: Map<Key, Result<Val, CacheErr>> }
+
+fn populate(keys: Set<Key>) -> (r: ResultCache)
+    ensures r.entries.dom() == keys
+```
+
+| | 生成的 equal-fn 片段 | 结果 |
+|---|---|---|
+| PRE-PR-G | `r1.entries == r2.entries` —— Map 落到 UNKNOWN 的 `==` 回退 | 两个 `Err` 内容不同 → false → **verus_error** |
+| POST-PR-G | `r1.entries.dom() == r2.entries.dom() && forall\|k: Key\| r1.entries.dom().contains(k) ==> ((r1.entries[k] is Ok) == (r2.entries[k] is Ok)) && ((r1.entries[k] is Ok) ==> (...))` | dom 由 ensures fix，Err 分支 collapse → **ok** |
+
 ---
 
 ## 2. 解法：View Registry（视图注册表）
