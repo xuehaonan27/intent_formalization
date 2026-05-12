@@ -114,6 +114,29 @@ def _parse_type_node(node: ts.Node) -> TypeInfo:
         inner = node.children[-1]
         return _parse_type_node(inner)
 
+    # ISSUES #14 — tuple types `(A, B, ...)`. Without this branch the
+    # extractor punts to UNKNOWN, which leaves every tuple-typed param
+    # / return value opaque to the narrow + schema pipeline (witnesses
+    # for fns returning tuples collapse to a single distinctness assume,
+    # never instantiating per-position values).
+    #
+    # We model an n-tuple as a STRUCT whose fields are named "0", "1",
+    # ... — that matches Rust/Verus's positional field-access syntax
+    # (`t.0`, `t.1`), so the existing `narrow_struct` strategy and the
+    # STRUCT branch of `schemas._emit` produce correct per-position
+    # accessors with zero changes downstream.
+    if node.type == "tuple_type":
+        elem_nodes = [c for c in node.children if c.type not in ("(", ")", ",")]
+        if not elem_nodes:
+            return TypeInfo(kind=TypeKind.UNIT, name="()")
+        field_types = [_parse_type_node(e) for e in elem_nodes]
+        return TypeInfo(
+            kind=TypeKind.STRUCT,
+            name=_text(node),
+            fields=[FieldInfo(name=str(i), type=t)
+                    for i, t in enumerate(field_types)],
+        )
+
     # Fallback
     return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(node))
 

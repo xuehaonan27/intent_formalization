@@ -846,6 +846,26 @@ def _run_self_tests() -> int:
             f"recorded:\n  {joined}"
         )
 
+    # ISSUES #14 — tuple types are modelled as STRUCT with positional
+    # field names "0", "1", ... so the existing narrow_struct strategy
+    # decomposes them into per-position accessors `var.0`, `var.1`.
+    # Without this, fns returning `(usize, usize)` get a useless witness
+    # that only asserts `r1 != r2` without instantiating either side.
+    usize_ty = TypeInfo(kind=TypeKind.USIZE, name="usize")
+    tuple_uu = TypeInfo(
+        kind=TypeKind.STRUCT, name="(usize, usize)",
+        fields=[FieldInfo(name="0", type=usize_ty),
+                FieldInfo(name="1", type=usize_ty)],
+    )
+    ctx = _StubCtx()
+    narrow(tuple_uu, "r1", AssumeNode(key="r1"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "r1.0" not in joined or "r1.1" not in joined:
+        failures.append(
+            "Tuple-as-STRUCT: narrow must recurse into r1.0 and r1.1; "
+            f"recorded:\n  {joined}"
+        )
+
     if failures:
         print(f"\n{len(failures)} failure(s):")
         for f in failures:
