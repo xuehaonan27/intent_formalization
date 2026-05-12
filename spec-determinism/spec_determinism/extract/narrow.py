@@ -584,32 +584,55 @@ def narrow_points_to(ty: TypeInfo, var: str, node: AssumeNode,
 
     * ``pt.is_init() -> bool`` — true iff the permission owns an
       initialised value.
-    * ``pt.value() -> V`` — the inner value (only meaningful when
-      ``is_init()``).
-    * ``pt.addr() -> usize`` — the pointer address.
+    * ``pt.value() -> V`` — the inner value. Semantically meaningful
+      only when ``is_init()`` is true; when uninitialised the result
+      is an unspecified V (vstd defines ``value`` as a total spec fn).
+    * ``pt.addr() -> usize`` — the pointer address (always valid).
 
-    Narrow on each in turn; ``is_init()`` and ``addr()`` are scalar so
-    we narrow them via their own strategies, and the inner ``V`` is
-    handled recursively under the ``is_init()`` assume.
+    Probe order (ISSUES #9):
+
+    1. Try ``is_init() == true``. If it sticks, recurse on the inner
+       ``V`` via ``(pt).value()`` — those assumes are paired with the
+       ``is_init() == true`` precondition in their schemas (see
+       ``schemas._emit`` POINTS_TO branch), so activating them in the
+       proof forces the same precondition.
+    2. Otherwise try ``is_init() == false`` and skip ``value()``
+       narrowing entirely — pinning a value() fact while in the
+       uninitialised branch is meaningless and (if rendered as a
+       guarded assume) would contradict the witness.
+    3. Always narrow ``addr()`` — independent of init state.
     """
-    # 1. is_init: probe both polarities via the bool strategy.
     init_var = f"({var}).is_init()"
     init_node = node.get_or_create("is_init")
-    narrow(TypeInfo(kind=TypeKind.BOOL, name="bool"), init_var, init_node, ctx)
 
-    # 2. value: recurse on inner V. Verus rejects `pt.value()` when
-    # `!pt.is_init()`, but the assume tree carries `is_init()` polarity
-    # context so callers see the right combination in their schema.
-    if ty.type_args:
-        v_ty = ty.type_args[0]
-        v_var = f"({var}).value()"
-        v_node = node.get_or_create("value")
-        narrow(v_ty, v_var, v_node, ctx)
+    # 1. Try is_init == true.
+    init_true = Assume.from_pred(
+        init_var, BoolPred(init_var, True), "is_init: true",
+    )
+    init_is_true = not ctx.test_and_set(init_node, init_true)
 
-    # 3. addr: usize range narrow.
+    if init_is_true:
+        # 2a. value() — only well-defined under is_init() == true.
+        if ty.type_args:
+            v_ty = ty.type_args[0]
+            v_var = f"({var}).value()"
+            v_node = node.get_or_create("value")
+            narrow(v_ty, v_var, v_node, ctx)
+    else:
+        # 2b. is_init=true didn't narrow; commit to is_init=false and
+        # skip value() narrowing — meaningless and would contradict
+        # the guarded-value schemas if activated together.
+        ctx.test_and_set(
+            init_node,
+            Assume.from_pred(init_var, BoolPred(init_var, False),
+                             "is_init: false"),
+        )
+
+    # 3. addr() — usize range narrow, always valid.
     addr_var = f"({var}).addr()"
     addr_node = node.get_or_create("addr")
-    narrow(TypeInfo(kind=TypeKind.USIZE, name="usize"), addr_var, addr_node, ctx)
+    narrow(TypeInfo(kind=TypeKind.USIZE, name="usize"),
+           addr_var, addr_node, ctx)
 
 
 @strategy_for(TypeKind.UNKNOWN)
@@ -757,6 +780,26 @@ def _run_self_tests() -> int:
                     ctx.recorded,
                     ["is_init", "value", "addr"],
                     ["(p).is_init()", "(p).value()", "(p).addr()"])
+
+    # ISSUES #9 — when is_init=true does not narrow (PASS), narrow_points_to
+    # must skip value() recursion entirely (semantically meaningless in the
+    # uninitialised branch and would contradict the value() schemas'
+    # is_init==true precondition if activated together).
+    # replies: is_init=true → PASS (True); is_init=false → FAIL (False kept);
+    # addr probes default to False.
+    ctx = _StubCtx(replies=[True, False])
+    narrow(points_to_u32, "p", AssumeNode(key="p"), ctx)
+    keys = [k for (k, _) in ctx.recorded]
+    if "value" in keys:
+        failures.append(
+            "PointsTo: value() narrow must be skipped when is_init=false is "
+            f"the kept branch; recorded keys: {keys}"
+        )
+    if "(p).value()" in " | ".join(expr for (_, expr) in ctx.recorded):
+        failures.append(
+            "PointsTo: no value() assume should be recorded when is_init=false; "
+            f"recorded: {ctx.recorded}"
+        )
 
     # Tracked<T> with no type_args degrades to UNKNOWN's projection path
     # (which warns when type_projections is empty). Should not raise.

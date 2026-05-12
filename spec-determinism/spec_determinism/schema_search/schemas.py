@@ -89,6 +89,15 @@ _INT_KINDS = {
 
 _STR_LITERALS = ["", "string 1", "string 2"]
 
+# Sentinel "variant name" in `parent_chain` entries that aren't variant
+# guards but bool preconditions (e.g. `(pt).is_init() == true` gating
+# the `(pt).value()` schemas — ISSUES #9). `_render_body` recognises
+# this sentinel and emits `assume({outer});` instead of the variant
+# form `assume({outer} is {vname});`. The string is intentionally
+# distinct from any plausible Rust identifier so it can't collide
+# with a real variant name.
+_BOOL_TRUE_GUARD = "__bool_true__"
+
 # Hard cap on nested SEQ/MAP element pre-enumeration. The SEQ/MAP branches
 # pre-emit element/value schemas for 8 / 17 indices respectively so that
 # `narrow_seq` / `narrow_map`'s `{var}[i]` recursion has a schema to hit.
@@ -372,14 +381,23 @@ def _emit(
     # `(var).value()` (V, only meaningful when is_init), `(var).addr()`
     # (usize). Match the projection expressions narrow_points_to emits.
     # Like Ghost/Tracked, PointsTo is a wrapper — preserve container_depth.
+    #
+    # ISSUES #9: `pt.value()` is only semantically meaningful when
+    # `pt.is_init() == true`. Tie inner V schemas to that precondition
+    # via a `_BOOL_TRUE_GUARD` parent_chain entry. Activating any
+    # value()-derived guard then forces `(pt).is_init()` to be assumed
+    # alongside, so the search will not pick value() facts in
+    # is_init=false branches. addr() carries no such precondition.
     if ty.kind == TypeKind.POINTS_TO:
-        _emit(f"({var}).is_init()",
+        init_var = f"({var}).is_init()"
+        _emit(init_var,
               TypeInfo(kind=TypeKind.BOOL, name="bool"),
               parent_chain, out, seen_tags, projections_by_type,
               container_depth=container_depth)
         if ty.type_args:
+            value_chain = list(parent_chain) + [(init_var, _BOOL_TRUE_GUARD)]
             _emit(f"({var}).value()", ty.type_args[0],
-                  parent_chain, out, seen_tags, projections_by_type,
+                  value_chain, out, seen_tags, projections_by_type,
                   container_depth=container_depth)
         _emit(f"({var}).addr()",
               TypeInfo(kind=TypeKind.USIZE, name="usize"),
@@ -450,8 +468,12 @@ def _render_body(schemas: list[SchemaBinding], equal_fn_call: str) -> str:
             body = body.replace("{k_hi}", s.k_params[1][0])
 
         # Re-assert parent chain so inner arrow projections are well-typed.
+        # Bool-precondition entries (sentinel vname = _BOOL_TRUE_GUARD)
+        # render as a plain `assume(expr);` — used to tie `(pt).value()`
+        # schemas to `(pt).is_init() == true` (ISSUES #9).
         chain_asserts = "".join(
-            f" assume({outer} is {vname});"
+            f" assume({outer});" if vname == _BOOL_TRUE_GUARD
+            else f" assume({outer} is {vname});"
             for (outer, vname) in s.parent_chain
         )
         lines.append(f"    if {s.guard_name} {{{chain_asserts} assume({body}); }}")
