@@ -866,6 +866,32 @@ def _run_self_tests() -> int:
             f"recorded:\n  {joined}"
         )
 
+    # ISSUES #14 — fixed-size / slice array types `[T; N]` / `[T]` are
+    # modelled as TypeKind.SEQ with type_args=[T]. Verus accepts direct
+    # `arr.len()` / `arr[i]` indexing in spec contexts, so the existing
+    # narrow_seq strategy decomposes self.mask: [usize; 8] into per-index
+    # probes. Without this, fns with array-typed fields would never have
+    # their state instantiated in the witness (mask stayed UNKNOWN, so
+    # narrow_struct's recursion into self_.mask dead-ended).
+    arr_u32 = TypeInfo(
+        kind=TypeKind.SEQ, name="[u32; 4]",
+        type_args=[TypeInfo(kind=TypeKind.U32, name="u32")],
+    )
+    # replies: len: 0=F, 1=F, 2=F, 3=F, 4=T  → length committed to 4
+    ctx = _StubCtx(replies=[False, False, False, False, True])
+    narrow(arr_u32, "self_.mask", AssumeNode(key="self_.mask"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "self_.mask.len()" not in joined:
+        failures.append(
+            "Array-as-SEQ: narrow must probe self_.mask.len(); "
+            f"recorded:\n  {joined}"
+        )
+    if "self_.mask[0]" not in joined:
+        failures.append(
+            "Array-as-SEQ: narrow must recurse into self_.mask[0]; "
+            f"recorded:\n  {joined}"
+        )
+
     if failures:
         print(f"\n{len(failures)} failure(s):")
         for f in failures:

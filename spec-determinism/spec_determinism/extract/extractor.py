@@ -125,6 +125,35 @@ def _parse_type_node(node: ts.Node) -> TypeInfo:
     # (`t.0`, `t.1`), so the existing `narrow_struct` strategy and the
     # STRUCT branch of `schemas._emit` produce correct per-position
     # accessors with zero changes downstream.
+    # ISSUES #14 — array types `[T; N]` (fixed-size) and `[T]` (slice).
+    # Without this branch the extractor punts arrays to UNKNOWN, leaving
+    # any field/param typed as a fixed array opaque to narrow / schemas
+    # (e.g. self_.mask: [usize; 8] on memory-allocator::next_run — the
+    # struct narrow recurses into mask, finds UNKNOWN, and stops, so
+    # self's state is never instantiated even though witness validity
+    # depends on it).
+    #
+    # Verus accepts direct array indexing `arr[i]` and `arr.len()` in
+    # spec contexts (same accessor as Seq<T>; verified against
+    # verusage/memory-allocator's use of self.mask[i]), so we model
+    # `[T; N]` and `[T]` as TypeKind.SEQ with type_args=[T]. The existing
+    # narrow_seq / schemas SEQ branch then enumerate per-index schemas
+    # `arr.len()`, `arr[0]`, `arr[1]`, ... up to MAX_SEQ_LEN with zero
+    # downstream changes. The static size N is recovered at search time
+    # via Verus rejecting `arr.len() != N` probes.
+    if node.type == "array_type":
+        elem_nodes = [c for c in node.children
+                      if c.type not in ("[", "]", ";")
+                      and c.type != "integer_literal"]
+        if not elem_nodes:
+            return TypeInfo(kind=TypeKind.UNKNOWN, name=_text(node))
+        elem_info = _parse_type_node(elem_nodes[0])
+        return TypeInfo(
+            kind=TypeKind.SEQ,
+            name=_text(node),
+            type_args=[elem_info],
+        )
+
     if node.type == "tuple_type":
         elem_nodes = [c for c in node.children if c.type not in ("(", ")", ",")]
         if not elem_nodes:
