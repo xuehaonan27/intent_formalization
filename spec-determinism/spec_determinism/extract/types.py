@@ -34,6 +34,12 @@ class TypeKind(Enum):
     MAP = "Map"
     RESULT = "Result"
     OPTION = "Option"
+    # PR-F (A-1) — vstd ghost/proof wrappers. Carry their inner type as
+    # type_args[0]; they project via `var@` (Tracked/Ghost) or via
+    # `var.value()` / `var.is_init()` / `var.addr()` (PointsTo).
+    TRACKED = "Tracked"
+    GHOST = "Ghost"
+    POINTS_TO = "PointsTo"
     UNKNOWN = "unknown"
 
 

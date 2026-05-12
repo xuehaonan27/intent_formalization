@@ -1059,6 +1059,49 @@ def _type_annotation(ty: TypeInfo) -> str:
     return ty.name
 
 
+# ---------------------------------------------------------------------------
+# PR-G — A-3 nested-Err policy: detect Result hiding inside a container
+# so we can lift `errs_equivalent` element-wise instead of letting raw `==`
+# on Seq/Map structurally compare Err payloads.
+# ---------------------------------------------------------------------------
+
+def _contains_result(ty: TypeInfo, _seen: Optional[set[int]] = None) -> bool:
+    """True iff `ty` transitively contains a `Result<_, _>`.
+
+    Used by `build_equal_expr` to decide whether raw structural `==` on
+    a Seq/Map element would over-compare under `errs_equivalent=True`.
+    A `visited` guard handles self-referential TypeInfo graphs (e.g.
+    a struct field whose type points back to the struct).
+    """
+    if _seen is None:
+        _seen = set()
+    tid = id(ty)
+    if tid in _seen:
+        return False
+    _seen.add(tid)
+    if ty.kind == TypeKind.RESULT:
+        return True
+    for arg in ty.type_args or []:
+        if _contains_result(arg, _seen):
+            return True
+    for fld in ty.fields or []:
+        if _contains_result(fld.type, _seen):
+            return True
+    for var in ty.variants or []:
+        if var.inner is not None and _contains_result(var.inner, _seen):
+            return True
+    return False
+
+
+def _container_needs_elementwise(ty: TypeInfo, policy: EqualPolicy) -> bool:
+    """True iff a container of `ty` cannot be safely compared with raw
+    structural `==` under `policy`. Currently this fires only when
+    `errs_equivalent=True` and `ty` transitively contains a `Result`."""
+    if not policy.errs_equivalent:
+        return False
+    return _contains_result(ty)
+
+
 def build_equal_expr(
     ty: TypeInfo,
     lhs: str,
@@ -1116,8 +1159,46 @@ def build_equal_expr(
         TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
         TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
         TypeKind.BOOL, TypeKind.UNIT, TypeKind.STR,
-        TypeKind.SET, TypeKind.SEQ,
+        TypeKind.SET,
     ):
+        # NOTE: TypeKind.SET stays here — Set has no positional indexing so
+        # we can't lift `errs_equivalent` element-wise without redefining
+        # set equality. If `policy.errs_equivalent` and the element type
+        # contains Result, raw `==` over-compares. Tracked as a known
+        # limitation (PR-G follow-up); see _container_needs_elementwise.
+        return f"{lhs} == {rhs}"
+
+    # PR-G: Seq<E> where E transitively contains Result needs elementwise
+    # comparison so `errs_equivalent` reaches the nested Err. Raw `==` on
+    # a spec Seq is element-wise structural and would compare Err payloads.
+    if k == TypeKind.SEQ:
+        elem_ty = ty.type_args[0] if ty.type_args else None
+        if elem_ty is not None and _container_needs_elementwise(elem_ty, policy):
+            elem_eq = build_equal_expr(elem_ty, f"{lhs}[i]", f"{rhs}[i]", policy,
+                                       view_registry=view_registry,
+                                       prelude_collector=prelude_collector)
+            return (
+                f"({lhs}.len() == {rhs}.len()"
+                f" && forall|i: int| 0 <= i < {lhs}.len() ==> ({elem_eq}))"
+            )
+        return f"{lhs} == {rhs}"
+
+    # PR-G: Map<K, V> where V transitively contains Result also needs
+    # value-wise comparison. Domain must match, then each value is
+    # compared via the policy-aware equal-expr.
+    if k == TypeKind.MAP:
+        v_ty = ty.type_args[1] if len(ty.type_args) > 1 else None
+        if v_ty is not None and _container_needs_elementwise(v_ty, policy):
+            val_eq = build_equal_expr(v_ty, f"{lhs}[k]", f"{rhs}[k]", policy,
+                                      view_registry=view_registry,
+                                      prelude_collector=prelude_collector)
+            k_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.INT, "int")
+            k_name = k_ty.name or "int"
+            return (
+                f"({lhs}.dom() == {rhs}.dom()"
+                f" && forall|k: {k_name}| {lhs}.dom().contains(k)"
+                f" ==> ({val_eq}))"
+            )
         return f"{lhs} == {rhs}"
 
     if k == TypeKind.RESULT:
@@ -1156,6 +1237,42 @@ def build_equal_expr(
             f"(({lhs} is Some) == ({rhs} is Some))"
             f" && (({lhs} is Some) ==> ({some_eq}))"
         )
+
+    # PR-F: Tracked<T> / Ghost<T> — wrapper types whose spec value is the
+    # inner T accessed via `@`. Compare through the projection so policy
+    # rules (errs_equivalent / opaque_ok / ignore_fields) apply to the
+    # inner value, not the wrapper identity.
+    if k in (TypeKind.TRACKED, TypeKind.GHOST):
+        if ty.type_args:
+            inner_ty = ty.type_args[0]
+            inner_eq = build_equal_expr(
+                inner_ty, f"({lhs})@", f"({rhs})@", policy,
+                view_registry=view_registry,
+                prelude_collector=prelude_collector,
+            )
+            return inner_eq
+        # No inner info — compare wrappers via `@` raw.
+        return f"({lhs})@ == ({rhs})@"
+
+    # PR-F: PointsTo<V> — the meaningful spec equality is "same init
+    # state, and (if init) same inner value, at the same addr". We
+    # compare each projection separately so policy can drive the inner.
+    if k == TypeKind.POINTS_TO:
+        parts = [
+            f"(({lhs}).is_init() == ({rhs}).is_init())",
+            f"(({lhs}).addr() == ({rhs}).addr())",
+        ]
+        if ty.type_args:
+            v_ty = ty.type_args[0]
+            v_eq = build_equal_expr(
+                v_ty, f"({lhs}).value()", f"({rhs}).value()", policy,
+                view_registry=view_registry,
+                prelude_collector=prelude_collector,
+            )
+            parts.append(
+                f"(({lhs}).is_init() ==> ({v_eq}))"
+            )
+        return " && ".join(parts)
 
     if k == TypeKind.ENUM:
         if not ty.variants:
@@ -1378,3 +1495,199 @@ def rebuild_equal_fn(det_spec: DetCheckSpec,
         count=1,
     )
     return det_spec
+
+
+# ---------------------------------------------------------------------------
+# Self-tests — invoked via `python -m spec_determinism.codegen.gen_det test`
+# ---------------------------------------------------------------------------
+
+def _run_self_tests() -> int:
+    """Lightweight in-process tests for build_equal_expr + PR-G nested-Err."""
+    from spec_determinism.extract.types import VariantInfo
+
+    failures: list[str] = []
+
+    def check(label: str, got: str, expected_substrs: list[str],
+              forbidden_substrs: Optional[list[str]] = None):
+        for s in expected_substrs:
+            if s not in got:
+                failures.append(f"{label}: expected substring {s!r} in:\n  {got}")
+        for s in (forbidden_substrs or []):
+            if s in got:
+                failures.append(f"{label}: forbidden substring {s!r} present in:\n  {got}")
+
+    # --- PR-G fixtures: nested Result inside containers ---
+    int_ty = TypeInfo(TypeKind.INT, "int")
+    u32_ty = TypeInfo(TypeKind.U32, "u32")
+    err_ty = TypeInfo(TypeKind.STRUCT, "MyErr")  # opaque error struct
+    result_u32_err = TypeInfo(
+        TypeKind.RESULT, "Result<u32, MyErr>",
+        type_args=[u32_ty, err_ty],
+        variants=[VariantInfo("Ok", u32_ty), VariantInfo("Err", err_ty)],
+    )
+
+    # Top-level Result — both policies covered.
+    expr_top = build_equal_expr(result_u32_err, "r1", "r2", default_policy())
+    check("top-level Result with errs_equivalent",
+          expr_top,
+          ["(r1 is Ok) == (r2 is Ok)", "r1->Ok_0", "r2->Ok_0"],
+          forbidden_substrs=["Err_0"])  # err side collapsed
+
+    expr_top_strict = build_equal_expr(
+        result_u32_err, "r1", "r2",
+        EqualPolicy(errs_equivalent=False))
+    check("top-level Result strict",
+          expr_top_strict,
+          ["r1->Ok_0", "r1->Err_0", "r2->Err_0"])
+
+    # Seq<Result<u32, MyErr>> — was buggy pre-PR-G (raw `==`).
+    seq_of_result = TypeInfo(TypeKind.SEQ, "Seq<Result<u32, MyErr>>",
+                             type_args=[result_u32_err])
+    expr_seq = build_equal_expr(seq_of_result, "s1", "s2", default_policy())
+    check("Seq<Result<…>> with errs_equivalent uses forall element-wise",
+          expr_seq,
+          ["s1.len() == s2.len()", "forall|i: int|", "0 <= i < s1.len()",
+           "s1[i]", "s2[i]", "is Ok"],
+          forbidden_substrs=["s1[i]->Err_0", "s2[i]->Err_0"])
+
+    # Same Seq under strict policy — element-wise raw `==` is fine since
+    # errs_equivalent=False means we don't want to collapse anything.
+    expr_seq_strict = build_equal_expr(
+        seq_of_result, "s1", "s2", EqualPolicy(errs_equivalent=False))
+    check("Seq<Result<…>> strict policy keeps raw ==",
+          expr_seq_strict, ["s1 == s2"])
+
+    # Seq<u32> — should still be raw == under any policy.
+    seq_u32 = TypeInfo(TypeKind.SEQ, "Seq<u32>", type_args=[u32_ty])
+    expr_seq_u32 = build_equal_expr(seq_u32, "s1", "s2", default_policy())
+    check("Seq<u32> stays raw ==", expr_seq_u32, ["s1 == s2"],
+          forbidden_substrs=["forall"])
+
+    # Map<int, Result<u32, MyErr>> — was buggy pre-PR-G.
+    map_of_result = TypeInfo(TypeKind.MAP, "Map<int, Result<u32, MyErr>>",
+                             type_args=[int_ty, result_u32_err])
+    expr_map = build_equal_expr(map_of_result, "m1", "m2", default_policy())
+    check("Map<_, Result<…>> with errs_equivalent uses dom+forall",
+          expr_map,
+          ["m1.dom() == m2.dom()", "forall|k: int|",
+           "m1.dom().contains(k)", "m1[k]", "m2[k]"],
+          forbidden_substrs=["m1[k]->Err_0", "m2[k]->Err_0"])
+
+    # Map<int, u32> — should stay raw ==.
+    map_int_u32 = TypeInfo(TypeKind.MAP, "Map<int, u32>",
+                           type_args=[int_ty, u32_ty])
+    expr_map_iu = build_equal_expr(map_int_u32, "m1", "m2", default_policy())
+    check("Map<int, u32> stays raw ==", expr_map_iu, ["m1 == m2"],
+          forbidden_substrs=["forall"])
+
+    # Result<Seq<Result<u32, MyErr>>, MyErr> — outer Err collapsed AND
+    # inner Seq elementwise lift.
+    outer = TypeInfo(
+        TypeKind.RESULT,
+        "Result<Seq<Result<u32, MyErr>>, MyErr>",
+        type_args=[seq_of_result, err_ty],
+        variants=[VariantInfo("Ok", seq_of_result),
+                  VariantInfo("Err", err_ty)],
+    )
+    expr_outer = build_equal_expr(outer, "r1", "r2", default_policy())
+    check("Result<Seq<Result<…>>, _> with errs_equivalent",
+          expr_outer,
+          ["(r1 is Ok) == (r2 is Ok)",
+           "r1->Ok_0.len() == r2->Ok_0.len()",
+           "forall|i: int|"],
+          forbidden_substrs=["r1->Err_0", "r1->Ok_0[i]->Err_0"])
+
+    # Struct with field of type Result — STRUCT branch recurses field-by-field.
+    from spec_determinism.extract.types import FieldInfo
+    struct_with_result = TypeInfo(
+        TypeKind.STRUCT, "Holder",
+        fields=[FieldInfo("payload", result_u32_err)],
+    )
+    expr_struct = build_equal_expr(struct_with_result, "h1", "h2",
+                                   default_policy())
+    check("Struct with Result field collapses Err",
+          expr_struct,
+          ["h1.payload", "h2.payload", "is Ok"],
+          forbidden_substrs=["h1.payload->Err_0"])
+
+    # _contains_result helper sanity
+    assert _contains_result(result_u32_err) is True, "Result detected"
+    assert _contains_result(seq_of_result) is True, "Seq<Result> detected"
+    assert _contains_result(map_of_result) is True, "Map<_, Result> detected"
+    assert _contains_result(int_ty) is False, "int has no Result"
+    assert _contains_result(seq_u32) is False, "Seq<u32> has no Result"
+    assert _contains_result(struct_with_result) is True, "Struct with field"
+
+    # _container_needs_elementwise gated by policy.
+    assert _container_needs_elementwise(result_u32_err, default_policy()) is True
+    assert _container_needs_elementwise(
+        result_u32_err, EqualPolicy(errs_equivalent=False)) is False
+
+    # Self-referential type — must not infinite-loop in _contains_result.
+    self_ref = TypeInfo(TypeKind.STRUCT, "Self")
+    self_ref.fields = [FieldInfo("next", self_ref)]
+    assert _contains_result(self_ref) is False, "self-ref returns False"
+
+    # --- PR-F fixtures: Tracked<T> / Ghost<T> / PointsTo<V> equality ---
+    bool_ty = TypeInfo(TypeKind.BOOL, "bool")
+    usize_ty = TypeInfo(TypeKind.USIZE, "usize")
+
+    tracked_u32 = TypeInfo(TypeKind.TRACKED, "Tracked<u32>",
+                           type_args=[u32_ty])
+    ghost_seq_u32 = TypeInfo(TypeKind.GHOST, "Ghost<Seq<u32>>",
+                             type_args=[seq_u32])
+    points_to_u32 = TypeInfo(TypeKind.POINTS_TO, "PointsTo<u32>",
+                             type_args=[u32_ty])
+
+    expr_tracked = build_equal_expr(tracked_u32, "t1", "t2", default_policy())
+    check("Tracked<u32> compares through @",
+          expr_tracked, ["(t1)@", "(t2)@"])
+
+    expr_ghost = build_equal_expr(ghost_seq_u32, "g1", "g2", default_policy())
+    check("Ghost<Seq<u32>> compares through @ then raw == on Seq",
+          expr_ghost, ["(g1)@", "(g2)@"])
+
+    expr_pt = build_equal_expr(points_to_u32, "p1", "p2", default_policy())
+    check("PointsTo<u32> emits is_init/addr/value clauses",
+          expr_pt,
+          ["(p1).is_init() == (p2).is_init()",
+           "(p1).addr() == (p2).addr()",
+           "(p1).is_init() ==> (",
+           "(p1).value()", "(p2).value()"])
+
+    # Ghost<Result<u32, MyErr>> — PR-F + PR-G interaction: policy must
+    # still collapse the Err side through the wrapper.
+    ghost_result = TypeInfo(TypeKind.GHOST, "Ghost<Result<u32, MyErr>>",
+                            type_args=[result_u32_err])
+    expr_gr = build_equal_expr(ghost_result, "g1", "g2", default_policy())
+    check("Ghost<Result<…>> with errs_equivalent collapses Err inside",
+          expr_gr,
+          ["(g1)@ is Ok) == ((g2)@ is Ok)", "Ok_0"],
+          forbidden_substrs=["Err_0"])  # err collapsed
+
+    # PR-F + PR-G: Tracked<Seq<Result<u32, MyErr>>> should yield forall lift.
+    tracked_seq_result = TypeInfo(
+        TypeKind.TRACKED, "Tracked<Seq<Result<u32, MyErr>>>",
+        type_args=[seq_of_result])
+    expr_tsr = build_equal_expr(tracked_seq_result, "t1", "t2",
+                                default_policy())
+    check("Tracked<Seq<Result<…>>> projects + elementwise lift",
+          expr_tsr,
+          ["(t1)@", "(t2)@", "forall|i: int|", "is Ok"],
+          forbidden_substrs=["Err_0"])
+
+    if failures:
+        print(f"\n{len(failures)} failure(s):")
+        for f in failures:
+            print(f"  - {f}")
+        return 1
+    print("All gen_det self-tests passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        raise SystemExit(_run_self_tests())
+    print("usage: python -m spec_determinism.codegen.gen_det test")
+    raise SystemExit(2)

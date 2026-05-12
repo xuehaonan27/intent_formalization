@@ -538,6 +538,69 @@ def narrow_unit(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     pass
 
 
+# ---------------------------------------------------------------------------
+# PR-F (A-1) — Tracked<T> / Ghost<T> / PointsTo<V> projection-based narrows
+# ---------------------------------------------------------------------------
+
+@strategy_for(TypeKind.TRACKED, TypeKind.GHOST)
+def narrow_tracked_or_ghost(ty: TypeInfo, var: str, node: AssumeNode,
+                            ctx: "SearchContext"):
+    """Narrow ``Tracked<T>`` / ``Ghost<T>``.
+
+    Both vstd wrappers expose their inner spec value via ``@`` (i.e.
+    ``g@`` has type ``T`` for ``g: Ghost<T>`` and ``g: Tracked<T>``).
+    We project once and recurse on the inner ``T``. If the type_args
+    are missing (e.g. opaque inner) we fall through to the UNKNOWN
+    projection path so any registered ``spec fn`` on the wrapper can
+    still drive narrowing.
+    """
+    if not ty.type_args:
+        narrow_unknown(ty, var, node, ctx)
+        return
+    inner_ty = ty.type_args[0]
+    inner_var = f"({var})@"
+    inner_node = node.get_or_create("view")
+    narrow(inner_ty, inner_var, inner_node, ctx)
+
+
+@strategy_for(TypeKind.POINTS_TO)
+def narrow_points_to(ty: TypeInfo, var: str, node: AssumeNode,
+                     ctx: "SearchContext"):
+    """Narrow ``vstd::raw_ptr::PointsTo<V>``.
+
+    vstd exposes three spec projections that uniquely characterise a
+    ``PointsTo``:
+
+    * ``pt.is_init() -> bool`` — true iff the permission owns an
+      initialised value.
+    * ``pt.value() -> V`` — the inner value (only meaningful when
+      ``is_init()``).
+    * ``pt.addr() -> usize`` — the pointer address.
+
+    Narrow on each in turn; ``is_init()`` and ``addr()`` are scalar so
+    we narrow them via their own strategies, and the inner ``V`` is
+    handled recursively under the ``is_init()`` assume.
+    """
+    # 1. is_init: probe both polarities via the bool strategy.
+    init_var = f"({var}).is_init()"
+    init_node = node.get_or_create("is_init")
+    narrow(TypeInfo(kind=TypeKind.BOOL, name="bool"), init_var, init_node, ctx)
+
+    # 2. value: recurse on inner V. Verus rejects `pt.value()` when
+    # `!pt.is_init()`, but the assume tree carries `is_init()` polarity
+    # context so callers see the right combination in their schema.
+    if ty.type_args:
+        v_ty = ty.type_args[0]
+        v_var = f"({var}).value()"
+        v_node = node.get_or_create("value")
+        narrow(v_ty, v_var, v_node, ctx)
+
+    # 3. addr: usize range narrow.
+    addr_var = f"({var}).addr()"
+    addr_node = node.get_or_create("addr")
+    narrow(TypeInfo(kind=TypeKind.USIZE, name="usize"), addr_var, addr_node, ctx)
+
+
 @strategy_for(TypeKind.UNKNOWN)
 def narrow_unknown(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
     """Narrow an opaque / unresolved type via its registered projections.
@@ -609,3 +672,108 @@ def _add_distinctness_witnesses(ctx, det_spec: DetCheckSpec):
         f"distinctness: output tuple not equal under {det_spec.equal_fn_name}",
     )
     ctx.test_and_set(node, assume, phase="distinct")
+
+
+# ---------------------------------------------------------------------------
+# Self-tests — invoke via `python -m spec_determinism.extract.narrow test`.
+# These exercise the narrow registry (PR-F additions) using a stub
+# SearchContext that records assumes without invoking Z3.
+# ---------------------------------------------------------------------------
+
+def _run_self_tests() -> int:
+    failures: list[str] = []
+
+    class _StubCtx:
+        """Minimal SearchContext: records every (node, assume.expression)
+        that narrow_* hands to test_and_set, and lets the caller script
+        the True/False replies via a queue."""
+        def __init__(self, replies: Optional[list[bool]] = None):
+            from spec_determinism.extract.types import DetCheckSpec
+            self.tree = AssumeNode(key="root")
+            self.det_spec = DetCheckSpec(function="stub", det_check_template="",
+                                          equal_fn_name=None, symbols=[])
+            self.trace = []
+            self._replies = list(replies or [])
+            self.recorded: list[tuple[str, str]] = []
+
+        def test_and_set(self, node, assume, phase=""):
+            self.recorded.append((node.key, assume.expression))
+            node.assume = assume
+            if self._replies:
+                return self._replies.pop(0)
+            # Default: PASS (so the caller stops branching).
+            return False
+
+    def expect_recorded(label, recorded, expected_keys, expected_substrs):
+        keys = [k for (k, _) in recorded]
+        for ek in expected_keys:
+            if ek not in keys:
+                failures.append(f"{label}: expected node key {ek!r}, got {keys}")
+        joined = " | ".join(expr for (_, expr) in recorded)
+        for s in expected_substrs:
+            if s not in joined:
+                failures.append(f"{label}: expected substring {s!r} in:\n  {joined}")
+
+    # Tracked<u32> → recurses on (var)@ as u32 → integer narrow probes.
+    u32_ty = TypeInfo(kind=TypeKind.U32, name="u32")
+    tracked_u32 = TypeInfo(kind=TypeKind.TRACKED, name="Tracked<u32>",
+                           type_args=[u32_ty])
+    ctx = _StubCtx()
+    narrow(tracked_u32, "t", AssumeNode(key="t"), ctx)
+    # Integer narrow tries equality against small values; at least one
+    # assume should mention `(t)@`.
+    expect_recorded("Tracked<u32> projects through @",
+                    ctx.recorded, ["view"], ["(t)@"])
+
+    # Ghost<Seq<u32>> → projects, then Seq narrows length first via len().
+    # The "view" node is created but `test_and_set` is invoked on its
+    # children (the Seq's `len` node), so we only assert the projected
+    # var (g)@ appears in the recorded len-probe assumes.
+    seq_u32 = TypeInfo(kind=TypeKind.SEQ, name="Seq<u32>", type_args=[u32_ty])
+    ghost_seq = TypeInfo(kind=TypeKind.GHOST, name="Ghost<Seq<u32>>",
+                         type_args=[seq_u32])
+    ctx = _StubCtx()
+    narrow(ghost_seq, "g", AssumeNode(key="g"), ctx)
+    expect_recorded("Ghost<Seq<u32>> projects to view then Seq narrow",
+                    ctx.recorded, ["len"], ["(g)@"])
+
+    # PointsTo<u32>: emits is_init, value(), addr() projections.
+    points_to_u32 = TypeInfo(kind=TypeKind.POINTS_TO, name="PointsTo<u32>",
+                             type_args=[u32_ty])
+    ctx = _StubCtx()
+    narrow(points_to_u32, "p", AssumeNode(key="p"), ctx)
+    expect_recorded("PointsTo<u32> emits is_init/value/addr",
+                    ctx.recorded,
+                    ["is_init", "value", "addr"],
+                    ["(p).is_init()", "(p).value()", "(p).addr()"])
+
+    # Tracked<T> with no type_args degrades to UNKNOWN's projection path
+    # (which warns when type_projections is empty). Should not raise.
+    opaque_tracked = TypeInfo(kind=TypeKind.TRACKED, name="Tracked<Foo>")
+    ctx = _StubCtx()
+    try:
+        narrow(opaque_tracked, "t", AssumeNode(key="t"), ctx)
+    except Exception as e:
+        failures.append(f"Tracked<…> no type_args: raised {e!r}")
+
+    # Registry sanity: all 3 new kinds resolve to a real handler.
+    for kind in (TypeKind.TRACKED, TypeKind.GHOST, TypeKind.POINTS_TO):
+        handler = _registry.get(kind)
+        if handler is None or handler is _no_strategy:
+            failures.append(f"No narrow handler registered for {kind}")
+
+    if failures:
+        print(f"\n{len(failures)} failure(s):")
+        for f in failures:
+            print(f"  - {f}")
+        return 1
+    print("All narrow self-tests passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        raise SystemExit(_run_self_tests())
+    print("usage: python -m spec_determinism.extract.narrow test")
+    raise SystemExit(2)

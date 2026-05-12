@@ -71,6 +71,66 @@ _(none — PR-D4 landed cleanly; corpus rerun + COMPARE.md are committed)_
 | `4cd29b4` | PR-D4 final numbers + STATUS update | docs |
 | `e61a504` | **PR-D5: M1/M2/M3 lint impl + retroactive scan + 4 new quarantines** | quality gate |
 
+### Today (2026-05-12 — PR-F + PR-G closed)
+
+| commit    | scope | |
+|-----------|---|---|
+| `<this>`  | **PR-F: A-1 Tracked/Ghost/PointsTo TypeKinds + narrow strategies + schema enumeration** | axis-1 |
+| `<this>`  | **PR-G: A-3 nested-Err policy for `Seq<Result<…>>` / `Map<_, Result<…>>`** | axis-1 |
+
+**PR-G — nested-Err policy lift.** The bug: `build_equal_expr` had
+`TypeKind.SEQ` in the primitive-`==` list, so `Seq<Result<U, Err>> ==
+Seq<Result<U, Err>>` compared `Err` payloads structurally even with
+`errs_equivalent=True`. Same root for `Map<K, V>` (fell through the
+UNKNOWN `==` branch). Fix: new `_contains_result(ty)` /
+`_container_needs_elementwise(ty, policy)` helpers; explicit SEQ
+branch emits `len ==` + `forall|i: int| 0 <= i < len ==> elem_eq`
+when the element contains Result and the policy collapses Err.
+Explicit MAP branch emits `dom ==` + `forall|k: K| dom.contains(k)
+==> val_eq` when value contains Result. Top-level Result and
+Result-in-Result already worked via existing recursion.
+`TypeKind.SET` is left at raw `==` (no positional indexing; lifting
+errs-equivalence element-wise would require a custom set-equivalence
+relation — recorded as a known limitation in the branch comment).
+
+**PR-F — Tracked/Ghost/PointsTo narrows + equality.** Three new
+`TypeKind` variants (`TRACKED`, `GHOST`, `POINTS_TO`). Extractor
+`_KNOWN_GENERICS` table extended; `_parse_type_node`'s `generic_type`
+branch now (a) accepts `scoped_type_identifier` as a name node and
+(b) strips module-path scope + `<…>` suffix before lookup, so
+`vstd::pcell::Tracked<T>` is recognised. Two new narrow strategies:
+`narrow_tracked_or_ghost` projects via `(var)@` and recurses on the
+inner type; `narrow_points_to` probes `(var).is_init()` (bool),
+`(var).value()` (V, only meaningful when `is_init()`), `(var).addr()`
+(usize). `build_equal_expr` gained TRACKED/GHOST and POINTS_TO
+branches with corresponding equality structure (recurses on inner so
+PR-G policy rules apply through wrappers — e.g. `Ghost<Seq<Result<…>>>`
+now lifts errs-equivalence correctly). Schema enumeration in
+`schema_search/schemas.py` extended for the same three kinds so
+narrow assumes have a schema to hit — without this, narrows would
+emit `pass_untranslatable` and witnesses would stay partial.
+
+**Self-test infrastructure.** `narrow.py` and `gen_det.py` each
+gained `_run_self_tests` + `if __name__ == "__main__"` entry points
+(invoke with `python -m spec_determinism.{extract.narrow,
+codegen.gen_det} test`). gen_det's suite covers PR-G (Result,
+Seq<Result>, Map<_, Result>, Seq<u32>, Map<int, u32>,
+Result<Seq<Result>>, Struct with Result field, self-ref no-loop) and
+PR-F (Tracked<u32>, Ghost<Seq<u32>>, PointsTo<u32>) plus interaction
+fixtures (`Ghost<Result<…>>`, `Tracked<Seq<Result<…>>>`).
+narrow.py's suite uses a stub SearchContext that records assumes
+without invoking Z3.
+
+**Regression check.** Nanvix smoke (`bitmap::number_of_bits`) still
+`ok`. Existing serialised `det_spec.json` artifacts unaffected (old
+`Tracked<…>` was previously stored as `TypeKind.UNKNOWN` with
+`name="Tracked<…>"`, so JSON round-trip still deserialises
+cleanly; new kinds only appear in freshly extracted specs).
+
+**Deferred (A-1 follow-up).** Newtype-of-`usize` unwrap (e.g.
+`struct ProcPtr(usize);`) — needs cross-file type resolution; not
+required for the Tracked/Ghost/PointsTo cohort.
+
 ### Today (2026-05-12 — PR-E closed)
 
 | commit    | scope | |
@@ -266,15 +326,16 @@ codegen-time lookup resolves it.
 ## Next milestones
 
 PR-D5 hardened the synthesis pipeline (M1/M2/M3). PR-E added M4 +
-recursive-view prompt guidance — covering all four known L4
-failure modes. Next:
+recursive-view prompt guidance. PR-F + PR-G shipped the two
+axis-1 cohorts (Tracked/Ghost/PointsTo + nested-Err policy).
+Next:
 
-1. **PR-F — A-1 (Tracked/Ghost-aware narrows)** (~29 errors). Strategy
-   work + ghost-wrapper transparency. Now the front of the queue for
-   axis-1 (verus_error) progress.
-2. **PR-G — A-3 (nested-Err policy)** (~30 errors). Propagate the
-   existing `errs_equivalent` policy.
-3. **Retry the four `_rejected.jsonl` types** —
+1. **Full corpus rerun with `--use-view-registry`** to measure
+   PR-F + PR-G impact against baseline (376 witness / 191
+   verus_error). Expected: A-1 (~29) + A-3 (~30) verus_error drop
+   into ok / ok_w. Run via `scripts/auto_chain.sh`; final
+   numbers go into `results-verusage-viewreg/COMPARE.md`.
+2. **Retry the four `_rejected.jsonl` types** —
    `storage/CrcDigest`, `nrkernel/PTDir`, `nrkernel/LoadResult`,
    `storage/MaybeCorruptedBytes`. The combined M1/M2/M3/M4 lints +
    critic rules #8/#9 + `--include-quarantined` opt-in mean these
@@ -282,15 +343,19 @@ failure modes. Next:
    PTDir bug class). Whether the LLM follows the new prompt guidance
    is the open question; a fallback auto-emit Option C path is
    recorded as a contingency.
-4. **Integration smoketest for `--use-view-registry`** (ISSUES.md
+3. **Integration smoketest for `--use-view-registry`** (ISSUES.md
    #5) — single-target end-to-end run wired into `make check` or
    equivalent. Would have caught the four broken relative imports
    in `1751dc1` immediately rather than after a manual rerun.
-5. **Commit `results-verusage/view_registry/`** — currently
+4. **Commit `results-verusage/view_registry/`** — currently
    untracked; 112 active L4 entries + 19 `.json.quarantine`
    markers + per-project `_lint_scan.json` + per-project audit
    JSONs + `_rejected.jsonl` durability files. Decision pending on
    whether to keep them in git or under DVC.
+5. **Newtype-of-`usize` unwrap (A-1 follow-up)** — `struct
+   ProcPtr(usize);` and similar. Needs cross-file type resolution
+   so the extractor knows `ProcPtr → usize`. Defer until the rerun
+   shows what fraction of remaining A-1 errors are newtype-shaped.
 
 ## Layout
 

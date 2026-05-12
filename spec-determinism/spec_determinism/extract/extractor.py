@@ -61,6 +61,10 @@ PRIMITIVE_MAP = {
 _KNOWN_GENERICS = {
     "Result": TypeKind.RESULT, "Option": TypeKind.OPTION,
     "Set": TypeKind.SET, "Seq": TypeKind.SEQ, "Map": TypeKind.MAP,
+    # PR-F (A-1): vstd ghost/proof wrappers — recognise them so narrow
+    # can project through `@` / `.value()` instead of degrading to UNKNOWN.
+    "Tracked": TypeKind.TRACKED, "Ghost": TypeKind.GHOST,
+    "PointsTo": TypeKind.POINTS_TO,
 }
 
 
@@ -78,7 +82,8 @@ def _parse_type_node(node: ts.Node) -> TypeInfo:
         return TypeInfo(kind=PRIMITIVE_MAP.get(name, TypeKind.UNKNOWN), name=name)
 
     if node.type == "generic_type":
-        name_node = _child_by_type(node, "type_identifier")
+        name_node = (_child_by_type(node, "type_identifier")
+                     or _child_by_type(node, "scoped_type_identifier"))
         args_node = _child_by_type(node, "type_arguments")
         name = _text(name_node) if name_node else _text(node)
         type_args = []
@@ -87,7 +92,11 @@ def _parse_type_node(node: ts.Node) -> TypeInfo:
                 if c.type not in ("<", ">", ","):
                     type_args.append(_parse_type_node(c))
 
-        kind = _KNOWN_GENERICS.get(name, TypeKind.UNKNOWN)
+        # PR-F: tolerate fully-qualified vstd paths like
+        # `vstd::pcell::Tracked<T>` by stripping any scope prefix and
+        # any stray `<…>` suffix before lookup.
+        short = name.rsplit("::", 1)[-1].split("<", 1)[0]
+        kind = _KNOWN_GENERICS.get(short, TypeKind.UNKNOWN)
         info = TypeInfo(kind=kind, name=_text(node), type_args=type_args)
 
         if kind == TypeKind.RESULT and len(type_args) >= 2:

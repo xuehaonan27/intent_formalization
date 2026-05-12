@@ -877,3 +877,132 @@ PTDir LLM retry is left as a follow-up (it requires a Copilot call;
 the static lint + new prompt guidance + critic rule together pre-empt
 the bug class for any future synthesis attempts, including the
 deferred re-attempt).
+
+## PR-F — A-1: Tracked / Ghost / PointsTo narrows + equality (2026-05-12)
+
+Cohort: ~29 corpus errors where ensures references a value of type
+`Tracked<T>` / `Ghost<T>` / `PointsTo<V>` and our extractor either
+stored it as `TypeKind.UNKNOWN` (no narrow strategy, no equality
+recursion) or mis-tokenised the fully-qualified path
+`vstd::pcell::Tracked<T>`.
+
+### Code changes
+
+1. **`extract/types.py`** — three new `TypeKind` variants
+   (`TRACKED`, `GHOST`, `POINTS_TO`). Enum value strings match the
+   short type names so JSON round-trip is stable; old serialised
+   `det_spec.json` files (which used `UNKNOWN` for these types) still
+   deserialise cleanly.
+
+2. **`extract/extractor.py`** — `_KNOWN_GENERICS` table gains
+   `Tracked` / `Ghost` / `PointsTo`. `_parse_type_node`'s
+   `generic_type` branch now (a) accepts `scoped_type_identifier`
+   alongside `type_identifier` as a name-node candidate and
+   (b) normalises the resulting text via
+   `name.rsplit("::", 1)[-1].split("<", 1)[0]` before
+   `_KNOWN_GENERICS` lookup, so `vstd::pcell::Tracked<T>` resolves
+   to `TRACKED` with `type_args=[T]`.
+
+3. **`extract/narrow.py`** — two new strategies:
+   - `@strategy_for(TypeKind.TRACKED, TypeKind.GHOST)
+      narrow_tracked_or_ghost`: project via `(var)@` and recurse on
+      `type_args[0]`; falls through to `narrow_unknown` if no
+      type_args (just logs the partial-witness warning).
+   - `@strategy_for(TypeKind.POINTS_TO) narrow_points_to`: probe
+      `(var).is_init()` as `bool`, `(var).value()` as inner `V`
+      (only when type_args present — has a `requires is_init()`
+      precondition that z3 already tracks via the bool probe), and
+      `(var).addr()` as `usize`.
+
+4. **`codegen/gen_det.py`** — `build_equal_expr` gains:
+   - TRACKED/GHOST branch: compare via `({lhs})@` / `({rhs})@`,
+      recursing on `type_args[0]` so PR-G policy rules (Result-in-
+      container element-wise lift) apply through wrappers.
+   - POINTS_TO branch: `is_init() == is_init()` AND `addr() == addr()`,
+      plus `is_init() ==> value_eq` when type_args present.
+
+5. **`schema_search/schemas.py`** — `_emit` extended for the same
+   three kinds so narrow assumes have a schema to hit. Without this,
+   `(g)@.len() == k` would be `pass_untranslatable` and the
+   narrowing would abort for that dimension. TRACKED/GHOST emit
+   schemas for `(var)@` as inner T; POINTS_TO emits schemas for
+   `(var).is_init()` (bool), `(var).value()` (V), `(var).addr()`
+   (usize).
+
+### Self-tests
+
+`python -m spec_determinism.extract.narrow test` covers the three
+strategies via a stub `_StubCtx` SearchContext that records
+`(node.key, assume.expression)` tuples without invoking Z3. `python
+-m spec_determinism.codegen.gen_det test` covers the new equality
+branches plus PR-F+PR-G interaction (`Ghost<Result<…>>` collapses
+Err class through the wrapper; `Tracked<Seq<Result<…>>>` emits
+forall-based element-wise comparison through the wrapper).
+
+### Deferred — newtype-of-`usize` unwrap
+
+Types like `pub struct ProcPtr(pub usize);` should narrow as `usize`
+(integer range probes) but currently land in `TypeKind.UNKNOWN`.
+Requires cross-file type resolution (the newtype def may live in a
+different module from the ensures), so deferred until a corpus
+rerun shows what fraction of residual A-1 errors are newtype-
+shaped.
+
+## PR-G — A-3: nested-Err policy lift (2026-05-12)
+
+Cohort: ~30 corpus errors where ensures contains a `Seq<Result<U,
+Err>>` or `Map<K, Result<U, Err>>` field. The user's
+`errs_equivalent=True` policy already collapses Err class for
+top-level Result via the RESULT branch in `build_equal_expr`, but
+SEQ/MAP elements were compared via raw spec `==`, which is
+element-wise structural — so two `Seq<Result<_, Err::Foo("a")>>`
+and `Seq<Result<_, Err::Foo("b")>>` were rejected by the equal-fn
+even though the policy says they should compare equal.
+
+### Code changes — `codegen/gen_det.py`
+
+1. New `_contains_result(ty, _seen=None)` helper — recursively
+   inspects `TypeInfo.type_args` and `TypeInfo.fields[*].type` for
+   any `TypeKind.RESULT`. Guards against self-referential
+   `TypeInfo` graphs via an `id()` visited set.
+
+2. New `_container_needs_elementwise(ty, policy)` — returns True
+   only when the policy collapses Err class AND the container's
+   element type contains Result.
+
+3. `TypeKind.SEQ` removed from the primitive-`==` list. New
+   explicit SEQ branch:
+   - When `_container_needs_elementwise` is False: emit raw
+      `{lhs} == {rhs}` (preserves prior fast-path for primitive
+      seqs).
+   - When True: emit `{lhs}.len() == {rhs}.len() && forall|i:
+      int| 0 <= i < {lhs}.len() ==> elem_eq` where `elem_eq` is
+      `build_equal_expr` recursed on the element type. This routes
+      `Result` elements through the existing RESULT branch which
+      knows to collapse Err.
+
+4. New explicit MAP branch (previously fell through to the UNKNOWN
+   `==` fallback). When elementwise is needed: emit `{lhs}.dom() ==
+   {rhs}.dom() && forall|k: K| {lhs}.dom().contains(k) ==> val_eq`.
+   Otherwise raw `==`.
+
+5. `TypeKind.SET` is left at raw `==`. Set has no positional
+   indexing, so lifting `errs_equivalent` element-wise would
+   require redefining set equality (e.g. a custom `equivalent`
+   relation that quotients Err class). Recorded as a known
+   limitation in the SET branch comment.
+
+### Self-tests
+
+`python -m spec_determinism.codegen.gen_det test` covers Result,
+Seq<Result>, Map<_, Result>, Seq<u32> (no policy escalation),
+Map<int, u32> (no escalation), Result<Seq<Result>>, Struct with a
+Result field, and a self-referential type stub (verifies the
+visited-set guard in `_contains_result`).
+
+### Out of scope
+
+- Set-of-Result: see SET branch comment above.
+- Result-collapsing at arbitrary user-defined containers (e.g.
+   `MyVec<Result<…>>` where MyVec has no `View` impl): handled by
+   PR-F + PR-D5/PR-E lints once the View resolves to `Seq<…>`.

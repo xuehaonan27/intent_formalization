@@ -321,6 +321,32 @@ def _emit(
                 _emit(f"{var}[{i}]", elem_ty, parent_chain, out, seen_tags, projections_by_type)
         return
 
+    # PR-F: Tracked<T> / Ghost<T> — emit schemas for the projected value
+    # `(var)@` as if it were the inner T. narrow.narrow_tracked_or_ghost
+    # uses this same projection, so the assumes it emits match the
+    # schemas enumerated here.
+    if ty.kind in (TypeKind.TRACKED, TypeKind.GHOST):
+        if ty.type_args:
+            inner_ty = ty.type_args[0]
+            _emit(f"({var})@", inner_ty, parent_chain, out, seen_tags,
+                  projections_by_type)
+        return
+
+    # PR-F: PointsTo<V> — emit schemas for `(var).is_init()` (bool),
+    # `(var).value()` (V, only meaningful when is_init), `(var).addr()`
+    # (usize). Match the projection expressions narrow_points_to emits.
+    if ty.kind == TypeKind.POINTS_TO:
+        _emit(f"({var}).is_init()",
+              TypeInfo(kind=TypeKind.BOOL, name="bool"),
+              parent_chain, out, seen_tags, projections_by_type)
+        if ty.type_args:
+            _emit(f"({var}).value()", ty.type_args[0],
+                  parent_chain, out, seen_tags, projections_by_type)
+        _emit(f"({var}).addr()",
+              TypeInfo(kind=TypeKind.USIZE, name="usize"),
+              parent_chain, out, seen_tags, projections_by_type)
+        return
+
     # Other kinds (Unit/Unknown) — skipped, except UNKNOWN with registered
     # projections, which we route through the projection's spec-fn call.
     if ty.kind == TypeKind.UNKNOWN and ty.name in projections_by_type:
