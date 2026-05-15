@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type_short": "CPacket",
+  "qualified_name": "CPacket",
+  "source_hash": "6f7c280a2c8f5720",
+  "view_source": "L4-llm",
+  "viewed_type": "CPacketView",
+  "view_decl": "pub struct CPacketView { pub dst: <EndPoint as View>::V, pub src: <EndPoint as View>::V, pub msg: <CSingleMessage as View>::V }\n\nimpl View for CPacket {\n    type V = CPacketView;\n    closed spec fn view(&self) -> CPacketView {\n        CPacketView { dst: self.dst@, src: self.src@, msg: self.msg@ }\n    }\n}",
+  "depends_on_views_of": [
+    "EndPoint",
+    "CSingleMessage"
+  ],
+  "rationale": "CPacket is a plain aggregate of dst/src endpoints and the message payload \u2014 all three are spec-meaningful (network specs routinely inspect sender, receiver, and message). Each field is projected through its own View impl so semantic equality (e.g., endpoint wire identity, message content modulo representation) is honoured rather than relying on structural `==`.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"CPacketView\",\n  \"view_decl\": \"pub struct CPacketView { pub dst: <EndPoint as View>::V, pub src: <EndPoint as View>::V, pub msg: <CSingleMessage as View>::V }\\n\\nimpl View for CPacket {\\n    type V = CPacketView;\\n    closed spec fn view(&self) -> CPacketView {\\n        CPacketView { dst: self.dst@, src: self.src@, msg: self.msg@ }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"EndPoint\", \"CSingleMessage\"],\n  \"rationale\": \"CPacket is a plain aggregate of dst/src endpoints and the message payload \u2014 all three are spec-meaningful (network specs routinely inspect sender, receiver, and message). Each field is projected through its own View impl so semantic equality (e.g., endpoint wire identity, message content modulo representation) is honoured rather than relying on structural `==`.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Assumes EndPoint and CSingleMessage implement View; dependency views are listed as uncovered, so correctness depends on that context."
+  ]
+}

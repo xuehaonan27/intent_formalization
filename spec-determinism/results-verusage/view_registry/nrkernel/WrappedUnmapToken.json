@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "WrappedUnmapToken",
+  "qualified_name": "WrappedUnmapToken",
+  "source_hash": "5457fb73f2c269c0",
+  "view_source": "L4-llm",
+  "viewed_type": "WrappedUnmapTokenView",
+  "view_decl": "pub struct WrappedUnmapTokenView {\n    pub tok: crate::os_code_vc::Token,\n    pub change_made: bool,\n    pub orig_st: os::State,\n}\n\nimpl View for WrappedUnmapToken {\n    type V = WrappedUnmapTokenView;\n    closed spec fn view(&self) -> WrappedUnmapTokenView {\n        WrappedUnmapTokenView {\n            tok: self.tok,\n            change_made: self.change_made,\n            orig_st: self.orig_st,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "All three fields carry spec-meaningful information (the unmap token itself, whether a change was made, and the original OS state for the ensures clause), and none are raw pointers or allocator-opaque handles. Token and State are uncovered leaf types with no View, so they are projected by identity (no `@`); change_made is a primitive bool which is also identity.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"WrappedUnmapTokenView\",\n  \"view_decl\": \"pub struct WrappedUnmapTokenView {\\n    pub tok: crate::os_code_vc::Token,\\n    pub change_made: bool,\\n    pub orig_st: os::State,\\n}\\n\\nimpl View for WrappedUnmapToken {\\n    type V = WrappedUnmapTokenView;\\n    closed spec fn view(&self) -> WrappedUnmapTokenView {\\n        WrappedUnmapTokenView {\\n            tok: self.tok,\\n            change_made: self.change_made,\\n            orig_st: self.orig_st,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"All three fields carry spec-meaningful information (the unmap token itself, whether a change was made, and the original OS state for the ensures clause), and none are raw pointers or allocator-opaque handles. Token and State are uncovered leaf types with no View, so they are projected by identity (no `@`); change_made is a primitive bool which is also identity.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

@@ -1,0 +1,107 @@
+{
+  "function": "page_entry2usize",
+  "det_check_template": "proof fn det_page_entry2usize(page_entry: PageEntry, r1: usize, r2: usize)\n    requires (MEM_valid(page_entry.addr)),\n    ensures\n        ({\n            &&& (usize2present(r1) == page_entry.perm.present)\n            &&& (usize2ps(r1) == page_entry.perm.ps)\n            &&& (usize2write(r1) == page_entry.perm.write)\n            &&& (usize2execute_disable(r1) == page_entry.perm.execute_disable)\n            &&& (usize2user(r1) == page_entry.perm.user)\n            &&& (usize2pa(r1) == page_entry.addr)\n            &&& (usize2page_entry_perm(r1) =~= page_entry.perm)\n            &&& (usize2present(r2) == page_entry.perm.present)\n            &&& (usize2ps(r2) == page_entry.perm.ps)\n            &&& (usize2write(r2) == page_entry.perm.write)\n            &&& (usize2execute_disable(r2) == page_entry.perm.execute_disable)\n            &&& (usize2user(r2) == page_entry.perm.user)\n            &&& (usize2pa(r2) == page_entry.addr)\n            &&& (usize2page_entry_perm(r2) =~= page_entry.perm)\n        }) ==> det_page_entry2usize_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_entry",
+      "type": {
+        "kind": "struct",
+        "name": "PageEntry",
+        "fields": [
+          {
+            "name": "addr",
+            "type": {
+              "kind": "unknown",
+              "name": "PAddr"
+            }
+          },
+          {
+            "name": "perm",
+            "type": {
+              "kind": "struct",
+              "name": "PageEntryPerm",
+              "fields": [
+                {
+                  "name": "present",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "ps",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "write",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "execute_disable",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "user",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_entry2usize_equal(r1: usize, r2: usize) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_entry2usize_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_entry2usize",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

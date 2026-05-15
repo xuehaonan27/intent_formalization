@@ -1,0 +1,19 @@
+● Read prompt.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/NetClient/prompt.md
+  └ 115 lines read
+
+● Response was interrupted due to a server error. Retrying...
+
+Now I understand the task. Let me analyze the `NetClient` struct:
+
+- `state: Ghost<State>` — Ghost state for proof invariants; State is uncovered leaf, not spec-meaningful at the abstract level → omit
+- `history: Ghost<History>` — Network event trace, **the** abstract behavior; History views to `Seq<NetEvent>` → keep as `self.history@@`
+- `end_point: EndPoint` — Endpoint identity (uncovered leaf, structural eq is semantic) → keep as-is
+- `c_pointers: NetClientCPointers` — FFI/allocator opaque → omit
+- `profiler: DuctTapeProfiler` — Debug/profiling instrumentation, not spec → omit
+
+● Create response.md +9
+  └ results-verusage/view_registry/ironkv/_llm_runs/NetClient/response.md
+
+Response written to `results-verusage/view_registry/ironkv/_llm_runs/NetClient/response.md`.
+

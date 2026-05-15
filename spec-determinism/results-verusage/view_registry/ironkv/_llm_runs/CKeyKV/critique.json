@@ -1,0 +1,7 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "Candidate uses `<CKey as View>::V` and `self.k@`, but CKey's dependency view is uncovered/unknown, so this likely fails typecheck unless CKey actually implements View."
+  ],
+  "duration_s": 8.66
+}

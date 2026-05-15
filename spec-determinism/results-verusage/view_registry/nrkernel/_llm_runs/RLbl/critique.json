@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "PTE's dependency view is not listed in the provided context, so assuming its View impl is in scope; otherwise this would fail typecheck."
+  ],
+  "duration_s": 11.42
+}

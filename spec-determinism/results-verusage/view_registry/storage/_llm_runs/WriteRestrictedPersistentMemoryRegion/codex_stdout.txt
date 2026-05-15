@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["PMRegion dependency View impl was not resolved in the provided context, so this assumes PersistentMemoryRegion provides or implies View<V = PersistentMemoryRegionView>."]
+}
+```

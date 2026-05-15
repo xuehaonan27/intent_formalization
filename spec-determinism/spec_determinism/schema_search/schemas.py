@@ -341,9 +341,16 @@ def _emit(
         # when spec_view is set; native Seq / array / slice keep the
         # bare accessor.
         accessor = f"{var}@" if ty.spec_view else var
+        # ISSUES #14 follow-up: when ty.spec_view is set (Vec<T>),
+        # narrow_seq emits the LenEqPred / LenRangePred with var=accessor
+        # (the path-with-@). The schema's rust_var must MATCH that
+        # exactly for match_and_bind to succeed — otherwise every length
+        # probe silently fails as "pass_untranslatable" and the witness
+        # never gets refined. SCALAR_EQ schemas for elements already use
+        # the with-@ path (see _emit recursion below), so they're fine.
         sid = _uniq(f"{tag_base}_leneq")
         out.append(SchemaBinding(
-            id=sid, kind=SchemaKind.SEQ_LEN_EQ, rust_var=var,
+            id=sid, kind=SchemaKind.SEQ_LEN_EQ, rust_var=accessor,
             rust_expr_tmpl=f"{accessor}.len() == {{k}}",
             guard_name=f"g_{sid}",
             k_params=[(f"k_{sid}", "nat")],
@@ -351,7 +358,7 @@ def _emit(
         ))
         sid = _uniq(f"{tag_base}_lenrng")
         out.append(SchemaBinding(
-            id=sid, kind=SchemaKind.SEQ_LEN_RANGE, rust_var=var,
+            id=sid, kind=SchemaKind.SEQ_LEN_RANGE, rust_var=accessor,
             rust_expr_tmpl=f"{accessor}.len() >= {{k_lo}} && {accessor}.len() <= {{k_hi}}",
             guard_name=f"g_{sid}",
             k_params=[(f"k_{sid}_lo", "nat"), (f"k_{sid}_hi", "nat")],

@@ -1,0 +1,62 @@
+{
+  "function": "new",
+  "det_check_template": "proof fn det_new(va: VAddr, len: usize, r1: VaRange4K, r2: VaRange4K)\n    requires (spec_va_4k_valid(va)), (va_4k_range_valid(va, len)), (va < usize::MAX - len * 4096),\n    ensures\n        ({\n            &&& (r1.wf())\n            &&& (r1.start == va)\n            &&& (r1.len == len)\n            &&& (r2.wf())\n            &&& (r2.start == va)\n            &&& (r2.len == len)\n        }) ==> det_new_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "va",
+      "type": {
+        "kind": "unknown",
+        "name": "VAddr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "len",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "VaRange4K"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "VaRange4K"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct VaRange4KView { pub start: VAddr, pub len: usize, pub view: Seq<VAddr> }\n\nimpl View for VaRange4K {\n    type V = VaRange4KView;\n    closed spec fn view(&self) -> VaRange4KView {\n        VaRange4KView { start: self.start, len: self.len, view: self.view@ }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_new_equal(r1: VaRange4K, r2: VaRange4K) -> bool {\n    (((r1).view() == (r2).view()))\n}",
+  "equal_fn_name": "det_new_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_new",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "VaRange4K"
+}

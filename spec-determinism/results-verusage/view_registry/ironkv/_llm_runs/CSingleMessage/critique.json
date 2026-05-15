@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "EndPoint and CMessage dependency views are uncovered, but assuming their View impls exist, the candidate preserves all payload fields correctly."
+  ],
+  "duration_s": 9.66
+}

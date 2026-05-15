@@ -1,0 +1,9 @@
+```json
+{
+  "verdict": "reject",
+  "issues": [
+    "Uses `@`/`<T as View>::V` for uncovered dependency types (`Array`, `ArrayVec`, `PageEntry`, `PageTable`, `RootTable`, `PCIBitMap`), so the declared view likely requires missing `View` impls and will fail typecheck.",
+    "Projects primitive-containing containers through `@` on uncovered containers, e.g. `self.kernel_entries@`, `self.pcid_to_proc_ptr@`, and `self.free_pcids@`, despite `Array`/`ArrayVec` having no known view."
+  ]
+}
+```

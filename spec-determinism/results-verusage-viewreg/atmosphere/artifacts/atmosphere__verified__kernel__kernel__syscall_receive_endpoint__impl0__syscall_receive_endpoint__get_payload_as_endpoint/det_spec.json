@@ -1,0 +1,110 @@
+{
+  "function": "get_payload_as_endpoint",
+  "det_check_template": "proof fn det_get_payload_as_endpoint(self_: IPCPayLoad, r1: Option<EndpointIdx>, r2: Option<EndpointIdx>)\n    ensures\n        ({\n            &&& (r1 == self_.spec_get_payload_as_endpoint())\n            &&& (r2 == self_.spec_get_payload_as_endpoint())\n        }) ==> det_get_payload_as_endpoint_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "enum",
+        "name": "IPCPayLoad",
+        "variants": [
+          {
+            "name": "Message"
+          },
+          {
+            "name": "Pages"
+          },
+          {
+            "name": "Endpoint"
+          },
+          {
+            "name": "Pci"
+          },
+          {
+            "name": "PageFault"
+          },
+          {
+            "name": "Empty"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<EndpointIdx>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "EndpointIdx"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "EndpointIdx"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<EndpointIdx>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "EndpointIdx"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "EndpointIdx"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_payload_as_endpoint_equal(r1: Option<EndpointIdx>, r2: Option<EndpointIdx>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> ((r1->Some_0 == r2->Some_0))))\n}",
+  "equal_fn_name": "det_get_payload_as_endpoint_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_payload_as_endpoint",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "IPCPayLoad"
+}

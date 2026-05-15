@@ -1,0 +1,258 @@
+{
+  "function": "read_cdb",
+  "det_check_template": "proof fn det_read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: PMRegion, r1: Result<\n    bool,\n    LogErr,\n>, r2: Result<\n    bool,\n    LogErr,\n>)\n    requires (pm_region.inv()), (recover_cdb(pm_region@.committed()).is_Some()), (pm_region@.no_outstanding_writes()), (metadata_types_set(pm_region@.committed())),\n    ensures\n        ({\n            &&& (match r1 {\n            Ok(b) => Some(b) == recover_cdb(pm_region@.committed()),\n            // To make sure this code doesn't spuriously generate CRC-mismatch errors,\n            // it's obligated to prove that it won't generate such an error when\n            // the persistent memory is impervious to corruption.\n            Err(LogErr::CRCMismatch) => !pm_region.constants().impervious_to_corruption,\n            Err(e) => e == LogErr::PmemErr { err: PmemError::AccessOutOfRange },\n        })\n            &&& (match r2 {\n            Ok(b) => Some(b) == recover_cdb(pm_region@.committed()),\n            // To make sure this code doesn't spuriously generate CRC-mismatch errors,\n            // it's obligated to prove that it won't generate such an error when\n            // the persistent memory is impervious to corruption.\n            Err(LogErr::CRCMismatch) => !pm_region.constants().impervious_to_corruption,\n            Err(e) => e == LogErr::PmemErr { err: PmemError::AccessOutOfRange },\n        })\n        }) ==> det_read_cdb_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pm_region",
+      "type": {
+        "kind": "unknown",
+        "name": "PMRegion"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<\n    bool,\n    LogErr,\n>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "enum",
+              "name": "LogErr",
+              "variants": [
+                {
+                  "name": "InsufficientSpaceForSetup"
+                },
+                {
+                  "name": "StartFailedDueToLogIDMismatch"
+                },
+                {
+                  "name": "StartFailedDueToRegionSizeMismatch"
+                },
+                {
+                  "name": "StartFailedDueToProgramVersionNumberUnsupported"
+                },
+                {
+                  "name": "StartFailedDueToInvalidMemoryContents"
+                },
+                {
+                  "name": "CRCMismatch"
+                },
+                {
+                  "name": "InsufficientSpaceForAppend"
+                },
+                {
+                  "name": "CantReadBeforeHead"
+                },
+                {
+                  "name": "CantReadPastTail"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeforeHead"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeyondTail"
+                },
+                {
+                  "name": "PmemErr"
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          },
+          {
+            "kind": "enum",
+            "name": "LogErr",
+            "variants": [
+              {
+                "name": "InsufficientSpaceForSetup"
+              },
+              {
+                "name": "StartFailedDueToLogIDMismatch"
+              },
+              {
+                "name": "StartFailedDueToRegionSizeMismatch"
+              },
+              {
+                "name": "StartFailedDueToProgramVersionNumberUnsupported"
+              },
+              {
+                "name": "StartFailedDueToInvalidMemoryContents"
+              },
+              {
+                "name": "CRCMismatch"
+              },
+              {
+                "name": "InsufficientSpaceForAppend"
+              },
+              {
+                "name": "CantReadBeforeHead"
+              },
+              {
+                "name": "CantReadPastTail"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeforeHead"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeyondTail"
+              },
+              {
+                "name": "PmemErr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<\n    bool,\n    LogErr,\n>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "enum",
+              "name": "LogErr",
+              "variants": [
+                {
+                  "name": "InsufficientSpaceForSetup"
+                },
+                {
+                  "name": "StartFailedDueToLogIDMismatch"
+                },
+                {
+                  "name": "StartFailedDueToRegionSizeMismatch"
+                },
+                {
+                  "name": "StartFailedDueToProgramVersionNumberUnsupported"
+                },
+                {
+                  "name": "StartFailedDueToInvalidMemoryContents"
+                },
+                {
+                  "name": "CRCMismatch"
+                },
+                {
+                  "name": "InsufficientSpaceForAppend"
+                },
+                {
+                  "name": "CantReadBeforeHead"
+                },
+                {
+                  "name": "CantReadPastTail"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeforeHead"
+                },
+                {
+                  "name": "CantAdvanceHeadPositionBeyondTail"
+                },
+                {
+                  "name": "PmemErr"
+                }
+              ]
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          },
+          {
+            "kind": "enum",
+            "name": "LogErr",
+            "variants": [
+              {
+                "name": "InsufficientSpaceForSetup"
+              },
+              {
+                "name": "StartFailedDueToLogIDMismatch"
+              },
+              {
+                "name": "StartFailedDueToRegionSizeMismatch"
+              },
+              {
+                "name": "StartFailedDueToProgramVersionNumberUnsupported"
+              },
+              {
+                "name": "StartFailedDueToInvalidMemoryContents"
+              },
+              {
+                "name": "CRCMismatch"
+              },
+              {
+                "name": "InsufficientSpaceForAppend"
+              },
+              {
+                "name": "CantReadBeforeHead"
+              },
+              {
+                "name": "CantReadPastTail"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeforeHead"
+              },
+              {
+                "name": "CantAdvanceHeadPositionBeyondTail"
+              },
+              {
+                "name": "PmemErr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_read_cdb_equal(r1: Result<\n    bool,\n    LogErr,\n>, r2: Result<\n    bool,\n    LogErr,\n>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n}",
+  "equal_fn_name": "det_read_cdb_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_read_cdb",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<PMRegion: PersistentMemoryRegion>",
+  "where_decl": "",
+  "self_type": null
+}

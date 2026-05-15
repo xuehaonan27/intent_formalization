@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Writes",
+  "qualified_name": "rl3::Writes",
+  "source_hash": "2a11f8233eda4206",
+  "view_source": "L4-llm",
+  "viewed_type": "WritesView",
+  "view_decl": "pub struct WritesView { pub core: Core, pub tso: Set<usize>, pub nonpos: Set<Core> }\n\nimpl View for Writes {\n    type V = WritesView;\n    closed spec fn view(&self) -> WritesView {\n        WritesView { core: self.core, tso: self.tso, nonpos: self.nonpos }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "All three fields are spec-meaningful: `core` names the current writer, `tso` records pending TSO addresses, and `nonpos` records cores with non-positional staleness. `Core` is an uncovered leaf (use it directly, no `@`) and `usize` is primitive, while `Set` already has semantic equality, so the projection is an identity-shaped struct that pins exactly these three dimensions.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"WritesView\",\n  \"view_decl\": \"pub struct WritesView { pub core: Core, pub tso: Set<usize>, pub nonpos: Set<Core> }\\n\\nimpl View for Writes {\\n    type V = WritesView;\\n    closed spec fn view(&self) -> WritesView {\\n        WritesView { core: self.core, tso: self.tso, nonpos: self.nonpos }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"All three fields are spec-meaningful: `core` names the current writer, `tso` records pending TSO addresses, and `nonpos` records cores with non-positional staleness. `Core` is an uncovered leaf (use it directly, no `@`) and `usize` is primitive, while `Set` already has semantic equality, so the projection is an identity-shaped struct that pins exactly these three dimensions.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

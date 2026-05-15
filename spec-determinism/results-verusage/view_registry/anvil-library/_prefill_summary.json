@@ -1,0 +1,35 @@
+{
+  "project": "anvil-library",
+  "total_uncovered": 2,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "Execution",
+      "qualified_name": "Execution",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/anvil-library/unverified/a_to_temp_pred_equality.rs",
+      "source_line": 8,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "spec_fn(nat) -> T",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "TempPred",
+      "qualified_name": "TempPred",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/anvil-library/unverified/a_to_temp_pred_equality.rs",
+      "source_line": 13,
+      "deps": [
+        "Execution"
+      ],
+      "action": "ok",
+      "viewed_type": "spec_fn(Execution<T>) -> bool",
+      "critic_verdict": "accept"
+    }
+  ]
+}

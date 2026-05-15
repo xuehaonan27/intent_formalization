@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Assumes PTE implements View and Option<PTE>@ has the expected Option<<PTE as View>::V> shape; dependency view was not resolved in the provided context."
+  ],
+  "duration_s": 8.92
+}

@@ -1,0 +1,552 @@
+{
+  "function": "get_page_reference_counter",
+  "det_check_template": "proof fn det_get_page_reference_counter(self_: PageAllocator, page_ptr: PagePtr, r1: usize, r2: usize)\n    requires (self_.wf()), (self_.page_is_mapped(page_ptr)),\n    ensures\n        ({\n            &&& (r1 == self_.page_mappings(page_ptr).len() + self_.page_io_mappings(page_ptr).len())\n            &&& (r2 == self_.page_mappings(page_ptr).len() + self_.page_io_mappings(page_ptr).len())\n        }) ==> det_get_page_reference_counter_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "PageAllocator",
+        "fields": [
+          {
+            "name": "page_array",
+            "type": {
+              "kind": "unknown",
+              "name": "Array<Page, NUM_PAGES>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "Page",
+                  "fields": [
+                    {
+                      "name": "addr",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "PagePtr"
+                      }
+                    },
+                    {
+                      "name": "state",
+                      "type": {
+                        "kind": "enum",
+                        "name": "PageState",
+                        "variants": [
+                          {
+                            "name": "Unavailable4k"
+                          },
+                          {
+                            "name": "Unavailable2m"
+                          },
+                          {
+                            "name": "Unavailable1g"
+                          },
+                          {
+                            "name": "Pagetable"
+                          },
+                          {
+                            "name": "Allocated4k"
+                          },
+                          {
+                            "name": "Allocated2m"
+                          },
+                          {
+                            "name": "Allocated1g"
+                          },
+                          {
+                            "name": "Free4k"
+                          },
+                          {
+                            "name": "Free2m"
+                          },
+                          {
+                            "name": "Free1g"
+                          },
+                          {
+                            "name": "Mapped4k"
+                          },
+                          {
+                            "name": "Mapped2m"
+                          },
+                          {
+                            "name": "Mapped1g"
+                          },
+                          {
+                            "name": "Merged2m"
+                          },
+                          {
+                            "name": "Merged1g"
+                          },
+                          {
+                            "name": "Io"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "is_io_page",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "rev_pointer",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "SLLIndex"
+                      }
+                    },
+                    {
+                      "name": "ref_count",
+                      "type": {
+                        "kind": "usize",
+                        "name": "usize"
+                      }
+                    },
+                    {
+                      "name": "owning_container",
+                      "type": {
+                        "kind": "Option",
+                        "name": "Option<ContainerPtr>",
+                        "variants": [
+                          {
+                            "name": "Some",
+                            "inner": {
+                              "kind": "unknown",
+                              "name": "ContainerPtr"
+                            }
+                          },
+                          {
+                            "name": "None"
+                          }
+                        ],
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "ContainerPtr"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "mappings",
+                      "type": {
+                        "kind": "Ghost",
+                        "name": "Ghost<Set<(Pcid, VAddr)>>",
+                        "type_args": [
+                          {
+                            "kind": "Set",
+                            "name": "Set<(Pcid, VAddr)>",
+                            "type_args": [
+                              {
+                                "kind": "unknown",
+                                "name": "(Pcid, VAddr)"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "io_mappings",
+                      "type": {
+                        "kind": "Ghost",
+                        "name": "Ghost<Set<(IOid, VAddr)>>",
+                        "type_args": [
+                          {
+                            "kind": "Set",
+                            "name": "Set<(IOid, VAddr)>",
+                            "type_args": [
+                              {
+                                "kind": "unknown",
+                                "name": "(IOid, VAddr)"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "unknown",
+                  "name": "NUM_PAGES"
+                }
+              ]
+            }
+          },
+          {
+            "name": "free_pages_4k",
+            "type": {
+              "kind": "unknown",
+              "name": "StaticLinkedList<PagePtr, NUM_PAGES>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "PagePtr"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "NUM_PAGES"
+                }
+              ]
+            }
+          },
+          {
+            "name": "free_pages_2m",
+            "type": {
+              "kind": "unknown",
+              "name": "StaticLinkedList<PagePtr, NUM_PAGES>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "PagePtr"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "NUM_PAGES"
+                }
+              ]
+            }
+          },
+          {
+            "name": "free_pages_1g",
+            "type": {
+              "kind": "unknown",
+              "name": "StaticLinkedList<PagePtr, NUM_PAGES>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "PagePtr"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "NUM_PAGES"
+                }
+              ]
+            }
+          },
+          {
+            "name": "allocated_pages_4k",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "allocated_pages_2m",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "allocated_pages_1g",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapped_pages_4k",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapped_pages_2m",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapped_pages_1g",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Set<PagePtr>>",
+              "type_args": [
+                {
+                  "kind": "Set",
+                  "name": "Set<PagePtr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "page_perms_4k",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PagePtr, PagePerm4k>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PagePtr, PagePerm4k>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "PagePerm4k"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "page_perms_2m",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PagePtr, PagePerm2m>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PagePtr, PagePerm2m>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "PagePerm2m"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "page_perms_1g",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PagePtr, PagePerm1g>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PagePtr, PagePerm1g>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PagePtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "PagePerm1g"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "container_map_4k",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<ContainerPtr, Set<PagePtr>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    },
+                    {
+                      "kind": "Set",
+                      "name": "Set<PagePtr>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "PagePtr"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "container_map_2m",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<ContainerPtr, Set<PagePtr>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    },
+                    {
+                      "kind": "Set",
+                      "name": "Set<PagePtr>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "PagePtr"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "container_map_1g",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<ContainerPtr, Set<PagePtr>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<ContainerPtr, Set<PagePtr>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    },
+                    {
+                      "kind": "Set",
+                      "name": "Set<PagePtr>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "PagePtr"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PagePtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_page_reference_counter_equal(r1: usize, r2: usize) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_get_page_reference_counter_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_page_reference_counter",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "PageAllocator"
+}

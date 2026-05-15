@@ -1,0 +1,150 @@
+{
+  "function": "check_cdb",
+  "det_check_template": "proof fn det_check_cdb(cdb_c: MaybeCorruptedBytes<u64>, ?: Ghost<Seq<u8>>, ?: Ghost<bool>, ?: Ghost<Seq<int>>, r1: Option<bool>, r2: Option<bool>)\n    requires (forall|i: int| 0 <= i < cdb_addrs.len() ==> cdb_addrs[i] <= mem.len()), (all_elements_unique(cdb_addrs)), (({\n            let true_cdb_bytes = Seq::new(u64::spec_size_of() as nat, |i: int| mem[cdb_addrs[i]]);\n            let true_cdb = u64::spec_from_bytes(true_cdb_bytes);\n            &&& u64::bytes_parseable(true_cdb_bytes)\n            &&& true_cdb == CDB_FALSE || true_cdb == CDB_TRUE\n            &&& if impervious_to_corruption {\n                cdb_c@ == true_cdb_bytes\n            } else {\n                maybe_corrupted(cdb_c@, true_cdb_bytes, cdb_addrs)\n            }\n        })),\n    ensures\n        ({\n            &&& (({\n            let true_cdb_bytes = Seq::new(u64::spec_size_of() as nat, |i: int| mem[cdb_addrs[i]]);\n            let true_cdb = u64::spec_from_bytes(true_cdb_bytes);\n            match r1 {\n                Some(b) => if b {\n                    true_cdb == CDB_TRUE\n                } else {\n                    true_cdb == CDB_FALSE\n                },\n                None => !impervious_to_corruption,\n            }\n        }))\n            &&& (({\n            let true_cdb_bytes = Seq::new(u64::spec_size_of() as nat, |i: int| mem[cdb_addrs[i]]);\n            let true_cdb = u64::spec_from_bytes(true_cdb_bytes);\n            match r2 {\n                Some(b) => if b {\n                    true_cdb == CDB_TRUE\n                } else {\n                    true_cdb == CDB_FALSE\n                },\n                None => !impervious_to_corruption,\n            }\n        }))\n        }) ==> det_check_cdb_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "cdb_c",
+      "type": {
+        "kind": "unknown",
+        "name": "MaybeCorruptedBytes<u64>",
+        "type_args": [
+          {
+            "kind": "u64",
+            "name": "u64"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Seq<u8>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<u8>",
+            "type_args": [
+              {
+                "kind": "u8",
+                "name": "u8"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<bool>",
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Seq<int>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<int>",
+            "type_args": [
+              {
+                "kind": "int",
+                "name": "int"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<bool>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<bool>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "bool",
+              "name": "bool"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "bool",
+            "name": "bool"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_check_cdb_equal(r1: Option<bool>, r2: Option<bool>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n}",
+  "equal_fn_name": "det_check_cdb_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_check_cdb",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

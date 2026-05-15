@@ -1,0 +1,46 @@
+{
+  "function": "static_params",
+  "det_check_template": "proof fn det_static_params(r1: Parameters, r2: Parameters)\n    ensures\n        ({\n            &&& (r1@ == AbstractParameters::static_params())\n            &&& (r2@ == AbstractParameters::static_params())\n        }) ==> det_static_params_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "Parameters"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "Parameters"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct ParametersView { pub max_seqno: u64, pub max_delegations: u64 }\n\nimpl View for Parameters {\n    type V = ParametersView;\n    closed spec fn view(&self) -> ParametersView {\n        ParametersView { max_seqno: self.max_seqno, max_delegations: self.max_delegations }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_static_params_equal(r1: Parameters, r2: Parameters) -> bool {\n    (((r1).view() == (r2).view()))\n}",
+  "equal_fn_name": "det_static_params_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_static_params",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Parameters"
+}

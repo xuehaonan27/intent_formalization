@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["cpu_list uses self.cpu_list@ and declares Seq<Cpu>, but Array is listed as uncovered with no known view, so this dependency view is missing/unsupported."]
+}
+```

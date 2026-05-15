@@ -15,30 +15,37 @@
 即 "对相同输入，函数总是给出 spec 等价的输出"。
 
 输入：Verus 源码 + `requires/ensures` 注解
-输出：每个函数一个 `status ∈ {ok, ok_with_witness, verus_error, runner_crash}`
+输出：每个函数一个**原始** `status`，再从 `status=="ok"` 的结果里派生
+witness bucket。也就是说，`ok_with_witness` 不是 JSON 里的独立 status，
+而是 `status=="ok" && assumes != []`。
 
 ```
-ok            函数证明确定 (z3 unsat，无反例)
-ok_with_witness  z3 找到 spec 维度上的反例，但 Verus 仍然 accept 等式函数
-verus_error   生成的等式函数本身过不了 Verus 类型检查
+raw status:
+ok            pipeline 跑通；可能有 witness，也可能没有
+verus_error   生成的等式函数 / 注入代码过不了 Verus 类型检查
 runner_crash  pipeline 内部错误
+
+derived buckets:
+ok_without_witness  status=="ok" && assumes==[]：ensures 足以推出 equal-fn
+ok_with_witness     status=="ok" && assumes!=[]：schema search 保留了一组
+                    反例 assumes，说明当前 equal-fn 下仍有 spec 维度没钉住
 ```
 
-理想分布：**ok 多、witness 少、verus_error 少**。
+理想分布：**raw ok 多，其中 ok_with_witness 少，verus_error 少**。
 
 ### 1.2 三条优化轴
 
 | 轴 | 含义 | 失败现象 |
 |---|---|---|
-| **A-1** | 等式函数 narrowing 不够 | verus_error：z3 没法 narrow 到关键维度 |
+| **A-1** | 可观测维度 / 投影识别不足 | `verus_error` / partial witness / `pass_untranslatable`：工具看不到 spec 提到的内部维度 |
 | **A-2** | 等式函数过于严苛 | ok_with_witness（false positive）：把语义相等的两次执行视为不等 |
 | **A-3** | 等式函数语义错误 | verus_error：嵌套结构里 Err 该 collapse 没 collapse |
 
 Phase 1 baseline（commit `42c1248`，n=1647 跨 7 项目）：
 
 ```
-ok           1455   ← 目标：往上推
-ok_with_witness  376   ← A-2 主战场
+ok           1455   ← raw ok 总数；目标：往上推
+ok_with_witness  376   ← raw ok 的子集；A-2 主战场
 verus_error   191   ← A-1 + A-3 主战场
 runner_crash    1
 ```
@@ -53,17 +60,17 @@ Verus + z3 检查：在 ensures 下 `eq(r1, r2)` 是否恒成立。
 **关键约束**：equal-fn **完全由返回类型决定**（外加可配置 policy，比如 PR-G 的
 errs-equivalent）。它**不会**根据 ensures 的内容"挑一个能证的版本"。所以：
 
-| verdict | 含义 |
+| verdict bucket | 含义 |
 |---|---|
-| `ok` | spec（ensures）足以推出 spec 层确定性 |
-| `ok_with_witness` | ensures 不够强 —— 工具给出 spec-meaningful 反例（→ 提示用户补 ensures） |
+| `ok_without_witness` | spec（ensures）足以推出当前 equal-fn 定义下的 spec 层确定性 |
+| `ok_with_witness` | raw `ok`，但 `assumes` 非空：ensures 不够强，或 equal-fn 仍有 A-2 噪音 —— 工具给出反例维度供用户判断 |
 | `verus_error` / `runner_crash` | **工具坏掉**，verdict 不带信号 |
 
 PR-F / PR-G 的目的**不是**"让更多 fn 显得 complete"，而是：
 
-1. 把"工具坏掉"（verus_error）翻成"工具能用 + 真实信号"（ok / ok_with_witness）
-2. 在 ensures 已经紧的少数情形下顺便给出 `ok`
-3. 把 spurious witness（来自 byte-level noise，A-2 轴）变成 meaningful witness 或 `ok`
+1. 把"工具坏掉"（verus_error）翻成"工具能用 + 真实信号"（ok_without_witness / ok_with_witness）
+2. 在 ensures 已经紧的少数情形下顺便给出 `ok_without_witness`
+3. 把 spurious witness（来自 byte-level noise，A-2 轴）变成 meaningful witness 或 `ok_without_witness`
 
 下面 6 个例子分别展示这三种翻转。
 
@@ -84,7 +91,7 @@ ensures **故意只钉长度，不钉元素** —— 这是真实 atmosphere 里
 
 **PR-F 的胜利**：把 verdict 从"工具坏掉"翻成"工具正常 + 真实 incompleteness
 信号"。如果用户后续把 ensures 紧到 `r@ == state.log@`，verdict 会进一步变成
-`ok`（z3 用 transitivity chain 过去）—— 但那是用户的事，不是 PR-F 的事。
+`ok_without_witness`（z3 用 transitivity chain 过去）—— 但那是用户的事，不是 PR-F 的事。
 
 #### A-1 例 2 ── `Tracked<PointsTo<u32>>` 输出（storage 形态）
 
@@ -121,9 +128,9 @@ ensures 钉了 `r.id@`（即 `id` 投到 `Seq<u8>` 的视图）—— **这次 s
 | | 生成的 equal-fn | z3 反例 | verdict |
 |---|---|---|---|
 | 无 view-registry | `r1 == r2` —— `Vec` 结构 `==` 比 `ptr / cap / len`，是 runtime 噪音 | `r1.cap=8, r2.cap=16, 内容都等于 bytes@` —— **byte 层的 spurious 反例**，spec 层无意义 | **ok_with_witness（spurious）** —— 信号噪比低 |
-| L4-synth view | `r1.view() == r2.view()`，`view()` 投到 `Seq<u8>` —— spec 层比较 | （unsat：`r1.view().id == bytes@ == r2.view().id`） | **ok** |
+| L4-synth view | `r1.view() == r2.view()`，`view()` 投到 `Seq<u8>` —— spec 层比较 | （unsat：`r1.view().id == bytes@ == r2.view().id`） | **ok_without_witness** |
 
-**view-registry 的胜利**：把 spurious witness 翻成 `ok`。等价于"剥掉 runtime
+**view-registry 的胜利**：把 spurious witness 翻成 `ok_without_witness`。等价于"剥掉 runtime
 噪音后，spec 实际上够 tight，工具能 chain 出确定性"。
 
 #### A-2 例 2 ── enum + 自递归类型
@@ -146,7 +153,7 @@ ensures 故意只钉长度。
 
 **PR-E 的胜利**：**verdict 状态不变**（都是 ok_with_witness），但 witness 质量
 从 spurious（指针噪音）翻成 meaningful（spec 层 underdetermined）。如果用户后续
-把 ensures 紧到 `r =~= t` 之类，post 会变成 `ok`，pre 仍是 spurious witness。
+把 ensures 紧到 `r =~= t` 之类，post 会变成 `ok_without_witness`，pre 仍是 spurious witness。
 
 #### A-3 例 1 ── `Seq<Result<u32, MyErr>>` 输出
 
@@ -280,23 +287,31 @@ quarantine 的）→ 又抓出 4 个隐藏错误，新增 quarantine。
 LLM 倾向于写：
 
 ```rust
-type V = PTDirView { entries: Seq<Option<PTDir>>, ... }   // 元素是原类型！
-fn view(&self) { entries: self.entries@, ... }
+pub struct PTDirView { entries: Seq<Option<PTDirView>>, ... }  // V 里递归位置换成 View
+impl View for PTDir {
+    type V = PTDirView;
+    fn view(&self) -> PTDirView {
+        PTDirView { entries: self.entries@, ... }              // bare @ 不会 descend
+    }
+}
 ```
 
 但 `<Seq<Option<T>> as View>::V = Seq<Option<T>>`（identity） →
-**inner View 从来没被 apply** → equal-fn collapse 成 trivial 真。
-静默 bug。
+`self.entries@` 仍是 `Seq<Option<PTDir>>`，不会自动变成
+`Seq<Option<PTDirView>>`。这会让 V 声明和 body 类型不匹配；如果用别的
+绕法把类型凑过去，也容易留下结构比较 / 错误抽象的 silent bug。
 
-**M4 lint**：catch 这一类 —— 类型声明的 V 里有 `T@`-lifted inner，但
-body 写 bare `self.f@`。`lint_view_decl` priority: **M3 > M2 > M4 > M1**。
+**M4 lint**：catch 这一类 —— V 的递归位置里出现 `TView`，但 body 写 bare
+`self.f@`。`lint_view_decl` priority: **M3 > M2 > M4 > M1**。
 
 **Prompt 改造**：`view/llm.py` 的 `_VIEW_SCHEMA_DOC` 加了 80 行
 "Self-recursive types" 章节，列三条路：
 
-- **Option A**：递归 lift（`type V = MyView { entries: Seq<Option<MyView>> }`），最贵
-- **Option B**：V mirror concrete inner（`Seq<Option<MyView>>` 但 inner 是 spec 版的 MyView），中等
-- **Option C**：`type V = Self`（叶子复用 self 类型），最便宜
+- **Option A**：递归 lift（`PTDirView { entries: Seq<Option<PTDirView>> }`）+
+  显式 `Seq::new` / `match` lifting，最贵
+- **Option B**：V mirror concrete inner（`PTDirView { entries: Seq<Option<PTDir>> }`），
+  body 直接复制 `self.entries`，中等
+- **Option C**：`type V = Self` + body `*self`，最便宜
 
 且 `build_view_prompt` 在检测到自递归类型时，在 schema doc 之前**显式插入一段
 告警**，把 offending field 名字 callout 出来（不是只让 LLM 自己读出问题）。
@@ -392,7 +407,8 @@ prompt → "下面这段 view 看起来对吗？请 verdict accept / revise / re
 ```
 
 - `accept` → 缓存
-- `revise` → 把 critic 的修订意见反馈给原 LLM 重生成
+- `revise` → **仍然缓存**；把 critic 的意见记录到 `critic_issues`，供人工后续审
+  （当前实现不会自动触发重生成）
 - `reject` → 写 `_rejected.jsonl`
 
 Critic 的 acceptance criteria 写在 `docs/critic-criteria.md`，被 prompt 引用，
@@ -417,9 +433,9 @@ winning view（accept controls）。
 `scripts/compare_runs.py` 拿 baseline vs candidate 出 transition table：
 
 ```
-fixed         witness → ok          (真 win)
+fixed         witness → ok          (脚本原文；含义是 ok_without_witness，真 win)
 witness → verus_error              (view 编译但阻塞，不算 win)
-regressed     ok → verus_error    (必须 ≈ 0 才能 land)
+regressed     clean ok → verus_error  (脚本原文；无 witness 的 raw ok，必须 ≈ 0 才能 land)
 ```
 
 `scripts/auto_chain.sh` 把 "等 prefill → rerun → compare" 串成一条链。
@@ -427,6 +443,9 @@ regressed     ok → verus_error    (必须 ≈ 0 才能 land)
 ---
 
 ## 6. 数字
+
+口径：下面的 `witness` 都指派生 bucket `ok_with_witness`，是 raw `ok`
+的子集；所以 `ok + witness + verus_error` 不能相加等于 `n`。
 
 ### 6.1 Baseline (`42c1248`, 2026-04-29)
 
@@ -445,7 +464,7 @@ ok=1456 (+1)  witness=366 (-10)  verus_error=190 (-1)
 ### 6.3 Post-PR-F + PR-G (`4eb7376`, atmosphere rerun 进行中)
 
 预测：A-1 (~29) + A-3 (~30) cohort 应该 drop verus_error 到 ~130
-区间。Atmosphere 进度 41% （5/12 04:30 时 560/1363），剩余 ~1h45m。
+区间。Atmosphere 进度 69%（2026-05-12 较新快照：944/1363），ETA ~30 分钟。
 
 **Per-target cost +62%**（4.89s → 7.93s/target，schema 增多导致 SMT 文件
 更大）。属于 expected tradeoff。

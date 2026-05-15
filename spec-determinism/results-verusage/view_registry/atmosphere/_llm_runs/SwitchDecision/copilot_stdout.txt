@@ -1,0 +1,12 @@
+● Read prompt.md
+  │ results-verusage/view_registry/atmosphere/_llm_runs/SwitchDecision/prompt.md
+  └ 109 lines read
+
+Now I'll write the response. The type is a simple unit-variant enum, so the cleanest projection is the identity view.
+
+● Create response.md +9
+  └ results-verusage/view_registry/atmosphere/_llm_runs/SwitchDecision/response.
+    md
+
+Response written to `results-verusage/view_registry/atmosphere/_llm_runs/SwitchDecision/response.md`. The view uses identity projection since `SwitchDecision` is a unit-variant enum where structural equality is already semantic.
+

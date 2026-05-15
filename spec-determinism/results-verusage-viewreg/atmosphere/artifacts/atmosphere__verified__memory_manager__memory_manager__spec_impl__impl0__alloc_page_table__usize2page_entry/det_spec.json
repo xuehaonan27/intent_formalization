@@ -1,0 +1,54 @@
+{
+  "function": "usize2page_entry",
+  "det_check_template": "proof fn det_usize2page_entry(v: usize, r1: PageEntry, r2: PageEntry)\n    ensures\n        ({\n            &&& (r1 =~= spec_usize2page_entry(v))\n            &&& (v == 0 ==> r1.addr == 0 && r1.perm.present == false && r1.perm.ps == false\n            && r1.perm.write == false && r1.perm.execute_disable == false && r1.perm.user\n            == false)\n            &&& (r2 =~= spec_usize2page_entry(v))\n            &&& (v == 0 ==> r2.addr == 0 && r2.perm.present == false && r2.perm.ps == false\n            && r2.perm.write == false && r2.perm.execute_disable == false && r2.perm.user\n            == false)\n        }) ==> det_usize2page_entry_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "v",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "PageEntry"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "PageEntry"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct PageEntryView { pub addr: usize, pub perm: PageEntryPerm }\n\nimpl View for PageEntry {\n    type V = PageEntryView;\n    closed spec fn view(&self) -> PageEntryView {\n        PageEntryView { addr: self.addr, perm: self.perm }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_usize2page_entry_equal(r1: PageEntry, r2: PageEntry) -> bool {\n    (((r1).view() == (r2).view()))\n}",
+  "equal_fn_name": "det_usize2page_entry_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_usize2page_entry",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

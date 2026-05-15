@@ -1,0 +1,38 @@
+● Read prompt.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/Constants/prompt.md
+  └ 113 lines read
+
+Let me check the codebase to understand the patterns used.
+
+● Find nrkernel project directory (shell)
+  │ find /home/chentianyu/intent_formalization -type d -name "nrkernel"
+  │ 2>/dev/null | head -5
+  └ 4 lines...
+
+● List sibling LLM runs (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/nrkernel/_llm_runs/ | head -20
+  └ 21 lines...
+
+● List Core and State runs (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/nrkernel/_llm_runs/Core/ /home/chentianyu/intent_formalization/
+  │ spec-determinism/results-verusage/view_registry/nrkernel/_llm_runs/State/
+  │ 2>/dev/null
+  └ 8 lines...
+
+● Read response.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/Core/response.md
+  └ 8 lines read
+
+● Read response.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/State/response.md
+  └ 8 lines read
+
+I see the pattern from existing responses (State, Core) - leaf types without View impls are projected structurally (no `@`). Let me write the response.
+
+● Create response.md +9
+  └ results-verusage/view_registry/nrkernel/_llm_runs/Constants/response.md
+
+Response written to the target file. The view projects all three fields of `os::Constants` (mirroring the pattern used in sibling `State`/`Core` responses): leaf types `crate::Constants` and `Core` pass through structurally since they have no View impl yet, and `ult_no: nat` is copied as a primitive.
+

@@ -1,0 +1,103 @@
+You are auditing a Verus `impl View` block that another LLM just generated.
+A view is a pure spec-level projection of a runtime type to its
+information content: anything spec assertions need to compare semantically
+should survive; runtime ghost fields / permissions / raw pointers should
+be collapsed away.
+
+Your job is to spot **semantic** mistakes — the text already parses.
+Report only mistakes that matter. Do not nitpick style.
+
+## Common mistakes (non-exhaustive)
+
+1. **Lost information.** A struct field is used in spec ensures (e.g.
+   `post.field == old(self).field` or `self.field@`) but the view drops
+   it or replaces it with `()`.
+2. **Wrong container shape.** `Vec<T>` viewed as `Set<T@>` or `Multiset<T@>`
+   when spec accesses by index (`v[i]`) — should be `Seq<T@>`.
+3. **Primitive `@`.** A primitive (usize/u32/bool/char/…) cannot be
+   `@`-projected — Verus rejects `5_usize@`. Primitives stay verbatim.
+4. **type V mismatch.** The declared `type V = X;` doesn't match the body
+   of `spec fn view(&self) -> Self::V { … }` — different shape or fields.
+5. **Over-aggressive collapse.** A struct with real state (not just
+   pointers) collapsed to `type V = ();` — fine only when all fields are
+   ghost / raw-pointer.
+6. **Missing dep view.** Field of type `T` (which has a known view) used
+   as `self.field` instead of `self.field@`, leaving structural eq.
+7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
+   on element) when spec actually inspects element fields.
+
+## Output
+
+Reply with a SINGLE fenced ```json block of this exact shape, nothing
+else (no prose before or after):
+
+```json
+{
+  "verdict": "accept" | "revise" | "reject",
+  "issues": ["<short string per issue>", "..."]
+}
+```
+
+- `accept`: no issues found, view looks correct.
+- `revise`: minor concerns (cosmetic, edge cases) but the view still
+  compiles and preserves enough info. List concerns in `issues`.
+- `reject`: a hard mistake from the list above (or equivalent). The
+  view will fail typecheck or lose spec-relevant information.
+
+If you cannot tell whether the view is correct because of missing
+context (e.g. the dependency view is unknown), prefer `accept` with an
+issue noting the uncertainty. Do not reject for missing context alone.
+
+
+## Target type (atmosphere)
+
+Qualified name: `Registers`
+Short name: `Registers`
+
+```rust
+pub struct Registers {
+    pub r15: u64,
+    pub r14: u64,
+    pub r13: u64,
+    pub r12: u64,
+    pub rbp: u64,
+    pub rbx: u64,
+    pub r11: u64,
+    pub r10: u64,
+    pub r9: u64,
+    pub r8: u64,
+    pub rcx: u64,
+    pub rdx: u64,
+    pub rsi: u64,
+    pub rdi: u64,
+    pub rax: u64,
+    // Original interrupt stack frame
+    pub error_code: u64,
+    pub rip: u64,
+    pub cs: u64,
+    pub flags: u64,
+    pub rsp: u64,
+    pub ss: u64,
+}
+```
+
+## Dependency views already in scope
+
+  (no dependency views resolved)
+
+## Candidate view (from the generator LLM)
+
+Declared `viewed_type`: `RegistersView`
+
+```rust
+pub struct RegistersView { pub r15: u64, pub r14: u64, pub r13: u64, pub r12: u64, pub rbp: u64, pub rbx: u64, pub r11: u64, pub r10: u64, pub r9: u64, pub r8: u64, pub rcx: u64, pub rdx: u64, pub rsi: u64, pub rdi: u64, pub rax: u64, pub error_code: u64, pub rip: u64, pub cs: u64, pub flags: u64, pub rsp: u64, pub ss: u64 }
+
+impl View for Registers {
+    type V = RegistersView;
+    closed spec fn view(&self) -> RegistersView {
+        RegistersView { r15: self.r15, r14: self.r14, r13: self.r13, r12: self.r12, rbp: self.rbp, rbx: self.rbx, r11: self.r11, r10: self.r10, r9: self.r9, r8: self.r8, rcx: self.rcx, rdx: self.rdx, rsi: self.rsi, rdi: self.rdi, rax: self.rax, error_code: self.error_code, rip: self.rip, cs: self.cs, flags: self.flags, rsp: self.rsp, ss: self.ss }
+    }
+}
+```
+
+Generator's rationale: Every field is a u64 primitive capturing saved CPU register state for an interrupt stack frame; each register is architecturally observable and likely spec-meaningful, so the view mirrors all fields verbatim with no omissions or recursive `@` projections (u64 is a primitive whose value is its own view).

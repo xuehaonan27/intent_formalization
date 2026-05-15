@@ -1,0 +1,637 @@
+{
+  "project": "atmosphere",
+  "total_uncovered": 36,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "Node",
+      "qualified_name": "Node",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 33,
+      "deps": [
+        "SLLIndex"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "NodeView<T::V>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "StaticLinkedList",
+      "qualified_name": "StaticLinkedList",
+      "kind": "struct",
+      "n_fields": 12,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 42,
+      "deps": [
+        "Node",
+        "SLLIndex"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Seq<T>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Page",
+      "qualified_name": "Page",
+      "kind": "struct",
+      "n_fields": 8,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 107,
+      "deps": [
+        "PagePtr",
+        "PageState",
+        "SLLIndex",
+        "ContainerPtr",
+        "Pcid",
+        "VAddr",
+        "IOid"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageAllocator",
+      "qualified_name": "PageAllocator",
+      "kind": "struct",
+      "n_fields": 16,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 120,
+      "deps": [
+        "Array",
+        "Page",
+        "StaticLinkedList",
+        "PagePtr",
+        "PagePerm4k",
+        "PagePerm2m",
+        "PagePerm1g",
+        "ContainerPtr"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "PageState",
+      "qualified_name": "PageState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 16,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 548,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageState",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Array",
+      "qualified_name": "Array",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs",
+      "source_line": 571,
+      "deps": [],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "ArraySet",
+      "qualified_name": "ArraySet",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/array_set__impl0__init.rs",
+      "source_line": 46,
+      "deps": [
+        "Array"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Set<usize>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "DeviceTable",
+      "qualified_name": "DeviceTable",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 75,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "DeviceTableView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageMap",
+      "qualified_name": "PageMap",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 159,
+      "deps": [
+        "Array",
+        "PageEntry"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageMapView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageEntryPerm",
+      "qualified_name": "PageEntryPerm",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 180,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageEntryPermView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageEntry",
+      "qualified_name": "PageEntry",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 189,
+      "deps": [
+        "PAddr",
+        "PageEntryPerm"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageEntryView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "MapEntry",
+      "qualified_name": "MapEntry",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 209,
+      "deps": [
+        "PAddr"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "MapEntryView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageTable",
+      "qualified_name": "PageTable",
+      "kind": "struct",
+      "n_fields": 18,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 287,
+      "deps": [
+        "PageMapPtr",
+        "Pcid",
+        "IOid",
+        "PageMap",
+        "L4Index",
+        "L3Index",
+        "L2Index",
+        "VAddr",
+        "MapEntry",
+        "PageEntry"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "PageTableView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Container",
+      "qualified_name": "Container",
+      "kind": "struct",
+      "n_fields": 14,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 982,
+      "deps": [
+        "ContainerPtr",
+        "SLLIndex",
+        "StaticLinkedList",
+        "ProcPtr",
+        "EndpointPtr",
+        "ThreadPtr",
+        "Quota",
+        "ArraySet"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ContainerView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Uncertainty: StaticLinkedList, Quota, and ArraySet are marked uncovered, so this assumes View impls for them are actually available in the broader codebase."
+      ]
+    },
+    {
+      "type_short": "Process",
+      "qualified_name": "Process",
+      "kind": "struct",
+      "n_fields": 12,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1012,
+      "deps": [
+        "ContainerPtr",
+        "SLLIndex",
+        "Pcid",
+        "IOid",
+        "StaticLinkedList",
+        "ThreadPtr",
+        "ProcPtr",
+        "DemandPagingMode"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "Cpu",
+      "qualified_name": "Cpu",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1030,
+      "deps": [
+        "ContainerPtr",
+        "ThreadPtr"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CpuView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Endpoint",
+      "qualified_name": "Endpoint",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1038,
+      "deps": [
+        "StaticLinkedList",
+        "ThreadPtr",
+        "EndpointState",
+        "EndpointIdx",
+        "ContainerPtr"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "EndpointView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes StaticLinkedList and EndpointState View impls exist or will be supplied; their concrete views are not known from the provided context."
+      ]
+    },
+    {
+      "type_short": "ProcessManager",
+      "qualified_name": "ProcessManager",
+      "kind": "struct",
+      "n_fields": 6,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1048,
+      "deps": [
+        "ContainerPtr",
+        "Container",
+        "ProcPtr",
+        "Process",
+        "ThreadPtr",
+        "Thread",
+        "EndpointPtr",
+        "Endpoint",
+        "Array",
+        "Cpu"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "Thread",
+      "qualified_name": "Thread",
+      "kind": "struct",
+      "n_fields": 13,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1293,
+      "deps": [
+        "ContainerPtr",
+        "ProcPtr",
+        "ThreadState",
+        "SLLIndex",
+        "EndpointPtr",
+        "EndpointIdx",
+        "CpuId",
+        "Array",
+        "IPCPayLoad",
+        "RetValueType",
+        "TrapFrameOption"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "IPCPayLoad",
+      "qualified_name": "IPCPayLoad",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 6,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1311,
+      "deps": [
+        "VAddr",
+        "VaRange4K",
+        "EndpointIdx"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "IPCPayLoadView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PCIBitMap",
+      "qualified_name": "PCIBitMap",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1343,
+      "deps": [
+        "IOid"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<(IOid, u8, u8, u8), bool>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "RootTable",
+      "qualified_name": "RootTable",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1363,
+      "deps": [
+        "IOid",
+        "DeviceTable"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "RootTableView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "MemoryManager",
+      "qualified_name": "MemoryManager",
+      "kind": "struct",
+      "n_fields": 13,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1391,
+      "deps": [
+        "Array",
+        "PageEntry",
+        "ArrayVec",
+        "Pcid",
+        "ProcPtr",
+        "PageTable",
+        "PagePtr",
+        "IOid",
+        "RootTable",
+        "PCIBitMap"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "Kernel",
+      "qualified_name": "Kernel",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1835,
+      "deps": [
+        "PageAllocator",
+        "MemoryManager",
+        "ProcessManager",
+        "PagePtr",
+        "ProcPtr",
+        "VAddr"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "KernelView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Uncertainty: PageAllocator, MemoryManager, and ProcessManager are listed as uncovered, so correctness depends on whether View impls for those managers actually exist in the surrounding context."
+      ]
+    },
+    {
+      "type_short": "ThreadState",
+      "qualified_name": "ThreadState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1968,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ThreadState",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "EndpointState",
+      "qualified_name": "EndpointState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 1975,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "EndpointState",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "RetValueType",
+      "qualified_name": "RetValueType",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 11,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2003,
+      "deps": [],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "DemandPagingMode",
+      "qualified_name": "DemandPagingMode",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 4,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2052,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "DemandPagingModeView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "TrapFrameOption",
+      "qualified_name": "TrapFrameOption",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2061,
+      "deps": [
+        "Registers"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "TrapFrameOptionView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Registers has no known dependency view, so this assumes identity preserves its spec-relevant state."
+      ]
+    },
+    {
+      "type_short": "Registers",
+      "qualified_name": "Registers",
+      "kind": "struct",
+      "n_fields": 21,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2068,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "RegistersView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "ArrayVec",
+      "qualified_name": "ArrayVec",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2144,
+      "deps": [
+        "Array"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "VaRange4K",
+      "qualified_name": "VaRange4K",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2204,
+      "deps": [
+        "VAddr"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "VaRange4KView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Quota",
+      "qualified_name": "Quota",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+      "source_line": 2239,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "QuotaView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "SwitchDecision",
+      "qualified_name": "SwitchDecision",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__schedule_idle_cpu__impl0__schedule_idle_cpu.rs",
+      "source_line": 1870,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "SwitchDecision",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "SyscallReturnStruct",
+      "qualified_name": "SyscallReturnStruct",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__schedule_idle_cpu__impl0__schedule_idle_cpu.rs",
+      "source_line": 1877,
+      "deps": [
+        "RetValueType",
+        "Pcid",
+        "SwitchDecision"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "SyscallReturnStructView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "UserRetValueType",
+      "qualified_name": "UserRetValueType",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 4,
+      "source_file": "../verusage/source-projects/atmosphere/unverified/kernel__syscall_mmap__impl0__syscall_mmap.rs",
+      "source_line": 1809,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "UserRetValueType",
+      "critic_verdict": "accept"
+    }
+  ]
+}

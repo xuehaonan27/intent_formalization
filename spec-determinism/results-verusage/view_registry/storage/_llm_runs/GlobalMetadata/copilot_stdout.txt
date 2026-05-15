@@ -1,0 +1,9 @@
+● Read prompt.md
+  │ results-verusage/view_registry/storage/_llm_runs/GlobalMetadata/prompt.md
+  └ 109 lines read
+
+● Create response.md +9
+  └ results-verusage/view_registry/storage/_llm_runs/GlobalMetadata/response.md
+
+Response file written.
+

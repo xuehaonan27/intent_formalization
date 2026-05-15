@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "KeyIterator has no known view in scope, so carrying lo/hi structurally is assumed correct but cannot be semantically verified."
+  ],
+  "duration_s": 10.01
+}

@@ -1,0 +1,678 @@
+{
+  "function": "set_self_fast",
+  "det_check_template": "proof fn det_set_self_fast(pre_self_: Registers, src: Registers, post1_self_: Registers, r1: (), post2_self_: Registers, r2: ())\n    ensures\n        ({\n            &&& (post1_self_ == src)\n            &&& (post2_self_ == src)\n        }) ==> det_set_self_fast_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Registers",
+        "fields": [
+          {
+            "name": "r15",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r14",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r13",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r12",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r11",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r10",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r9",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r8",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rcx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rax",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rip",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "cs",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "flags",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "ss",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "src",
+      "type": {
+        "kind": "struct",
+        "name": "Registers",
+        "fields": [
+          {
+            "name": "r15",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r14",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r13",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r12",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r11",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r10",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r9",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r8",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rcx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rax",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rip",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "cs",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "flags",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "ss",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Registers",
+        "fields": [
+          {
+            "name": "r15",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r14",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r13",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r12",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r11",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r10",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r9",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r8",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rcx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rax",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rip",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "cs",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "flags",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "ss",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Registers",
+        "fields": [
+          {
+            "name": "r15",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r14",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r13",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r12",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r11",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r10",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r9",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r8",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rcx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rax",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rip",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "cs",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "flags",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "ss",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_set_self_fast_equal(r1: (), r2: (), post1_self_: Registers, post2_self_: Registers) -> bool {\n    (r1 == r2)\n    && ((post1_self_.r15 == post2_self_.r15) && (post1_self_.r14 == post2_self_.r14) && (post1_self_.r13 == post2_self_.r13) && (post1_self_.r12 == post2_self_.r12) && (post1_self_.rbp == post2_self_.rbp) && (post1_self_.rbx == post2_self_.rbx) && (post1_self_.r11 == post2_self_.r11) && (post1_self_.r10 == post2_self_.r10) && (post1_self_.r9 == post2_self_.r9) && (post1_self_.r8 == post2_self_.r8) && (post1_self_.rcx == post2_self_.rcx) && (post1_self_.rdx == post2_self_.rdx) && (post1_self_.rsi == post2_self_.rsi) && (post1_self_.rdi == post2_self_.rdi) && (post1_self_.rax == post2_self_.rax) && (post1_self_.error_code == post2_self_.error_code) && (post1_self_.rip == post2_self_.rip) && (post1_self_.cs == post2_self_.cs) && (post1_self_.flags == post2_self_.flags) && (post1_self_.rsp == post2_self_.rsp) && (post1_self_.ss == post2_self_.ss))\n}",
+  "equal_fn_name": "det_set_self_fast_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_set_self_fast",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Registers"
+}

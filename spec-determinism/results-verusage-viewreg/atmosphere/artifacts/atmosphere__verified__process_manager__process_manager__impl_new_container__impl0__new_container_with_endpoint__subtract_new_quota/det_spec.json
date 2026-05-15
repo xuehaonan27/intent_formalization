@@ -1,0 +1,230 @@
+{
+  "function": "subtract_new_quota",
+  "det_check_template": "proof fn det_subtract_new_quota(pre_self_: Quota, new: Quota, post1_self_: Quota, r1: (), post2_self_: Quota, r2: ())\n    requires (pre_self_.mem_4k >= new.mem_4k), (pre_self_.mem_2m >= new.mem_2m), (pre_self_.mem_1g >= new.mem_1g), (pre_self_.pcid >= new.pcid), (pre_self_.ioid >= new.ioid),\n    ensures\n        ({\n            &&& (pre_self_.spec_subtract_new_quota(post1_self_, new))\n            &&& (pre_self_.spec_subtract_new_quota(post2_self_, new))\n        }) ==> det_subtract_new_quota_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Quota",
+        "fields": [
+          {
+            "name": "mem_4k",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_2m",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_1g",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "new",
+      "type": {
+        "kind": "struct",
+        "name": "Quota",
+        "fields": [
+          {
+            "name": "mem_4k",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_2m",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_1g",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Quota",
+        "fields": [
+          {
+            "name": "mem_4k",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_2m",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_1g",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "Quota",
+        "fields": [
+          {
+            "name": "mem_4k",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_2m",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_1g",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct QuotaView { pub mem_4k: int, pub mem_2m: int, pub mem_1g: int, pub pcid: int, pub ioid: int }\n\nimpl View for Quota {\n    type V = QuotaView;\n    closed spec fn view(&self) -> QuotaView {\n        QuotaView {\n            mem_4k: self.mem_4k as int,\n            mem_2m: self.mem_2m as int,\n            mem_1g: self.mem_1g as int,\n            pcid: self.pcid as int,\n            ioid: self.ioid as int,\n        }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_subtract_new_quota_equal(r1: (), r2: (), post1_self_: Quota, post2_self_: Quota) -> bool {\n    (r1 == r2)\n    && (((post1_self_).view() == (post2_self_).view()))\n}",
+  "equal_fn_name": "det_subtract_new_quota_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_subtract_new_quota",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Quota"
+}

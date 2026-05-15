@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Uncertainty: StaticLinkedList, Quota, and ArraySet are marked uncovered, so this assumes View impls for them are actually available in the broader codebase."
+  ],
+  "duration_s": 11.71
+}

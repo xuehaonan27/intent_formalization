@@ -1,0 +1,18 @@
+● Read prompt.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/WrappedUnmapToken/prompt.m
+  │ d
+  └ 110 lines read
+
+Now I'll analyze the type and write the response. The type has three fields:
+- `tok: Token` (tracked) — semantic token, no View available, keep by identity
+- `change_made: bool` (ghost) — primitive, keep by identity
+- `orig_st: State` (ghost) — no View available, but spec-meaningful, keep by identity
+
+None of the fields are raw pointers or allocator handles, so we keep all three. Since `Token` and `State` are uncovered leaves (no View), we use them as-is (no `@`).
+
+● Create response.md +9
+  └ results-verusage/view_registry/nrkernel/_llm_runs/WrappedUnmapToken/response
+    .md
+
+Response written to `results-verusage/view_registry/nrkernel/_llm_runs/WrappedUnmapToken/response.md`.
+

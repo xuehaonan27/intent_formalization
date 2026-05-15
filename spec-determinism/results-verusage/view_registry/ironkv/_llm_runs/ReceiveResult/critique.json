@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "CPacket's dependency view is uncovered, so this is correct assuming CPacket implements View with the intended abstract packet semantics."
+  ],
+  "duration_s": 8.64
+}

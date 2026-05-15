@@ -1,0 +1,11 @@
+● Read prompt.md
+  │ results-verusage/view_registry/atmosphere/_llm_runs/Process/prompt.md
+  └ 125 lines read
+
+Looking at the task, I need to design a View projection for the `Process` struct that captures only semantically-meaningful dimensions.
+
+● Create response.md +9
+  └ results-verusage/view_registry/atmosphere/_llm_runs/Process/response.md
+
+Response written to `results-verusage/view_registry/atmosphere/_llm_runs/Process/response.md`.
+

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "HashMap",
+  "qualified_name": "HashMap",
+  "source_hash": "f4f4e2b6133e8371",
+  "view_source": "L4-llm",
+  "viewed_type": "Map<EndPoint, V>",
+  "view_decl": "impl<V> View for HashMap<V> {\n    type V = Map<EndPoint, V>;\n    closed spec fn view(&self) -> Map<EndPoint, V> {\n        self.m@\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "The struct is a thin wrapper holding a single std::collections::HashMap<EndPoint, V>; the spec only cares about the abstract key-to-value relation, not the hash-table's allocator/bucket layout. Projecting via vstd's HashMap view (View<V = Map<Key, Value>>) yields Map<EndPoint, V>, which discards physical-layout noise while preserving the full mapping. EndPoint is a leaf-identity type and V is generic, so neither is recursively @-projected at the key/value position.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Map<EndPoint, V>\",\n  \"view_decl\": \"impl<V> View for HashMap<V> {\\n    type V = Map<EndPoint, V>;\\n    closed spec fn view(&self) -> Map<EndPoint, V> {\\n        self.m@\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"The struct is a thin wrapper holding a single std::collections::HashMap<EndPoint, V>; the spec only cares about the abstract key-to-value relation, not the hash-table's allocator/bucket layout. Projecting via vstd's HashMap view (View<V = Map<Key, Value>>) yields Map<EndPoint, V>, which discards physical-layout noise while preserving the full mapping. EndPoint is a leaf-identity type and V is generic, so neither is recursively @-projected at the key/value position.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

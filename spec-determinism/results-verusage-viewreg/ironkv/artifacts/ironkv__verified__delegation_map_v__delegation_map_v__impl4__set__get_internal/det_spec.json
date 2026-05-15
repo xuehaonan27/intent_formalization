@@ -1,0 +1,62 @@
+{
+  "function": "get_internal",
+  "det_check_template": "proof fn det_get_internal<K: KeyTrait + VerusClone>(self_: DelegationMap<K>, k: K, r1: (ID, Ghost<KeyIterator<K>>), r2: (ID, Ghost<KeyIterator<K>>))\n    requires (self_.valid()),\n    ensures\n        ({\n            &&& (({\n            let (id, glb) = r1;\n            &&& id@ == self_@[k]\n            &&& self_.lows.greatest_lower_bound_spec(KeyIterator::new_spec(k), glb@)\n            &&& id@.valid_physical_address()\n    }))\n            &&& (({\n            let (id, glb) = r2;\n            &&& id@ == self_@[k]\n            &&& self_.lows.greatest_lower_bound_spec(KeyIterator::new_spec(k), glb@)\n            &&& id@.valid_physical_address()\n    }))\n        }) ==> det_get_internal_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "DelegationMap<K>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(ID, Ghost<KeyIterator<K>>)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(ID, Ghost<KeyIterator<K>>)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_internal_equal<K: KeyTrait + VerusClone>(r1: (ID, Ghost<KeyIterator<K>>), r2: (ID, Ghost<KeyIterator<K>>)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_get_internal_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_internal",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<K: KeyTrait + VerusClone>",
+  "where_decl": "",
+  "self_type": "DelegationMap<K>"
+}

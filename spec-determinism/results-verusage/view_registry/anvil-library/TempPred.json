@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "TempPred",
+  "qualified_name": "TempPred",
+  "source_hash": "a0c95c14bc4caf54",
+  "view_source": "L4-llm",
+  "viewed_type": "spec_fn(Execution<T>) -> bool",
+  "view_decl": "impl<T> View for TempPred<T> {\n    type V = spec_fn(Execution<T>) -> bool;\n    closed spec fn view(&self) -> Self::V {\n        self.pred\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "TempPred is a thin newtype around a single spec_fn(Execution<T>) -> bool, and two temporal predicates are semantically equal iff their underlying predicates agree on every execution \u2014 exactly the extensional equality spec_fn already provides. Projecting to the bare spec_fn drops the struct wrapper so the checker compares predicates directly; Execution<T> is left at identity because it is currently uncovered (no view rule), and T has no View bound so it stays identity as well.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"spec_fn(Execution<T>) -> bool\",\n  \"view_decl\": \"impl<T> View for TempPred<T> {\\n    type V = spec_fn(Execution<T>) -> bool;\\n    closed spec fn view(&self) -> Self::V {\\n        self.pred\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"TempPred is a thin newtype around a single spec_fn(Execution<T>) -> bool, and two temporal predicates are semantically equal iff their underlying predicates agree on every execution \u2014 exactly the extensional equality spec_fn already provides. Projecting to the bare spec_fn drops the struct wrapper so the checker compares predicates directly; Execution<T> is left at identity because it is currently uncovered (no view rule), and T has no View bound so it stays identity as well.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

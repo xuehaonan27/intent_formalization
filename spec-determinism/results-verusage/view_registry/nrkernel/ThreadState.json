@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type_short": "ThreadState",
+  "qualified_name": "hlspec::ThreadState",
+  "source_hash": "fbd9421151bbbbd5",
+  "view_source": "L4-llm",
+  "viewed_type": "ThreadStateView",
+  "view_decl": "pub enum ThreadStateView {\n    Map { vaddr: nat, pte: <PTE as View>::V },\n    Unmap { vaddr: nat, pte: Option<<PTE as View>::V> },\n    Idle,\n}\n\nimpl View for ThreadState {\n    type V = ThreadStateView;\n    closed spec fn view(&self) -> ThreadStateView {\n        match self {\n            ThreadState::Map { vaddr, pte } => ThreadStateView::Map { vaddr: *vaddr, pte: pte@ },\n            ThreadState::Unmap { vaddr, pte } => ThreadStateView::Unmap { vaddr: *vaddr, pte: pte@ },\n            ThreadState::Idle => ThreadStateView::Idle,\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "PTE"
+  ],
+  "rationale": "ThreadState is a tagged union the spec discriminates on, so the view mirrors the variant structure exactly. vaddr is a spec nat used as an address key \u2014 kept by value. PTE has no resolved view yet, so we project it through `@` (and Option<PTE> through Option's blanket View impl), recording PTE as a dependency for recursive synthesis.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"ThreadStateView\",\n  \"view_decl\": \"pub enum ThreadStateView {\\n    Map { vaddr: nat, pte: <PTE as View>::V },\\n    Unmap { vaddr: nat, pte: Option<<PTE as View>::V> },\\n    Idle,\\n}\\n\\nimpl View for ThreadState {\\n    type V = ThreadStateView;\\n    closed spec fn view(&self) -> ThreadStateView {\\n        match self {\\n            ThreadState::Map { vaddr, pte } => ThreadStateView::Map { vaddr: *vaddr, pte: pte@ },\\n            ThreadState::Unmap { vaddr, pte } => ThreadStateView::Unmap { vaddr: *vaddr, pte: pte@ },\\n            ThreadState::Idle => ThreadStateView::Idle,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"PTE\"],\n  \"rationale\": \"ThreadState is a tagged union the spec discriminates on, so the view mirrors the variant structure exactly. vaddr is a spec nat used as an address key \u2014 kept by value. PTE has no resolved view yet, so we project it through `@` (and Option<PTE> through Option's blanket View impl), recording PTE as a dependency for recursive synthesis.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Assumes PTE implements View and Option<PTE>@ has the expected Option<<PTE as View>::V> shape; dependency view was not resolved in the provided context."
+  ]
+}

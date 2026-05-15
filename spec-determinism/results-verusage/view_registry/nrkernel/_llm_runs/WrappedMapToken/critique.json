@@ -1,0 +1,7 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "Token and os::State are marked uncovered, so using <T as View>::V and self.field@ assumes dependency View impls that are not known to exist; this will fail typecheck unless those leaf views are synthesized separately."
+  ],
+  "duration_s": 12.24
+}

@@ -1,0 +1,136 @@
+You are auditing a Verus `impl View` block that another LLM just generated.
+A view is a pure spec-level projection of a runtime type to its
+information content: anything spec assertions need to compare semantically
+should survive; runtime ghost fields / permissions / raw pointers should
+be collapsed away.
+
+Your job is to spot **semantic** mistakes — the text already parses.
+Report only mistakes that matter. Do not nitpick style.
+
+## Common mistakes (non-exhaustive)
+
+1. **Lost information.** A struct field is used in spec ensures (e.g.
+   `post.field == old(self).field` or `self.field@`) but the view drops
+   it or replaces it with `()`.
+2. **Wrong container shape.** `Vec<T>` viewed as `Set<T@>` or `Multiset<T@>`
+   when spec accesses by index (`v[i]`) — should be `Seq<T@>`.
+3. **Primitive `@`.** A primitive (usize/u32/bool/char/…) cannot be
+   `@`-projected — Verus rejects `5_usize@`. Primitives stay verbatim.
+4. **type V mismatch.** The declared `type V = X;` doesn't match the body
+   of `spec fn view(&self) -> Self::V { … }` — different shape or fields.
+5. **Over-aggressive collapse.** A struct with real state (not just
+   pointers) collapsed to `type V = ();` — fine only when all fields are
+   ghost / raw-pointer.
+6. **Missing dep view.** Field of type `T` (which has a known view) used
+   as `self.field` instead of `self.field@`, leaving structural eq.
+7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
+   on element) when spec actually inspects element fields.
+
+## Output
+
+Reply with a SINGLE fenced ```json block of this exact shape, nothing
+else (no prose before or after):
+
+```json
+{
+  "verdict": "accept" | "revise" | "reject",
+  "issues": ["<short string per issue>", "..."]
+}
+```
+
+- `accept`: no issues found, view looks correct.
+- `revise`: minor concerns (cosmetic, edge cases) but the view still
+  compiles and preserves enough info. List concerns in `issues`.
+- `reject`: a hard mistake from the list above (or equivalent). The
+  view will fail typecheck or lose spec-relevant information.
+
+If you cannot tell whether the view is correct because of missing
+context (e.g. the dependency view is unknown), prefer `accept` with an
+issue noting the uncertainty. Do not reject for missing context alone.
+
+
+## Target type (nrkernel)
+
+Qualified name: `os::CoreState`
+Short name: `CoreState`
+
+```rust
+pub enum CoreState {
+    Idle,
+    MapWaiting { ult_id: nat, vaddr: nat, pte: PTE },
+    MapExecuting { ult_id: nat, vaddr: nat, pte: PTE },
+    MapDone { ult_id: nat, vaddr: nat, pte: PTE, result: Result<(), ()> },
+    UnmapWaiting { ult_id: nat, vaddr: nat },
+    UnmapExecuting { ult_id: nat, vaddr: nat, result: Option<Result<PTE, ()>> },
+    UnmapOpDone { ult_id: nat, vaddr: nat, result: Result<PTE, ()> },
+    UnmapShootdownWaiting { ult_id: nat, vaddr: nat, result: Result<PTE, ()> },
+}
+```
+
+## Dependency views already in scope
+
+  (no dependency views resolved)
+
+## Candidate view (from the generator LLM)
+
+Declared `viewed_type`: `CoreStateView`
+
+```rust
+pub enum CoreStateView {
+    Idle,
+    MapWaiting { ult_id: nat, vaddr: nat, pte: <PTE as View>::V },
+    MapExecuting { ult_id: nat, vaddr: nat, pte: <PTE as View>::V },
+    MapDone { ult_id: nat, vaddr: nat, pte: <PTE as View>::V, result: Result<(), ()> },
+    UnmapWaiting { ult_id: nat, vaddr: nat },
+    UnmapExecuting { ult_id: nat, vaddr: nat, result: Option<Result<<PTE as View>::V, ()>> },
+    UnmapOpDone { ult_id: nat, vaddr: nat, result: Result<<PTE as View>::V, ()> },
+    UnmapShootdownWaiting { ult_id: nat, vaddr: nat, result: Result<<PTE as View>::V, ()> },
+}
+
+impl View for CoreState {
+    type V = CoreStateView;
+    closed spec fn view(&self) -> CoreStateView {
+        match self {
+            CoreState::Idle => CoreStateView::Idle,
+            CoreState::MapWaiting { ult_id, vaddr, pte } =>
+                CoreStateView::MapWaiting { ult_id: *ult_id, vaddr: *vaddr, pte: pte@ },
+            CoreState::MapExecuting { ult_id, vaddr, pte } =>
+                CoreStateView::MapExecuting { ult_id: *ult_id, vaddr: *vaddr, pte: pte@ },
+            CoreState::MapDone { ult_id, vaddr, pte, result } =>
+                CoreStateView::MapDone { ult_id: *ult_id, vaddr: *vaddr, pte: pte@, result: *result },
+            CoreState::UnmapWaiting { ult_id, vaddr } =>
+                CoreStateView::UnmapWaiting { ult_id: *ult_id, vaddr: *vaddr },
+            CoreState::UnmapExecuting { ult_id, vaddr, result } =>
+                CoreStateView::UnmapExecuting {
+                    ult_id: *ult_id,
+                    vaddr: *vaddr,
+                    result: match result {
+                        Option::Some(Result::Ok(p)) => Option::Some(Result::Ok(p@)),
+                        Option::Some(Result::Err(_)) => Option::Some(Result::Err(())),
+                        Option::None => Option::None,
+                    },
+                },
+            CoreState::UnmapOpDone { ult_id, vaddr, result } =>
+                CoreStateView::UnmapOpDone {
+                    ult_id: *ult_id,
+                    vaddr: *vaddr,
+                    result: match result {
+                        Result::Ok(p) => Result::Ok(p@),
+                        Result::Err(_) => Result::Err(()),
+                    },
+                },
+            CoreState::UnmapShootdownWaiting { ult_id, vaddr, result } =>
+                CoreStateView::UnmapShootdownWaiting {
+                    ult_id: *ult_id,
+                    vaddr: *vaddr,
+                    result: match result {
+                        Result::Ok(p) => Result::Ok(p@),
+                        Result::Err(_) => Result::Err(()),
+                    },
+                },
+        }
+    }
+}
+```
+
+Generator's rationale: CoreState is an enum tracking the lifecycle of map/unmap operations; the variant tag is itself semantic, so we mirror the enum with a parallel CoreStateView. Every field carries information the spec actually constrains: ult_id and vaddr are nat (Verus primitive, kept as-is), Result<(),()> has only unit payloads so it is copied verbatim, and PTE is an opaque user type whose semantic equality is delegated to its own View, with Option/Result wrappers projected component-wise.

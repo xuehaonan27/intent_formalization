@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Registers has no known dependency view, so this assumes identity preserves its spec-relevant state."]
+}
+```

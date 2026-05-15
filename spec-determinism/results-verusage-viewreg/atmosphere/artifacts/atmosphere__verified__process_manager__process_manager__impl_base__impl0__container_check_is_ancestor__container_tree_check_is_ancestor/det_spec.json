@@ -1,0 +1,375 @@
+{
+  "function": "container_tree_check_is_ancestor",
+  "det_check_template": "proof fn det_container_tree_check_is_ancestor(root_container: ContainerPtr, container_perms: Tracked<Map<ContainerPtr, PointsTo<Container>>>, a_ptr: ContainerPtr, child_ptr: ContainerPtr, r1: bool, r2: bool)\n    requires (container_perms_wf(container_perms@)), (container_tree_wf(root_container, container_perms@)), (container_perms@.dom().contains(a_ptr)), (container_perms@.dom().contains(child_ptr)), (container_perms@[a_ptr].value().depth < container_perms@[child_ptr].value().depth),\n    ensures\n        ({\n            &&& (r1 == container_perms@[child_ptr].value().uppertree_seq@.contains(a_ptr))\n            &&& (r1 == container_perms@[a_ptr].value().subtree_set@.contains(child_ptr))\n            &&& (r2 == container_perms@[child_ptr].value().uppertree_seq@.contains(a_ptr))\n            &&& (r2 == container_perms@[a_ptr].value().subtree_set@.contains(child_ptr))\n        }) ==> det_container_tree_check_is_ancestor_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "root_container",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "container_perms",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<Map<ContainerPtr, PointsTo<Container>>>",
+        "type_args": [
+          {
+            "kind": "Map",
+            "name": "Map<ContainerPtr, PointsTo<Container>>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "ContainerPtr"
+              },
+              {
+                "kind": "PointsTo",
+                "name": "PointsTo<Container>",
+                "type_args": [
+                  {
+                    "kind": "struct",
+                    "name": "Container",
+                    "fields": [
+                      {
+                        "name": "parent",
+                        "type": {
+                          "kind": "Option",
+                          "name": "Option<ContainerPtr>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "ContainerPtr"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ContainerPtr"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "parent_rev_ptr",
+                        "type": {
+                          "kind": "Option",
+                          "name": "Option<SLLIndex>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "SLLIndex"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "SLLIndex"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "children",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "StaticLinkedList<ContainerPtr, CONTAINER_CHILD_LIST_LEN>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ContainerPtr"
+                            },
+                            {
+                              "kind": "unknown",
+                              "name": "CONTAINER_CHILD_LIST_LEN"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "depth",
+                        "type": {
+                          "kind": "usize",
+                          "name": "usize"
+                        }
+                      },
+                      {
+                        "name": "uppertree_seq",
+                        "type": {
+                          "kind": "Ghost",
+                          "name": "Ghost<Seq<ContainerPtr>>",
+                          "type_args": [
+                            {
+                              "kind": "Seq",
+                              "name": "Seq<ContainerPtr>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "ContainerPtr"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "subtree_set",
+                        "type": {
+                          "kind": "Ghost",
+                          "name": "Ghost<Set<ContainerPtr>>",
+                          "type_args": [
+                            {
+                              "kind": "Set",
+                              "name": "Set<ContainerPtr>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "ContainerPtr"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "root_process",
+                        "type": {
+                          "kind": "Option",
+                          "name": "Option<ProcPtr>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "ProcPtr"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "owned_procs",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "StaticLinkedList<ProcPtr, CONTAINER_PROC_LIST_LEN>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            },
+                            {
+                              "kind": "unknown",
+                              "name": "CONTAINER_PROC_LIST_LEN"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "owned_endpoints",
+                        "type": {
+                          "kind": "Ghost",
+                          "name": "Ghost<Set<EndpointPtr>>",
+                          "type_args": [
+                            {
+                              "kind": "Set",
+                              "name": "Set<EndpointPtr>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "EndpointPtr"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "owned_threads",
+                        "type": {
+                          "kind": "Ghost",
+                          "name": "Ghost<Set<ThreadPtr>>",
+                          "type_args": [
+                            {
+                              "kind": "Set",
+                              "name": "Set<ThreadPtr>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "ThreadPtr"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "quota",
+                        "type": {
+                          "kind": "struct",
+                          "name": "Quota",
+                          "fields": [
+                            {
+                              "name": "mem_4k",
+                              "type": {
+                                "kind": "usize",
+                                "name": "usize"
+                              }
+                            },
+                            {
+                              "name": "mem_2m",
+                              "type": {
+                                "kind": "usize",
+                                "name": "usize"
+                              }
+                            },
+                            {
+                              "name": "mem_1g",
+                              "type": {
+                                "kind": "usize",
+                                "name": "usize"
+                              }
+                            },
+                            {
+                              "name": "pcid",
+                              "type": {
+                                "kind": "usize",
+                                "name": "usize"
+                              }
+                            },
+                            {
+                              "name": "ioid",
+                              "type": {
+                                "kind": "usize",
+                                "name": "usize"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "owned_cpus",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "ArraySet<NUM_CPUS>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "NUM_CPUS"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "scheduler",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "StaticLinkedList<ThreadPtr, MAX_CONTAINER_SCHEDULER_LEN>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ThreadPtr"
+                            },
+                            {
+                              "kind": "unknown",
+                              "name": "MAX_CONTAINER_SCHEDULER_LEN"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "can_have_children",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "a_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "child_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_container_tree_check_is_ancestor_equal(r1: bool, r2: bool) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_container_tree_check_is_ancestor_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_container_tree_check_is_ancestor",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

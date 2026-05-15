@@ -1,0 +1,96 @@
+{
+  "function": "remove_helper1",
+  "det_check_template": "proof fn det_remove_helper1<T: Copy, const N: usize>(pre_self_: StaticLinkedList<T, N>, remove_index: SLLIndex, v: Ghost<T>, post1_self_: StaticLinkedList<T, N>, r1: T, post2_self_: StaticLinkedList<T, N>, r2: T)\n    requires (pre_self_.wf()), (pre_self_@.contains(v@)), (pre_self_.get_node_ref(v@) == remove_index), (pre_self_.value_list_len == 1),\n    ensures\n        ({\n            &&& (post1_self_.wf())\n            &&& (post1_self_.len() == pre_self_.len() - 1)\n            &&& (r1 == v@)\n            &&& (post1_self_.unique())\n            &&& (post1_self_@ =~= pre_self_@.remove_value(r1))\n            &&& (forall|v:T|\n                #![auto]\n                post1_self_@.contains(v) ==> \n                    pre_self_.get_node_ref(v) == \n                        post1_self_.get_node_ref(v))\n            &&& (post2_self_.wf())\n            &&& (post2_self_.len() == pre_self_.len() - 1)\n            &&& (r2 == v@)\n            &&& (post2_self_.unique())\n            &&& (post2_self_@ =~= pre_self_@.remove_value(r2))\n            &&& (forall|v:T|\n                #![auto]\n                post2_self_@.contains(v) ==> \n                    pre_self_.get_node_ref(v) == \n                        post2_self_.get_node_ref(v))\n        }) ==> det_remove_helper1_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StaticLinkedList<T, N>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "remove_index",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "v",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StaticLinkedList<T, N>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StaticLinkedList<T, N>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_remove_helper1_equal<T: Copy, const N: usize>(r1: T, r2: T, post1_self_: StaticLinkedList<T, N>, post2_self_: StaticLinkedList<T, N>) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_remove_helper1_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_remove_helper1",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T: Copy, const N: usize>",
+  "where_decl": "",
+  "self_type": "StaticLinkedList<T, N>"
+}

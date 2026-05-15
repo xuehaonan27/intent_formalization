@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "CPacket view is marked uncovered, so correctness depends on a View impl for CPacket being available elsewhere."
+  ],
+  "duration_s": 8.34
+}

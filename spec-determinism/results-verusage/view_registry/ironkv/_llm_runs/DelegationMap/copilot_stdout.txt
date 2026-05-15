@@ -1,0 +1,38 @@
+● Read prompt.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/DelegationMap/prompt.md
+  └ 109 lines read
+
+● List target directory (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/ironkv/_llm_runs/DelegationMap/
+  └ 2 lines...
+
+● Search for DelegationMap in codebase (shell)
+  │ grep -rn "DelegationMap" /home/chentianyu/intent_formalization
+  │ --include="*.rs" 2>/dev/null | head -30
+  └ 31 lines...
+
+● Read injected.rs
+  │ results-verusage/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v
+  │ __impl2__effect_of_delegation_map_set__get/injected.rs
+  └ L220:280 (52 lines read)
+
+● Search for existing View impl (shell)
+  │ grep -n "impl.*View.*DelegationMap\|spec fn view"
+  │ /home/chentianyu/intent_formalization/spec-determinism/results-verusage/iron
+  │ kv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__effect_of_de
+  │ legation_map_set__get/injected.rs | head -20
+  └ 4 lines...
+
+● Read injected.rs
+  │ results-verusage/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v
+  │ __impl2__effect_of_delegation_map_set__get/injected.rs
+  └ L50:60 (11 lines read)
+
+Now I have full confirmation. IronKV's existing inherent `view` for DelegationMap returns `Map<K, AbstractEndPoint>` via `self.m@`. I'll wrap this in the required `impl View` trait form.
+
+● Create response.md +9
+  └ results-verusage/view_registry/ironkv/_llm_runs/DelegationMap/response.md
+
+Response file written. The View impl projects `DelegationMap<K>` to `Map<K, AbstractEndPoint>` via `self.m@`, omitting the concrete `lows` field (which is just an invariant-tied encoding of `m`). This matches IronKV's own inherent `view` definition.
+

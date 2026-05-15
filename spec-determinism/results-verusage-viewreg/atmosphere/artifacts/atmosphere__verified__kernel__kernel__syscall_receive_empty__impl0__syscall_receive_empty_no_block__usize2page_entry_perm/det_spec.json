@@ -1,0 +1,54 @@
+{
+  "function": "usize2page_entry_perm",
+  "det_check_template": "proof fn det_usize2page_entry_perm(v: usize, r1: PageEntryPerm, r2: PageEntryPerm)\n    ensures\n        ({\n            &&& (r1 =~= spec_usize2page_entry_perm(v))\n            &&& (v == 0 ==> r1.present == false && r1.ps == false && r1.write == false\n            && r1.execute_disable == false && r1.user == false)\n            &&& (r2 =~= spec_usize2page_entry_perm(v))\n            &&& (v == 0 ==> r2.present == false && r2.ps == false && r2.write == false\n            && r2.execute_disable == false && r2.user == false)\n        }) ==> det_usize2page_entry_perm_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "v",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "PageEntryPerm"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "PageEntryPerm"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct PageEntryPermView { pub present: bool, pub ps: bool, pub write: bool, pub execute_disable: bool, pub user: bool }\n\nimpl View for PageEntryPerm {\n    type V = PageEntryPermView;\n    closed spec fn view(&self) -> PageEntryPermView {\n        PageEntryPermView {\n            present: self.present,\n            ps: self.ps,\n            write: self.write,\n            execute_disable: self.execute_disable,\n            user: self.user,\n        }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_usize2page_entry_perm_equal(r1: PageEntryPerm, r2: PageEntryPerm) -> bool {\n    (((r1).view() == (r2).view()))\n}",
+  "equal_fn_name": "det_usize2page_entry_perm_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_usize2page_entry_perm",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

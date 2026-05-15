@@ -1,0 +1,90 @@
+{
+  "function": "set",
+  "det_check_template": "proof fn det_set<A, const N: usize>(pre_self_: Array<A, N>, i: usize, out: A, post1_self_: Array<A, N>, r1: (), post2_self_: Array<A, N>, r2: ())\n    requires (0 <= i < N), (pre_self_.wf()),\n    ensures\n        ({\n            &&& (post1_self_.seq@ =~= pre_self_.seq@.update(i as int, out))\n            &&& (post1_self_.wf())\n            &&& (post2_self_.seq@ =~= pre_self_.seq@.update(i as int, out))\n            &&& (post2_self_.wf())\n        }) ==> det_set_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<A, N>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "i",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "out",
+      "type": {
+        "kind": "unknown",
+        "name": "A"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<A, N>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<A, N>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_set_equal<A, const N: usize>(r1: (), r2: (), post1_self_: Array<A, N>, post2_self_: Array<A, N>) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_set_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_set",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<A, const N: usize>",
+  "where_decl": "",
+  "self_type": "Array<A, N>"
+}

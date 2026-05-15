@@ -1,0 +1,291 @@
+{
+  "project": "storage",
+  "total_uncovered": 20,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "PersistentMemoryByte",
+      "qualified_name": "PersistentMemoryByte",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/append_L_tentatively_append.rs",
+      "source_line": 4,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PersistentMemoryByteView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PersistentMemoryRegionView",
+      "qualified_name": "PersistentMemoryRegionView",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/append_L_tentatively_append.rs",
+      "source_line": 22,
+      "deps": [
+        "PersistentMemoryByte"
+      ],
+      "action": "ok",
+      "viewed_type": "Seq<PersistentMemoryByte>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "AbstractLogState",
+      "qualified_name": "AbstractLogState",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/append_L_tentatively_append.rs",
+      "source_line": 76,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "AbstractLogStateView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "LogInfo",
+      "qualified_name": "LogInfo",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/append_L_tentatively_append.rs",
+      "source_line": 93,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "LogInfoView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "GlobalMetadata",
+      "qualified_name": "GlobalMetadata",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/inv_L_active_metadata_set_after_crash.rs",
+      "source_line": 111,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "GlobalMetadataView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "RegionMetadata",
+      "qualified_name": "RegionMetadata",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/inv_L_active_metadata_set_after_crash.rs",
+      "source_line": 124,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "RegionMetadataView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "LogMetadata",
+      "qualified_name": "LogMetadata",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/inv_L_active_metadata_set_after_crash.rs",
+      "source_line": 136,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "LogMetadataView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "UntrustedLogImpl",
+      "qualified_name": "UntrustedLogImpl",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_L_check_fast_way_to_compute_head_mod_log_area_len.rs",
+      "source_line": 14,
+      "deps": [
+        "LogInfo",
+        "AbstractLogState"
+      ],
+      "action": "ok",
+      "viewed_type": "UntrustedLogImplView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Correctness depends on LogInfo and AbstractLogState actually having View impls; they are listed as uncovered in the provided context."
+      ]
+    },
+    {
+      "type_short": "TrustedPermission",
+      "qualified_name": "TrustedPermission",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_advance_head.rs",
+      "source_line": 530,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "spec_fn(Seq<u8>) -> bool",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "LogErr",
+      "qualified_name": "LogErr",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 12,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_advance_head.rs",
+      "source_line": 540,
+      "deps": [
+        "PmemError"
+      ],
+      "action": "ok",
+      "viewed_type": "LogErr",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PmemError",
+      "qualified_name": "PmemError",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 5,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_advance_head.rs",
+      "source_line": 870,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PmemError",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PersistentMemoryConstants",
+      "qualified_name": "PersistentMemoryConstants",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_advance_head.rs",
+      "source_line": 959,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "bool",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "WriteRestrictedPersistentMemoryRegion",
+      "qualified_name": "WriteRestrictedPersistentMemoryRegion",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_advance_head.rs",
+      "source_line": 989,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PersistentMemoryRegionView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "PMRegion dependency View impl was not resolved in the provided context, so this assumes PersistentMemoryRegion provides or implies View<V = PersistentMemoryRegionView>."
+      ]
+    },
+    {
+      "type_short": "WriteRestrictedPersistentMemorySubregion",
+      "qualified_name": "WriteRestrictedPersistentMemorySubregion",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/logimpl_tentatively_append.rs",
+      "source_line": 1124,
+      "deps": [
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView"
+      ],
+      "action": "ok",
+      "viewed_type": "WriteRestrictedPersistentMemorySubregionView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PersistentMemoryRegionsView",
+      "qualified_name": "PersistentMemoryRegionsView",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/pmemutil_L_auto_if_no_outstanding_writes_then_flush_is_idempotent.rs",
+      "source_line": 42,
+      "deps": [
+        "PersistentMemoryRegionView"
+      ],
+      "action": "ok",
+      "viewed_type": "Seq<PersistentMemoryRegionView>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "ExternalDigest",
+      "qualified_name": "ExternalDigest",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/pmemutil_calculate_crc.rs",
+      "source_line": 6,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "ExternalDigestView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Digest's dependency view is not resolved in the provided context, so this assumes Digest implements View and that its view preserves the needed semantic content."
+      ]
+    },
+    {
+      "type_short": "CrcDigest",
+      "qualified_name": "CrcDigest",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/pmemutil_calculate_crc.rs",
+      "source_line": 10,
+      "deps": [
+        "ExternalDigest"
+      ],
+      "action": "failed"
+    },
+    {
+      "type_short": "MaybeCorruptedBytes",
+      "qualified_name": "MaybeCorruptedBytes",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/pmemutil_check_cdb.rs",
+      "source_line": 83,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "Seq<u8>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PersistentMemorySubregion",
+      "qualified_name": "PersistentMemorySubregion",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/start_read_log_variables.rs",
+      "source_line": 778,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PersistentMemorySubregionView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "WritablePersistentMemorySubregion",
+      "qualified_name": "WritablePersistentMemorySubregion",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/storage/unverified/subregion_L_condition_sufficient_to_create_wrpm_subregion.rs",
+      "source_line": 150,
+      "deps": [
+        "PersistentMemoryConstants",
+        "PersistentMemoryRegionView"
+      ],
+      "action": "ok",
+      "viewed_type": "WritablePersistentMemorySubregionView",
+      "critic_verdict": "accept"
+    }
+  ]
+}

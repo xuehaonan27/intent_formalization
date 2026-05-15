@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["Uses @/<Page as View>::V for Array, Page, and StaticLinkedList even though those dependency views are listed as uncovered; this will fail typecheck unless those View impls actually exist.", "page_array is declared as Seq<Page::V> and mapped with p@ despite Page having no known view, so the viewed_type depends on a missing dep view."]
+}
+```

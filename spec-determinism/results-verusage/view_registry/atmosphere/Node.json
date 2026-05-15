@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Node",
+  "qualified_name": "Node",
+  "source_hash": "3dd32ae0fe8de340",
+  "view_source": "L4-llm",
+  "viewed_type": "NodeView<T::V>",
+  "view_decl": "pub struct NodeView<T> { pub value: Option<T>, pub next: i32, pub prev: i32 }\n\nimpl<T: View> View for Node<T> {\n    type V = NodeView<T::V>;\n    closed spec fn view(&self) -> NodeView<T::V> {\n        NodeView {\n            value: self.value@,\n            next: self.next,\n            prev: self.prev,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Project value via Option's view (lifting T to T::V), which requires adding a T: View bound. next/prev are kept as i32 because SLLIndex is a primitive alias whose structural equality is already semantic, so no @ is applied.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"NodeView<T::V>\",\n  \"view_decl\": \"pub struct NodeView<T> { pub value: Option<T>, pub next: i32, pub prev: i32 }\\n\\nimpl<T: View> View for Node<T> {\\n    type V = NodeView<T::V>;\\n    closed spec fn view(&self) -> NodeView<T::V> {\\n        NodeView {\\n            value: self.value@,\\n            next: self.next,\\n            prev: self.prev,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Project value via Option's view (lifting T to T::V), which requires adding a T: View bound. next/prev are kept as i32 because SLLIndex is a primitive alias whose structural equality is already semantic, so no @ is applied.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

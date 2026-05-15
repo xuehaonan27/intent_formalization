@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "SwitchDecision",
+  "qualified_name": "SwitchDecision",
+  "source_hash": "ec3477725700ac2b",
+  "view_source": "L4-llm",
+  "viewed_type": "SwitchDecision",
+  "view_decl": "impl View for SwitchDecision {\n    type V = SwitchDecision;\n    closed spec fn view(&self) -> SwitchDecision {\n        *self\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "SwitchDecision is a C-style enum of three unit variants with no payload, so its structural equality already coincides with semantic equality. The identity view (Self as V, returning *self since the type is Copy) is the simplest correct projection and avoids introducing a redundant parallel view enum.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"SwitchDecision\",\n  \"view_decl\": \"impl View for SwitchDecision {\\n    type V = SwitchDecision;\\n    closed spec fn view(&self) -> SwitchDecision {\\n        *self\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"SwitchDecision is a C-style enum of three unit variants with no payload, so its structural equality already coincides with semantic equality. The identity view (Self as V, returning *self since the type is Copy) is the simplest correct projection and avoids introducing a redundant parallel view enum.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

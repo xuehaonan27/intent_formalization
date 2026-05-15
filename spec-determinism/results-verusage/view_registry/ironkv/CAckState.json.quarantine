@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type_short": "CAckState",
+  "qualified_name": "CAckState",
+  "source_hash": "6d74fcb9dace2406",
+  "view_source": "L4-llm",
+  "viewed_type": "CAckStateView",
+  "view_decl": "pub struct CAckStateView { pub num_packets_acked: u64, pub un_acked: Seq<<CSingleMessage as View>::V> }\n\nimpl View for CAckState {\n    type V = CAckStateView;\n    closed spec fn view(&self) -> CAckStateView {\n        CAckStateView {\n            num_packets_acked: self.num_packets_acked,\n            un_acked: self.un_acked@.map_values(|m: CSingleMessage| m@),\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "CSingleMessage"
+  ],
+  "rationale": "CAckState is an aggregate of an ack counter and the FIFO of single-messages still awaiting acknowledgment; IronKV's abstract spec keeps unAcked as a `seq<SingleMessage>` (sequence numbers impose a meaningful ordering), so we project Vec<CSingleMessage> to Seq<CSingleMessage::V> by deref'ing the Vec to its Seq view and then map_values'ing each element through its own View. The u64 counter is primitive and carried by identity. CSingleMessage is currently uncovered, so its `.view()` is flagged in depends_on_views_of for a future pass to synthesise.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"CAckStateView\",\n  \"view_decl\": \"pub struct CAckStateView { pub num_packets_acked: u64, pub un_acked: Seq<<CSingleMessage as View>::V> }\\n\\nimpl View for CAckState {\\n    type V = CAckStateView;\\n    closed spec fn view(&self) -> CAckStateView {\\n        CAckStateView {\\n            num_packets_acked: self.num_packets_acked,\\n            un_acked: self.un_acked@.map_values(|m: CSingleMessage| m@),\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"CSingleMessage\"],\n  \"rationale\": \"CAckState is an aggregate of an ack counter and the FIFO of single-messages still awaiting acknowledgment; IronKV's abstract spec keeps unAcked as a `seq<SingleMessage>` (sequence numbers impose a meaningful ordering), so we project Vec<CSingleMessage> to Seq<CSingleMessage::V> by deref'ing the Vec to its Seq view and then map_values'ing each element through its own View. The u64 counter is primitive and carried by identity. CSingleMessage is currently uncovered, so its `.view()` is flagged in depends_on_views_of for a future pass to synthesise.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "CSingleMessage view is uncovered, so correctness depends on a future View impl for CSingleMessage being available."
+  ]
+}

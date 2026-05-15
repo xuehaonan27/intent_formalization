@@ -1,0 +1,339 @@
+{
+  "function": "receive_real_packet_impl",
+  "det_check_template": "proof fn det_receive_real_packet_impl(pre_self_: CSingleDelivery, pkt: CPacket, post1_self_: CSingleDelivery, r1: bool, post2_self_: CSingleDelivery, r2: bool)\n    requires (pre_self_.valid()), (pkt.abstractable()), (pkt.msg is Message),\n    ensures\n        ({\n            &&& (post1_self_.valid())\n            &&& (SingleDelivery::receive_real_packet(pre_self_@, post1_self_@, pkt@))\n            &&& (r1 == SingleDelivery::new_single_message(pre_self_@, pkt@))\n            &&& (post2_self_.valid())\n            &&& (SingleDelivery::receive_real_packet(pre_self_@, post2_self_@, pkt@))\n            &&& (r2 == SingleDelivery::new_single_message(pre_self_@, pkt@))\n        }) ==> det_receive_real_packet_impl_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSingleDelivery",
+        "fields": [
+          {
+            "name": "receive_state",
+            "type": {
+              "kind": "struct",
+              "name": "CTombstoneTable",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<u64>",
+                    "type_args": [
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "send_state",
+            "type": {
+              "kind": "struct",
+              "name": "CSendState",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<CAckState>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "CAckState",
+                        "fields": [
+                          {
+                            "name": "num_packets_acked",
+                            "type": {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          },
+                          {
+                            "name": "un_acked",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<CSingleMessage>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "CSingleMessage"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pkt",
+      "type": {
+        "kind": "struct",
+        "name": "CPacket",
+        "fields": [
+          {
+            "name": "dst",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "src",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "msg",
+            "type": {
+              "kind": "unknown",
+              "name": "CSingleMessage"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSingleDelivery",
+        "fields": [
+          {
+            "name": "receive_state",
+            "type": {
+              "kind": "struct",
+              "name": "CTombstoneTable",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<u64>",
+                    "type_args": [
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "send_state",
+            "type": {
+              "kind": "struct",
+              "name": "CSendState",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<CAckState>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "CAckState",
+                        "fields": [
+                          {
+                            "name": "num_packets_acked",
+                            "type": {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          },
+                          {
+                            "name": "un_acked",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<CSingleMessage>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "CSingleMessage"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "CSingleDelivery",
+        "fields": [
+          {
+            "name": "receive_state",
+            "type": {
+              "kind": "struct",
+              "name": "CTombstoneTable",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<u64>",
+                    "type_args": [
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "send_state",
+            "type": {
+              "kind": "struct",
+              "name": "CSendState",
+              "fields": [
+                {
+                  "name": "epmap",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "HashMap<CAckState>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "CAckState",
+                        "fields": [
+                          {
+                            "name": "num_packets_acked",
+                            "type": {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          },
+                          {
+                            "name": "un_acked",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<CSingleMessage>",
+                              "type_args": [
+                                {
+                                  "kind": "unknown",
+                                  "name": "CSingleMessage"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_receive_real_packet_impl_equal(r1: bool, r2: bool, post1_self_: CSingleDelivery, post2_self_: CSingleDelivery) -> bool {\n    (r1 == r2)\n    && (((post1_self_.receive_state.epmap == post2_self_.receive_state.epmap)) && ((post1_self_.send_state.epmap == post2_self_.send_state.epmap)))\n}",
+  "equal_fn_name": "det_receive_real_packet_impl_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_receive_real_packet_impl",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "CSingleDelivery"
+}

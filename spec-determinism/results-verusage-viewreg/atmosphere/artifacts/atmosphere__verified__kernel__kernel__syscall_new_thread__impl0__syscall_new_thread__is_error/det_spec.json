@@ -1,0 +1,166 @@
+{
+  "function": "is_error",
+  "det_check_template": "proof fn det_is_error(self_: SyscallReturnStruct, r1: bool, r2: bool)\n    ensures\n        ({\n            &&& (r1 == self_.is_error())\n            &&& (r2 == self_.is_error())\n        }) ==> det_is_error_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "SyscallReturnStruct",
+        "fields": [
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "enum",
+              "name": "RetValueType",
+              "variants": [
+                {
+                  "name": "SuccessUsize"
+                },
+                {
+                  "name": "SuccessSeqUsize"
+                },
+                {
+                  "name": "SuccessPairUsize"
+                },
+                {
+                  "name": "SuccessThreeUsize"
+                },
+                {
+                  "name": "ErrorNoQuota"
+                },
+                {
+                  "name": "ErrorVaInUse"
+                },
+                {
+                  "name": "CpuIdle"
+                },
+                {
+                  "name": "Error"
+                },
+                {
+                  "name": "Else"
+                },
+                {
+                  "name": "NoQuota"
+                },
+                {
+                  "name": "VaInUse"
+                }
+              ]
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "Option",
+              "name": "Option<Pcid>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "unknown",
+                    "name": "Pcid"
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "Pcid"
+                }
+              ]
+            }
+          },
+          {
+            "name": "cr3",
+            "type": {
+              "kind": "Option",
+              "name": "Option<usize>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "usize",
+                  "name": "usize"
+                }
+              ]
+            }
+          },
+          {
+            "name": "switch_decision",
+            "type": {
+              "kind": "enum",
+              "name": "SwitchDecision",
+              "variants": [
+                {
+                  "name": "NoSwitch"
+                },
+                {
+                  "name": "NoThread"
+                },
+                {
+                  "name": "Switch"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_is_error_equal(r1: bool, r2: bool) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_is_error_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_is_error",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "SyscallReturnStruct"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "StrictlyOrderedVec",
+  "qualified_name": "StrictlyOrderedVec",
+  "source_hash": "79b4d81b84734be2",
+  "view_source": "L4-llm",
+  "viewed_type": "Seq<K>",
+  "view_decl": "impl<K: KeyTrait> View for StrictlyOrderedVec<K> {\n    type V = Seq<K>;\n    closed spec fn view(&self) -> Seq<K> {\n        self.v@\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "The type's name and intended invariant (a strictly ordered vector of keys) make element order spec-meaningful, so we project the single Vec<K> field via Vec's built-in view to Seq<K>. K is a generic KeyTrait parameter with no resolved View, so we leave it as the identity type rather than adding an unsupported View bound.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Seq<K>\",\n  \"view_decl\": \"impl<K: KeyTrait> View for StrictlyOrderedVec<K> {\\n    type V = Seq<K>;\\n    closed spec fn view(&self) -> Seq<K> {\\n        self.v@\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"The type's name and intended invariant (a strictly ordered vector of keys) make element order spec-meaningful, so we project the single Vec<K> field via Vec's built-in view to Seq<K>. K is a generic KeyTrait parameter with no resolved View, so we leave it as the identity type rather than adding an unsupported View bound.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

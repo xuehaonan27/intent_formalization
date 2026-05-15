@@ -1,0 +1,9 @@
+● Read prompt.md
+  │ results-verusage/view_registry/atmosphere/_llm_runs/PageState/prompt.md
+  └ 122 lines read
+
+● Create response.md +9
+  └ results-verusage/view_registry/atmosphere/_llm_runs/PageState/response.md
+
+Written. The enum has only unit variants with `#[derive(PartialEq)]`, so structural equality is already semantic — the view is the identity projection (`type V = PageState; view(&self) -> *self`).
+

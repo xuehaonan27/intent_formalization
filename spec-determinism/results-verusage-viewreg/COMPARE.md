@@ -2,8 +2,8 @@
 
 | | commit |
 |---|---|
-| baseline  | `42c1248` |
-| candidate | `33bd09a` |
+| baseline  | `a343a56` |
+| candidate | `4cd29b4` |
 
 Definitions:
 - **ok_with_witness** — Verus accepted the equal-fn but z3 emitted
@@ -24,22 +24,53 @@ Definitions:
 |---|---:|---:|---:|---|---:|
 | anvil-controller | 0 | 0 → 0 | 0 → 0 | 0 → 0 | 0 |
 | anvil-library | 1 | 0 → 0 | 1 → 1 | 0 → 0 | 0 |
-| atmosphere | 1363 | 1262 → 1262 | 100 → 100 | 289 → 288 | **-1** |
+| atmosphere | 1363 | 1262 → 1242 | 100 → 119 | 289 → 258 | **-31** |
 | ironkv | 214 | 170 → 171 | 44 → 43 | 76 → 76 | 0 |
 | memory-allocator | 16 | 15 → 15 | 1 → 1 | 9 → 1 | **-8** |
 | node-replication | 0 | 0 → 0 | 0 → 0 | 0 → 0 | 0 |
 | nrkernel | 8 | 6 → 6 | 2 → 2 | 1 → 0 | **-1** |
 | storage | 43 | 0 → 0 | 43 → 43 | 0 → 0 | 0 |
 | vest | 2 | 2 → 2 | 0 → 0 | 1 → 1 | 0 |
-| **TOTAL** | **1647** | **1455 → 1456** | **191 → 190** | **376 → 366** | **-10** |
+| **TOTAL** | **1647** | **1455 → 1436** | **191 → 209** | **376 → 336** | **-40** |
 
 ## Per-project A-2 transitions
 
 
 ### atmosphere
 
-**fixed** (1 targets — witness → ok):
+**fixed** (11 targets — witness → ok):
 - `atmosphere__verified__pagetable__pagetable__pagemap__impl0__set__set`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__thread_set_trap_frame_fast`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__thread_set_trap_frame_fast`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__endpoint_add_ref`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__thread_set_blocking_endpoint_endpoint_ref_scheduler_ref_state_and_ipc_payload`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__endpoint_remove_ref`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__endpoint_add_ref`
+
+**witness → verus_error** (19 targets — view compiled but blocked verification):
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__container_push_endpoint`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__container_set_quota_mem_4k`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__scheduler_push_thread`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__container_set_quota_mem_4k`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__container_pop_endpoint`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__container_insert_cpu`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__container_remove_cpu`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__container_remove_proc`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__container_set_owned_threads`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__container_set_owned_threads`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__scheduler_remove_thread`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_push_child`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_push_proc`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_set_owned_threads`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_set_quota`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__scheduler_push_thread`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__container_set_owned_threads`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__container_set_quota_mem_4k`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__scheduler_push_thread`
 
 ### ironkv
 
@@ -62,146 +93,3 @@ Definitions:
 
 **fixed** (1 targets — witness → ok):
 - `nrkernel__verified__spec_t_mmu__defs__spec_t__mmu__defs__x86_arch_exec__x86_arch_exec`
-
-## Final transition matrix (PR-D4, post-quarantine)
-
-```
-                  candidate
-baseline      ok   ok_w  verus  crash
-ok          1079      0      0      0
-ok_w          11    365      0      0
-verus_err      0      1    190      0
-crash          0      0      0      1
-```
-
-**Reading.**
-
-- **11 clean fixes** (ok_w → ok) — matches the prediction exactly.
-  Per-target list and root cause: see *Case studies* below.
-- **0 clean regressions** (ok → verus_error) — view registry no
-  longer breaks any previously-passing target.
-- **1 soft improvement** (verus_error → ok_w) —
-  `ironkv/host_model_receive_packet`: was a Verus parse failure in
-  baseline (an upstream injected view triggered the failure), now
-  compiles cleanly but z3 still emits an assume for the equal-fn.
-  This explains the apparent "−10" net witness count (11 fixes
-  − 1 new witness = 10), but it is a strict improvement, not a
-  regression.
-- **1 runner_crash** stable on the same target
-  (`atmosphere/get_payload_as_va_range`); pre-existing, not
-  view-related.
-
-## Summary numbers
-
-| metric | baseline (42c1248) | candidate (33bd09a) | Δ |
-|---|---:|---:|---:|
-| **ok_with_witness (A-2 false positives)** | **376** | **366** | **−10** |
-| verus_error | 191 | 190 | −1 |
-| ok (clean) | 1079 | 1090 | +11 |
-| runner_crash | 1 | 1 | 0 |
-| Total targets | 1647 | 1647 | 0 |
-
-The A-2 metric drops from 22.8 % (376/1647) to 22.2 % (366/1647)
-— a 2.7 % relative drop on the whole-corpus baseline.  Per the
-project distribution this concentrates on `memory-allocator` (9 → 1
-witnesses; 88.9 % drop) and on the four scope types that already
-have hand-written `Vec→Seq` view structure (CommitMask, PageMap,
-Constants, ArchExec).
-
-## Case studies (the 11 clean fixes)
-
-All 11 fixes follow the same algebraic recipe: the parent type has
-one or more `Vec<T>` fields, the synthesised view lifts each to
-`Seq<T>` via `field@`, and the V-type is either `Seq<T>` directly
-(CommitMask, ArchExec) or a struct that bundles `Seq<T>` with
-view-trivial sibling fields (PageMap with `Array<usize, 512>`;
-Constants with copies of `EndPoint`).  Z3 can prove `equal_v(a, b)`
-because both sides reduce to the same `Seq.equal` axiom after
-view-projection.
-
-### memory-allocator/CommitMask (×8)
-
-`pub struct CommitMask { mask: Vec<u64> }` is the workhorse;
-arithmetic is pointwise on the underlying `Vec<u64>`.  The cached
-view body is
-```
-spec fn view(&self) -> Seq<u64> { self.mask@ }
-```
-8 of the 16 commit-mask functions had `ok_w` baselines and all 8
-flip to `ok`.  This is the strongest single project win in the
-PR-D4 set.
-
-### atmosphere/PageMap.set
-
-Parent type has `Vec<PageEntry>` (length-512 array of 512 entries)
-plus a fixed-width `Array<usize, 512>` of permissions.  View
-lifts both: `self.entries@` (→ `Seq<PageEntry>`) and
-`self.perms@` (→ `Seq<usize>`).  z3 closes via
-`Seq.equal == ext-equal == pointwise`.
-
-### ironkv/Constants → parse_command_line_configuration
-
-`Constants` bundles a `Vec<EndPoint>` ("hosts") plus a few
-scalar config values.  View flattens to a struct of `Seq<EndPoint>`
-+ scalars.  The `EndPoint` view is the same one we eventually had
-to **quarantine for `M4` semantic mismatch in 12 ironkv targets**;
-but in this single target it happens to be uninvolved in the
-witness-emitting branch.  After the cascade closure quarantined
-`EndPoint`, this target loses access to that view, but the L4
-synthesiser is no longer the bottleneck for the witness; the
-existing L3 / per-field equality is sufficient.
-
-### nrkernel/ArchExec → x86_arch_exec
-
-`ArchExec` wraps `Vec<ArchLayerExec>` (page-table arch layout).
-View flattens to `Seq<ArchLayerExec>`.  Trivial alpha-renaming.
-
-## Broken-view quarantine (PR-D4 ISSUES.md #7)
-
-14 cached L4 views were quarantined ahead of this rerun because
-they expanded to bodies that Verus rejected.  See ISSUES.md #7 for
-the full per-view table; the reason taxonomy:
-
-| failure mode | count | example |
-|---|---:|---|
-| **M1** `<Inner as View>::V` / `self.f@` on a head with no View | 5 | atmosphere/Kernel (`PageAllocator`/`MemoryManager`/`ProcessManager`) |
-| **M2** `self.f@@` past Ghost into Set/Map (no inner View) | 1 | atmosphere/Endpoint (`Ghost<Set<ThreadId>>`) |
-| **M3** parent type is `external_body` / `repr(C)` opaque | 2 | ironkv/CKeyHashMap, atmosphere/Registers |
-| **M4** semantic V-type mismatch (right shape, wrong namespace) | 1 | ironkv/EndPoint (synthesiser picked `Seq<u8>`; project uses `AbstractEndPoint`) |
-| cascade (deps on a quarantined root) | 5 + 0 | 5 ironkv types that transitively view `EndPoint` |
-
-Detection sketches for M1/M2/M3 are in
-[`docs/critic-criteria.md`](../docs/critic-criteria.md);
-the cascade closure for M4 is enforced by the
-`<name>.json.quarantine` sticky markers + the new
-`prefill --include-quarantined` opt-in flag (see commit `33bd09a`).
-
-## verus_error sanity check
-
-Net verus_error 191 → 190.  Of the 14 quarantines, only 1 produced
-a baseline → candidate ok-side transition (the soft improvement on
-`host_model_receive_packet`).  The other 13 quarantines were
-**already** verus_error in baseline (because the broken view was
-also injected in baseline) and remain verus_error in candidate
-(because the un-quarantined fallback still cannot derive equality
-on a `Vec<T>` directly).  This is consistent with the prediction:
-post-quarantine the view registry stops *adding* regressions, but
-the underlying A-2 witnesses on those 13 targets can only be
-removed by a future PR that synthesises *correct* views for those
-types (PR-D5 candidate).
-
-## Process & reproducibility
-
-Baseline run: `eed6038` build, results in `results-verusage/`.
-Candidate run: `33bd09a` build (quarantine-aware prefill + the
-quarantined `.json.quarantine` markers under
-`results-verusage/view_registry/`).  Re-derive with
-```
-bash scripts/rerun_corpus.sh results-verusage-viewreg
-python scripts/compare_runs.py \
-    --baseline results-verusage \
-    --candidate results-verusage-viewreg \
-    --baseline-commit 42c1248 \
-    --candidate-commit 33bd09a \
-    --out results-verusage-viewreg/COMPARE.md
-```

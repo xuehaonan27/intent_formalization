@@ -1,0 +1,174 @@
+{
+  "function": "make_send_only_event_results",
+  "det_check_template": "proof fn det_make_send_only_event_results(net_events: Ghost<Seq<NetEvent>>, r1: Ghost<EventResults>, r2: Ghost<EventResults>)\n    requires (forall |i: int| 0 <= i && i < net_events@.len() ==> net_events@[i] is Send),\n    ensures\n        ({\n            &&& (r1@.recvs == Seq::<NetEvent>::empty())\n            &&& (r1@.clocks == Seq::<NetEvent>::empty())\n            &&& (r1@.sends == net_events@)\n            &&& (r1@.ios == net_events@)\n            &&& (r1@.event_seq() == net_events@)\n            &&& (r1@.well_typed_events())\n            &&& (r2@.recvs == Seq::<NetEvent>::empty())\n            &&& (r2@.clocks == Seq::<NetEvent>::empty())\n            &&& (r2@.sends == net_events@)\n            &&& (r2@.ios == net_events@)\n            &&& (r2@.event_seq() == net_events@)\n            &&& (r2@.well_typed_events())\n        }) ==> det_make_send_only_event_results_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "net_events",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Seq<NetEvent>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<NetEvent>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "NetEvent"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<EventResults>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "EventResults",
+            "fields": [
+              {
+                "name": "recvs",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "clocks",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "sends",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ios",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Ios"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<EventResults>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "EventResults",
+            "fields": [
+              {
+                "name": "recvs",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "clocks",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "sends",
+                "type": {
+                  "kind": "Seq",
+                  "name": "Seq<NetEvent>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "NetEvent"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ios",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Ios"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct EventResultsView {\n    pub recvs: Seq<NetEvent>,\n    pub clocks: Seq<NetEvent>,\n    pub sends: Seq<NetEvent>,\n    pub ios: Ios,\n}\n\nimpl View for EventResults {\n    type V = EventResultsView;\n    closed spec fn view(&self) -> EventResultsView {\n        EventResultsView {\n            recvs: self.recvs,\n            clocks: self.clocks,\n            sends: self.sends,\n            ios: self.ios,\n        }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_make_send_only_event_results_equal(r1: Ghost<EventResults>, r2: Ghost<EventResults>) -> bool {\n    ((((r1)@).view() == ((r2)@).view()))\n}",
+  "equal_fn_name": "det_make_send_only_event_results_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_make_send_only_event_results",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

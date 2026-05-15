@@ -1,0 +1,459 @@
+{
+  "function": "should_process_received_message_impl",
+  "det_check_template": "proof fn det_should_process_received_message_impl(self_: HostState, r1: bool, r2: bool)\n    requires (self_.num_delegations < self_.constants.params.max_delegations),\n    ensures\n        ({\n            &&& (r1 == should_process_received_message(self_@))\n            &&& (r2 == should_process_received_message(self_@))\n        }) ==> det_should_process_received_message_impl_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "HostState",
+        "fields": [
+          {
+            "name": "next_action_index",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "resend_count",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "constants",
+            "type": {
+              "kind": "struct",
+              "name": "Constants",
+              "fields": [
+                {
+                  "name": "root_identity",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "host_ids",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<EndPoint>",
+                    "type_args": [
+                      {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "params",
+                  "type": {
+                    "kind": "struct",
+                    "name": "Parameters",
+                    "fields": [
+                      {
+                        "name": "max_seqno",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      },
+                      {
+                        "name": "max_delegations",
+                        "type": {
+                          "kind": "u64",
+                          "name": "u64"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "me",
+                  "type": {
+                    "kind": "struct",
+                    "name": "EndPoint",
+                    "fields": [
+                      {
+                        "name": "id",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "Vec<u8>",
+                          "type_args": [
+                            {
+                              "kind": "u8",
+                              "name": "u8"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "delegation_map",
+            "type": {
+              "kind": "unknown",
+              "name": "DelegationMap<CKey>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "CKey"
+                }
+              ]
+            }
+          },
+          {
+            "name": "h",
+            "type": {
+              "kind": "struct",
+              "name": "CKeyHashMap",
+              "fields": [
+                {
+                  "name": "m",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<CKey, Vec<u8>>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "CKey"
+                      },
+                      {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "sd",
+            "type": {
+              "kind": "struct",
+              "name": "CSingleDelivery",
+              "fields": [
+                {
+                  "name": "receive_state",
+                  "type": {
+                    "kind": "struct",
+                    "name": "CTombstoneTable",
+                    "fields": [
+                      {
+                        "name": "epmap",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "HashMap<u64>",
+                          "type_args": [
+                            {
+                              "kind": "u64",
+                              "name": "u64"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "send_state",
+                  "type": {
+                    "kind": "struct",
+                    "name": "CSendState",
+                    "fields": [
+                      {
+                        "name": "epmap",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "HashMap<CAckState>",
+                          "type_args": [
+                            {
+                              "kind": "struct",
+                              "name": "CAckState",
+                              "fields": [
+                                {
+                                  "name": "num_packets_acked",
+                                  "type": {
+                                    "kind": "u64",
+                                    "name": "u64"
+                                  }
+                                },
+                                {
+                                  "name": "un_acked",
+                                  "type": {
+                                    "kind": "unknown",
+                                    "name": "Vec<CSingleMessage>",
+                                    "type_args": [
+                                      {
+                                        "kind": "unknown",
+                                        "name": "CSingleMessage"
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "received_packet",
+            "type": {
+              "kind": "Option",
+              "name": "Option<CPacket>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "struct",
+                    "name": "CPacket",
+                    "fields": [
+                      {
+                        "name": "dst",
+                        "type": {
+                          "kind": "struct",
+                          "name": "EndPoint",
+                          "fields": [
+                            {
+                              "name": "id",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Vec<u8>",
+                                "type_args": [
+                                  {
+                                    "kind": "u8",
+                                    "name": "u8"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "src",
+                        "type": {
+                          "kind": "struct",
+                          "name": "EndPoint",
+                          "fields": [
+                            {
+                              "name": "id",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Vec<u8>",
+                                "type_args": [
+                                  {
+                                    "kind": "u8",
+                                    "name": "u8"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "msg",
+                        "type": {
+                          "kind": "unknown",
+                          "name": "CSingleMessage"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "CPacket",
+                  "fields": [
+                    {
+                      "name": "dst",
+                      "type": {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "src",
+                      "type": {
+                        "kind": "struct",
+                        "name": "EndPoint",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "type": {
+                              "kind": "unknown",
+                              "name": "Vec<u8>",
+                              "type_args": [
+                                {
+                                  "kind": "u8",
+                                  "name": "u8"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "msg",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "CSingleMessage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "num_delegations",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "received_requests",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<AppRequest>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<AppRequest>",
+                  "type_args": [
+                    {
+                      "kind": "enum",
+                      "name": "AppRequest",
+                      "variants": [
+                        {
+                          "name": "AppGetRequest"
+                        },
+                        {
+                          "name": "AppSetRequest"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "bool",
+        "name": "bool"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_should_process_received_message_impl_equal(r1: bool, r2: bool) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_should_process_received_message_impl_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_should_process_received_message_impl",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "HostState"
+}

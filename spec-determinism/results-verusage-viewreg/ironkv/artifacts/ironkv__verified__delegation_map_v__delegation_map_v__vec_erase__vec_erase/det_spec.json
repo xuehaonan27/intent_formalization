@@ -1,0 +1,108 @@
+{
+  "function": "vec_erase",
+  "det_check_template": "proof fn det_vec_erase<A>(pre_v: Vec<A>, start: usize, end: usize, post1_v: Vec<A>, r1: (), post2_v: Vec<A>, r2: ())\n    requires (start <= end <= pre_v.len()),\n    ensures\n        ({\n            &&& (true)\n            &&& (post1_v@ == pre_v@.subrange(0, start as int) + pre_v@.subrange(end as int, pre_v@.len() as int))\n            &&& (true)\n            &&& (post2_v@ == pre_v@.subrange(0, start as int) + pre_v@.subrange(end as int, pre_v@.len() as int))\n        }) ==> det_vec_erase_equal(r1, r2, post1_v, post2_v),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_v",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<A>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "A"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "start",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "end",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_v",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<A>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "A"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_v",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<A>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "A"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_vec_erase_equal<A>(r1: (), r2: (), post1_v: Vec<A>, post2_v: Vec<A>) -> bool {\n    (r1 == r2)\n    && (post1_v == post2_v)\n}",
+  "equal_fn_name": "det_vec_erase_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_v",
+      "rhs": "post2_v"
+    }
+  ],
+  "check_fn_name": "det_vec_erase",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<A>",
+  "where_decl": "",
+  "self_type": null
+}

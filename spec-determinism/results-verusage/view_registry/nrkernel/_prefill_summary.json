@@ -1,0 +1,594 @@
+{
+  "project": "nrkernel",
+  "total_uncovered": 39,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "ArchLayer",
+      "qualified_name": "ArchLayer",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/definitions_u__impl2__entry_base.rs",
+      "source_line": 22,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "ArchLayerView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Arch",
+      "qualified_name": "Arch",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/definitions_u__impl2__entry_base.rs",
+      "source_line": 29,
+      "deps": [
+        "ArchLayer"
+      ],
+      "action": "ok",
+      "viewed_type": "Seq<<ArchLayer as View>::V>",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "ArchLayer view is listed as uncovered, so this relies on an ArchLayer View impl/type being available elsewhere."
+      ]
+    },
+    {
+      "type_short": "ArchLayerExec",
+      "qualified_name": "ArchLayerExec",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/definitions_u__impl2__entry_base.rs",
+      "source_line": 84,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "ArchLayerExecView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "ArchExec",
+      "qualified_name": "ArchExec",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/definitions_u__impl2__entry_base.rs",
+      "source_line": 91,
+      "deps": [
+        "ArchLayerExec"
+      ],
+      "action": "ok",
+      "viewed_type": "Seq<ArchLayerExec>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "MemRegion",
+      "qualified_name": "MemRegion",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l1__impl2__lemma_empty_implies_interp_aux_empty.rs",
+      "source_line": 18,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "MemRegionView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Flags",
+      "qualified_name": "Flags",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l1__impl2__lemma_empty_implies_interp_aux_empty.rs",
+      "source_line": 24,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "Flags",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PTE",
+      "qualified_name": "PTE",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l1__impl2__lemma_empty_implies_interp_aux_empty.rs",
+      "source_line": 30,
+      "deps": [
+        "MemRegion",
+        "Flags"
+      ],
+      "action": "ok",
+      "viewed_type": "PTEView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes MemRegion and Flags implement View; dependency views are marked uncovered, so correctness depends on external impls not shown."
+      ]
+    },
+    {
+      "type_short": "NodeEntry",
+      "qualified_name": "NodeEntry",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l1__impl2__lemma_empty_implies_interp_aux_empty.rs",
+      "source_line": 104,
+      "deps": [
+        "Directory"
+      ],
+      "action": "ok",
+      "viewed_type": "NodeEntryView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes Directory and PTE have valid View impls; Directory is marked uncovered and PTE view context is not provided."
+      ]
+    },
+    {
+      "type_short": "Directory",
+      "qualified_name": "Directory",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l1__impl2__lemma_empty_implies_interp_aux_empty.rs",
+      "source_line": 110,
+      "deps": [
+        "NodeEntry",
+        "Arch"
+      ],
+      "action": "ok",
+      "viewed_type": "DirectoryView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Dependency views for NodeEntry and Arch are marked uncovered, so this assumes View impls exist for both; if they do not, the projection would need to keep those fields structurally instead."
+      ]
+    },
+    {
+      "type_short": "GPDE",
+      "qualified_name": "GPDE",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l2_impl__impl0__address.rs",
+      "source_line": 10,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "GPDEView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PDE",
+      "qualified_name": "PDE",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__l2_impl__impl0__address.rs",
+      "source_line": 133,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PDEView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "State",
+      "qualified_name": "rl1::State",
+      "kind": "struct",
+      "n_fields": 8,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 21,
+      "deps": [
+        "PTMem",
+        "Core",
+        "Writes",
+        "Polarity"
+      ],
+      "action": "ok",
+      "viewed_type": "StateView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "History",
+      "qualified_name": "rl2::History",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 68,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "HistoryView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "PTE dependency view is not resolved in the provided context; assuming PTE implements View, the projection shape is appropriate."
+      ]
+    },
+    {
+      "type_short": "Writes",
+      "qualified_name": "rl3::Writes",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 386,
+      "deps": [
+        "Core"
+      ],
+      "action": "ok",
+      "viewed_type": "WritesView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PTMem",
+      "qualified_name": "PTMem",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 440,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PTMemView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Core",
+      "qualified_name": "defs::Core",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 868,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "CoreView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PTDir",
+      "qualified_name": "PTDir",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1032,
+      "deps": [
+        "MemRegion",
+        "PTDir"
+      ],
+      "action": "failed"
+    },
+    {
+      "type_short": "OpArgs",
+      "qualified_name": "OpArgs",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1174,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "OpArgsView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes PTE implements View, but no dependency view was provided in context."
+      ]
+    },
+    {
+      "type_short": "WrappedTokenView",
+      "qualified_name": "WrappedTokenView",
+      "kind": "struct",
+      "n_fields": 6,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1184,
+      "deps": [
+        "State",
+        "OpArgs",
+        "MemRegion",
+        "PTMem"
+      ],
+      "action": "ok",
+      "viewed_type": "WrappedTokenView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Constants",
+      "qualified_name": "os::Constants",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1215,
+      "deps": [
+        "Constants",
+        "Core"
+      ],
+      "action": "ok",
+      "viewed_type": "ConstantsView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "CoreState",
+      "qualified_name": "os::CoreState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 8,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1234,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "CoreStateView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "PTE dependency view is not resolved in the provided context, so this assumes PTE implements View and pte@ is available."
+      ]
+    },
+    {
+      "type_short": "ShootdownVector",
+      "qualified_name": "os_ext::ShootdownVector",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1947,
+      "deps": [
+        "Core"
+      ],
+      "action": "ok",
+      "viewed_type": "ShootdownVectorView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Polarity",
+      "qualified_name": "Polarity",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1954,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "PolarityView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Walk",
+      "qualified_name": "Walk",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1959,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "WalkView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes GPDE implements View, but no dependency view was provided in context."
+      ]
+    },
+    {
+      "type_short": "WalkResult",
+      "qualified_name": "WalkResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__bounds_applied_mappings.rs",
+      "source_line": 1965,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "WalkResultView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes PTE implements View; dependency view was not provided, so correctness of pte@ cannot be fully confirmed from the supplied context."
+      ]
+    },
+    {
+      "type_short": "Step",
+      "qualified_name": "rl3::Step",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 16,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 160,
+      "deps": [
+        "Walk",
+        "Core"
+      ],
+      "action": "ok",
+      "viewed_type": "StepView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Walk and Core views are uncovered, so this assumes structural preservation of those leaf types is intended."
+      ]
+    },
+    {
+      "type_short": "LoadResult",
+      "qualified_name": "defs::LoadResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 700,
+      "deps": [],
+      "action": "failed"
+    },
+    {
+      "type_short": "StoreResult",
+      "qualified_name": "defs::StoreResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 705,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "StoreResultView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "MemOp",
+      "qualified_name": "defs::MemOp",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 711,
+      "deps": [
+        "LoadResult",
+        "StoreResult"
+      ],
+      "action": "ok",
+      "viewed_type": "MemOpView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "ThreadState",
+      "qualified_name": "hlspec::ThreadState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 1040,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "ThreadStateView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes PTE implements View and Option<PTE>@ has the expected Option<<PTE as View>::V> shape; dependency view was not resolved in the provided context."
+      ]
+    },
+    {
+      "type_short": "Lbl",
+      "qualified_name": "os_ext::Lbl",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 8,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 1966,
+      "deps": [
+        "Core",
+        "MemRegion"
+      ],
+      "action": "ok",
+      "viewed_type": "LblView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "RLbl",
+      "qualified_name": "RLbl",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 7,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__os_refinement__lemma_effective_mappings_unaffected_if_thread_state_constant.rs",
+      "source_line": 2179,
+      "deps": [
+        "MemOp",
+        "Core"
+      ],
+      "action": "ok",
+      "viewed_type": "RLblView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "PTE's dependency view is not listed in the provided context, so assuming its View impl is in scope; otherwise this would fail typecheck."
+      ]
+    },
+    {
+      "type_short": "MemRegionExec",
+      "qualified_name": "defs::MemRegionExec",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl2__allocate.rs",
+      "source_line": 1073,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "MemRegionExecView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Token",
+      "qualified_name": "os_ext::code::Token",
+      "kind": "struct",
+      "n_fields": 0,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl2__allocate.rs",
+      "source_line": 1373,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "()",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Progress",
+      "qualified_name": "os_code_vc::Progress",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl2__allocate.rs",
+      "source_line": 2807,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "int",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "TokState",
+      "qualified_name": "TokState",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 4,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl2__allocate.rs",
+      "source_line": 3131,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "TokStateView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "WrappedMapToken",
+      "qualified_name": "WrappedMapToken",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl2__allocate.rs",
+      "source_line": 3210,
+      "deps": [
+        "Token",
+        "State"
+      ],
+      "action": "failed"
+    },
+    {
+      "type_short": "WrappedUnmapToken",
+      "qualified_name": "WrappedUnmapToken",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl3__deallocate.rs",
+      "source_line": 3194,
+      "deps": [
+        "Token",
+        "State"
+      ],
+      "action": "ok",
+      "viewed_type": "WrappedUnmapTokenView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "DoShootdown",
+      "qualified_name": "DoShootdown",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/nrkernel/unverified/impl_u__wrapped_token__impl3__finish_unmap_and_release_lock.rs",
+      "source_line": 4007,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "DoShootdownView",
+      "critic_verdict": "accept"
+    }
+  ]
+}

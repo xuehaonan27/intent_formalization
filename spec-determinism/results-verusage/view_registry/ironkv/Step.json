@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Step",
+  "qualified_name": "Step",
+  "source_hash": "3fb2772b4be8038b",
+  "view_source": "L4-llm",
+  "viewed_type": "Step",
+  "view_decl": "impl View for Step {\n    type V = Step;\n    closed spec fn view(&self) -> Step {\n        *self\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Step is an enum of six unit variants with no payload, so structural equality is already semantic equality. The view is the identity projection: V = Step and view(&self) = *self.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Step\",\n  \"view_decl\": \"impl View for Step {\\n    type V = Step;\\n    closed spec fn view(&self) -> Step {\\n        *self\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Step is an enum of six unit variants with no payload, so structural equality is already semantic equality. The view is the identity projection: V = Step and view(&self) = *self.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

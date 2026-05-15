@@ -1,0 +1,81 @@
+● Read prompt.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/CKeyHashMap/prompt.md
+  └ 108 lines read
+
+● Find ironkv directories (shell)
+  │ find /home/chentianyu/intent_formalization -type d -name "ironkv" 2>&1 |
+  │ head -10
+  └ 4 lines...
+
+● List existing LLM runs in registry (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/ironkv/_llm_runs/ 2>&1 | head -30
+  └ 25 lines...
+
+● List CKeyHashMap files (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/ironkv/_llm_runs/CKeyHashMap/ 2>&1
+  └ 2 lines...
+
+● Check related types (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/ironkv/_llm_runs/HashMap/ 2>&1; echo "---SHTKey---"; ls
+  │ /home/chentianyu/intent_formalization/spec-determinism/results-verusage/view
+  │ _registry/ironkv/_llm_runs/SHTKey/ 2>&1
+  └ 6 lines...
+
+● Read response.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/HashMap/response.md
+  └ 8 lines read
+
+● Read response.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/SHTKey/response.md
+  └ 8 lines read
+
+● Find CKeyHashMap source (shell)
+  │ grep -r "CKeyHashMap"
+  │ /home/chentianyu/intent_formalization/verusage/source-projects/ironkv
+  │ --include="*.rs" -l 2>&1 | head -20
+  └ 21 lines...
+
+● Find CKeyHashMap definition (shell)
+  │ grep -rn "struct CKeyHashMap\|pub struct CKeyHashMap"
+  │ /home/chentianyu/intent_formalization/verusage/source-projects/ironkv
+  │ --include="*.rs" 2>&1 | head -20
+  └ 21 lines...
+
+● Search for existing View impl for CKeyHashMap (shell)
+  │ grep -rn "impl View for
+  │ CKeyHashMap\|impl.*View.*CKeyHashMap\|CKeyHashMap.*view\|fn
+  │ view.*CKeyHashMap"
+  │ /home/chentianyu/intent_formalization/verusage/source-projects/ironkv
+  │ --include="*.rs" 2>&1 | head -20
+  └ 1 line...
+
+● Read net_sht_v__sht_demarshall_data_method.rs
+  │ ~/intent_formalization/verusage/source-projects/ironkv/verified/net_sht_v/ne
+  │ t_sht_v__sht_demarshall_data_method.rs
+  └ L460:540 (81 lines read)
+
+● Find AbstractKey and CKey type alias (shell)
+  │ grep -n "AbstractKey\|type CKey\|pub type CKey"
+  │ /home/chentianyu/intent_formalization/verusage/source-projects/ironkv/verifi
+  │ ed/net_sht_v/net_sht_v__sht_demarshall_data_method.rs 2>&1 | head -20
+  └ 11 lines...
+
+● Find Map operations used in IronKV (shell)
+  │ grep -rn "Map::new\|contains_key\|\.dom()\.contains" /home/chentianyu/intent
+  │ _formalization/verusage/source-projects/ironkv/verified --include="*.rs"
+  │ 2>&1 | head -15
+  └ 16 lines...
+
+● Check map_values usage (shell)
+  │ grep -rn "map_values\b" /home/chentianyu/intent_formalization/verusage/sourc
+  │ e-projects/ironkv/verified --include="*.rs" 2>&1 | head -10
+  └ 11 lines...
+
+● Create response.md +9
+  └ results-verusage/view_registry/ironkv/_llm_runs/CKeyHashMap/response.md
+
+Response written to `results-verusage/view_registry/ironkv/_llm_runs/CKeyHashMap/response.md`. The view projects `CKeyHashMap` to `Map<CKey, Seq<u8>>` by taking vstd's `HashMap` view and lifting each `Vec<u8>` value through `map_values(|v| v@)` — matching IronKV's own abstract `Map<AbstractKey, Seq<u8>>` type while discarding allocator/bucket noise. `CKey` stays at identity (uncovered leaf).
+

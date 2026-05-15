@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "HeapId",
+  "qualified_name": "HeapId",
+  "source_hash": "c72cb07365334b9e",
+  "view_source": "L4-llm",
+  "viewed_type": "HeapId",
+  "view_decl": "impl View for HeapId {\n    type V = HeapId;\n    closed spec fn view(&self) -> HeapId {\n        *self\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "HeapId is a ghost struct that already serves as an abstract identifier; all three fields (id, provenance, uniq) are the spec-meaningful coordinates the verifier uses to distinguish heaps, so the view is the identity projection. There are no raw pointers or allocator handles to omit, and since Provenance has no resolved view we keep it as-is, making structural equality coincide with semantic equality for HeapId.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"HeapId\",\n  \"view_decl\": \"impl View for HeapId {\\n    type V = HeapId;\\n    closed spec fn view(&self) -> HeapId {\\n        *self\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"HeapId is a ghost struct that already serves as an abstract identifier; all three fields (id, provenance, uniq) are the spec-meaningful coordinates the verifier uses to distinguish heaps, so the view is the identity projection. There are no raw pointers or allocator handles to omit, and since Provenance has no resolved view we keep it as-is, making structural equality coincide with semantic equality for HeapId.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type_short": "Directory",
+  "qualified_name": "Directory",
+  "source_hash": "1ac86690227e25df",
+  "view_source": "L4-llm",
+  "viewed_type": "DirectoryView",
+  "view_decl": "pub struct DirectoryView {\n    pub entries: Seq<<NodeEntry as View>::V>,\n    pub layer: nat,\n    pub base_vaddr: nat,\n    pub arch: <Arch as View>::V,\n}\n\nimpl View for Directory {\n    type V = DirectoryView;\n    closed spec fn view(&self) -> Self::V {\n        DirectoryView {\n            entries: self.entries.map_values(|e: NodeEntry| e@),\n            layer: self.layer,\n            base_vaddr: self.base_vaddr,\n            arch: self.arch@,\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "NodeEntry",
+    "Arch"
+  ],
+  "rationale": "Directory models a page-table node, and all four fields are spec-meaningful: entries are an ordered Seq indexed by virtual-address slot (so we keep Seq, not Set/Multiset, and lift each NodeEntry through its view), layer and base_vaddr are nat primitives copied as-is, and arch is projected through Arch's view so semantic equality of the architecture descriptor is delegated to its own view. No allocator handles or ghost-only fields exist to drop.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"DirectoryView\",\n  \"view_decl\": \"pub struct DirectoryView {\\n    pub entries: Seq<<NodeEntry as View>::V>,\\n    pub layer: nat,\\n    pub base_vaddr: nat,\\n    pub arch: <Arch as View>::V,\\n}\\n\\nimpl View for Directory {\\n    type V = DirectoryView;\\n    closed spec fn view(&self) -> Self::V {\\n        DirectoryView {\\n            entries: self.entries.map_values(|e: NodeEntry| e@),\\n            layer: self.layer,\\n            base_vaddr: self.base_vaddr,\\n            arch: self.arch@,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"NodeEntry\", \"Arch\"],\n  \"rationale\": \"Directory models a page-table node, and all four fields are spec-meaningful: entries are an ordered Seq indexed by virtual-address slot (so we keep Seq, not Set/Multiset, and lift each NodeEntry through its view), layer and base_vaddr are nat primitives copied as-is, and arch is projected through Arch's view so semantic equality of the architecture descriptor is delegated to its own view. No allocator handles or ghost-only fields exist to drop.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Dependency views for NodeEntry and Arch are marked uncovered, so this assumes View impls exist for both; if they do not, the projection would need to keep those fields structurally instead."
+  ]
+}

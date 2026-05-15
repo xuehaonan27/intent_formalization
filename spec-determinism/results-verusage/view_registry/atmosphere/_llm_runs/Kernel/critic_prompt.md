@@ -1,0 +1,104 @@
+You are auditing a Verus `impl View` block that another LLM just generated.
+A view is a pure spec-level projection of a runtime type to its
+information content: anything spec assertions need to compare semantically
+should survive; runtime ghost fields / permissions / raw pointers should
+be collapsed away.
+
+Your job is to spot **semantic** mistakes — the text already parses.
+Report only mistakes that matter. Do not nitpick style.
+
+## Common mistakes (non-exhaustive)
+
+1. **Lost information.** A struct field is used in spec ensures (e.g.
+   `post.field == old(self).field` or `self.field@`) but the view drops
+   it or replaces it with `()`.
+2. **Wrong container shape.** `Vec<T>` viewed as `Set<T@>` or `Multiset<T@>`
+   when spec accesses by index (`v[i]`) — should be `Seq<T@>`.
+3. **Primitive `@`.** A primitive (usize/u32/bool/char/…) cannot be
+   `@`-projected — Verus rejects `5_usize@`. Primitives stay verbatim.
+4. **type V mismatch.** The declared `type V = X;` doesn't match the body
+   of `spec fn view(&self) -> Self::V { … }` — different shape or fields.
+5. **Over-aggressive collapse.** A struct with real state (not just
+   pointers) collapsed to `type V = ();` — fine only when all fields are
+   ghost / raw-pointer.
+6. **Missing dep view.** Field of type `T` (which has a known view) used
+   as `self.field` instead of `self.field@`, leaving structural eq.
+7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
+   on element) when spec actually inspects element fields.
+
+## Output
+
+Reply with a SINGLE fenced ```json block of this exact shape, nothing
+else (no prose before or after):
+
+```json
+{
+  "verdict": "accept" | "revise" | "reject",
+  "issues": ["<short string per issue>", "..."]
+}
+```
+
+- `accept`: no issues found, view looks correct.
+- `revise`: minor concerns (cosmetic, edge cases) but the view still
+  compiles and preserves enough info. List concerns in `issues`.
+- `reject`: a hard mistake from the list above (or equivalent). The
+  view will fail typecheck or lose spec-relevant information.
+
+If you cannot tell whether the view is correct because of missing
+context (e.g. the dependency view is unknown), prefer `accept` with an
+issue noting the uncertainty. Do not reject for missing context alone.
+
+
+## Target type (atmosphere)
+
+Qualified name: `Kernel`
+Short name: `Kernel`
+
+```rust
+pub struct Kernel {
+    pub page_alloc: PageAllocator,
+    pub mem_man: MemoryManager,
+    pub proc_man: ProcessManager,
+    pub page_mapping: Ghost<Map<PagePtr, Set<(ProcPtr, VAddr)>>>,
+    /// @Xiangdong fix
+    pub page_io_mapping: Ghost<Map<PagePtr, Set<(ProcPtr, VAddr)>>>,
+}
+```
+
+## Dependency views already in scope
+
+  - PageAllocator: uncovered (no L1/L2/L3/L4 rule for PageAllocator (kind=leaf))
+  - MemoryManager: uncovered (no L1/L2/L3/L4 rule for MemoryManager (kind=leaf))
+  - ProcessManager: uncovered (no L1/L2/L3/L4 rule for ProcessManager (kind=leaf))
+  - PagePtr: L2 → usize  (alias PagePtr → usize (primitive))
+  - ProcPtr: L2 → usize  (alias ProcPtr → usize (primitive))
+  - VAddr: L2 → usize  (alias VAddr → usize (primitive))
+
+## Candidate view (from the generator LLM)
+
+Declared `viewed_type`: `KernelView`
+
+```rust
+pub struct KernelView {
+    pub page_alloc: <PageAllocator as View>::V,
+    pub mem_man: <MemoryManager as View>::V,
+    pub proc_man: <ProcessManager as View>::V,
+    pub page_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,
+    pub page_io_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,
+}
+
+impl View for Kernel {
+    type V = KernelView;
+    closed spec fn view(&self) -> KernelView {
+        KernelView {
+            page_alloc: self.page_alloc@,
+            mem_man: self.mem_man@,
+            proc_man: self.proc_man@,
+            page_mapping: self.page_mapping@,
+            page_io_mapping: self.page_io_mapping@,
+        }
+    }
+}
+```
+
+Generator's rationale: Kernel is a pure aggregate of three component managers plus two ghost page-mapping tables; none of its fields are raw pointers or allocator-opaque IDs, so every field carries spec-relevant content. Each manager is projected through its own (recursively synthesized) View so impl-internal storage layout, free-list ordering, and PointsTo permission bookkeeping inside the manager are collapsed away. The two Ghost<Map<PagePtr, Set<(ProcPtr, VAddr)>>> fields are unwrapped with a single `@` (the Ghost wrapper's view); their keys and tuple element types are primitive aliases (PagePtr/ProcPtr/VAddr → usize) which need no further `.view()`, so the inner spec-level Map<…, Set<(usize, usize)>> already is its own view.

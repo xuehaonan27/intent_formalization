@@ -1,0 +1,272 @@
+{
+  "function": "proc_to_page",
+  "det_check_template": "proof fn det_proc_to_page(proc_ptr: ProcPtr, proc_perm: Tracked<PointsTo<Process>>, r1: (PagePtr, Tracked<PagePerm4k>), r2: (PagePtr, Tracked<PagePerm4k>))\n    requires (proc_perm@.is_init()), (proc_perm@.addr() == proc_ptr),\n    ensures\n        ({\n            &&& (r1.0 == proc_ptr)\n            &&& (r1.1@.is_init())\n            &&& (r1.1@.addr() == r1.0)\n            &&& (r2.0 == proc_ptr)\n            &&& (r2.1@.is_init())\n            &&& (r2.1@.addr() == r2.0)\n        }) ==> det_proc_to_page_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "proc_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ProcPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "proc_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Process>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Process>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Process",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "pcid",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Pcid"
+                    }
+                  },
+                  {
+                    "name": "ioid",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<IOid>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "IOid"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "IOid"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owned_threads",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_PROC>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_PROC"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<ProcPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "ProcPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "children",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ProcPtr, PROC_CHILD_LIST_LEN>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "PROC_CHILD_LIST_LEN"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "uppertree_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "subtree_set",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "depth",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "dmd_paging_mode",
+                    "type": {
+                      "kind": "enum",
+                      "name": "DemandPagingMode",
+                      "variants": [
+                        {
+                          "name": "NoDMDPG"
+                        },
+                        {
+                          "name": "DirectParentPrc"
+                        },
+                        {
+                          "name": "AllParentProc"
+                        },
+                        {
+                          "name": "AllParentContainer"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(PagePtr, Tracked<PagePerm4k>)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(PagePtr, Tracked<PagePerm4k>)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_proc_to_page_equal(r1: (PagePtr, Tracked<PagePerm4k>), r2: (PagePtr, Tracked<PagePerm4k>)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_proc_to_page_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_proc_to_page",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

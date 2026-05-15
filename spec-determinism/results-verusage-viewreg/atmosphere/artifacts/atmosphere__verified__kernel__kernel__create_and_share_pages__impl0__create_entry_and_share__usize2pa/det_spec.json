@@ -1,0 +1,54 @@
+{
+  "function": "usize2pa",
+  "det_check_template": "proof fn det_usize2pa(v: usize, r1: PAddr, r2: PAddr)\n    ensures\n        ({\n            &&& (r1 =~= spec_usize2pa(v))\n            &&& (MEM_valid(r1))\n            &&& (r2 =~= spec_usize2pa(v))\n            &&& (MEM_valid(r2))\n        }) ==> det_usize2pa_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "v",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "PAddr"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "PAddr"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_usize2pa_equal(r1: PAddr, r2: PAddr) -> bool {\n    ((r1 == r2))\n}",
+  "equal_fn_name": "det_usize2pa_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_usize2pa",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

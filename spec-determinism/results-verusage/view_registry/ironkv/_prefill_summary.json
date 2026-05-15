@@ -1,0 +1,747 @@
+{
+  "project": "ironkv",
+  "total_uncovered": 44,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "EndPoint",
+      "qualified_name": "EndPoint",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_erase.rs",
+      "source_line": 11,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Seq<u8>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Ordering",
+      "qualified_name": "Ordering",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_erase.rs",
+      "source_line": 15,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "int",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "StrictlyOrderedVec",
+      "qualified_name": "StrictlyOrderedVec",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_erase.rs",
+      "source_line": 35,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Seq<K>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "AbstractEndPoint",
+      "qualified_name": "AbstractEndPoint",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_to_set.rs",
+      "source_line": 7,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Seq<u8>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "StrictlyOrderedMap",
+      "qualified_name": "StrictlyOrderedMap",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_to_set.rs",
+      "source_line": 26,
+      "deps": [
+        "StrictlyOrderedVec"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<K, ID>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "DelegationMap",
+      "qualified_name": "DelegationMap",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl1_to_set.rs",
+      "source_line": 33,
+      "deps": [
+        "StrictlyOrderedMap",
+        "AbstractEndPoint"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<K, AbstractEndPoint>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "KeyIterator",
+      "qualified_name": "KeyIterator",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl3__choose_gap_violator.rs",
+      "source_line": 69,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Option<<K as View>::V>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "KeyRange",
+      "qualified_name": "KeyRange",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl5__delegate_for_key_range_is_host_impl.rs",
+      "source_line": 103,
+      "deps": [
+        "KeyIterator"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "KeyRangeView<K>",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "KeyIterator has no known view in scope, so carrying lo/hi structurally is assumed correct but cannot be semantically verified."
+      ]
+    },
+    {
+      "type_short": "SHTKey",
+      "qualified_name": "SHTKey",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl5__delegate_for_key_range_is_host_impl.rs",
+      "source_line": 114,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "SHTKeyView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "AbstractDelegationMap",
+      "qualified_name": "AbstractDelegationMap",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/delegation_map_v__impl5__delegate_for_key_range_is_host_impl.rs",
+      "source_line": 138,
+      "deps": [
+        "AbstractKey",
+        "AbstractEndPoint"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<AbstractKey, AbstractEndPoint>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "CMessage",
+      "qualified_name": "CMessage",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 6,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 10,
+      "deps": [
+        "CKey",
+        "EndPoint",
+        "KeyRange",
+        "CKeyHashMap"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CMessageView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "CPacket",
+      "qualified_name": "CPacket",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 75,
+      "deps": [
+        "EndPoint",
+        "CSingleMessage"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CPacketView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes EndPoint and CSingleMessage implement View; dependency views are listed as uncovered, so correctness depends on that context."
+      ]
+    },
+    {
+      "type_short": "Constants",
+      "qualified_name": "Constants",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 245,
+      "deps": [
+        "EndPoint",
+        "Parameters"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ConstantsView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Parameters",
+      "qualified_name": "Parameters",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 252,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ParametersView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "HostState",
+      "qualified_name": "HostState",
+      "kind": "struct",
+      "n_fields": 9,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 286,
+      "deps": [
+        "Constants",
+        "DelegationMap",
+        "CKey",
+        "CKeyHashMap",
+        "CSingleDelivery",
+        "CPacket",
+        "AppRequest"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "HostStateView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "CAckState",
+      "qualified_name": "CAckState",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 299,
+      "deps": [
+        "CSingleMessage"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CAckStateView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "CSingleMessage view is uncovered, so correctness depends on a future View impl for CSingleMessage being available."
+      ]
+    },
+    {
+      "type_short": "CTombstoneTable",
+      "qualified_name": "CTombstoneTable",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 304,
+      "deps": [
+        "HashMap"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "TombstoneTable",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "HashMap view is listed as uncovered, so this assumes an in-scope HashMap<u64> view returning a map compatible with TombstoneTable."
+      ]
+    },
+    {
+      "type_short": "CSendState",
+      "qualified_name": "CSendState",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 308,
+      "deps": [
+        "HashMap",
+        "CAckState"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<AbstractEndPoint, <CAckState as View>::V>",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Cannot verify HashMap<CAckState> or CAckState view definitions from provided context; candidate assumes epmap@ is Map<AbstractEndPoint, CAckState> and CAckState implements View."
+      ]
+    },
+    {
+      "type_short": "CSingleDelivery",
+      "qualified_name": "CSingleDelivery",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 312,
+      "deps": [
+        "CTombstoneTable",
+        "CSendState"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CSingleDeliveryView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "CTombstoneTable and CSendState dependency views are not shown; assuming their View impls exist, this product view preserves both fields correctly."
+      ]
+    },
+    {
+      "type_short": "AppRequest",
+      "qualified_name": "AppRequest",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 2,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 331,
+      "deps": [
+        "AbstractKey",
+        "AbstractValue"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "AppRequestView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "HashMap",
+      "qualified_name": "HashMap",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 338,
+      "deps": [
+        "HashMap",
+        "EndPoint"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<EndPoint, V>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "LPacket",
+      "qualified_name": "LPacket",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 342,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "LPacketView<IdType, MessageType>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "LIoOp",
+      "qualified_name": "LIoOp",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 4,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 348,
+      "deps": [
+        "LPacket"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "LIoOpView<IdType, MessageType>",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "LPacket has no known view, so identity projection is assumed correct for this audit."
+      ]
+    },
+    {
+      "type_short": "CKeyHashMap",
+      "qualified_name": "CKeyHashMap",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 356,
+      "deps": [
+        "HashMap",
+        "CKey"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Map<CKey, Seq<u8>>",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "Assumes collections::HashMap has a Verus view to Map<CKey, Vec<u8>>; dependency context marks HashMap as uncovered, so this cannot be confirmed here."
+      ]
+    },
+    {
+      "type_short": "CKeyKV",
+      "qualified_name": "CKeyKV",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 375,
+      "deps": [
+        "CKey"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "State",
+      "qualified_name": "State",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 405,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "StateView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "NetClient",
+      "qualified_name": "NetClient",
+      "kind": "struct",
+      "n_fields": 5,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 411,
+      "deps": [
+        "State",
+        "History",
+        "EndPoint",
+        "NetClientCPointers",
+        "DuctTapeProfiler"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "NetClientView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Message",
+      "qualified_name": "Message",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 6,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 455,
+      "deps": [
+        "AbstractKey",
+        "AbstractValue",
+        "AbstractEndPoint",
+        "KeyRange",
+        "Hashtable"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "MessageView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Packet",
+      "qualified_name": "Packet",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 464,
+      "deps": [
+        "AbstractEndPoint",
+        "PMsg"
+      ],
+      "status": "validate_fail",
+      "action": "invalid"
+    },
+    {
+      "type_short": "SingleMessage",
+      "qualified_name": "SingleMessage",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 470,
+      "deps": [
+        "AbstractEndPoint"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "SingleMessageView<MT>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "NetClientCPointers",
+      "qualified_name": "NetClientCPointers",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 763,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "()",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "DuctTapeProfiler",
+      "qualified_name": "DuctTapeProfiler",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__deliver_packet_seq.rs",
+      "source_line": 776,
+      "deps": [
+        "HashMap"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "AbstractParameters",
+      "qualified_name": "AbstractParameters",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_next_delegate.rs",
+      "source_line": 549,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "AbstractParametersView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "AbstractConstants",
+      "qualified_name": "AbstractConstants",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_next_delegate.rs",
+      "source_line": 665,
+      "deps": [
+        "AbstractEndPoint",
+        "AbstractParameters"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "AbstractConstantsView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "AbstractHostState",
+      "qualified_name": "AbstractHostState",
+      "kind": "struct",
+      "n_fields": 7,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_next_delegate.rs",
+      "source_line": 672,
+      "deps": [
+        "AbstractConstants",
+        "AbstractDelegationMap",
+        "Hashtable",
+        "SingleDelivery",
+        "Message",
+        "Packet",
+        "AppRequest"
+      ],
+      "status": "critic_reject",
+      "action": "critic_reject"
+    },
+    {
+      "type_short": "AckState",
+      "qualified_name": "AckState",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_next_delegate.rs",
+      "source_line": 863,
+      "deps": [
+        "AckList"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "AckStateView<MT>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "SingleDelivery",
+      "qualified_name": "SingleDelivery",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_next_delegate.rs",
+      "source_line": 869,
+      "deps": [
+        "TombstoneTable",
+        "SendState"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "SingleDeliveryView<MT>",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "ReceiveImplResult",
+      "qualified_name": "ReceiveImplResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_model_receive_packet.rs",
+      "source_line": 332,
+      "deps": [
+        "CPacket"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ReceiveImplResultView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "CPacket view is marked uncovered, so correctness depends on a View impl for CPacket being available elsewhere."
+      ]
+    },
+    {
+      "type_short": "EventResults",
+      "qualified_name": "EventResults",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_noreceive_noclock_next.rs",
+      "source_line": 604,
+      "deps": [
+        "NetEvent",
+        "Ios"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "EventResultsView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Step",
+      "qualified_name": "Step",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 6,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__host_noreceive_noclock_next.rs",
+      "source_line": 1238,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "Step",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "CSingleMessage",
+      "qualified_name": "CSingleMessage",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__parse_end_points.rs",
+      "source_line": 200,
+      "deps": [
+        "EndPoint",
+        "CMessage"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "CSingleMessageView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "EndPoint and CMessage dependency views are uncovered, but assuming their View impls exist, the candidate preserves all payload fields correctly."
+      ]
+    },
+    {
+      "type_short": "ReceiveResult",
+      "qualified_name": "ReceiveResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/host_impl_v__impl2__receive_packet_next.rs",
+      "source_line": 346,
+      "deps": [
+        "CPacket"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "ReceiveResultView",
+      "critic_verdict": "accept",
+      "critic_issues": [
+        "CPacket's dependency view is uncovered, so this is correct assuming CPacket implements View with the intended abstract packet semantics."
+      ]
+    },
+    {
+      "type_short": "NetcReceiveResult",
+      "qualified_name": "NetcReceiveResult",
+      "kind": "enum",
+      "n_fields": 0,
+      "n_variants": 3,
+      "source_file": "../verusage/source-projects/ironkv/unverified/net_sht_v__receive_with_demarshal.rs",
+      "source_line": 356,
+      "deps": [
+        "EndPoint"
+      ],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "NetcReceiveResultView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "IronfleetIOError",
+      "qualified_name": "IronfleetIOError",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/ironkv/unverified/net_sht_v__send_packet-poly.rs",
+      "source_line": 421,
+      "deps": [],
+      "status": "ok",
+      "action": "ok",
+      "viewed_type": "IronfleetIOErrorView",
+      "critic_verdict": "accept"
+    }
+  ]
+}

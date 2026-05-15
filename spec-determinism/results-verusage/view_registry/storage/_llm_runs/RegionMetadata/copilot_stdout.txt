@@ -1,0 +1,14 @@
+● Read prompt.md
+  │ results-verusage/view_registry/storage/_llm_runs/RegionMetadata/prompt.md
+  └ 109 lines read
+
+● List target directory (shell)
+  │ ls -la /home/chentianyu/intent_formalization/spec-determinism/results-verusa
+  │ ge/view_registry/storage/_llm_runs/RegionMetadata/
+  └ 5 lines...
+
+● Create response.md +9
+  └ results-verusage/view_registry/storage/_llm_runs/RegionMetadata/response.md
+
+Wrote the JSON response to `response.md`. The view projects `RegionMetadata` to a `RegionMetadataView` with all three primitive fields preserved, since each is spec-meaningful and none is allocator-opaque or ghost-only.
+

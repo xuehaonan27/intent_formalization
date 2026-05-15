@@ -1,0 +1,11 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "Uses `@` and `<ThreadState as View>::V` for uncovered `ThreadState`; no dependency view is known.",
+    "Uses `@` and `<Array<...> as View>::V` for uncovered `Array`; no dependency view is known.",
+    "Uses `@` and `<IPCPayLoad as View>::V` for uncovered `IPCPayLoad`; no dependency view is known.",
+    "Uses `self.error_code@` / `<RetValueType as View>::V` for uncovered `RetValueType`; no dependency view is known.",
+    "Uses `@` and `<TrapFrameOption as View>::V` for uncovered `TrapFrameOption`; no dependency view is known."
+  ],
+  "duration_s": 14.54
+}

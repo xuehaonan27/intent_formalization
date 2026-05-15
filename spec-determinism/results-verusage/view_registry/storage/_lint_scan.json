@@ -1,0 +1,22 @@
+{
+  "project": "",
+  "scanned": 19,
+  "rejected": 2,
+  "by_rule": {
+    "M3": 2
+  },
+  "rejections": [
+    {
+      "type_short": "ExternalDigest",
+      "qualified_name": "ExternalDigest",
+      "rule": "M3",
+      "reason": "M3: `ExternalDigest` is `#[verifier::external_body]` \u2014 Verus treats its fields as opaque and forbids field expressions in spec functions. Either drop `ExternalDigest` from the L4 work list, rewrite via an `external_type_specification` shim, or collapse the view body to `type V = (); fn view -> () { () }`."
+    },
+    {
+      "type_short": "MaybeCorruptedBytes",
+      "qualified_name": "MaybeCorruptedBytes",
+      "rule": "M3",
+      "reason": "M3: `MaybeCorruptedBytes` is `#[verifier::external_body]` \u2014 Verus treats its fields as opaque and forbids field expressions in spec functions. Either drop `MaybeCorruptedBytes` from the L4 work list, rewrite via an `external_type_specification` shim, or collapse the view body to `type V = (); fn view -> () { () }`."
+    }
+  ]
+}

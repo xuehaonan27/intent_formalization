@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type_short": "OpArgs",
+  "qualified_name": "OpArgs",
+  "source_hash": "108320aabed14fcf",
+  "view_source": "L4-llm",
+  "viewed_type": "OpArgsView",
+  "view_decl": "pub enum OpArgsView {\n    Map { base: usize, pte: <PTE as View>::V },\n    Unmap { base: usize },\n}\n\nimpl View for OpArgs {\n    type V = OpArgsView;\n    closed spec fn view(&self) -> OpArgsView {\n        match self {\n            OpArgs::Map { base, pte } => OpArgsView::Map { base: *base, pte: pte@ },\n            OpArgs::Unmap { base } => OpArgsView::Unmap { base: *base },\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "PTE"
+  ],
+  "rationale": "OpArgs is a tagged union of two page-table operations; both variants carry a spec-relevant usize base address, and Map additionally carries a PTE projected through its own View. Mirroring the variant structure in OpArgsView preserves the discriminant so the checker compares both the operation tag and its semantically meaningful payload.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"OpArgsView\",\n  \"view_decl\": \"pub enum OpArgsView {\\n    Map { base: usize, pte: <PTE as View>::V },\\n    Unmap { base: usize },\\n}\\n\\nimpl View for OpArgs {\\n    type V = OpArgsView;\\n    closed spec fn view(&self) -> OpArgsView {\\n        match self {\\n            OpArgs::Map { base, pte } => OpArgsView::Map { base: *base, pte: pte@ },\\n            OpArgs::Unmap { base } => OpArgsView::Unmap { base: *base },\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"PTE\"],\n  \"rationale\": \"OpArgs is a tagged union of two page-table operations; both variants carry a spec-relevant usize base address, and Map additionally carries a PTE projected through its own View. Mirroring the variant structure in OpArgsView preserves the discriminant so the checker compares both the operation tag and its semantically meaningful payload.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Assumes PTE implements View, but no dependency view was provided in context."
+  ]
+}

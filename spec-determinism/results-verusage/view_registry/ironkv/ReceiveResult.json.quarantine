@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type_short": "ReceiveResult",
+  "qualified_name": "ReceiveResult",
+  "source_hash": "8f4e05fe9600f6b2",
+  "view_source": "L4-llm",
+  "viewed_type": "ReceiveResultView",
+  "view_decl": "pub enum ReceiveResultView {\n    Fail,\n    Timeout,\n    Packet { cpacket: <CPacket as View>::V },\n}\n\nimpl View for ReceiveResult {\n    type V = ReceiveResultView;\n    closed spec fn view(&self) -> ReceiveResultView {\n        match self {\n            ReceiveResult::Fail => ReceiveResultView::Fail,\n            ReceiveResult::Timeout => ReceiveResultView::Timeout,\n            ReceiveResult::Packet { cpacket } => ReceiveResultView::Packet { cpacket: cpacket@ },\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "CPacket"
+  ],
+  "rationale": "ReceiveResult is a tagged sum: the spec uses the discriminant (`rr is Fail` / `is Timeout` / `is Packet`) and only ever inspects the payload through its abstract view (`rr.arrow_Packet_cpacket()@`). The projection therefore preserves the variant tag and forwards the `cpacket` field through `@`, so semantic equality is decided by `CPacket`'s view rather than by structural fields like marshalling buffers or socket-level identifiers.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"ReceiveResultView\",\n  \"view_decl\": \"pub enum ReceiveResultView {\\n    Fail,\\n    Timeout,\\n    Packet { cpacket: <CPacket as View>::V },\\n}\\n\\nimpl View for ReceiveResult {\\n    type V = ReceiveResultView;\\n    closed spec fn view(&self) -> ReceiveResultView {\\n        match self {\\n            ReceiveResult::Fail => ReceiveResultView::Fail,\\n            ReceiveResult::Timeout => ReceiveResultView::Timeout,\\n            ReceiveResult::Packet { cpacket } => ReceiveResultView::Packet { cpacket: cpacket@ },\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"CPacket\"],\n  \"rationale\": \"ReceiveResult is a tagged sum: the spec uses the discriminant (`rr is Fail` / `is Timeout` / `is Packet`) and only ever inspects the payload through its abstract view (`rr.arrow_Packet_cpacket()@`). The projection therefore preserves the variant tag and forwards the `cpacket` field through `@`, so semantic equality is decided by `CPacket`'s view rather than by structural fields like marshalling buffers or socket-level identifiers.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "CPacket's dependency view is uncovered, so this is correct assuming CPacket implements View with the intended abstract packet semantics."
+  ]
+}

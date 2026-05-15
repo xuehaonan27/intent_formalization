@@ -1,0 +1,410 @@
+use vstd::prelude::*;
+use vstd::simple_pptr::*;
+
+fn main() {}
+
+verus!{
+
+pub type PAddr = usize;
+pub type PageMapPtr = usize;
+
+// File: util/page_ptr_util_u.rs
+//
+pub open spec fn MEM_valid(v: PAddr) -> bool {
+    v & (!MEM_MASK) as usize == 0
+}
+
+
+// File: pagetable/pagemap.rs
+pub struct PageMap {
+    pub ar: Array<usize, 512>,
+    pub spec_seq: Ghost<Seq<PageEntry>>,  // pub level: Ghost<usize>,
+    // not used for now.
+}
+
+impl PageMap {
+
+    pub open spec fn wf(&self) -> bool {
+        &&& self.ar.wf()
+        &&& self.spec_seq@.len() == 512
+        &&& forall|i: int|
+            #![trigger usize2page_entry(self.ar@[i])]
+            0 <= i < 512 ==> (usize2page_entry(self.ar@[i])
+                =~= self.spec_seq@[i])
+            // &&&
+            // forall|i:int|
+            //     #![trigger usize2page_entry(self.ar@[i]).is_empty()]
+            //     0<=i<512 ==> (usize2page_entry(self.ar@[i]).is_empty() <==> self.ar@[i] == 0)
+
+    }
+
+    pub open spec fn spec_index(&self, index: usize) -> PageEntry
+        recommends
+            0 <= index < 512,
+    {
+        self.spec_seq@[index as int]
+    }
+
+}
+
+
+
+// File: pagetable/entry.rs
+#[derive(Clone,Debug)]
+pub struct PageEntryPerm {
+    pub present: bool,
+    pub ps: bool,
+    pub write: bool,
+    pub execute_disable: bool,
+    pub user: bool,
+}
+
+#[derive(Clone,Debug)]
+pub struct PageEntry {
+    pub addr: PAddr,
+    pub perm: PageEntryPerm,
+    // pub ps: bool,
+}
+
+pub open spec fn usize2present(v: usize) -> bool {
+    (v & PAGE_ENTRY_PRESENT_MASK as usize) != 0
+}
+
+pub open spec fn usize2ps(v: usize) -> bool {
+    (v & PAGE_ENTRY_PS_MASK as usize) != 0
+}
+
+pub open spec fn usize2write(v: usize) -> bool {
+    (v & PAGE_ENTRY_WRITE_MASK as usize) != 0
+}
+
+pub open spec fn usize2execute_disable(v: usize) -> bool {
+    (v & PAGE_ENTRY_EXECUTE_MASK as usize) != 0
+}
+
+pub open spec fn usize2user(v: usize) -> bool {
+    (v & PAGE_ENTRY_USER_MASK as usize) != 0
+}
+
+pub open spec fn spec_usize2page_entry_perm(v: usize) -> PageEntryPerm {
+    PageEntryPerm {
+        present: usize2present(v),
+        ps: usize2ps(v),
+        write: usize2write(v),
+        execute_disable: usize2execute_disable(v),
+        user: usize2user(v),
+    }
+}
+
+#[verifier::external_body]
+#[verifier(when_used_as_spec(spec_usize2page_entry_perm))]
+pub fn usize2page_entry_perm(v: usize) -> (ret: PageEntryPerm)
+    ensures
+        ret =~= spec_usize2page_entry_perm(v),
+        v == 0 ==> ret.present == false && ret.ps == false && ret.write == false
+            && ret.execute_disable == false && ret.user == false,
+{
+    unimplemented!()
+}
+
+
+pub open spec fn spec_usize2page_entry(v: usize) -> PageEntry {
+    PageEntry { addr: usize2pa(v), perm: usize2page_entry_perm(v) }
+}
+
+	#[verifier::external_body]
+#[verifier(when_used_as_spec(spec_usize2page_entry))]
+pub fn usize2page_entry(v: usize) -> (ret: PageEntry)
+    ensures
+        ret =~= spec_usize2page_entry(v),
+        v == 0 ==> ret.addr == 0 && ret.perm.present == false && ret.perm.ps == false
+            && ret.perm.write == false && ret.perm.execute_disable == false && ret.perm.user
+            == false,
+	{
+		unimplemented!()
+	}
+
+pub open spec fn spec_usize2pa(v: usize) -> PAddr {
+    v & MEM_MASK as usize
+}
+
+#[verifier::external_body]
+#[verifier(when_used_as_spec(spec_usize2pa))]
+pub fn usize2pa(v: usize) -> (ret: PAddr)
+    ensures
+        ret =~= spec_usize2pa(v),
+        MEM_valid(ret),
+{
+    unimplemented!()
+}
+
+// File: array.rs
+pub struct Array<A, const N: usize>{
+    pub seq: Ghost<Seq<A>>,
+    pub ar: [A;N]
+}
+
+impl<A, const N: usize> Array<A, N> {
+
+	#[verifier::external_body]
+    #[verifier(external_body)]
+    pub fn get(&self, i: usize) -> (out: &A)
+        requires
+            0 <= i < N,
+            self.wf(),
+        ensures
+            *out == self.seq@[i as int],
+	{
+		unimplemented!()
+	}
+
+    #[verifier(inline)]
+    pub open spec fn view(&self) -> Seq<A>{
+        self.seq@
+    }
+
+    pub open spec fn wf(&self) -> bool{
+        self.seq@.len() == N
+    }
+
+}
+
+
+
+// File: pagetable/pagemap_util_t.rs
+pub fn page_map_set_kernel_entry_range(
+    kernel_entries: &Array<usize, KERNEL_MEM_END_L4INDEX>,
+    page_map_ptr: PageMapPtr,
+    Tracked(page_map_perm): Tracked<&mut PointsTo<PageMap>>,
+)
+    requires
+        old(page_map_perm).addr() == page_map_ptr,
+        old(page_map_perm).is_init(),
+        old(page_map_perm).value().wf(),
+        kernel_entries.wf(),
+        kernel_entries@.len() == KERNEL_MEM_END_L4INDEX,
+    ensures
+        page_map_perm.addr() == page_map_ptr,
+        page_map_perm.is_init(),
+        page_map_perm.value().wf(),
+        forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            KERNEL_MEM_END_L4INDEX <= i < 512 ==> page_map_perm.value()[i] =~= old(
+                page_map_perm,
+            ).value()[i],
+        forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            0 <= i < KERNEL_MEM_END_L4INDEX ==> page_map_perm.value()[i] =~= usize2page_entry(
+                kernel_entries@[i as int],
+            ),
+{
+    for index in 0..KERNEL_MEM_END_L4INDEX
+        invariant
+            0 <= index <= KERNEL_MEM_END_L4INDEX,
+            kernel_entries.wf(),
+            kernel_entries@.len() == KERNEL_MEM_END_L4INDEX,
+            page_map_perm.addr() == page_map_ptr,
+            page_map_perm.is_init(),
+            page_map_perm.value().wf(),
+            forall|i: usize|
+                #![trigger page_map_perm.value()[i]]
+                KERNEL_MEM_END_L4INDEX <= i < 512 ==> page_map_perm.value()[i] =~= old(
+                    page_map_perm,
+                ).value()[i],
+            forall|i: usize|
+                #![trigger page_map_perm.value()[i]]
+                0 <= i < index ==> page_map_perm.value()[i] =~= usize2page_entry(
+                    kernel_entries@[i as int],
+                ),
+    {
+        page_map_set_no_requires(
+            page_map_ptr,
+            Tracked(page_map_perm),
+            index,
+            usize2page_entry(*kernel_entries.get(index)),
+        );
+    }
+}
+
+#[verifier(external_body)]
+pub fn page_map_set_no_requires(
+    page_map_ptr: PageMapPtr,
+    Tracked(page_map_perm): Tracked<&mut PointsTo<PageMap>>,
+    index: usize,
+    value: PageEntry,
+)
+    requires
+        old(page_map_perm).addr() == page_map_ptr,
+        old(page_map_perm).is_init(),
+        old(page_map_perm).value().wf(),
+        0 <= index < 512,
+    ensures
+        page_map_perm.addr() == page_map_ptr,
+        page_map_perm.is_init(),
+        page_map_perm.value().wf(),
+        forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            0 <= i < 512 && i != index ==> page_map_perm.value()[i] =~= old(
+                page_map_perm,
+            ).value()[i],
+        page_map_perm.value()[index] =~= value,
+	{
+		unimplemented!()
+	}
+
+
+// File: define.rs
+pub const KERNEL_MEM_END_L4INDEX: usize = 1;
+
+pub const MEM_MASK: u64 = 0x0000_ffff_ffff_f000;
+
+pub const PAGE_ENTRY_WRITE_SHIFT: u64 = 1;
+
+pub const PAGE_ENTRY_USER_SHIFT: u64 = 2;
+
+pub const PAGE_ENTRY_PS_SHIFT: u64 = 7;
+
+pub const PAGE_ENTRY_EXECUTE_SHIFT: u64 = 63;
+
+pub const PAGE_ENTRY_PRESENT_MASK: u64 = 0x1;
+
+pub const PAGE_ENTRY_WRITE_MASK: u64 = 0x1u64 << PAGE_ENTRY_WRITE_SHIFT;
+
+pub const PAGE_ENTRY_USER_MASK: u64 = 0x1u64 << PAGE_ENTRY_USER_SHIFT;
+
+pub const PAGE_ENTRY_PS_MASK: u64 = 0x1u64 << PAGE_ENTRY_PS_SHIFT;
+
+pub const PAGE_ENTRY_EXECUTE_MASK: u64 = 0x1u64 << PAGE_ENTRY_EXECUTE_SHIFT;
+
+
+
+// === INJECTED DET CHECK ===
+// Generated equal-fn for determinism check.
+// Policy: errs_equivalent=True, opaque_ok=False
+spec fn det_page_map_set_kernel_entry_range_equal(r1: (), r2: ()) -> bool {
+    (r1 == r2)
+}
+
+proof fn det_page_map_set_kernel_entry_range(g________is_init___is_true: bool, g________is_init___is_false: bool, g_________value___spec_seq___leneq: bool, k_________value___spec_seq___leneq: nat, g_________value___spec_seq___lenrng: bool, k_________value___spec_seq___lenrng_lo: nat, k_________value___spec_seq___lenrng_hi: nat, g_________value___spec_seq___0__perm_present_is_true: bool, g_________value___spec_seq___0__perm_present_is_false: bool, g_________value___spec_seq___0__perm_ps_is_true: bool, g_________value___spec_seq___0__perm_ps_is_false: bool, g_________value___spec_seq___0__perm_write_is_true: bool, g_________value___spec_seq___0__perm_write_is_false: bool, g_________value___spec_seq___0__perm_execute_disable_is_true: bool, g_________value___spec_seq___0__perm_execute_disable_is_false: bool, g_________value___spec_seq___0__perm_user_is_true: bool, g_________value___spec_seq___0__perm_user_is_false: bool, g_________value___spec_seq___1__perm_present_is_true: bool, g_________value___spec_seq___1__perm_present_is_false: bool, g_________value___spec_seq___1__perm_ps_is_true: bool, g_________value___spec_seq___1__perm_ps_is_false: bool, g_________value___spec_seq___1__perm_write_is_true: bool, g_________value___spec_seq___1__perm_write_is_false: bool, g_________value___spec_seq___1__perm_execute_disable_is_true: bool, g_________value___spec_seq___1__perm_execute_disable_is_false: bool, g_________value___spec_seq___1__perm_user_is_true: bool, g_________value___spec_seq___1__perm_user_is_false: bool, g_________value___spec_seq___2__perm_present_is_true: bool, g_________value___spec_seq___2__perm_present_is_false: bool, g_________value___spec_seq___2__perm_ps_is_true: bool, g_________value___spec_seq___2__perm_ps_is_false: bool, g_________value___spec_seq___2__perm_write_is_true: bool, g_________value___spec_seq___2__perm_write_is_false: bool, g_________value___spec_seq___2__perm_execute_disable_is_true: bool, g_________value___spec_seq___2__perm_execute_disable_is_false: bool, g_________value___spec_seq___2__perm_user_is_true: bool, g_________value___spec_seq___2__perm_user_is_false: bool, g_________value___spec_seq___3__perm_present_is_true: bool, g_________value___spec_seq___3__perm_present_is_false: bool, g_________value___spec_seq___3__perm_ps_is_true: bool, g_________value___spec_seq___3__perm_ps_is_false: bool, g_________value___spec_seq___3__perm_write_is_true: bool, g_________value___spec_seq___3__perm_write_is_false: bool, g_________value___spec_seq___3__perm_execute_disable_is_true: bool, g_________value___spec_seq___3__perm_execute_disable_is_false: bool, g_________value___spec_seq___3__perm_user_is_true: bool, g_________value___spec_seq___3__perm_user_is_false: bool, g_________value___spec_seq___4__perm_present_is_true: bool, g_________value___spec_seq___4__perm_present_is_false: bool, g_________value___spec_seq___4__perm_ps_is_true: bool, g_________value___spec_seq___4__perm_ps_is_false: bool, g_________value___spec_seq___4__perm_write_is_true: bool, g_________value___spec_seq___4__perm_write_is_false: bool, g_________value___spec_seq___4__perm_execute_disable_is_true: bool, g_________value___spec_seq___4__perm_execute_disable_is_false: bool, g_________value___spec_seq___4__perm_user_is_true: bool, g_________value___spec_seq___4__perm_user_is_false: bool, g_________value___spec_seq___5__perm_present_is_true: bool, g_________value___spec_seq___5__perm_present_is_false: bool, g_________value___spec_seq___5__perm_ps_is_true: bool, g_________value___spec_seq___5__perm_ps_is_false: bool, g_________value___spec_seq___5__perm_write_is_true: bool, g_________value___spec_seq___5__perm_write_is_false: bool, g_________value___spec_seq___5__perm_execute_disable_is_true: bool, g_________value___spec_seq___5__perm_execute_disable_is_false: bool, g_________value___spec_seq___5__perm_user_is_true: bool, g_________value___spec_seq___5__perm_user_is_false: bool, g_________value___spec_seq___6__perm_present_is_true: bool, g_________value___spec_seq___6__perm_present_is_false: bool, g_________value___spec_seq___6__perm_ps_is_true: bool, g_________value___spec_seq___6__perm_ps_is_false: bool, g_________value___spec_seq___6__perm_write_is_true: bool, g_________value___spec_seq___6__perm_write_is_false: bool, g_________value___spec_seq___6__perm_execute_disable_is_true: bool, g_________value___spec_seq___6__perm_execute_disable_is_false: bool, g_________value___spec_seq___6__perm_user_is_true: bool, g_________value___spec_seq___6__perm_user_is_false: bool, g_________value___spec_seq___7__perm_present_is_true: bool, g_________value___spec_seq___7__perm_present_is_false: bool, g_________value___spec_seq___7__perm_ps_is_true: bool, g_________value___spec_seq___7__perm_ps_is_false: bool, g_________value___spec_seq___7__perm_write_is_true: bool, g_________value___spec_seq___7__perm_write_is_false: bool, g_________value___spec_seq___7__perm_execute_disable_is_true: bool, g_________value___spec_seq___7__perm_execute_disable_is_false: bool, g_________value___spec_seq___7__perm_user_is_true: bool, g_________value___spec_seq___7__perm_user_is_false: bool, g________addr___eq: bool, k________addr___eq: int, g________addr___rng: bool, k________addr___rng_lo: int, k________addr___rng_hi: int, g_neq_tuple: bool, kernel_entries: Array<usize, KERNEL_MEM_END_L4INDEX>, page_map_ptr: PageMapPtr, ?: Tracked<&mut PointsTo<PageMap>>, r1: (), r2: ())
+    requires (old(page_map_perm).addr() == page_map_ptr), (old(page_map_perm).is_init()), (old(page_map_perm).value().wf()), (kernel_entries.wf()), (kernel_entries@.len() == KERNEL_MEM_END_L4INDEX),
+    ensures
+        ({
+            &&& (page_map_perm.addr() == page_map_ptr)
+            &&& (page_map_perm.is_init())
+            &&& (page_map_perm.value().wf())
+            &&& (forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            KERNEL_MEM_END_L4INDEX <= i < 512 ==> page_map_perm.value()[i] =~= old(
+                page_map_perm,
+            ).value()[i])
+            &&& (forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            0 <= i < KERNEL_MEM_END_L4INDEX ==> page_map_perm.value()[i] =~= usize2page_entry(
+                kernel_entries@[i as int],
+            ))
+            &&& (page_map_perm.addr() == page_map_ptr)
+            &&& (page_map_perm.is_init())
+            &&& (page_map_perm.value().wf())
+            &&& (forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            KERNEL_MEM_END_L4INDEX <= i < 512 ==> page_map_perm.value()[i] =~= old(
+                page_map_perm,
+            ).value()[i])
+            &&& (forall|i: usize|
+            #![trigger page_map_perm.value()[i]]
+            0 <= i < KERNEL_MEM_END_L4INDEX ==> page_map_perm.value()[i] =~= usize2page_entry(
+                kernel_entries@[i as int],
+            ))
+        }) ==> det_page_map_set_kernel_entry_range_equal(r1, r2),
+{
+    if g________is_init___is_true { assume(((?)@).is_init() == true); }
+    if g________is_init___is_false { assume(((?)@).is_init() == false); }
+    if g_________value___spec_seq___leneq { assume((((?)@).value().spec_seq)@.len() == k_________value___spec_seq___leneq); }
+    if g_________value___spec_seq___lenrng { assume((((?)@).value().spec_seq)@.len() >= k_________value___spec_seq___lenrng_lo && (((?)@).value().spec_seq)@.len() <= k_________value___spec_seq___lenrng_hi); }
+    if g_________value___spec_seq___0__perm_present_is_true { assume((((?)@).value().spec_seq)@[0].perm.present == true); }
+    if g_________value___spec_seq___0__perm_present_is_false { assume((((?)@).value().spec_seq)@[0].perm.present == false); }
+    if g_________value___spec_seq___0__perm_ps_is_true { assume((((?)@).value().spec_seq)@[0].perm.ps == true); }
+    if g_________value___spec_seq___0__perm_ps_is_false { assume((((?)@).value().spec_seq)@[0].perm.ps == false); }
+    if g_________value___spec_seq___0__perm_write_is_true { assume((((?)@).value().spec_seq)@[0].perm.write == true); }
+    if g_________value___spec_seq___0__perm_write_is_false { assume((((?)@).value().spec_seq)@[0].perm.write == false); }
+    if g_________value___spec_seq___0__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[0].perm.execute_disable == true); }
+    if g_________value___spec_seq___0__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[0].perm.execute_disable == false); }
+    if g_________value___spec_seq___0__perm_user_is_true { assume((((?)@).value().spec_seq)@[0].perm.user == true); }
+    if g_________value___spec_seq___0__perm_user_is_false { assume((((?)@).value().spec_seq)@[0].perm.user == false); }
+    if g_________value___spec_seq___1__perm_present_is_true { assume((((?)@).value().spec_seq)@[1].perm.present == true); }
+    if g_________value___spec_seq___1__perm_present_is_false { assume((((?)@).value().spec_seq)@[1].perm.present == false); }
+    if g_________value___spec_seq___1__perm_ps_is_true { assume((((?)@).value().spec_seq)@[1].perm.ps == true); }
+    if g_________value___spec_seq___1__perm_ps_is_false { assume((((?)@).value().spec_seq)@[1].perm.ps == false); }
+    if g_________value___spec_seq___1__perm_write_is_true { assume((((?)@).value().spec_seq)@[1].perm.write == true); }
+    if g_________value___spec_seq___1__perm_write_is_false { assume((((?)@).value().spec_seq)@[1].perm.write == false); }
+    if g_________value___spec_seq___1__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[1].perm.execute_disable == true); }
+    if g_________value___spec_seq___1__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[1].perm.execute_disable == false); }
+    if g_________value___spec_seq___1__perm_user_is_true { assume((((?)@).value().spec_seq)@[1].perm.user == true); }
+    if g_________value___spec_seq___1__perm_user_is_false { assume((((?)@).value().spec_seq)@[1].perm.user == false); }
+    if g_________value___spec_seq___2__perm_present_is_true { assume((((?)@).value().spec_seq)@[2].perm.present == true); }
+    if g_________value___spec_seq___2__perm_present_is_false { assume((((?)@).value().spec_seq)@[2].perm.present == false); }
+    if g_________value___spec_seq___2__perm_ps_is_true { assume((((?)@).value().spec_seq)@[2].perm.ps == true); }
+    if g_________value___spec_seq___2__perm_ps_is_false { assume((((?)@).value().spec_seq)@[2].perm.ps == false); }
+    if g_________value___spec_seq___2__perm_write_is_true { assume((((?)@).value().spec_seq)@[2].perm.write == true); }
+    if g_________value___spec_seq___2__perm_write_is_false { assume((((?)@).value().spec_seq)@[2].perm.write == false); }
+    if g_________value___spec_seq___2__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[2].perm.execute_disable == true); }
+    if g_________value___spec_seq___2__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[2].perm.execute_disable == false); }
+    if g_________value___spec_seq___2__perm_user_is_true { assume((((?)@).value().spec_seq)@[2].perm.user == true); }
+    if g_________value___spec_seq___2__perm_user_is_false { assume((((?)@).value().spec_seq)@[2].perm.user == false); }
+    if g_________value___spec_seq___3__perm_present_is_true { assume((((?)@).value().spec_seq)@[3].perm.present == true); }
+    if g_________value___spec_seq___3__perm_present_is_false { assume((((?)@).value().spec_seq)@[3].perm.present == false); }
+    if g_________value___spec_seq___3__perm_ps_is_true { assume((((?)@).value().spec_seq)@[3].perm.ps == true); }
+    if g_________value___spec_seq___3__perm_ps_is_false { assume((((?)@).value().spec_seq)@[3].perm.ps == false); }
+    if g_________value___spec_seq___3__perm_write_is_true { assume((((?)@).value().spec_seq)@[3].perm.write == true); }
+    if g_________value___spec_seq___3__perm_write_is_false { assume((((?)@).value().spec_seq)@[3].perm.write == false); }
+    if g_________value___spec_seq___3__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[3].perm.execute_disable == true); }
+    if g_________value___spec_seq___3__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[3].perm.execute_disable == false); }
+    if g_________value___spec_seq___3__perm_user_is_true { assume((((?)@).value().spec_seq)@[3].perm.user == true); }
+    if g_________value___spec_seq___3__perm_user_is_false { assume((((?)@).value().spec_seq)@[3].perm.user == false); }
+    if g_________value___spec_seq___4__perm_present_is_true { assume((((?)@).value().spec_seq)@[4].perm.present == true); }
+    if g_________value___spec_seq___4__perm_present_is_false { assume((((?)@).value().spec_seq)@[4].perm.present == false); }
+    if g_________value___spec_seq___4__perm_ps_is_true { assume((((?)@).value().spec_seq)@[4].perm.ps == true); }
+    if g_________value___spec_seq___4__perm_ps_is_false { assume((((?)@).value().spec_seq)@[4].perm.ps == false); }
+    if g_________value___spec_seq___4__perm_write_is_true { assume((((?)@).value().spec_seq)@[4].perm.write == true); }
+    if g_________value___spec_seq___4__perm_write_is_false { assume((((?)@).value().spec_seq)@[4].perm.write == false); }
+    if g_________value___spec_seq___4__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[4].perm.execute_disable == true); }
+    if g_________value___spec_seq___4__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[4].perm.execute_disable == false); }
+    if g_________value___spec_seq___4__perm_user_is_true { assume((((?)@).value().spec_seq)@[4].perm.user == true); }
+    if g_________value___spec_seq___4__perm_user_is_false { assume((((?)@).value().spec_seq)@[4].perm.user == false); }
+    if g_________value___spec_seq___5__perm_present_is_true { assume((((?)@).value().spec_seq)@[5].perm.present == true); }
+    if g_________value___spec_seq___5__perm_present_is_false { assume((((?)@).value().spec_seq)@[5].perm.present == false); }
+    if g_________value___spec_seq___5__perm_ps_is_true { assume((((?)@).value().spec_seq)@[5].perm.ps == true); }
+    if g_________value___spec_seq___5__perm_ps_is_false { assume((((?)@).value().spec_seq)@[5].perm.ps == false); }
+    if g_________value___spec_seq___5__perm_write_is_true { assume((((?)@).value().spec_seq)@[5].perm.write == true); }
+    if g_________value___spec_seq___5__perm_write_is_false { assume((((?)@).value().spec_seq)@[5].perm.write == false); }
+    if g_________value___spec_seq___5__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[5].perm.execute_disable == true); }
+    if g_________value___spec_seq___5__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[5].perm.execute_disable == false); }
+    if g_________value___spec_seq___5__perm_user_is_true { assume((((?)@).value().spec_seq)@[5].perm.user == true); }
+    if g_________value___spec_seq___5__perm_user_is_false { assume((((?)@).value().spec_seq)@[5].perm.user == false); }
+    if g_________value___spec_seq___6__perm_present_is_true { assume((((?)@).value().spec_seq)@[6].perm.present == true); }
+    if g_________value___spec_seq___6__perm_present_is_false { assume((((?)@).value().spec_seq)@[6].perm.present == false); }
+    if g_________value___spec_seq___6__perm_ps_is_true { assume((((?)@).value().spec_seq)@[6].perm.ps == true); }
+    if g_________value___spec_seq___6__perm_ps_is_false { assume((((?)@).value().spec_seq)@[6].perm.ps == false); }
+    if g_________value___spec_seq___6__perm_write_is_true { assume((((?)@).value().spec_seq)@[6].perm.write == true); }
+    if g_________value___spec_seq___6__perm_write_is_false { assume((((?)@).value().spec_seq)@[6].perm.write == false); }
+    if g_________value___spec_seq___6__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[6].perm.execute_disable == true); }
+    if g_________value___spec_seq___6__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[6].perm.execute_disable == false); }
+    if g_________value___spec_seq___6__perm_user_is_true { assume((((?)@).value().spec_seq)@[6].perm.user == true); }
+    if g_________value___spec_seq___6__perm_user_is_false { assume((((?)@).value().spec_seq)@[6].perm.user == false); }
+    if g_________value___spec_seq___7__perm_present_is_true { assume((((?)@).value().spec_seq)@[7].perm.present == true); }
+    if g_________value___spec_seq___7__perm_present_is_false { assume((((?)@).value().spec_seq)@[7].perm.present == false); }
+    if g_________value___spec_seq___7__perm_ps_is_true { assume((((?)@).value().spec_seq)@[7].perm.ps == true); }
+    if g_________value___spec_seq___7__perm_ps_is_false { assume((((?)@).value().spec_seq)@[7].perm.ps == false); }
+    if g_________value___spec_seq___7__perm_write_is_true { assume((((?)@).value().spec_seq)@[7].perm.write == true); }
+    if g_________value___spec_seq___7__perm_write_is_false { assume((((?)@).value().spec_seq)@[7].perm.write == false); }
+    if g_________value___spec_seq___7__perm_execute_disable_is_true { assume((((?)@).value().spec_seq)@[7].perm.execute_disable == true); }
+    if g_________value___spec_seq___7__perm_execute_disable_is_false { assume((((?)@).value().spec_seq)@[7].perm.execute_disable == false); }
+    if g_________value___spec_seq___7__perm_user_is_true { assume((((?)@).value().spec_seq)@[7].perm.user == true); }
+    if g_________value___spec_seq___7__perm_user_is_false { assume((((?)@).value().spec_seq)@[7].perm.user == false); }
+    if g________addr___eq { assume(((?)@).addr() as int == k________addr___eq); }
+    if g________addr___rng { assume(((?)@).addr() as int >= k________addr___rng_lo && ((?)@).addr() as int <= k________addr___rng_hi); }
+    if g_neq_tuple { assume(!det_page_map_set_kernel_entry_range_equal(r1, r2)); }
+}
+// === END INJECTED ===
+
+}

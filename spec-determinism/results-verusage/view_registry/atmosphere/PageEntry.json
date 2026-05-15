@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "PageEntry",
+  "qualified_name": "PageEntry",
+  "source_hash": "c4f8d8bde09fb5f0",
+  "view_source": "L4-llm",
+  "viewed_type": "PageEntryView",
+  "view_decl": "pub struct PageEntryView { pub addr: usize, pub perm: PageEntryPerm }\n\nimpl View for PageEntry {\n    type V = PageEntryView;\n    closed spec fn view(&self) -> PageEntryView {\n        PageEntryView { addr: self.addr, perm: self.perm }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "PAddr is a type alias for the primitive usize, so addr is taken structurally without `@`. PageEntryPerm is an uncovered leaf type with no resolved view, so we keep it as-is (treating its structural equality as semantic, analogous to the PageState case in the example). Both public fields are retained because they are the only spec-observable dimensions of a page-table entry.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"PageEntryView\",\n  \"view_decl\": \"pub struct PageEntryView { pub addr: usize, pub perm: PageEntryPerm }\\n\\nimpl View for PageEntry {\\n    type V = PageEntryView;\\n    closed spec fn view(&self) -> PageEntryView {\\n        PageEntryView { addr: self.addr, perm: self.perm }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"PAddr is a type alias for the primitive usize, so addr is taken structurally without `@`. PageEntryPerm is an uncovered leaf type with no resolved view, so we keep it as-is (treating its structural equality as semantic, analogous to the PageState case in the example). Both public fields are retained because they are the only spec-observable dimensions of a page-table entry.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

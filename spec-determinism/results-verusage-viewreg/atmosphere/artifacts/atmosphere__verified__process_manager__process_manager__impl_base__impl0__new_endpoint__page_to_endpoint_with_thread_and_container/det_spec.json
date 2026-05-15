@@ -1,0 +1,92 @@
+{
+  "function": "page_to_endpoint_with_thread_and_container",
+  "det_check_template": "proof fn det_page_to_endpoint_with_thread_and_container(owning_container: ContainerPtr, owning_thread: ThreadPtr, endpoint_idx: EndpointIdx, page_ptr: PagePtr, page_perm: Tracked<PagePerm4k>, r1: (EndpointPtr, Tracked<PointsTo<Endpoint>>), r2: (EndpointPtr, Tracked<PointsTo<Endpoint>>))\n    requires (page_perm@.is_init()), (page_perm@.addr() == page_ptr),\n    ensures\n        ({\n            &&& (r1.0 == page_ptr)\n            &&& (r1.1@.is_init())\n            &&& (r1.1@.addr() == r1.0)\n            &&& (r1.1@.value().queue.wf())\n            &&& (r1.1@.value().queue.unique())\n            &&& (r1.1@.value().queue@ =~= Seq::<ThreadPtr>::empty())\n            &&& (r1.1@.value().queue_state =~= EndpointState::SEND)\n            &&& (r1.1@.value().rf_counter =~= 1)\n            &&& (r1.1@.value().owning_threads@ =~= Set::<(ThreadPtr, EndpointIdx)>::empty().insert(\n            (owning_thread, endpoint_idx),\n        ))\n            &&& (r1.1@.value().owning_container == owning_container)\n            &&& (r2.0 == page_ptr)\n            &&& (r2.1@.is_init())\n            &&& (r2.1@.addr() == r2.0)\n            &&& (r2.1@.value().queue.wf())\n            &&& (r2.1@.value().queue.unique())\n            &&& (r2.1@.value().queue@ =~= Seq::<ThreadPtr>::empty())\n            &&& (r2.1@.value().queue_state =~= EndpointState::SEND)\n            &&& (r2.1@.value().rf_counter =~= 1)\n            &&& (r2.1@.value().owning_threads@ =~= Set::<(ThreadPtr, EndpointIdx)>::empty().insert(\n            (owning_thread, endpoint_idx),\n        ))\n            &&& (r2.1@.value().owning_container == owning_container)\n        }) ==> det_page_to_endpoint_with_thread_and_container_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "owning_container",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "owning_thread",
+      "type": {
+        "kind": "unknown",
+        "name": "ThreadPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "endpoint_idx",
+      "type": {
+        "kind": "unknown",
+        "name": "EndpointIdx"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PagePtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm4k>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm4k"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(EndpointPtr, Tracked<PointsTo<Endpoint>>)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(EndpointPtr, Tracked<PointsTo<Endpoint>>)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_to_endpoint_with_thread_and_container_equal(r1: (EndpointPtr, Tracked<PointsTo<Endpoint>>), r2: (EndpointPtr, Tracked<PointsTo<Endpoint>>)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_to_endpoint_with_thread_and_container_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_to_endpoint_with_thread_and_container",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Cannot verify HashMap<CAckState> or CAckState view definitions from provided context; candidate assumes epmap@ is Map<AbstractEndPoint, CAckState> and CAckState implements View."
+  ],
+  "duration_s": 9.3
+}

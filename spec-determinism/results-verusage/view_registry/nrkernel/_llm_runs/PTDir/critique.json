@@ -1,0 +1,7 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "entries is a spec Seq<Option<PTDir>>; self.entries@ does not validly/automatically produce Seq<Option<PTDirView>>, so the view body mismatches the declared PTDirView shape."
+  ],
+  "duration_s": 49.64
+}

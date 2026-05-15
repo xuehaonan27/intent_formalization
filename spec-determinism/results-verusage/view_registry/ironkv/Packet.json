@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Packet",
+  "qualified_name": "Packet",
+  "source_hash": "cd160849ec2d00c3",
+  "view_source": "L4-llm-invalid",
+  "viewed_type": "",
+  "view_decl": "",
+  "depends_on_views_of": [],
+  "rationale": "validation failed: tree-sitter parse error in verus! { view_decl }",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"PacketView\",\n  \"view_decl\": \"pub struct PacketView { pub dst: AbstractEndPoint@, pub src: AbstractEndPoint@, pub msg: PMsg@ }\\n\\nimpl View for Packet {\\n    type V = PacketView;\\n    closed spec fn view(&self) -> PacketView {\\n        PacketView { dst: self.dst@, src: self.src@, msg: self.msg@ }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"AbstractEndPoint\", \"PMsg\"],\n  \"rationale\": \"Packet is a plain three-field aggregation; all of dst, src, and msg are user-defined types that the spec inspects semantically, so we keep every field and delegate each one to its own (to-be-synthesised) view via @. No allocator-opaque or ghost-only fields to drop.\"\n}\n```\n",
+  "critic_verdict": "",
+  "critic_issues": []
+}

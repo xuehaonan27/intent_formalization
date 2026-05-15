@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "ShootdownVector",
+  "qualified_name": "os_ext::ShootdownVector",
+  "source_hash": "70074e03a21ba3e8",
+  "view_source": "L4-llm",
+  "viewed_type": "ShootdownVectorView",
+  "view_decl": "pub struct ShootdownVectorView { pub vaddr: nat, pub open_requests: Set<Core> }\n\nimpl View for ShootdownVector {\n    type V = ShootdownVectorView;\n    closed spec fn view(&self) -> ShootdownVectorView {\n        ShootdownVectorView { vaddr: self.vaddr, open_requests: self.open_requests }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Both fields are spec-meaningful and need no further abstraction: vaddr is a Verus `nat` (a spec-level primitive whose value is its own view), and open_requests is a Set<Core> whose semantic (unordered, extensional) equality is exactly what the checker wants. Core is a leaf type with no View impl, so it is kept as Core rather than Core@.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"ShootdownVectorView\",\n  \"view_decl\": \"pub struct ShootdownVectorView { pub vaddr: nat, pub open_requests: Set<Core> }\\n\\nimpl View for ShootdownVector {\\n    type V = ShootdownVectorView;\\n    closed spec fn view(&self) -> ShootdownVectorView {\\n        ShootdownVectorView { vaddr: self.vaddr, open_requests: self.open_requests }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Both fields are spec-meaningful and need no further abstraction: vaddr is a Verus `nat` (a spec-level primitive whose value is its own view), and open_requests is a Set<Core> whose semantic (unordered, extensional) equality is exactly what the checker wants. Core is a leaf type with no View impl, so it is kept as Core rather than Core@.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "PmemError",
+  "qualified_name": "PmemError",
+  "source_hash": "219f83818f55f0a0",
+  "view_source": "L4-llm",
+  "viewed_type": "PmemError",
+  "view_decl": "impl View for PmemError {\n    type V = PmemError;\n    closed spec fn view(&self) -> PmemError {\n        *self\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "PmemError is a C-like enum of unit-only variants with no payloads, so structural equality is already semantic. We project to itself (identity view), returning *self in the spec function.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"PmemError\",\n  \"view_decl\": \"impl View for PmemError {\\n    type V = PmemError;\\n    closed spec fn view(&self) -> PmemError {\\n        *self\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"PmemError is a C-like enum of unit-only variants with no payloads, so structural equality is already semantic. We project to itself (identity view), returning *self in the spec function.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

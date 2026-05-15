@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Assumes Directory and PTE have valid View impls; Directory is marked uncovered and PTE view context is not provided."]
+}
+```

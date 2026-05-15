@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["Over-aggressive collapse: DuctTapeProfiler has real runtime state fields (last_event, last_report, event_counter) but the view drops all information as ()."]
+}
+```

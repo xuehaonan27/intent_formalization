@@ -1,0 +1,1760 @@
+{
+  "function": "thread_set_trap_frame_fast",
+  "det_check_template": "proof fn det_thread_set_trap_frame_fast(thread_ptr: ThreadPtr, pre_thread_perm: Tracked<PointsTo<Thread>>, pt_regs: Registers, post1_thread_perm: Tracked<PointsTo<Thread>>, r1: (), post2_thread_perm: Tracked<PointsTo<Thread>>, r2: ())\n    requires (pre_thread_perm@.is_init()), (pre_thread_perm@.addr() == thread_ptr),\n    ensures\n        ({\n            &&& (post1_thread_perm@.is_init())\n            &&& (post1_thread_perm@.addr() == thread_ptr)\n            &&& (post1_thread_perm@.value().owning_container == pre_thread_perm@.value().owning_container)\n            &&& (post1_thread_perm@.value().owning_proc == pre_thread_perm@.value().owning_proc)\n            &&& (post1_thread_perm@.value().state == pre_thread_perm@.value().state)\n            &&& (post1_thread_perm@.value().proc_rev_ptr == pre_thread_perm@.value().proc_rev_ptr)\n            &&& (post1_thread_perm@.value().scheduler_rev_ptr == pre_thread_perm@.value().scheduler_rev_ptr)\n            &&& (post1_thread_perm@.value().blocking_endpoint_ptr == pre_thread_perm@.value().blocking_endpoint_ptr)\n            &&& (post1_thread_perm@.value().endpoint_rev_ptr == pre_thread_perm@.value().endpoint_rev_ptr)\n            &&& (post1_thread_perm@.value().running_cpu == pre_thread_perm@.value().running_cpu)\n            &&& (post1_thread_perm@.value().endpoint_descriptors == pre_thread_perm@.value().endpoint_descriptors)\n            &&& (post1_thread_perm@.value().ipc_payload == pre_thread_perm@.value().ipc_payload)\n            &&& (post1_thread_perm@.value().error_code == pre_thread_perm@.value().error_code)\n            &&& (post1_thread_perm@.value().blocking_endpoint_index == pre_thread_perm@.value().blocking_endpoint_index)\n            &&& (post1_thread_perm@.value().trap_frame.is_Some())\n            &&& (post1_thread_perm@.value().trap_frame.unwrap() == pt_regs)\n            &&& (post2_thread_perm@.is_init())\n            &&& (post2_thread_perm@.addr() == thread_ptr)\n            &&& (post2_thread_perm@.value().owning_container == pre_thread_perm@.value().owning_container)\n            &&& (post2_thread_perm@.value().owning_proc == pre_thread_perm@.value().owning_proc)\n            &&& (post2_thread_perm@.value().state == pre_thread_perm@.value().state)\n            &&& (post2_thread_perm@.value().proc_rev_ptr == pre_thread_perm@.value().proc_rev_ptr)\n            &&& (post2_thread_perm@.value().scheduler_rev_ptr == pre_thread_perm@.value().scheduler_rev_ptr)\n            &&& (post2_thread_perm@.value().blocking_endpoint_ptr == pre_thread_perm@.value().blocking_endpoint_ptr)\n            &&& (post2_thread_perm@.value().endpoint_rev_ptr == pre_thread_perm@.value().endpoint_rev_ptr)\n            &&& (post2_thread_perm@.value().running_cpu == pre_thread_perm@.value().running_cpu)\n            &&& (post2_thread_perm@.value().endpoint_descriptors == pre_thread_perm@.value().endpoint_descriptors)\n            &&& (post2_thread_perm@.value().ipc_payload == pre_thread_perm@.value().ipc_payload)\n            &&& (post2_thread_perm@.value().error_code == pre_thread_perm@.value().error_code)\n            &&& (post2_thread_perm@.value().blocking_endpoint_index == pre_thread_perm@.value().blocking_endpoint_index)\n            &&& (post2_thread_perm@.value().trap_frame.is_Some())\n            &&& (post2_thread_perm@.value().trap_frame.unwrap() == pt_regs)\n        }) ==> det_thread_set_trap_frame_fast_equal(r1, r2, post1_thread_perm, post2_thread_perm),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "thread_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ThreadPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_thread_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Thread>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Thread>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Thread",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "owning_proc",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ProcPtr"
+                    }
+                  },
+                  {
+                    "name": "state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "ThreadState",
+                      "variants": [
+                        {
+                          "name": "SCHEDULED"
+                        },
+                        {
+                          "name": "BLOCKED"
+                        },
+                        {
+                          "name": "RUNNING"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "proc_rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "scheduler_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_index",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointIdx>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointIdx"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointIdx"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "running_cpu",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<CpuId>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "CpuId"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "CpuId"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_descriptors",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Array<Option<EndpointPtr>, MAX_NUM_ENDPOINT_DESCRIPTORS>",
+                      "type_args": [
+                        {
+                          "kind": "Option",
+                          "name": "Option<EndpointPtr>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "EndpointPtr"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "EndpointPtr"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_ENDPOINT_DESCRIPTORS"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ipc_payload",
+                    "type": {
+                      "kind": "enum",
+                      "name": "IPCPayLoad",
+                      "variants": [
+                        {
+                          "name": "Message"
+                        },
+                        {
+                          "name": "Pages"
+                        },
+                        {
+                          "name": "Endpoint"
+                        },
+                        {
+                          "name": "Pci"
+                        },
+                        {
+                          "name": "PageFault"
+                        },
+                        {
+                          "name": "Empty"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "error_code",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<RetValueType>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "enum",
+                            "name": "RetValueType",
+                            "variants": [
+                              {
+                                "name": "SuccessUsize"
+                              },
+                              {
+                                "name": "SuccessSeqUsize"
+                              },
+                              {
+                                "name": "SuccessPairUsize"
+                              },
+                              {
+                                "name": "SuccessThreeUsize"
+                              },
+                              {
+                                "name": "ErrorNoQuota"
+                              },
+                              {
+                                "name": "ErrorVaInUse"
+                              },
+                              {
+                                "name": "CpuIdle"
+                              },
+                              {
+                                "name": "Error"
+                              },
+                              {
+                                "name": "Else"
+                              },
+                              {
+                                "name": "NoQuota"
+                              },
+                              {
+                                "name": "VaInUse"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "enum",
+                          "name": "RetValueType",
+                          "variants": [
+                            {
+                              "name": "SuccessUsize"
+                            },
+                            {
+                              "name": "SuccessSeqUsize"
+                            },
+                            {
+                              "name": "SuccessPairUsize"
+                            },
+                            {
+                              "name": "SuccessThreeUsize"
+                            },
+                            {
+                              "name": "ErrorNoQuota"
+                            },
+                            {
+                              "name": "ErrorVaInUse"
+                            },
+                            {
+                              "name": "CpuIdle"
+                            },
+                            {
+                              "name": "Error"
+                            },
+                            {
+                              "name": "Else"
+                            },
+                            {
+                              "name": "NoQuota"
+                            },
+                            {
+                              "name": "VaInUse"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "trap_frame",
+                    "type": {
+                      "kind": "struct",
+                      "name": "TrapFrameOption",
+                      "fields": [
+                        {
+                          "name": "reg",
+                          "type": {
+                            "kind": "struct",
+                            "name": "Registers",
+                            "fields": [
+                              {
+                                "name": "r15",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r14",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r13",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r12",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r11",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r10",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r9",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r8",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rcx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rax",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "error_code",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rip",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "cs",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "flags",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "ss",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "exists",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pt_regs",
+      "type": {
+        "kind": "struct",
+        "name": "Registers",
+        "fields": [
+          {
+            "name": "r15",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r14",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r13",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r12",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rbx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r11",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r10",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r9",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "r8",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rcx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdx",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rdi",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rax",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "error_code",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rip",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "cs",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "flags",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "rsp",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          },
+          {
+            "name": "ss",
+            "type": {
+              "kind": "u64",
+              "name": "u64"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_thread_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Thread>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Thread>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Thread",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "owning_proc",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ProcPtr"
+                    }
+                  },
+                  {
+                    "name": "state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "ThreadState",
+                      "variants": [
+                        {
+                          "name": "SCHEDULED"
+                        },
+                        {
+                          "name": "BLOCKED"
+                        },
+                        {
+                          "name": "RUNNING"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "proc_rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "scheduler_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_index",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointIdx>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointIdx"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointIdx"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "running_cpu",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<CpuId>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "CpuId"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "CpuId"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_descriptors",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Array<Option<EndpointPtr>, MAX_NUM_ENDPOINT_DESCRIPTORS>",
+                      "type_args": [
+                        {
+                          "kind": "Option",
+                          "name": "Option<EndpointPtr>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "EndpointPtr"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "EndpointPtr"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_ENDPOINT_DESCRIPTORS"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ipc_payload",
+                    "type": {
+                      "kind": "enum",
+                      "name": "IPCPayLoad",
+                      "variants": [
+                        {
+                          "name": "Message"
+                        },
+                        {
+                          "name": "Pages"
+                        },
+                        {
+                          "name": "Endpoint"
+                        },
+                        {
+                          "name": "Pci"
+                        },
+                        {
+                          "name": "PageFault"
+                        },
+                        {
+                          "name": "Empty"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "error_code",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<RetValueType>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "enum",
+                            "name": "RetValueType",
+                            "variants": [
+                              {
+                                "name": "SuccessUsize"
+                              },
+                              {
+                                "name": "SuccessSeqUsize"
+                              },
+                              {
+                                "name": "SuccessPairUsize"
+                              },
+                              {
+                                "name": "SuccessThreeUsize"
+                              },
+                              {
+                                "name": "ErrorNoQuota"
+                              },
+                              {
+                                "name": "ErrorVaInUse"
+                              },
+                              {
+                                "name": "CpuIdle"
+                              },
+                              {
+                                "name": "Error"
+                              },
+                              {
+                                "name": "Else"
+                              },
+                              {
+                                "name": "NoQuota"
+                              },
+                              {
+                                "name": "VaInUse"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "enum",
+                          "name": "RetValueType",
+                          "variants": [
+                            {
+                              "name": "SuccessUsize"
+                            },
+                            {
+                              "name": "SuccessSeqUsize"
+                            },
+                            {
+                              "name": "SuccessPairUsize"
+                            },
+                            {
+                              "name": "SuccessThreeUsize"
+                            },
+                            {
+                              "name": "ErrorNoQuota"
+                            },
+                            {
+                              "name": "ErrorVaInUse"
+                            },
+                            {
+                              "name": "CpuIdle"
+                            },
+                            {
+                              "name": "Error"
+                            },
+                            {
+                              "name": "Else"
+                            },
+                            {
+                              "name": "NoQuota"
+                            },
+                            {
+                              "name": "VaInUse"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "trap_frame",
+                    "type": {
+                      "kind": "struct",
+                      "name": "TrapFrameOption",
+                      "fields": [
+                        {
+                          "name": "reg",
+                          "type": {
+                            "kind": "struct",
+                            "name": "Registers",
+                            "fields": [
+                              {
+                                "name": "r15",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r14",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r13",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r12",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r11",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r10",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r9",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r8",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rcx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rax",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "error_code",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rip",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "cs",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "flags",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "ss",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "exists",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_thread_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Thread>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Thread>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Thread",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "owning_proc",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ProcPtr"
+                    }
+                  },
+                  {
+                    "name": "state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "ThreadState",
+                      "variants": [
+                        {
+                          "name": "SCHEDULED"
+                        },
+                        {
+                          "name": "BLOCKED"
+                        },
+                        {
+                          "name": "RUNNING"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "proc_rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "scheduler_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "blocking_endpoint_index",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<EndpointIdx>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "EndpointIdx"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "EndpointIdx"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "running_cpu",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<CpuId>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "CpuId"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "CpuId"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "endpoint_descriptors",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Array<Option<EndpointPtr>, MAX_NUM_ENDPOINT_DESCRIPTORS>",
+                      "type_args": [
+                        {
+                          "kind": "Option",
+                          "name": "Option<EndpointPtr>",
+                          "variants": [
+                            {
+                              "name": "Some",
+                              "inner": {
+                                "kind": "unknown",
+                                "name": "EndpointPtr"
+                              }
+                            },
+                            {
+                              "name": "None"
+                            }
+                          ],
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "EndpointPtr"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_ENDPOINT_DESCRIPTORS"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ipc_payload",
+                    "type": {
+                      "kind": "enum",
+                      "name": "IPCPayLoad",
+                      "variants": [
+                        {
+                          "name": "Message"
+                        },
+                        {
+                          "name": "Pages"
+                        },
+                        {
+                          "name": "Endpoint"
+                        },
+                        {
+                          "name": "Pci"
+                        },
+                        {
+                          "name": "PageFault"
+                        },
+                        {
+                          "name": "Empty"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "error_code",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<RetValueType>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "enum",
+                            "name": "RetValueType",
+                            "variants": [
+                              {
+                                "name": "SuccessUsize"
+                              },
+                              {
+                                "name": "SuccessSeqUsize"
+                              },
+                              {
+                                "name": "SuccessPairUsize"
+                              },
+                              {
+                                "name": "SuccessThreeUsize"
+                              },
+                              {
+                                "name": "ErrorNoQuota"
+                              },
+                              {
+                                "name": "ErrorVaInUse"
+                              },
+                              {
+                                "name": "CpuIdle"
+                              },
+                              {
+                                "name": "Error"
+                              },
+                              {
+                                "name": "Else"
+                              },
+                              {
+                                "name": "NoQuota"
+                              },
+                              {
+                                "name": "VaInUse"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "enum",
+                          "name": "RetValueType",
+                          "variants": [
+                            {
+                              "name": "SuccessUsize"
+                            },
+                            {
+                              "name": "SuccessSeqUsize"
+                            },
+                            {
+                              "name": "SuccessPairUsize"
+                            },
+                            {
+                              "name": "SuccessThreeUsize"
+                            },
+                            {
+                              "name": "ErrorNoQuota"
+                            },
+                            {
+                              "name": "ErrorVaInUse"
+                            },
+                            {
+                              "name": "CpuIdle"
+                            },
+                            {
+                              "name": "Error"
+                            },
+                            {
+                              "name": "Else"
+                            },
+                            {
+                              "name": "NoQuota"
+                            },
+                            {
+                              "name": "VaInUse"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "trap_frame",
+                    "type": {
+                      "kind": "struct",
+                      "name": "TrapFrameOption",
+                      "fields": [
+                        {
+                          "name": "reg",
+                          "type": {
+                            "kind": "struct",
+                            "name": "Registers",
+                            "fields": [
+                              {
+                                "name": "r15",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r14",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r13",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r12",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rbx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r11",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r10",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r9",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "r8",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rcx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdx",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rdi",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rax",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "error_code",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rip",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "cs",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "flags",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "rsp",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              },
+                              {
+                                "name": "ss",
+                                "type": {
+                                  "kind": "u64",
+                                  "name": "u64"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "exists",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct TrapFrameOptionView { pub reg: Registers, pub exists: bool }\n\nimpl View for TrapFrameOption {\n    type V = TrapFrameOptionView;\n    closed spec fn view(&self) -> TrapFrameOptionView {\n        TrapFrameOptionView { reg: self.reg, exists: self.exists }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_thread_set_trap_frame_fast_equal(r1: (), r2: (), post1_thread_perm: Tracked<PointsTo<Thread>>, post2_thread_perm: Tracked<PointsTo<Thread>>) -> bool {\n    (r1 == r2)\n    && ((((post1_thread_perm)@).is_init() == ((post2_thread_perm)@).is_init()) && (((post1_thread_perm)@).addr() == ((post2_thread_perm)@).addr()) && (((post1_thread_perm)@).is_init() ==> (((((post1_thread_perm)@).value().owning_container == ((post2_thread_perm)@).value().owning_container)) && ((((post1_thread_perm)@).value().owning_proc == ((post2_thread_perm)@).value().owning_proc)) && (((((post1_thread_perm)@).value().state is SCHEDULED) == (((post2_thread_perm)@).value().state is SCHEDULED)) && ((((post1_thread_perm)@).value().state is BLOCKED) == (((post2_thread_perm)@).value().state is BLOCKED)) && ((((post1_thread_perm)@).value().state is RUNNING) == (((post2_thread_perm)@).value().state is RUNNING))) && ((((post1_thread_perm)@).value().proc_rev_ptr == ((post2_thread_perm)@).value().proc_rev_ptr)) && (((((post1_thread_perm)@).value().scheduler_rev_ptr is Some) == (((post2_thread_perm)@).value().scheduler_rev_ptr is Some)) && ((((post1_thread_perm)@).value().scheduler_rev_ptr is Some) ==> ((((post1_thread_perm)@).value().scheduler_rev_ptr->Some_0 == ((post2_thread_perm)@).value().scheduler_rev_ptr->Some_0)))) && (((((post1_thread_perm)@).value().blocking_endpoint_ptr is Some) == (((post2_thread_perm)@).value().blocking_endpoint_ptr is Some)) && ((((post1_thread_perm)@).value().blocking_endpoint_ptr is Some) ==> ((((post1_thread_perm)@).value().blocking_endpoint_ptr->Some_0 == ((post2_thread_perm)@).value().blocking_endpoint_ptr->Some_0)))) && (((((post1_thread_perm)@).value().blocking_endpoint_index is Some) == (((post2_thread_perm)@).value().blocking_endpoint_index is Some)) && ((((post1_thread_perm)@).value().blocking_endpoint_index is Some) ==> ((((post1_thread_perm)@).value().blocking_endpoint_index->Some_0 == ((post2_thread_perm)@).value().blocking_endpoint_index->Some_0)))) && (((((post1_thread_perm)@).value().endpoint_rev_ptr is Some) == (((post2_thread_perm)@).value().endpoint_rev_ptr is Some)) && ((((post1_thread_perm)@).value().endpoint_rev_ptr is Some) ==> ((((post1_thread_perm)@).value().endpoint_rev_ptr->Some_0 == ((post2_thread_perm)@).value().endpoint_rev_ptr->Some_0)))) && (((((post1_thread_perm)@).value().running_cpu is Some) == (((post2_thread_perm)@).value().running_cpu is Some)) && ((((post1_thread_perm)@).value().running_cpu is Some) ==> ((((post1_thread_perm)@).value().running_cpu->Some_0 == ((post2_thread_perm)@).value().running_cpu->Some_0)))) && (((post1_thread_perm)@).value().endpoint_descriptors == ((post2_thread_perm)@).value().endpoint_descriptors) && (((((post1_thread_perm)@).value().ipc_payload is Message) == (((post2_thread_perm)@).value().ipc_payload is Message)) && ((((post1_thread_perm)@).value().ipc_payload is Pages) == (((post2_thread_perm)@).value().ipc_payload is Pages)) && ((((post1_thread_perm)@).value().ipc_payload is Endpoint) == (((post2_thread_perm)@).value().ipc_payload is Endpoint)) && ((((post1_thread_perm)@).value().ipc_payload is Pci) == (((post2_thread_perm)@).value().ipc_payload is Pci)) && ((((post1_thread_perm)@).value().ipc_payload is PageFault) == (((post2_thread_perm)@).value().ipc_payload is PageFault)) && ((((post1_thread_perm)@).value().ipc_payload is Empty) == (((post2_thread_perm)@).value().ipc_payload is Empty))) && (((((post1_thread_perm)@).value().error_code is Some) == (((post2_thread_perm)@).value().error_code is Some)) && ((((post1_thread_perm)@).value().error_code is Some) ==> (((((post1_thread_perm)@).value().error_code->Some_0 is SuccessUsize) == (((post2_thread_perm)@).value().error_code->Some_0 is SuccessUsize)) && ((((post1_thread_perm)@).value().error_code->Some_0 is SuccessSeqUsize) == (((post2_thread_perm)@).value().error_code->Some_0 is SuccessSeqUsize)) && ((((post1_thread_perm)@).value().error_code->Some_0 is SuccessPairUsize) == (((post2_thread_perm)@).value().error_code->Some_0 is SuccessPairUsize)) && ((((post1_thread_perm)@).value().error_code->Some_0 is SuccessThreeUsize) == (((post2_thread_perm)@).value().error_code->Some_0 is SuccessThreeUsize)) && ((((post1_thread_perm)@).value().error_code->Some_0 is ErrorNoQuota) == (((post2_thread_perm)@).value().error_code->Some_0 is ErrorNoQuota)) && ((((post1_thread_perm)@).value().error_code->Some_0 is ErrorVaInUse) == (((post2_thread_perm)@).value().error_code->Some_0 is ErrorVaInUse)) && ((((post1_thread_perm)@).value().error_code->Some_0 is CpuIdle) == (((post2_thread_perm)@).value().error_code->Some_0 is CpuIdle)) && ((((post1_thread_perm)@).value().error_code->Some_0 is Error) == (((post2_thread_perm)@).value().error_code->Some_0 is Error)) && ((((post1_thread_perm)@).value().error_code->Some_0 is Else) == (((post2_thread_perm)@).value().error_code->Some_0 is Else)) && ((((post1_thread_perm)@).value().error_code->Some_0 is NoQuota) == (((post2_thread_perm)@).value().error_code->Some_0 is NoQuota)) && ((((post1_thread_perm)@).value().error_code->Some_0 is VaInUse) == (((post2_thread_perm)@).value().error_code->Some_0 is VaInUse))))) && (((((post1_thread_perm)@).value().trap_frame).view() == (((post2_thread_perm)@).value().trap_frame).view())))))\n}",
+  "equal_fn_name": "det_thread_set_trap_frame_fast_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_thread_perm",
+      "rhs": "post2_thread_perm"
+    }
+  ],
+  "check_fn_name": "det_thread_set_trap_frame_fast",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

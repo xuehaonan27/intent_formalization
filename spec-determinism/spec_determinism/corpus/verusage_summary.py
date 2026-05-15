@@ -20,6 +20,15 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from spec_determinism.classify import (
+    BUCKET_INCONCLUSIVE,
+    BUCKET_PROVED,
+    BUCKET_UNKNOWN_KIND,
+    BUCKET_WITNESS,
+    OK_BUCKETS,
+    classify_ok,
+)
+
 
 def load_per_project(results_root: Path) -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = {}
@@ -40,14 +49,24 @@ def render(per_project: dict[str, list[dict]]) -> str:
     lines: list[str] = []
     lines.append("# verusage spec-determinism — batch summary")
     lines.append("")
+    lines.append("> `ok` results are classified by the **R0** z3 verdict (initial "
+                 "determinism check before any schema narrowing):")
+    lines.append(">")
+    lines.append("> * **`ok_proved`** — R0 = `unsat` → function is provably deterministic.")
+    lines.append("> * **`ok_witness`** — R0 = `sat` → z3 produced a real "
+                 "nondeterminism counterexample.")
+    lines.append("> * **`ok_inconclusive`** — R0 = `unknown` (or legacy run without "
+                 "`r0_z3`) → z3 surrendered; assumes from narrowing are not a "
+                 "witness, just refinement attempts.")
+    lines.append("")
 
     # --- Overview table ---
     lines.append("## Per-project overview")
     lines.append("")
-    lines.append("| project | n | ok | ok-with-witness | search_error | verus_error | extract_error | other |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("| project | n | ok_proved | ok_witness | ok_inconclusive | search_error | verus_error | extract_error | other |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
     total = Counter()
-    with_witness_total = 0
+    proved_total = witness_total = inconc_total = unk_total = 0
     for proj, results in per_project.items():
         c = Counter(r.get("status", "?") for r in results)
         ok = c.get("ok", 0)
@@ -55,36 +74,84 @@ def render(per_project: dict[str, list[dict]]) -> str:
         ve = c.get("verus_error", 0)
         ee = c.get("extract_error", 0)
         other = sum(v for k, v in c.items() if k not in {"ok", "search_error", "verus_error", "extract_error"})
-        ww = sum(1 for r in results if r.get("status") == "ok" and r.get("assumes"))
+        buckets = Counter()
+        for r in results:
+            if r.get("status") == "ok":
+                buckets[classify_ok(r)] += 1
+        proved = buckets[BUCKET_PROVED]
+        witness = buckets[BUCKET_WITNESS]
+        inconc = buckets[BUCKET_INCONCLUSIVE]
+        unk = buckets[BUCKET_UNKNOWN_KIND]
         total.update(c)
-        with_witness_total += ww
-        lines.append(f"| {proj} | {len(results)} | {ok} | {ww} | {se} | {ve} | {ee} | {other} |")
-    lines.append(f"| **TOTAL** | **{sum(len(r) for r in per_project.values())}** | **{total.get('ok',0)}** | **{with_witness_total}** | **{total.get('search_error',0)}** | **{total.get('verus_error',0)}** | **{total.get('extract_error',0)}** | — |")
+        proved_total += proved
+        witness_total += witness
+        inconc_total += inconc
+        unk_total += unk
+        if (proved + witness + inconc + unk) != ok:
+            other += ok - (proved + witness + inconc + unk)
+        lines.append(f"| {proj} | {len(results)} | {proved} | {witness} | {inconc} | {se} | {ve} | {ee} | {other} |")
+    n_total = sum(len(r) for r in per_project.values())
+    lines.append(
+        f"| **TOTAL** | **{n_total}** | **{proved_total}** | **{witness_total}** "
+        f"| **{inconc_total}** | **{total.get('search_error',0)}** "
+        f"| **{total.get('verus_error',0)}** | **{total.get('extract_error',0)}** | — |"
+    )
+    if unk_total:
+        lines.append("")
+        lines.append(f"_{unk_total} `ok` results had an unexpected `r0_z3` value "
+                     f"(`{BUCKET_UNKNOWN_KIND}`)._")
     lines.append("")
 
-    # --- Witness-bearing targets ---
-    lines.append("## Targets with determinism witnesses")
+    # --- Real witnesses (R0=sat) ---
+    lines.append("## Real determinism witnesses (R0 = sat)")
     lines.append("")
-    any_witness = False
+    any_real = False
     for proj, results in per_project.items():
-        ww = [r for r in results if r.get("status") == "ok" and r.get("assumes")]
-        if not ww:
+        rw = [r for r in results
+              if r.get("status") == "ok" and classify_ok(r) == BUCKET_WITNESS]
+        if not rw:
             continue
-        any_witness = True
-        lines.append(f"### {proj} ({len(ww)} witness-bearing)")
+        any_real = True
+        lines.append(f"### {proj} ({len(rw)} real-witness)")
         lines.append("")
-        for r in ww:
+        for r in rw:
             key = r.get("artifact_key", r.get("file", "?"))
-            fn = r.get("function", "?")
             rounds = r.get("n_rounds", "?")
             assumes = r.get("assumes", [])
             lines.append(f"- `{key}`  (rounds={rounds})")
             for a in assumes:
-                # single line, trim long
                 al = a if len(a) < 180 else a[:180] + "…"
                 lines.append(f"  - `{al}`")
         lines.append("")
-    if not any_witness:
+    if not any_real:
+        lines.append("*(none — no z3-confirmed nondeterminism witnesses in this run)*")
+        lines.append("")
+
+    # --- Inconclusive targets (R0 = unknown) ---
+    lines.append("## Inconclusive targets (R0 = unknown)")
+    lines.append("")
+    lines.append("These cases reached the schema-narrowing phase but z3 returned "
+                 "`unknown` on the baseline check; any `assumes` below are search "
+                 "artifacts, **not** verified witnesses.")
+    lines.append("")
+    any_inc = False
+    for proj, results in per_project.items():
+        inc = [r for r in results
+               if r.get("status") == "ok" and classify_ok(r) == BUCKET_INCONCLUSIVE]
+        if not inc:
+            continue
+        any_inc = True
+        lines.append(f"### {proj} ({len(inc)} inconclusive)")
+        lines.append("")
+        for r in inc[:40]:
+            key = r.get("artifact_key", r.get("file", "?"))
+            rounds = r.get("n_rounds", "?")
+            n_a = len(r.get("assumes", []))
+            lines.append(f"- `{key}`  (rounds={rounds}, narrowed_assumes={n_a})")
+        if len(inc) > 40:
+            lines.append(f"- _…and {len(inc)-40} more_")
+        lines.append("")
+    if not any_inc:
         lines.append("*(none)*")
         lines.append("")
 
@@ -108,7 +175,6 @@ def render(per_project: dict[str, list[dict]]) -> str:
         lines.append("")
         for r in items[:5]:
             key = r.get("artifact_key", r.get("file", "?"))
-            fn = r.get("function", "?")
             lines.append(f"**{r['_project']} / {key}**")
             lines.append("")
             err_tail = r.get("stderr_tail") or r.get("error") or "(no message)"
@@ -138,15 +204,22 @@ def main() -> int:
     md = render(per_project)
     args.out.write_text(md)
     # Also write JSON summary for programmatic use
-    summary_json = {
-        proj: {
+    summary_json = {}
+    for proj, results in per_project.items():
+        buckets = Counter()
+        for r in results:
+            if r.get("status") == "ok":
+                buckets[classify_ok(r)] += 1
+        summary_json[proj] = {
             "n": len(results),
             "by_status": dict(Counter(r.get("status", "?") for r in results)),
-            "ok_with_witness": sum(1 for r in results
-                                   if r.get("status") == "ok" and r.get("assumes")),
+            "ok_proved": buckets[BUCKET_PROVED],
+            "ok_witness": buckets[BUCKET_WITNESS],
+            "ok_inconclusive": buckets[BUCKET_INCONCLUSIVE],
+            # Legacy compatibility: pre-T0 callers expected this single number.
+            # It now equals ok_witness + ok_inconclusive (everything with assumes).
+            "ok_with_witness": buckets[BUCKET_WITNESS] + buckets[BUCKET_INCONCLUSIVE],
         }
-        for proj, results in per_project.items()
-    }
     (args.out.with_suffix(".json")).write_text(
         json.dumps(summary_json, indent=2, sort_keys=True)
     )

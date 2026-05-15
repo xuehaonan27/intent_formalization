@@ -1,0 +1,34 @@
+● Read prompt.md
+  │ results-verusage/view_registry/ironkv/_llm_runs/StrictlyOrderedMap/prompt.md
+  └ 109 lines read
+
+● List target dir (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/ironkv/_llm_runs/StrictlyOrderedMap/
+  └ 2 lines...
+
+● Find StrictlyOrderedMap usages (shell)
+  │ cd /home/chentianyu/intent_formalization && grep -r "StrictlyOrderedMap"
+  │ --include="*.rs" -l 2>/dev/null | head -20
+  └ 21 lines...
+
+● Inspect StrictlyOrderedMap definition (shell)
+  │ cd /home/chentianyu/intent_formalization && grep -n
+  │ "StrictlyOrderedMap\|impl.*View.*StrictlyOrderedMap\|view("
+  │ spec-determinism/results-verusage/ironkv/artifacts/ironkv__verified__delegat
+  │ ion_map_v__delegation_map_v__impl4__new__new/injected.rs | head -50
+  └ 11 lines...
+
+● Read injected.rs
+  │ results-verusage/ironkv/artifacts/ironkv__verified__delegation_map_v__delega
+  │ tion_map_v__impl4__new__new/injected.rs
+  └ L70:130 (61 lines read)
+
+The existing ironkv code already exposes `view(self) -> Map<K, ID>` via `self.m@`, confirming this is the correct projection. Now writing the response.
+
+● Create response.md +9
+  └ results-verusage/view_registry/ironkv/_llm_runs/StrictlyOrderedMap/response.
+    md
+
+Response written to `results-verusage/view_registry/ironkv/_llm_runs/StrictlyOrderedMap/response.md`. The view projects `StrictlyOrderedMap<K>` to its abstract `Map<K, ID>` (via the Ghost field `m`), dropping the concrete `keys`/`vals` representation, which matches the existing `view` already in `delegation_map_v.rs`.
+

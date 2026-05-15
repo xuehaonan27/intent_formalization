@@ -1,0 +1,9694 @@
+# verusage spec-determinism — batch summary
+
+## Per-project overview
+
+| project | n | ok | ok-with-witness | search_error | verus_error | extract_error | other |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| anvil-library | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
+| atmosphere | 1363 | 1242 | 258 | 0 | 119 | 0 | 2 |
+| ironkv | 214 | 171 | 76 | 0 | 43 | 0 | 0 |
+| memory-allocator | 16 | 15 | 1 | 0 | 1 | 0 | 0 |
+| nrkernel | 8 | 6 | 0 | 0 | 2 | 0 | 0 |
+| storage | 43 | 0 | 0 | 0 | 43 | 0 | 0 |
+| vest | 2 | 2 | 1 | 0 | 0 | 0 | 0 |
+| **TOTAL** | **1647** | **1436** | **336** | **0** | **209** | **0** | — |
+
+## Targets with determinism witnesses
+
+### atmosphere (258 witness-bearing)
+
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__add_io_mapping_4k`  (rounds=80)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@.len() > 0`
+  - `(post1_self_.mapped_pages_4k)@.len() == 1`
+  - `(post1_self_.mapped_pages_4k)@.contains(0)`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@.len() > 0`
+  - `(post2_self_.mapped_pages_4k)@.len() == 1`
+  - `(post2_self_.mapped_pages_4k)@.contains(0)`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_add_io_mapping_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__set_io_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(io_mapping)@ == Set::<(IOid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_io_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_mapping_4k__add_mapping_4k`  (rounds=80)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@.len() > 0`
+  - `(post1_self_.mapped_pages_4k)@.len() == 1`
+  - `(post1_self_.mapped_pages_4k)@.contains(0)`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@.len() > 0`
+  - `(post2_self_.mapped_pages_4k)@.len() == 1`
+  - `(post2_self_.mapped_pages_4k)@.contains(0)`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_add_mapping_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_mapping_4k__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_mapping_4k__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__alloc_and_map_2m`  (rounds=155)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom().len() == 1`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@.len() > 0`
+  - `(post1_self_.mapped_pages_2m)@.len() == 1`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom().len() == 0`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@.len() > 0`
+  - `(post2_self_.mapped_pages_2m)@.len() == 1`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom().len() == 0`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_and_map_2m_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_io_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(io_mapping)@ == Set::<(IOid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_io_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__alloc_and_map_4k`  (rounds=159)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@.len() > 0`
+  - `(post1_self_.mapped_pages_4k)@.len() == 1`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@.len() > 0`
+  - `(post2_self_.mapped_pages_4k)@.len() == 1`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_and_map_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_io_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(io_mapping)@ == Set::<(IOid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_io_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__alloc_and_map_io_4k`  (rounds=159)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@.len() > 0`
+  - `(post1_self_.mapped_pages_4k)@.len() == 1`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@.len() > 0`
+  - `(post2_self_.mapped_pages_4k)@.len() == 1`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom().len() == 0`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_and_map_io_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_io_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(io_mapping)@ == Set::<(IOid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_io_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__alloc_page_2m`  (rounds=64)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@.len() > 0`
+  - `(post1_self_.allocated_pages_2m)@.len() == 1`
+  - `(post1_self_.allocated_pages_2m)@.contains(0)`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@.len() > 0`
+  - `(post2_self_.allocated_pages_2m)@.len() == 1`
+  - `(post2_self_.allocated_pages_2m)@.contains(0)`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_2m_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__alloc_page_4k`  (rounds=65)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__alloc_page_4k_for_new_container`  (rounds=77)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom().len() == 1`
+  - `(post1_self_.container_map_1g)@.dom().len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom().len() == 1`
+  - `(post2_self_.container_map_1g)@.dom().len() == 1`
+  - `!det_alloc_page_4k_for_new_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__set_rev_pointer`  (rounds=44)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_rev_pointer_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__remove`  (rounds=2)
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merged_4k_to_2m`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `target_page_idx == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_merged_4k_to_2m_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merge_4k_pages_to_2m_page`  (rounds=9)
+  - `target_page_idx == 0`
+  - `(page_perms)@.dom() == Set::<usize>::empty()`
+  - `!det_merge_4k_pages_to_2m_page_equal(r1, r2)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1__remove_io_mapping_4k_helper1`  (rounds=97)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_remove_io_mapping_4k_helper1_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1__set_io_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(io_mapping)@ == Set::<(IOid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_io_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1__remove_mapping_4k_helper1`  (rounds=97)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_remove_mapping_4k_helper1_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__remove_mapping_4k_helper2`  (rounds=97)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_remove_mapping_4k_helper2_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_state`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `state is Unavailable4k`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_rev_pointer`  (rounds=44)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_rev_pointer_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__set_owning_container`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `owning_container_op is Some`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_owning_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3__remove_mapping_4k_helper3`  (rounds=52)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@.len() > 0`
+  - `(pre_self_.mapped_pages_4k)@.len() == 1`
+  - `(pre_self_.mapped_pages_4k)@.contains(0)`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom().len() == 0`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_remove_mapping_4k_helper3_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3__set_ref_count`  (rounds=50)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `ref_count == 0`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_ref_count_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3__set_mapping`  (rounds=45)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `index == 0`
+  - `(mapping)@ == Set::<(Pcid, VAddr)>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_set_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl2__init2zero__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl2__init2zero__init2zero`  (rounds=2)
+  - `!det_init2zero_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl3__init2zero__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl3__init2zero__init2zero`  (rounds=2)
+  - `!det_init2zero_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl4__init2none__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array__impl4__init2none__init2none`  (rounds=2)
+  - `!det_init2none_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__init__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__init__init`  (rounds=2)
+  - `!det_init_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__new__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__array__array_set__impl0__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__alloc_and_map_4k`  (rounds=83)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_and_map_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__pagetable_map_4k_page`  (rounds=9838)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `target_entry.write == true`
+  - `target_entry.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_pagetable_map_4k_page_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__set_container_mem_quota_mem_4k`  (rounds=23)
+  - `(pre_self_.container_perms)@.dom().len() == 0`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `new_quota == 0`
+  - `(post1_self_.container_perms)@.dom().len() == 0`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom().len() == 0`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__alloc_and_map`  (rounds=9897)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 1`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 1`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_alloc_and_map_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__alloc_and_map_io_4k`  (rounds=83)
+  - `(pre_self_.allocated_pages_4k)@.len() > 0`
+  - `(pre_self_.allocated_pages_4k)@.len() == 1`
+  - `(pre_self_.allocated_pages_4k)@.contains(0)`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom().len() == 1`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_and_map_io_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__iommu_table_map_4k_page`  (rounds=9838)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `target_entry.write == true`
+  - `target_entry.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_iommu_table_map_4k_page_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__set_container_mem_quota_mem_4k`  (rounds=23)
+  - `(pre_self_.container_perms)@.dom().len() == 0`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `new_quota == 0`
+  - `(post1_self_.container_perms)@.dom().len() == 0`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom().len() == 0`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map_io__alloc_and_map_io`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_alloc_and_map_io_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__resolve_pagetable_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_pagetable_mapping_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_io_space_va_range_free__resolve_iommu_table_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_iommu_table_mapping_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map__create_entry_and_alloc_and_map`  (rounds=9897)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 1`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 1`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_and_alloc_and_map_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__range_alloc_and_map_io__create_entry_and_alloc_and_map_io`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_and_alloc_and_map_io_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__check_address_space_va_range_shareable__resolve_pagetable_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_pagetable_mapping_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__resolve_pagetable_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_pagetable_mapping_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__share_mapping`  (rounds=9898)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom().len() == 0`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `entry.write == true`
+  - `entry.execute_disable == true`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 0`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 0`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_share_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__create_entry_and_share`  (rounds=9908)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom().len() == 0`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `r1 == 0`
+  - `r2 == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 0`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 0`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_and_share_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__create_entry_and_share__create_entry`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__range_create_and_share_mapping__create_entry_and_share`  (rounds=9908)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom().len() == 0`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `r1 == 0`
+  - `r2 == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 0`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 0`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_and_share_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__add_mapping_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_add_mapping_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__pagetable_map_4k_page`  (rounds=9838)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `target_entry.write == true`
+  - `target_entry.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_pagetable_map_4k_page_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__create_and_share_pages__impl0__share_mapping__share_mapping`  (rounds=9898)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom().len() == 0`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `entry.write == true`
+  - `entry.execute_disable == true`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom().len() == 0`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom().len() == 0`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_share_mapping_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__drop_endpoint`  (rounds=21)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_drop_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_drop_endpoint__impl0__kernel_drop_endpoint__kernel_drop_endpoint`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_kernel_drop_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__free_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_free_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__kill_process_none_root`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_process_none_root_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__helper_kernel_kill_proc_non_root`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_helper_kernel_kill_proc_non_root_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__free_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_free_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__kill_process_root`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_process_root_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_root__helper_kernel_kill_proc_root`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_helper_kernel_kill_proc_root_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_scheduled_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_scheduled_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_running_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kernel_drop_endpoint`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_kernel_drop_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kernel_kill_thread`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_kernel_kill_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__kernel_kill_thread`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_kernel_kill_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_proc_kill_all_threads__kernel_proc_kill_all_threads`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_kernel_proc_kill_all_threads_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__set_container_mem_quota_mem_4k`  (rounds=23)
+  - `(pre_self_.container_perms)@.dom().len() == 0`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `new_quota == 0`
+  - `(post1_self_.container_perms)@.dom().len() == 0`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom().len() == 0`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_entry__create_entry`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_entry_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__set_container_mem_quota_mem_4k`  (rounds=23)
+  - `(pre_self_.container_perms)@.dom().len() == 0`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `new_quota == 0`
+  - `(post1_self_.container_perms)@.dom().len() == 0`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom().len() == 0`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__create_iommu_table_entry`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_create_iommu_table_entry_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__mem_util__impl0__get_address_space_va_range_none__resolve_pagetable_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_pagetable_mapping_equal(r1, r2)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__pop_scheduler_for_idle_cpu`  (rounds=395)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pre_pt_regs.r15 == 0`
+  - `pre_pt_regs.r14 == 0`
+  - `pre_pt_regs.r13 == 0`
+  - `pre_pt_regs.r12 == 0`
+  - `pre_pt_regs.rbp == 0`
+  - `pre_pt_regs.rbx == 0`
+  - `pre_pt_regs.r11 == 0`
+  - `pre_pt_regs.r10 == 0`
+  - `pre_pt_regs.r9 == 0`
+  - `pre_pt_regs.r8 == 0`
+  - `pre_pt_regs.rcx == 0`
+  - `pre_pt_regs.rdx == 0`
+  - `pre_pt_regs.rsi == 0`
+  - `pre_pt_regs.rdi == 0`
+  - `pre_pt_regs.rax == 0`
+  - `pre_pt_regs.error_code == 0`
+  - `pre_pt_regs.rip == 0`
+  - `pre_pt_regs.cs == 0`
+  - `pre_pt_regs.flags == 0`
+  - `pre_pt_regs.rsp == 0`
+  - `pre_pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `post1_pt_regs.r15 == 0`
+  - `post1_pt_regs.r14 == 0`
+  - `post1_pt_regs.r13 == 0`
+  - `post1_pt_regs.r12 == 0`
+  - `post1_pt_regs.rbp == 0`
+  - `post1_pt_regs.rbx == 0`
+  - `post1_pt_regs.r11 == 0`
+  - `post1_pt_regs.r10 == 0`
+  - `post1_pt_regs.r9 == 0`
+  - `post1_pt_regs.r8 == 0`
+  - `post1_pt_regs.rcx == 0`
+  - `post1_pt_regs.rdx == 0`
+  - `post1_pt_regs.rsi == 0`
+  - `post1_pt_regs.rdi == 0`
+  - `post1_pt_regs.rax == 0`
+  - `post1_pt_regs.error_code == 0`
+  - `post1_pt_regs.rip == 0`
+  - `post1_pt_regs.cs == 0`
+  - `post1_pt_regs.flags == 0`
+  - `post1_pt_regs.rsp == 0`
+  - `post1_pt_regs.ss == 0`
+  - `post2_pt_regs.r15 == 0`
+  - `post2_pt_regs.r14 == 0`
+  - `post2_pt_regs.r13 == 0`
+  - `post2_pt_regs.r12 == 0`
+  - `post2_pt_regs.rbp == 0`
+  - `post2_pt_regs.rbx == 0`
+  - `post2_pt_regs.r11 == 0`
+  - `post2_pt_regs.r10 == 0`
+  - `post2_pt_regs.r9 == 0`
+  - `post2_pt_regs.r8 == 0`
+  - `post2_pt_regs.rcx == 0`
+  - `post2_pt_regs.rdx == 0`
+  - `post2_pt_regs.rsi == 0`
+  - `post2_pt_regs.rdi == 0`
+  - `post2_pt_regs.rax == 0`
+  - `post2_pt_regs.error_code == 0`
+  - `post2_pt_regs.rip == 0`
+  - `post2_pt_regs.cs == 0`
+  - `post2_pt_regs.flags == 0`
+  - `post2_pt_regs.rsp == 0`
+  - `post2_pt_regs.ss == 0`
+  - `!det_pop_scheduler_for_idle_cpu_equal(r1, r2, post1_self_, post2_self_, post1_pt_regs, post2_pt_regs)`
+- `atmosphere__verified__kernel__kernel__schedule_idle_cpu__impl0__schedule_idle_cpu__schedule_idle_cpu`  (rounds=10268)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pre_pt_regs.r15 == 0`
+  - `pre_pt_regs.r14 == 0`
+  - `pre_pt_regs.r13 == 0`
+  - `pre_pt_regs.r12 == 0`
+  - `pre_pt_regs.rbp == 0`
+  - `pre_pt_regs.rbx == 0`
+  - `pre_pt_regs.r11 == 0`
+  - `pre_pt_regs.r10 == 0`
+  - `pre_pt_regs.r9 == 0`
+  - `pre_pt_regs.r8 == 0`
+  - `pre_pt_regs.rcx == 0`
+  - `pre_pt_regs.rdx == 0`
+  - `pre_pt_regs.rsi == 0`
+  - `pre_pt_regs.rdi == 0`
+  - `pre_pt_regs.rax == 0`
+  - `pre_pt_regs.error_code == 0`
+  - `pre_pt_regs.rip == 0`
+  - `pre_pt_regs.cs == 0`
+  - `pre_pt_regs.flags == 0`
+  - `pre_pt_regs.rsp == 0`
+  - `pre_pt_regs.ss == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `post1_pt_regs.r15 == 0`
+  - `post1_pt_regs.r14 == 0`
+  - `post1_pt_regs.r13 == 0`
+  - `post1_pt_regs.r12 == 0`
+  - `post1_pt_regs.rbp == 0`
+  - `post1_pt_regs.rbx == 0`
+  - `post1_pt_regs.r11 == 0`
+  - `post1_pt_regs.r10 == 0`
+  - `post1_pt_regs.r9 == 0`
+  - `post1_pt_regs.r8 == 0`
+  - `post1_pt_regs.rcx == 0`
+  - `post1_pt_regs.rdx == 0`
+  - `post1_pt_regs.rsi == 0`
+  - `post1_pt_regs.rdi == 0`
+  - `post1_pt_regs.rax == 0`
+  - `post1_pt_regs.error_code == 0`
+  - `post1_pt_regs.rip == 0`
+  - `post1_pt_regs.cs == 0`
+  - `post1_pt_regs.flags == 0`
+  - `post1_pt_regs.rsp == 0`
+  - `post1_pt_regs.ss == 0`
+  - `post2_pt_regs.r15 == 0`
+  - `post2_pt_regs.r14 == 0`
+  - `post2_pt_regs.r13 == 0`
+  - `post2_pt_regs.r12 == 0`
+  - `post2_pt_regs.rbp == 0`
+  - `post2_pt_regs.rbx == 0`
+  - `post2_pt_regs.r11 == 0`
+  - `post2_pt_regs.r10 == 0`
+  - `post2_pt_regs.r9 == 0`
+  - `post2_pt_regs.r8 == 0`
+  - `post2_pt_regs.rcx == 0`
+  - `post2_pt_regs.rdx == 0`
+  - `post2_pt_regs.rsi == 0`
+  - `post2_pt_regs.rdi == 0`
+  - `post2_pt_regs.rax == 0`
+  - `post2_pt_regs.error_code == 0`
+  - `post2_pt_regs.rip == 0`
+  - `post2_pt_regs.cs == 0`
+  - `post2_pt_regs.flags == 0`
+  - `post2_pt_regs.rsp == 0`
+  - `post2_pt_regs.ss == 0`
+  - `!det_schedule_idle_cpu_equal(r1, r2, post1_self_, post2_self_, post1_pt_regs, post2_pt_regs)`
+- `atmosphere__verified__kernel__kernel__syscall_mmap__impl0__syscall_mmap__syscall_mmap`  (rounds=3356)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `va_range.len == 0`
+  - `(va_range.view)@.len() == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_mmap_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__alloc_page_4k_for_new_container`  (rounds=76)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@.len() > 0`
+  - `(post1_self_.allocated_pages_4k)@.len() == 1`
+  - `(post1_self_.allocated_pages_4k)@.contains(0)`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom().len() == 1`
+  - `(post1_self_.container_map_2m)@.dom().len() == 1`
+  - `(post1_self_.container_map_1g)@.dom().len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.len() > 0`
+  - `(post2_self_.allocated_pages_4k)@.len() == 1`
+  - `(post2_self_.allocated_pages_4k)@.contains(0)`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom().len() == 1`
+  - `(post2_self_.container_map_2m)@.dom().len() == 1`
+  - `(post2_self_.container_map_1g)@.dom().len() == 1`
+  - `!det_alloc_page_4k_for_new_container_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__alloc_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_container__impl0__syscall_new_container_with_endpoint__syscall_new_container_with_endpoint`  (rounds=3510)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `va_range.len == 0`
+  - `(va_range.view)@.len() == 0`
+  - `init_quota.mem_4k == 0`
+  - `init_quota.mem_2m == 0`
+  - `init_quota.mem_1g == 0`
+  - `init_quota.pcid == 0`
+  - `init_quota.ioid == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_new_container_with_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__alloc_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__new_proc_with_endpoint`  (rounds=147)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 1`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 1`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_new_proc_with_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc__impl0__syscall_new_proc_with_endpoint__syscall_new_proc_with_endpoint`  (rounds=3480)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `va_range.len == 0`
+  - `(va_range.view)@.len() == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_new_proc_with_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__alloc_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__alloc_iommu_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_iommu_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_proc_with_iommu__impl0__syscall_new_proc_with_endpoint_iommu__new_proc_with_endpoint_iommu`  (rounds=147)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 1`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 1`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_new_proc_with_endpoint_iommu_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__new_thread`  (rounds=147)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom().len() == 1`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom().len() == 1`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_new_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread__impl0__syscall_new_thread__syscall_new_thread`  (rounds=10017)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_new_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__alloc_page_4k`  (rounds=38)
+  - `(pre_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_alloc_page_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__new_thread_with_endpoint`  (rounds=144)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_new_thread_with_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_new_thread_with_endpoint__impl0__syscall_new_thread_with_endpoint__syscall_new_thread_with_endpoint`  (rounds=10017)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_new_thread_with_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__block_running_thread_and_set_trap_frame`  (rounds=144)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_block__block_running_thread_and_change_queue_state_and_set_trap_frame`  (rounds=145)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_empty__impl0__syscall_receive_empty_no_block__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__block_running_thread`  (rounds=18)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__block_running_thread_and_change_queue_state`  (rounds=19)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__pass_endpoint`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_pass_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_endpoint__impl0__syscall_receive_endpoint__syscall_receive_endpoint`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_receive_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__block_running_thread`  (rounds=18)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__block_running_thread_and_change_queue_state`  (rounds=19)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_receive_pages__impl0__syscall_receive_pages__syscall_receive_pages`  (rounds=3356)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `receiver_va_range.len == 0`
+  - `(receiver_va_range.view)@.len() == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_receive_pages_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__block_running_thread_and_set_trap_frame`  (rounds=144)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__block_running_thread_and_change_queue_state_and_set_trap_frame`  (rounds=145)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__syscall_send_empty_block`  (rounds=10017)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_send_empty_block_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_no_block__syscall_send_empty_no_block`  (rounds=9891)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_send_empty_no_block_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__schedule_running_thread`  (rounds=140)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_schedule_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__run_blocked_thread`  (rounds=399)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `pre_pt_regs.r15 == 0`
+  - `pre_pt_regs.r14 == 0`
+  - `pre_pt_regs.r13 == 0`
+  - `pre_pt_regs.r12 == 0`
+  - `pre_pt_regs.rbp == 0`
+  - `pre_pt_regs.rbx == 0`
+  - `pre_pt_regs.r11 == 0`
+  - `pre_pt_regs.r10 == 0`
+  - `pre_pt_regs.r9 == 0`
+  - `pre_pt_regs.r8 == 0`
+  - `pre_pt_regs.rcx == 0`
+  - `pre_pt_regs.rdx == 0`
+  - `pre_pt_regs.rsi == 0`
+  - `pre_pt_regs.rdi == 0`
+  - `pre_pt_regs.rax == 0`
+  - `pre_pt_regs.error_code == 0`
+  - `pre_pt_regs.rip == 0`
+  - `pre_pt_regs.cs == 0`
+  - `pre_pt_regs.flags == 0`
+  - `pre_pt_regs.rsp == 0`
+  - `pre_pt_regs.ss == 0`
+  - `r1 is Some`
+  - `r1->Some_0 is SuccessUsize`
+  - `r2 is Some`
+  - `r2->Some_0 is SuccessUsize`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `post1_pt_regs.r15 == 0`
+  - `post1_pt_regs.r14 == 0`
+  - `post1_pt_regs.r13 == 0`
+  - `post1_pt_regs.r12 == 0`
+  - `post1_pt_regs.rbp == 0`
+  - `post1_pt_regs.rbx == 0`
+  - `post1_pt_regs.r11 == 0`
+  - `post1_pt_regs.r10 == 0`
+  - `post1_pt_regs.r9 == 0`
+  - `post1_pt_regs.r8 == 0`
+  - `post1_pt_regs.rcx == 0`
+  - `post1_pt_regs.rdx == 0`
+  - `post1_pt_regs.rsi == 0`
+  - `post1_pt_regs.rdi == 0`
+  - `post1_pt_regs.rax == 0`
+  - `post1_pt_regs.error_code == 0`
+  - `post1_pt_regs.rip == 0`
+  - `post1_pt_regs.cs == 0`
+  - `post1_pt_regs.flags == 0`
+  - `post1_pt_regs.rsp == 0`
+  - `post1_pt_regs.ss == 0`
+  - `post2_pt_regs.r15 == 0`
+  - `post2_pt_regs.r14 == 0`
+  - `post2_pt_regs.r13 == 0`
+  - `post2_pt_regs.r12 == 0`
+  - `post2_pt_regs.rbp == 0`
+  - `post2_pt_regs.rbx == 0`
+  - `post2_pt_regs.r11 == 0`
+  - `post2_pt_regs.r10 == 0`
+  - `post2_pt_regs.r9 == 0`
+  - `post2_pt_regs.r8 == 0`
+  - `post2_pt_regs.rcx == 0`
+  - `post2_pt_regs.rdx == 0`
+  - `post2_pt_regs.rsi == 0`
+  - `post2_pt_regs.rdi == 0`
+  - `post2_pt_regs.rax == 0`
+  - `post2_pt_regs.error_code == 0`
+  - `post2_pt_regs.rip == 0`
+  - `post2_pt_regs.cs == 0`
+  - `post2_pt_regs.flags == 0`
+  - `post2_pt_regs.rsp == 0`
+  - `post2_pt_regs.ss == 0`
+  - `!det_run_blocked_thread_equal(r1, r2, post1_self_, post2_self_, post1_pt_regs, post2_pt_regs)`
+- `atmosphere__verified__kernel__kernel__syscall_send_empty_try_schedule__impl0__syscall_send_empty_try_schedule__syscall_send_empty_try_schedule`  (rounds=10269)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `pre_pt_regs.r15 == 0`
+  - `pre_pt_regs.r14 == 0`
+  - `pre_pt_regs.r13 == 0`
+  - `pre_pt_regs.r12 == 0`
+  - `pre_pt_regs.rbp == 0`
+  - `pre_pt_regs.rbx == 0`
+  - `pre_pt_regs.r11 == 0`
+  - `pre_pt_regs.r10 == 0`
+  - `pre_pt_regs.r9 == 0`
+  - `pre_pt_regs.r8 == 0`
+  - `pre_pt_regs.rcx == 0`
+  - `pre_pt_regs.rdx == 0`
+  - `pre_pt_regs.rsi == 0`
+  - `pre_pt_regs.rdi == 0`
+  - `pre_pt_regs.rax == 0`
+  - `pre_pt_regs.error_code == 0`
+  - `pre_pt_regs.rip == 0`
+  - `pre_pt_regs.cs == 0`
+  - `pre_pt_regs.flags == 0`
+  - `pre_pt_regs.rsp == 0`
+  - `pre_pt_regs.ss == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `post1_pt_regs.r15 == 0`
+  - `post1_pt_regs.r14 == 0`
+  - `post1_pt_regs.r13 == 0`
+  - `post1_pt_regs.r12 == 0`
+  - `post1_pt_regs.rbp == 0`
+  - `post1_pt_regs.rbx == 0`
+  - `post1_pt_regs.r11 == 0`
+  - `post1_pt_regs.r10 == 0`
+  - `post1_pt_regs.r9 == 0`
+  - `post1_pt_regs.r8 == 0`
+  - `post1_pt_regs.rcx == 0`
+  - `post1_pt_regs.rdx == 0`
+  - `post1_pt_regs.rsi == 0`
+  - `post1_pt_regs.rdi == 0`
+  - `post1_pt_regs.rax == 0`
+  - `post1_pt_regs.error_code == 0`
+  - `post1_pt_regs.rip == 0`
+  - `post1_pt_regs.cs == 0`
+  - `post1_pt_regs.flags == 0`
+  - `post1_pt_regs.rsp == 0`
+  - `post1_pt_regs.ss == 0`
+  - `post2_pt_regs.r15 == 0`
+  - `post2_pt_regs.r14 == 0`
+  - `post2_pt_regs.r13 == 0`
+  - `post2_pt_regs.r12 == 0`
+  - `post2_pt_regs.rbp == 0`
+  - `post2_pt_regs.rbx == 0`
+  - `post2_pt_regs.r11 == 0`
+  - `post2_pt_regs.r10 == 0`
+  - `post2_pt_regs.r9 == 0`
+  - `post2_pt_regs.r8 == 0`
+  - `post2_pt_regs.rcx == 0`
+  - `post2_pt_regs.rdx == 0`
+  - `post2_pt_regs.rsi == 0`
+  - `post2_pt_regs.rdi == 0`
+  - `post2_pt_regs.rax == 0`
+  - `post2_pt_regs.error_code == 0`
+  - `post2_pt_regs.rip == 0`
+  - `post2_pt_regs.cs == 0`
+  - `post2_pt_regs.flags == 0`
+  - `post2_pt_regs.rsp == 0`
+  - `post2_pt_regs.ss == 0`
+  - `!det_syscall_send_empty_try_schedule_equal(r1, r2, post1_self_, post2_self_, post1_pt_regs, post2_pt_regs)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__block_running_thread`  (rounds=18)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__block_running_thread_and_change_queue_state`  (rounds=19)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__pass_endpoint`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_pass_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_endpoint__impl0__syscall_send_endpoint__syscall_send_endpoint`  (rounds=9893)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post1_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(post2_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_send_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__block_running_thread`  (rounds=18)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__block_running_thread_and_change_queue_state`  (rounds=19)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__kernel__kernel__syscall_send_pages__impl0__syscall_send_pages__syscall_send_pages`  (rounds=3356)
+  - `(pre_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.mem_man.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.mem_man.root_table_cache)@.len() == 256`
+  - `(pre_self_.mem_man.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.mem_man.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(pre_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(pre_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `sender_va_range.len == 0`
+  - `(sender_va_range.view)@.len() == 0`
+  - `(post1_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post1_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post1_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.allocated_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_4k)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_2m)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.mapped_pages_1g)@ == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_4k)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_2m)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.page_perms_1g)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_4k)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_2m)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.page_alloc.container_map_1g)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.mem_man.kernel_entries_ghost)@.len() == 0`
+  - `(post2_self_.mem_man.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.mem_man.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.mem_man.root_table_cache)@.len() == 0`
+  - `(post2_self_.mem_man.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.proc_man.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.proc_man.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.proc_man.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.proc_man.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.page_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.page_io_mapping)@.dom() == Set::<PagePtr>::empty()`
+  - `!det_syscall_send_pages_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__alloc_iommu_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_iommu_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__pop_unique`  (rounds=2)
+  - `!det_pop_unique_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__alloc_page_table`  (rounds=9836)
+  - `(pre_self_.kernel_entries_ghost)@.len() == 1`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(pre_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(pre_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(pre_self_.root_table.seq_ar)@.len() == 0`
+  - `(pre_self_.root_table_cache)@.len() == 256`
+  - `(pre_self_.root_table_cache)@[0].len() == 32`
+  - `(pre_self_.root_table_cache)@[1].len() == 32`
+  - `(pre_self_.root_table_cache)@[2].len() == 32`
+  - `(pre_self_.root_table_cache)@[3].len() == 32`
+  - `(pre_self_.root_table_cache)@[4].len() == 32`
+  - `(pre_self_.root_table_cache)@[5].len() == 32`
+  - `(pre_self_.root_table_cache)@[6].len() == 32`
+  - `(pre_self_.root_table_cache)@[7].len() == 32`
+  - `(pre_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post1_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post1_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post1_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post1_self_.root_table.seq_ar)@.len() == 0`
+  - `(post1_self_.root_table_cache)@.len() == 256`
+  - `(post1_self_.root_table_cache)@[0].len() == 32`
+  - `(post1_self_.root_table_cache)@[1].len() == 32`
+  - `(post1_self_.root_table_cache)@[2].len() == 32`
+  - `(post1_self_.root_table_cache)@[3].len() == 32`
+  - `(post1_self_.root_table_cache)@[4].len() == 32`
+  - `(post1_self_.root_table_cache)@[5].len() == 32`
+  - `(post1_self_.root_table_cache)@[6].len() == 32`
+  - `(post1_self_.root_table_cache)@[7].len() == 32`
+  - `(post1_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `(post2_self_.kernel_entries_ghost)@.len() == 1`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(post2_self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(post2_self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(post2_self_.root_table.seq_ar)@.len() == 0`
+  - `(post2_self_.root_table_cache)@.len() == 256`
+  - `(post2_self_.root_table_cache)@[0].len() == 32`
+  - `(post2_self_.root_table_cache)@[1].len() == 32`
+  - `(post2_self_.root_table_cache)@[2].len() == 32`
+  - `(post2_self_.root_table_cache)@[3].len() == 32`
+  - `(post2_self_.root_table_cache)@[4].len() == 32`
+  - `(post2_self_.root_table_cache)@[5].len() == 32`
+  - `(post2_self_.root_table_cache)@[6].len() == 32`
+  - `(post2_self_.root_table_cache)@[7].len() == 32`
+  - `(post2_self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `!det_alloc_page_table_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_page_table__pop_unique`  (rounds=2)
+  - `!det_pop_unique_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__resolve_iommu_table_mapping__resolve_iommu_table_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_iommu_table_mapping_equal(r1, r2)`
+- `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__resolve_pagetable_mapping__resolve_pagetable_mapping`  (rounds=3293)
+  - `(self_.kernel_entries_ghost)@.len() == 1`
+  - `(self_.kernel_entries_ghost)@[0].perm.present == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.ps == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.write == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.execute_disable == true`
+  - `(self_.kernel_entries_ghost)@[0].perm.user == true`
+  - `(self_.page_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.iommu_table_pages)@.dom() == Set::<PagePtr>::empty()`
+  - `(self_.root_table.seq_ar)@.len() == 0`
+  - `(self_.root_table_cache)@.len() == 256`
+  - `(self_.root_table_cache)@[0].len() == 32`
+  - `(self_.root_table_cache)@[1].len() == 32`
+  - `(self_.root_table_cache)@[2].len() == 32`
+  - `(self_.root_table_cache)@[3].len() == 32`
+  - `(self_.root_table_cache)@[4].len() == 32`
+  - `(self_.root_table_cache)@[5].len() == 32`
+  - `(self_.root_table_cache)@[6].len() == 32`
+  - `(self_.root_table_cache)@[7].len() == 32`
+  - `(self_.pci_bitmap.ghost_map)@.dom() == Set::<(IOid, u8, u8, u8)>::empty()`
+  - `r1 is Some`
+  - `r1->Some_0.perm.present == true`
+  - `r1->Some_0.perm.ps == true`
+  - `r1->Some_0.perm.write == true`
+  - `r1->Some_0.perm.execute_disable == true`
+  - `r1->Some_0.perm.user == true`
+  - `r2 is Some`
+  - `r2->Some_0.perm.present == true`
+  - `r2->Some_0.perm.ps == true`
+  - `r2->Some_0.perm.write == true`
+  - `r2->Some_0.perm.execute_disable == true`
+  - `r2->Some_0.perm.user == false`
+  - `!det_resolve_pagetable_mapping_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__entry__page_entry2usize__page_entry2usize`  (rounds=20)
+  - `page_entry.perm.present == true`
+  - `page_entry.perm.ps == true`
+  - `page_entry.perm.write == true`
+  - `page_entry.perm.execute_disable == true`
+  - `page_entry.perm.user == true`
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_page_entry2usize_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__pagemap__impl0__init__init`  (rounds=15323)
+  - `(pre_self_.spec_seq)@.len() == 512`
+  - `(pre_self_.spec_seq)@[0].perm.present == true`
+  - `(pre_self_.spec_seq)@[0].perm.ps == true`
+  - `(pre_self_.spec_seq)@[0].perm.write == true`
+  - `(pre_self_.spec_seq)@[0].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[0].perm.user == true`
+  - `(pre_self_.spec_seq)@[1].perm.present == true`
+  - `(pre_self_.spec_seq)@[1].perm.ps == true`
+  - `(pre_self_.spec_seq)@[1].perm.write == true`
+  - `(pre_self_.spec_seq)@[1].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[1].perm.user == true`
+  - `(pre_self_.spec_seq)@[2].perm.present == true`
+  - `(pre_self_.spec_seq)@[2].perm.ps == true`
+  - `(pre_self_.spec_seq)@[2].perm.write == true`
+  - `(pre_self_.spec_seq)@[2].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[2].perm.user == true`
+  - `(pre_self_.spec_seq)@[3].perm.present == true`
+  - `(pre_self_.spec_seq)@[3].perm.ps == true`
+  - `(pre_self_.spec_seq)@[3].perm.write == true`
+  - `(pre_self_.spec_seq)@[3].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[3].perm.user == true`
+  - `(pre_self_.spec_seq)@[4].perm.present == true`
+  - `(pre_self_.spec_seq)@[4].perm.ps == true`
+  - `(pre_self_.spec_seq)@[4].perm.write == true`
+  - `(pre_self_.spec_seq)@[4].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[4].perm.user == true`
+  - `(pre_self_.spec_seq)@[5].perm.present == true`
+  - `(pre_self_.spec_seq)@[5].perm.ps == true`
+  - `(pre_self_.spec_seq)@[5].perm.write == true`
+  - `(pre_self_.spec_seq)@[5].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[5].perm.user == true`
+  - `(pre_self_.spec_seq)@[6].perm.present == true`
+  - `(pre_self_.spec_seq)@[6].perm.ps == true`
+  - `(pre_self_.spec_seq)@[6].perm.write == true`
+  - `(pre_self_.spec_seq)@[6].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[6].perm.user == true`
+  - `(pre_self_.spec_seq)@[7].perm.present == true`
+  - `(pre_self_.spec_seq)@[7].perm.ps == true`
+  - `(pre_self_.spec_seq)@[7].perm.write == true`
+  - `(pre_self_.spec_seq)@[7].perm.execute_disable == true`
+  - `(pre_self_.spec_seq)@[7].perm.user == true`
+  - `(post1_self_.spec_seq)@.len() == 512`
+  - `(post1_self_.spec_seq)@[0].perm.present == true`
+  - `(post1_self_.spec_seq)@[0].perm.ps == true`
+  - `(post1_self_.spec_seq)@[0].perm.write == true`
+  - `(post1_self_.spec_seq)@[0].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[0].perm.user == true`
+  - `(post1_self_.spec_seq)@[1].perm.present == true`
+  - `(post1_self_.spec_seq)@[1].perm.ps == true`
+  - `(post1_self_.spec_seq)@[1].perm.write == true`
+  - `(post1_self_.spec_seq)@[1].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[1].perm.user == true`
+  - `(post1_self_.spec_seq)@[2].perm.present == true`
+  - `(post1_self_.spec_seq)@[2].perm.ps == true`
+  - `(post1_self_.spec_seq)@[2].perm.write == true`
+  - `(post1_self_.spec_seq)@[2].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[2].perm.user == true`
+  - `(post1_self_.spec_seq)@[3].perm.present == true`
+  - `(post1_self_.spec_seq)@[3].perm.ps == true`
+  - `(post1_self_.spec_seq)@[3].perm.write == true`
+  - `(post1_self_.spec_seq)@[3].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[3].perm.user == true`
+  - `(post1_self_.spec_seq)@[4].perm.present == true`
+  - `(post1_self_.spec_seq)@[4].perm.ps == true`
+  - `(post1_self_.spec_seq)@[4].perm.write == true`
+  - `(post1_self_.spec_seq)@[4].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[4].perm.user == true`
+  - `(post1_self_.spec_seq)@[5].perm.present == true`
+  - `(post1_self_.spec_seq)@[5].perm.ps == true`
+  - `(post1_self_.spec_seq)@[5].perm.write == true`
+  - `(post1_self_.spec_seq)@[5].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[5].perm.user == true`
+  - `(post1_self_.spec_seq)@[6].perm.present == true`
+  - `(post1_self_.spec_seq)@[6].perm.ps == true`
+  - `(post1_self_.spec_seq)@[6].perm.write == true`
+  - `(post1_self_.spec_seq)@[6].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[6].perm.user == true`
+  - `(post1_self_.spec_seq)@[7].perm.present == true`
+  - `(post1_self_.spec_seq)@[7].perm.ps == true`
+  - `(post1_self_.spec_seq)@[7].perm.write == true`
+  - `(post1_self_.spec_seq)@[7].perm.execute_disable == true`
+  - `(post1_self_.spec_seq)@[7].perm.user == true`
+  - `(post2_self_.spec_seq)@.len() == 512`
+  - `(post2_self_.spec_seq)@[0].perm.present == true`
+  - `(post2_self_.spec_seq)@[0].perm.ps == true`
+  - `(post2_self_.spec_seq)@[0].perm.write == true`
+  - `(post2_self_.spec_seq)@[0].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[0].perm.user == true`
+  - `(post2_self_.spec_seq)@[1].perm.present == true`
+  - `(post2_self_.spec_seq)@[1].perm.ps == true`
+  - `(post2_self_.spec_seq)@[1].perm.write == true`
+  - `(post2_self_.spec_seq)@[1].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[1].perm.user == true`
+  - `(post2_self_.spec_seq)@[2].perm.present == true`
+  - `(post2_self_.spec_seq)@[2].perm.ps == true`
+  - `(post2_self_.spec_seq)@[2].perm.write == true`
+  - `(post2_self_.spec_seq)@[2].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[2].perm.user == true`
+  - `(post2_self_.spec_seq)@[3].perm.present == true`
+  - `(post2_self_.spec_seq)@[3].perm.ps == true`
+  - `(post2_self_.spec_seq)@[3].perm.write == true`
+  - `(post2_self_.spec_seq)@[3].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[3].perm.user == true`
+  - `(post2_self_.spec_seq)@[4].perm.present == true`
+  - `(post2_self_.spec_seq)@[4].perm.ps == true`
+  - `(post2_self_.spec_seq)@[4].perm.write == true`
+  - `(post2_self_.spec_seq)@[4].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[4].perm.user == true`
+  - `(post2_self_.spec_seq)@[5].perm.present == true`
+  - `(post2_self_.spec_seq)@[5].perm.ps == true`
+  - `(post2_self_.spec_seq)@[5].perm.write == true`
+  - `(post2_self_.spec_seq)@[5].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[5].perm.user == true`
+  - `(post2_self_.spec_seq)@[6].perm.present == true`
+  - `(post2_self_.spec_seq)@[6].perm.ps == true`
+  - `(post2_self_.spec_seq)@[6].perm.write == true`
+  - `(post2_self_.spec_seq)@[6].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[6].perm.user == true`
+  - `(post2_self_.spec_seq)@[7].perm.present == true`
+  - `(post2_self_.spec_seq)@[7].perm.ps == true`
+  - `(post2_self_.spec_seq)@[7].perm.write == true`
+  - `(post2_self_.spec_seq)@[7].perm.execute_disable == true`
+  - `(post2_self_.spec_seq)@[7].perm.user == true`
+  - `!det_init_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__pagetable__pagetable__pagemap__impl0__init__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__pagetable__pagetable__pagemap__impl0__set__page_entry2usize`  (rounds=20)
+  - `page_entry.perm.present == true`
+  - `page_entry.perm.ps == true`
+  - `page_entry.perm.write == true`
+  - `page_entry.perm.execute_disable == true`
+  - `page_entry.perm.user == true`
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_page_entry2usize_equal(r1, r2)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__map_2m_page__map_2m_page`  (rounds=74)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `(pre_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.kernel_entries)@.len() == 0`
+  - `(pre_self_.tlb_mapping_4k)@.len() == 0`
+  - `(pre_self_.tlb_mapping_2m)@.len() == 0`
+  - `(pre_self_.tlb_mapping_1g)@.len() == 0`
+  - `target_entry.write == true`
+  - `target_entry.execute_disable == true`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `(post1_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_2m)@.dom().len() == 1`
+  - `(post1_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.kernel_entries)@.len() == 0`
+  - `(post1_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post1_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post1_self_.tlb_mapping_1g)@.len() == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `(post2_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_2m)@.dom().len() == 1`
+  - `(post2_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.kernel_entries)@.len() == 0`
+  - `(post2_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post2_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post2_self_.tlb_mapping_1g)@.len() == 0`
+  - `!det_map_2m_page_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__map_4k_page__map_4k_page`  (rounds=74)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `(pre_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.kernel_entries)@.len() == 0`
+  - `(pre_self_.tlb_mapping_4k)@.len() == 0`
+  - `(pre_self_.tlb_mapping_2m)@.len() == 0`
+  - `(pre_self_.tlb_mapping_1g)@.len() == 0`
+  - `target_entry.write == true`
+  - `target_entry.execute_disable == true`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `(post1_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.mapping_4k)@.dom().len() == 1`
+  - `(post1_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.kernel_entries)@.len() == 0`
+  - `(post1_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post1_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post1_self_.tlb_mapping_1g)@.len() == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `(post2_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.mapping_4k)@.dom().len() == 1`
+  - `(post2_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.kernel_entries)@.len() == 0`
+  - `(post2_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post2_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post2_self_.tlb_mapping_1g)@.len() == 0`
+  - `!det_map_4k_page_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l2_entry__remove_l2_entry`  (rounds=68)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `(pre_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.kernel_entries)@.len() == 0`
+  - `(pre_self_.tlb_mapping_4k)@.len() == 0`
+  - `(pre_self_.tlb_mapping_2m)@.len() == 0`
+  - `(pre_self_.tlb_mapping_1g)@.len() == 0`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `(post1_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.kernel_entries)@.len() == 0`
+  - `(post1_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post1_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post1_self_.tlb_mapping_1g)@.len() == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `(post2_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.kernel_entries)@.len() == 0`
+  - `(post2_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post2_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post2_self_.tlb_mapping_1g)@.len() == 0`
+  - `!det_remove_l2_entry_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__remove_l3_entry__remove_l3_entry`  (rounds=68)
+  - `pre_self_.pcid is Some`
+  - `pre_self_.ioid is Some`
+  - `pre_self_.kernel_l4_end == 0`
+  - `(pre_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(pre_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(pre_self_.kernel_entries)@.len() == 0`
+  - `(pre_self_.tlb_mapping_4k)@.len() == 0`
+  - `(pre_self_.tlb_mapping_2m)@.len() == 0`
+  - `(pre_self_.tlb_mapping_1g)@.len() == 0`
+  - `post1_self_.pcid is Some`
+  - `post1_self_.ioid is Some`
+  - `post1_self_.kernel_l4_end == 0`
+  - `(post1_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post1_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post1_self_.kernel_entries)@.len() == 0`
+  - `(post1_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post1_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post1_self_.tlb_mapping_1g)@.len() == 0`
+  - `post2_self_.pcid is Some`
+  - `post2_self_.ioid is Some`
+  - `post2_self_.kernel_l4_end == 0`
+  - `(post2_self_.l4_table)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l3_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l2_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_rev_map)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.l1_tables)@.dom() == Set::<PageMapPtr>::empty()`
+  - `(post2_self_.mapping_4k)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_2m)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.mapping_1g)@.dom() == Set::<VAddr>::empty()`
+  - `(post2_self_.kernel_entries)@.len() == 0`
+  - `(post2_self_.tlb_mapping_4k)@.len() == 0`
+  - `(post2_self_.tlb_mapping_2m)@.len() == 0`
+  - `(post2_self_.tlb_mapping_1g)@.len() == 0`
+  - `!det_remove_l3_entry_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__endpoint_push`  (rounds=47)
+  - `((pre_endpoint_perm)@).is_init() == true`
+  - `((pre_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((pre_endpoint_perm)@).value().rf_counter == 0`
+  - `(((pre_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((pre_endpoint_perm)@).addr() == 0`
+  - `((post1_endpoint_perm)@).is_init() == true`
+  - `((post1_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post1_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post1_endpoint_perm)@).addr() == 0`
+  - `((post2_endpoint_perm)@).is_init() == true`
+  - `((post2_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post2_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post2_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post2_endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_push_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread__block_running_thread`  (rounds=18)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__endpoint_push_and_set_state`  (rounds=48)
+  - `((pre_endpoint_perm)@).is_init() == true`
+  - `((pre_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((pre_endpoint_perm)@).value().rf_counter == 0`
+  - `(((pre_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((pre_endpoint_perm)@).addr() == 0`
+  - `queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).is_init() == true`
+  - `((post1_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post1_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post1_endpoint_perm)@).addr() == 0`
+  - `((post2_endpoint_perm)@).is_init() == true`
+  - `((post2_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post2_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post2_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post2_endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_push_and_set_state_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state__block_running_thread_and_change_queue_state`  (rounds=19)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__endpoint_push_and_set_state`  (rounds=48)
+  - `((pre_endpoint_perm)@).is_init() == true`
+  - `((pre_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((pre_endpoint_perm)@).value().rf_counter == 0`
+  - `(((pre_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((pre_endpoint_perm)@).addr() == 0`
+  - `queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).is_init() == true`
+  - `((post1_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post1_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post1_endpoint_perm)@).addr() == 0`
+  - `((post2_endpoint_perm)@).is_init() == true`
+  - `((post2_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post2_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post2_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post2_endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_push_and_set_state_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_change_queue_state_and_set_trap_frame__block_running_thread_and_change_queue_state_and_set_trap_frame`  (rounds=145)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `queue_state is RECEIVE`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_change_queue_state_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__endpoint_push`  (rounds=47)
+  - `((pre_endpoint_perm)@).is_init() == true`
+  - `((pre_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((pre_endpoint_perm)@).value().rf_counter == 0`
+  - `(((pre_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((pre_endpoint_perm)@).addr() == 0`
+  - `((post1_endpoint_perm)@).is_init() == true`
+  - `((post1_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post1_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post1_endpoint_perm)@).addr() == 0`
+  - `((post2_endpoint_perm)@).is_init() == true`
+  - `((post2_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post2_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post2_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post2_endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_push_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__block_running_thread_and_set_trap_frame`  (rounds=144)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `ipc_payload is Message`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_block_running_thread_and_set_trap_frame_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__page_to_endpoint_with_thread_and_container`  (rounds=2)
+  - `!det_page_to_endpoint_with_thread_and_container_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__new_endpoint`  (rounds=21)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 1`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 1`
+  - `!det_new_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__pass_endpoint`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_pass_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__pass_endpoint__thread_set_endpoint_descriptor`  (rounds=432)
+  - `((pre_thread_perm)@).is_init() == true`
+  - `((pre_thread_perm)@).value().state is SCHEDULED`
+  - `((pre_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((pre_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((pre_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((pre_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((pre_thread_perm)@).value().running_cpu is Some`
+  - `((pre_thread_perm)@).value().ipc_payload is Message`
+  - `((pre_thread_perm)@).value().error_code is Some`
+  - `((pre_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((pre_thread_perm)@).value().trap_frame.exists == true`
+  - `((pre_thread_perm)@).addr() == 0`
+  - `endpoint_op is Some`
+  - `((post1_thread_perm)@).is_init() == true`
+  - `((post1_thread_perm)@).value().state is SCHEDULED`
+  - `((post1_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((post1_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((post1_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((post1_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((post1_thread_perm)@).value().running_cpu is Some`
+  - `((post1_thread_perm)@).value().ipc_payload is Message`
+  - `((post1_thread_perm)@).value().error_code is Some`
+  - `((post1_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((post1_thread_perm)@).value().trap_frame.exists == true`
+  - `((post1_thread_perm)@).addr() == 0`
+  - `((post2_thread_perm)@).is_init() == true`
+  - `((post2_thread_perm)@).value().state is SCHEDULED`
+  - `((post2_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((post2_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((post2_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((post2_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((post2_thread_perm)@).value().running_cpu is Some`
+  - `((post2_thread_perm)@).value().ipc_payload is Message`
+  - `((post2_thread_perm)@).value().error_code is Some`
+  - `((post2_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((post2_thread_perm)@).value().trap_frame.exists == true`
+  - `((post2_thread_perm)@).addr() == 0`
+  - `!det_thread_set_endpoint_descriptor_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__endpoint_pop_head`  (rounds=47)
+  - `((pre_endpoint_perm)@).is_init() == true`
+  - `((pre_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((pre_endpoint_perm)@).value().rf_counter == 0`
+  - `(((pre_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((pre_endpoint_perm)@).addr() == 0`
+  - `((post1_endpoint_perm)@).is_init() == true`
+  - `((post1_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post1_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post1_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post1_endpoint_perm)@).addr() == 0`
+  - `((post2_endpoint_perm)@).is_init() == true`
+  - `((post2_endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((post2_endpoint_perm)@).value().rf_counter == 0`
+  - `(((post2_endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((post2_endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_pop_head_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__schedule_blocked_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_base__impl0__set_container_mem_quota_mem_4k__set_container_mem_quota_mem_4k`  (rounds=23)
+  - `(pre_self_.container_perms)@.dom().len() == 0`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `new_quota == 0`
+  - `(post1_self_.container_perms)@.dom().len() == 0`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom().len() == 0`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_set_container_mem_quota_mem_4k_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__endpoint_to_page`  (rounds=17)
+  - `((endpoint_perm)@).is_init() == true`
+  - `((endpoint_perm)@).value().queue_state is RECEIVE`
+  - `((endpoint_perm)@).value().rf_counter == 0`
+  - `(((endpoint_perm)@).value().owning_threads)@ == Set::<(ThreadPtr, EndpointIdx)>::empty()`
+  - `((endpoint_perm)@).addr() == 0`
+  - `!det_endpoint_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__drop_endpoint`  (rounds=21)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom().len() == 0`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom().len() == 0`
+  - `!det_drop_endpoint_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_drop_enpoints__impl0__drop_endpoint__thread_set_endpoint_descriptor`  (rounds=432)
+  - `((pre_thread_perm)@).is_init() == true`
+  - `((pre_thread_perm)@).value().state is SCHEDULED`
+  - `((pre_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((pre_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((pre_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((pre_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((pre_thread_perm)@).value().running_cpu is Some`
+  - `((pre_thread_perm)@).value().ipc_payload is Message`
+  - `((pre_thread_perm)@).value().error_code is Some`
+  - `((pre_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((pre_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((pre_thread_perm)@).value().trap_frame.exists == true`
+  - `((pre_thread_perm)@).addr() == 0`
+  - `endpoint_op is Some`
+  - `((post1_thread_perm)@).is_init() == true`
+  - `((post1_thread_perm)@).value().state is SCHEDULED`
+  - `((post1_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((post1_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((post1_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((post1_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((post1_thread_perm)@).value().running_cpu is Some`
+  - `((post1_thread_perm)@).value().ipc_payload is Message`
+  - `((post1_thread_perm)@).value().error_code is Some`
+  - `((post1_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((post1_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((post1_thread_perm)@).value().trap_frame.exists == true`
+  - `((post1_thread_perm)@).addr() == 0`
+  - `((post2_thread_perm)@).is_init() == true`
+  - `((post2_thread_perm)@).value().state is SCHEDULED`
+  - `((post2_thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((post2_thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((post2_thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((post2_thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((post2_thread_perm)@).value().running_cpu is Some`
+  - `((post2_thread_perm)@).value().ipc_payload is Message`
+  - `((post2_thread_perm)@).value().error_code is Some`
+  - `((post2_thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((post2_thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((post2_thread_perm)@).value().trap_frame.exists == true`
+  - `((post2_thread_perm)@).addr() == 0`
+  - `!det_thread_set_endpoint_descriptor_equal(r1, r2, post1_thread_perm, post2_thread_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_container__impl0__transfer_idle_cpu__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__kill_process_none_root`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_process_none_root_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_remove_child`  (rounds=59)
+  - `((pre_proc_perm)@).is_init() == true`
+  - `((pre_proc_perm)@).value().ioid is Some`
+  - `((pre_proc_perm)@).value().parent is Some`
+  - `((pre_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((pre_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((pre_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((pre_proc_perm)@).value().depth == 0`
+  - `((pre_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((pre_proc_perm)@).addr() == 0`
+  - `((post1_proc_perm)@).is_init() == true`
+  - `((post1_proc_perm)@).value().ioid is Some`
+  - `((post1_proc_perm)@).value().parent is Some`
+  - `((post1_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post1_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post1_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post1_proc_perm)@).value().depth == 0`
+  - `((post1_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post1_proc_perm)@).addr() == 0`
+  - `((post2_proc_perm)@).is_init() == true`
+  - `((post2_proc_perm)@).value().ioid is Some`
+  - `((post2_proc_perm)@).value().parent is Some`
+  - `((post2_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post2_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post2_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post2_proc_perm)@).value().depth == 0`
+  - `((post2_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post2_proc_perm)@).addr() == 0`
+  - `!det_proc_remove_child_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_to_page`  (rounds=21)
+  - `((proc_perm)@).is_init() == true`
+  - `((proc_perm)@).value().ioid is Some`
+  - `((proc_perm)@).value().parent is Some`
+  - `((proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((proc_perm)@).value().depth == 0`
+  - `((proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((proc_perm)@).addr() == 0`
+  - `!det_proc_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_perms_remove_subtree_set`  (rounds=6)
+  - `(pre_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(uppertree_seq)@.len() == 0`
+  - `(post1_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `!det_proc_perms_remove_subtree_set_equal(r1, r2, post1_perms, post2_perms)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__kill_running_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_running_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__proc_remove_thread`  (rounds=59)
+  - `((pre_proc_perm)@).is_init() == true`
+  - `((pre_proc_perm)@).value().ioid is Some`
+  - `((pre_proc_perm)@).value().parent is Some`
+  - `((pre_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((pre_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((pre_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((pre_proc_perm)@).value().depth == 0`
+  - `((pre_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((pre_proc_perm)@).addr() == 0`
+  - `((post1_proc_perm)@).is_init() == true`
+  - `((post1_proc_perm)@).value().ioid is Some`
+  - `((post1_proc_perm)@).value().parent is Some`
+  - `((post1_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post1_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post1_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post1_proc_perm)@).value().depth == 0`
+  - `((post1_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post1_proc_perm)@).addr() == 0`
+  - `((post2_proc_perm)@).is_init() == true`
+  - `((post2_proc_perm)@).value().ioid is Some`
+  - `((post2_proc_perm)@).value().parent is Some`
+  - `((post2_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post2_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post2_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post2_proc_perm)@).value().depth == 0`
+  - `((post2_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post2_proc_perm)@).addr() == 0`
+  - `!det_proc_remove_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_running_thread__thread_to_page`  (rounds=145)
+  - `((thread_perm)@).is_init() == true`
+  - `((thread_perm)@).value().state is SCHEDULED`
+  - `((thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((thread_perm)@).value().running_cpu is Some`
+  - `((thread_perm)@).value().ipc_payload is Message`
+  - `((thread_perm)@).value().error_code is Some`
+  - `((thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((thread_perm)@).value().trap_frame.exists == true`
+  - `((thread_perm)@).addr() == 0`
+  - `!det_thread_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__kill_scheduled_thread`  (rounds=17)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(pre_self_.thread_perms)@.dom().len() == 0`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post1_self_.thread_perms)@.dom().len() == 0`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()`
+  - `(post2_self_.thread_perms)@.dom().len() == 0`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_kill_scheduled_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__proc_remove_thread`  (rounds=59)
+  - `((pre_proc_perm)@).is_init() == true`
+  - `((pre_proc_perm)@).value().ioid is Some`
+  - `((pre_proc_perm)@).value().parent is Some`
+  - `((pre_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((pre_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((pre_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((pre_proc_perm)@).value().depth == 0`
+  - `((pre_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((pre_proc_perm)@).addr() == 0`
+  - `((post1_proc_perm)@).is_init() == true`
+  - `((post1_proc_perm)@).value().ioid is Some`
+  - `((post1_proc_perm)@).value().parent is Some`
+  - `((post1_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post1_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post1_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post1_proc_perm)@).value().depth == 0`
+  - `((post1_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post1_proc_perm)@).addr() == 0`
+  - `((post2_proc_perm)@).is_init() == true`
+  - `((post2_proc_perm)@).value().ioid is Some`
+  - `((post2_proc_perm)@).value().parent is Some`
+  - `((post2_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post2_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post2_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post2_proc_perm)@).value().depth == 0`
+  - `((post2_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post2_proc_perm)@).addr() == 0`
+  - `!det_proc_remove_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__thread_to_page`  (rounds=145)
+  - `((thread_perm)@).is_init() == true`
+  - `((thread_perm)@).value().state is SCHEDULED`
+  - `((thread_perm)@).value().scheduler_rev_ptr is Some`
+  - `((thread_perm)@).value().blocking_endpoint_ptr is Some`
+  - `((thread_perm)@).value().blocking_endpoint_index is Some`
+  - `((thread_perm)@).value().endpoint_rev_ptr is Some`
+  - `((thread_perm)@).value().running_cpu is Some`
+  - `((thread_perm)@).value().ipc_payload is Message`
+  - `((thread_perm)@).value().error_code is Some`
+  - `((thread_perm)@).value().error_code->Some_0 is SuccessUsize`
+  - `((thread_perm)@).value().trap_frame.reg.r15 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r14 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r13 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r12 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rbp == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rbx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r11 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r10 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r9 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.r8 == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rcx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rdx == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rsi == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rdi == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rax == 0`
+  - `((thread_perm)@).value().trap_frame.reg.error_code == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rip == 0`
+  - `((thread_perm)@).value().trap_frame.reg.cs == 0`
+  - `((thread_perm)@).value().trap_frame.reg.flags == 0`
+  - `((thread_perm)@).value().trap_frame.reg.rsp == 0`
+  - `((thread_perm)@).value().trap_frame.reg.ss == 0`
+  - `((thread_perm)@).value().trap_frame.exists == true`
+  - `((thread_perm)@).addr() == 0`
+  - `!det_thread_to_page_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__page_to_container_tree_version_1`  (rounds=41)
+  - `init_quota.mem_4k == 0`
+  - `init_quota.mem_2m == 0`
+  - `init_quota.mem_1g == 0`
+  - `init_quota.pcid == 0`
+  - `init_quota.ioid == 0`
+  - `depth == 0`
+  - `(subtree_set)@ == Set::<ContainerPtr>::empty()`
+  - `(uppertree_seq)@.len() == 0`
+  - `root_process is Some`
+  - `!det_page_to_container_tree_version_1_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__container_perms_update_subtree_set`  (rounds=6)
+  - `(pre_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(uppertree_seq)@.len() == 0`
+  - `(post1_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `!det_container_perms_update_subtree_set_equal(r1, r2, post1_perms, post2_perms)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_container__impl0__new_container_with_endpoint__page_to_proc_with_first_thread`  (rounds=13)
+  - `ioid is Some`
+  - `parent is Some`
+  - `parent_rev_ptr is Some`
+  - `(uppertree_seq)@.len() == 0`
+  - `(subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `depth == 0`
+  - `!det_page_to_proc_with_first_thread_equal(r1, r2)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__new_thread`  (rounds=147)
+  - `(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(pre_self_.process_perms)@.dom().len() == 0`
+  - `(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()`
+  - `(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `pt_regs.r15 == 0`
+  - `pt_regs.r14 == 0`
+  - `pt_regs.r13 == 0`
+  - `pt_regs.r12 == 0`
+  - `pt_regs.rbp == 0`
+  - `pt_regs.rbx == 0`
+  - `pt_regs.r11 == 0`
+  - `pt_regs.r10 == 0`
+  - `pt_regs.r9 == 0`
+  - `pt_regs.r8 == 0`
+  - `pt_regs.rcx == 0`
+  - `pt_regs.rdx == 0`
+  - `pt_regs.rsi == 0`
+  - `pt_regs.rdi == 0`
+  - `pt_regs.rax == 0`
+  - `pt_regs.error_code == 0`
+  - `pt_regs.rip == 0`
+  - `pt_regs.cs == 0`
+  - `pt_regs.flags == 0`
+  - `pt_regs.rsp == 0`
+  - `pt_regs.ss == 0`
+  - `(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post1_self_.process_perms)@.dom().len() == 0`
+  - `(post1_self_.thread_perms)@.dom().len() == 1`
+  - `(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()`
+  - `(post2_self_.process_perms)@.dom().len() == 0`
+  - `(post2_self_.thread_perms)@.dom().len() == 1`
+  - `(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()`
+  - `!det_new_thread_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__process_manager__process_manager__impl_new_thread__impl0__new_thread__proc_push_thread`  (rounds=59)
+  - `((pre_proc_perm)@).is_init() == true`
+  - `((pre_proc_perm)@).value().ioid is Some`
+  - `((pre_proc_perm)@).value().parent is Some`
+  - `((pre_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((pre_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((pre_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((pre_proc_perm)@).value().depth == 0`
+  - `((pre_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((pre_proc_perm)@).addr() == 0`
+  - `((post1_proc_perm)@).is_init() == true`
+  - `((post1_proc_perm)@).value().ioid is Some`
+  - `((post1_proc_perm)@).value().parent is Some`
+  - `((post1_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post1_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post1_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post1_proc_perm)@).value().depth == 0`
+  - `((post1_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post1_proc_perm)@).addr() == 0`
+  - `((post2_proc_perm)@).is_init() == true`
+  - `((post2_proc_perm)@).value().ioid is Some`
+  - `((post2_proc_perm)@).value().parent is Some`
+  - `((post2_proc_perm)@).value().parent_rev_ptr is Some`
+  - `(((post2_proc_perm)@).value().uppertree_seq)@.len() == 0`
+  - `(((post2_proc_perm)@).value().subtree_set)@ == Set::<ProcPtr>::empty()`
+  - `((post2_proc_perm)@).value().depth == 0`
+  - `((post2_proc_perm)@).value().dmd_paging_mode is NoDMDPG`
+  - `((post2_proc_perm)@).addr() == 0`
+  - `!det_proc_push_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__init`  (rounds=2)
+  - `!det_init_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_value`  (rounds=3)
+  - `v is Some`
+  - `!det_set_value_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__init__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__pop`  (rounds=2)
+  - `!det_pop_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__pop__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__push`  (rounds=2)
+  - `!det_push_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_value`  (rounds=3)
+  - `v is Some`
+  - `!det_set_value_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__remove_helper1`  (rounds=2)
+  - `!det_remove_helper1_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper1__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__remove_helper2`  (rounds=2)
+  - `!det_remove_helper2_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper2__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__remove_helper3`  (rounds=2)
+  - `!det_remove_helper3_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper3__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__remove_helper4`  (rounds=2)
+  - `!det_remove_helper4_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper4__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__remove_helper5`  (rounds=2)
+  - `!det_remove_helper5_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper5__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__remove_helper6`  (rounds=2)
+  - `!det_remove_helper6_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper6__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__remove_helper7`  (rounds=2)
+  - `!det_remove_helper7_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__set_next`  (rounds=2)
+  - `!det_set_next_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__remove_helper7__set_prev`  (rounds=2)
+  - `!det_set_prev_equal(r1, r2, post1_self_, post2_self_)`
+- `atmosphere__verified__va_range__va_range__impl2_new__new`  (rounds=8)
+  - `len == 0`
+  - `!det_new_equal(r1, r2)`
+
+### ironkv (76 witness-bearing)
+
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove`  (rounds=8)
+  - `i == 0`
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_erase_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_insert__insert`  (rounds=14)
+  - `r1 == 0`
+  - `r2 == 0`
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_remove__remove`  (rounds=8)
+  - `i == 0`
+  - `!det_remove_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set`  (rounds=8)
+  - `i == 0`
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__erase__erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_erase_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__erase__vec_erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__greatest_lower_bound_index__greatest_lower_bound_index`  (rounds=15)
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_greatest_lower_bound_index_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__values_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_values_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__keys_in_index_range_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_keys_in_index_range_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__insert`  (rounds=14)
+  - `r1 == 0`
+  - `r2 == 0`
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl3__values_agree__values_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_values_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__new__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__range_consistent_impl__keys_in_index_range_agree`  (rounds=14)
+  - `lo == 0`
+  - `hi == 0`
+  - `!det_keys_in_index_range_agree_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__range_consistent_impl__greatest_lower_bound_index`  (rounds=15)
+  - `r1 == 0`
+  - `r2 == 1`
+  - `!det_greatest_lower_bound_index_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__get_internal`  (rounds=2)
+  - `!det_get_internal_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__impl4__set__clone_end_point`  (rounds=2)
+  - `!det_clone_end_point_equal(r1, r2)`
+- `ironkv__verified__delegation_map_v__delegation_map_v__vec_erase__vec_erase`  (rounds=14)
+  - `start == 0`
+  - `end == 0`
+  - `!det_vec_erase_equal(r1, r2, post1_v, post2_v)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_delegate__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__get`  (rounds=2)
+  - `!det_get_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__clone_option_vec_u8`  (rounds=5)
+  - `ov is Some`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_clone_option_vec_u8_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__clone_end_point`  (rounds=2)
+  - `!det_clone_end_point_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__send_single_cmessage`  (rounds=5)
+  - `m is GetRequest`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_send_single_cmessage_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__clone_optional_value`  (rounds=5)
+  - `ov is Some`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_clone_optional_value_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__get`  (rounds=2)
+  - `!det_get_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__clone_end_point`  (rounds=2)
+  - `!det_clone_end_point_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__send_single_cmessage`  (rounds=5)
+  - `m is GetRequest`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_send_single_cmessage_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_set_request__clone_vec_u8`  (rounds=2)
+  - `!det_clone_vec_u8_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__set`  (rounds=2)
+  - `!det_set_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__extract_range_impl`  (rounds=2)
+  - `!det_extract_range_impl_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__clone_end_point`  (rounds=2)
+  - `!det_clone_end_point_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_shard__send_single_cmessage`  (rounds=5)
+  - `m is GetRequest`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_send_single_cmessage_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_receive_packet__host_model_receive_packet`  (rounds=464)
+  - `pre_self_.next_action_index == 0`
+  - `pre_self_.resend_count == 0`
+  - `pre_self_.constants.params.max_seqno == 18446744073709551615`
+  - `pre_self_.constants.params.max_delegations == 9223372036854775807`
+  - `pre_self_.received_packet is Some`
+  - `pre_self_.num_delegations == 0`
+  - `(pre_self_.received_requests)@.len() == 0`
+  - `post1_self_.next_action_index == 0`
+  - `post1_self_.resend_count == 0`
+  - `post1_self_.constants.params.max_seqno == 18446744073709551615`
+  - `post1_self_.constants.params.max_delegations == 9223372036854775807`
+  - `post1_self_.received_packet is Some`
+  - `post1_self_.num_delegations == 0`
+  - `(post1_self_.received_requests)@.len() == 0`
+  - `post2_self_.next_action_index == 0`
+  - `post2_self_.resend_count == 0`
+  - `post2_self_.constants.params.max_seqno == 18446744073709551615`
+  - `post2_self_.constants.params.max_delegations == 9223372036854775807`
+  - `post2_self_.received_packet is Some`
+  - `post2_self_.num_delegations == 0`
+  - `(post2_self_.received_requests)@.len() == 0`
+  - `!det_host_model_receive_packet_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_receive_packet__receive_impl`  (rounds=2)
+  - `!det_receive_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__retransmit_un_acked_packets`  (rounds=2)
+  - `!det_retransmit_un_acked_packets_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__parse_end_points__parse_end_point`  (rounds=2)
+  - `!det_parse_end_point_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__parse_end_points__parse_end_points`  (rounds=4)
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_parse_end_points_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__empty`  (rounds=2)
+  - `!det_empty_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__get_my_end_point`  (rounds=3)
+  - `(self_.state)@ is Receiving`
+  - `!det_get_my_end_point_equal(r1, r2)`
+- `ironkv__verified__net_sht_v__net_sht_v__receive_with_demarshal__sht_demarshall_data_method`  (rounds=2)
+  - `!det_sht_demarshall_data_method_equal(r1, r2)`
+- `ironkv__verified__net_sht_v__net_sht_v__receive_with_demarshal__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__maybe_ack_packet_impl`  (rounds=4)
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_maybe_ack_packet_impl_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__cack_state_swap`  (rounds=26)
+  - `pre_ack_state.num_packets_acked == 0`
+  - `default.num_packets_acked == 0`
+  - `post1_ack_state.num_packets_acked == 0`
+  - `post2_ack_state.num_packets_acked == 0`
+  - `!det_cack_state_swap_equal(r1, r2, post1_self_, post2_self_, post1_ack_state, post2_ack_state)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__put`  (rounds=8)
+  - `value.num_packets_acked == 0`
+  - `!det_put_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__receive_ack_impl`  (rounds=2)
+  - `!det_receive_ack_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_ack_impl`  (rounds=2)
+  - `!det_receive_ack_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_real_packet_impl`  (rounds=4)
+  - `r1 == true`
+  - `r2 == true`
+  - `!det_receive_real_packet_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__maybe_ack_packet_impl`  (rounds=4)
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_maybe_ack_packet_impl_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_impl`  (rounds=2)
+  - `!det_receive_impl_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets_for_dst`  (rounds=2)
+  - `!det_retransmit_un_acked_packets_for_dst_equal(r1, r2, post1_packets, post2_packets)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets`  (rounds=2)
+  - `!det_retransmit_un_acked_packets_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__keys`  (rounds=2)
+  - `!det_keys_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets_for_dst__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets_for_dst__retransmit_un_acked_packets_for_dst`  (rounds=2)
+  - `!det_retransmit_un_acked_packets_for_dst_equal(r1, r2, post1_packets, post2_packets)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__send_single_cmessage__clone_up_to_view`  (rounds=4)
+  - `self_ is SetRequest`
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__send_single_cmessage__send_single_cmessage`  (rounds=5)
+  - `m is GetRequest`
+  - `r1 is Some`
+  - `r2 is Some`
+  - `!det_send_single_cmessage_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__send_single_cmessage__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__send_single_cmessage__cack_state_swap`  (rounds=26)
+  - `pre_ack_state.num_packets_acked == 0`
+  - `default.num_packets_acked == 0`
+  - `post1_ack_state.num_packets_acked == 0`
+  - `post2_ack_state.num_packets_acked == 0`
+  - `!det_cack_state_swap_equal(r1, r2, post1_self_, post2_self_, post1_ack_state, post2_ack_state)`
+- `ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__send_single_cmessage__put`  (rounds=8)
+  - `value.num_packets_acked == 0`
+  - `!det_put_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__clone_up_to_view__clone_up_to_view`  (rounds=3)
+  - `self_ is Message`
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list__clone_up_to_view`  (rounds=2)
+  - `!det_clone_up_to_view_equal(r1, r2)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__insert`  (rounds=2)
+  - `!det_insert_equal(r1, r2, post1_self_, post2_self_)`
+- `ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__new`  (rounds=2)
+  - `!det_new_equal(r1, r2)`
+
+### memory-allocator (1 witness-bearing)
+
+- `memory-allocator__verified__commit_mask__commit_mask__impl__next_run__next_run`  (rounds=8)
+  - `idx == 0`
+  - `!det_next_run_equal(r1, r2)`
+
+### vest (1 witness-bearing)
+
+- `vest__verified__utils__utils__set_range__set_range`  (rounds=8)
+  - `i == 0`
+  - `!det_set_range_equal(r1, r2, post1_data, post2_data)`
+
+## Failure-mode samples
+
+### status=`verus_error`  (209 cases)
+
+**anvil-library / anvil-library__verified__vstd_exd__vec_lib__vec_lib__vec_filter**
+
+```
+error[E0425]: cannot find function `lemma_seq_properties` in this scope
+  --> /tmp/specdet_sf_vec_filter_h9ydovhz/vec_lib.rs:31:17
+   |
+31 |         proof { lemma_seq_properties::<V>(); }
+   |                 ^^^^^^^^^^^^^^^^^^^^
+   |
+  --> vstd/seq_lib.rs:3666:0
+  ::: vstd/seq_lib.rs:3692:1
+   |
+   = note: similarly named function `group_seq_properties` defined here
+help: a function with a similar name exists
+   |
+31 -         proof { lemma_seq_properties::<V>(); }
+31 +         proof { group_seq_properties::<V>(); }
+   |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0425`.
+```
+
+**atmosphere / atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__free_page_4k**
+
+```
+error: expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`
+    --> /tmp/specdet_sf_free_page_4k_gactpi1v/allocator__page_allocator_spec_impl__impl2__free_page_4k.rs:1085:16500
+     |
+1085 | ...bool, pre_self_: PageAllocator, target_ptr: PagePtr, ?: Tracked<PagePerm4k>, post1_self_: PageAllocator, r1...
+     |                                                         ^
+
+error: aborting due to 1 previous error
+```
+
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__page_entry_to_map_entry**
+
+```
+84:18
+     |
+ 184 | pub open spec fn spec_page_entry_to_map_entry(p: &PageEntry) -> MapEntry {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -------------
+help: consider borrowing here
+     |
+2196 |             &&& (r1 =~= spec_page_entry_to_map_entry(&p))
+     |                                                      +
+
+error[E0308]: mismatched types
+    --> /tmp/specdet_sf_page_entry_to_map_entry_vlqoz7of/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2197:54
+     |
+2197 |             &&& (r2 =~= spec_page_entry_to_map_entry(p))
+     |                         ---------------------------- ^ expected `&PageEntry`, found `PageEntry`
+     |                         |
+     |                         arguments to this function are incorrect
+     |
+note: function defined here
+    --> /tmp/specdet_sf_page_entry_to_map_entry_vlqoz7of/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:184:18
+     |
+ 184 | pub open spec fn spec_page_entry_to_map_entry(p: &PageEntry) -> MapEntry {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -------------
+help: consider borrowing here
+     |
+2197 |             &&& (r2 =~= spec_page_entry_to_map_entry(&p))
+     |                                                      +
+
+error: aborting due to 2 previous errors; 18 warnings emitted
+
+For more information about this error, try `rustc --explain E0308`.
+```
+
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__check_address_space_va_range_free**
+
+```
+
+2197 |             &&& (r1 == self_.address_space_range_free(target_proc_ptr, &va_range))
+     |                                                                        +
+
+error[E0308]: mismatched types
+    --> /tmp/specdet_sf_check_address_space_va_range_free_cgybhpfh/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2198:72
+     |
+2198 |             &&& (r2 == self_.address_space_range_free(target_proc_ptr, va_range))
+     |                              ------------------------                  ^^^^^^^^ expected `&VaRange4K`, found `VaRange4K`
+     |                              |
+     |                              arguments to this method are incorrect
+     |
+note: method defined here
+    --> /tmp/specdet_sf_check_address_space_va_range_free_cgybhpfh/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:1986:22
+     |
+1986 |     pub open spec fn address_space_range_free(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1989 |         va_range: &VaRange4K,
+     |         --------------------
+help: consider borrowing here
+     |
+2198 |             &&& (r2 == self_.address_space_range_free(target_proc_ptr, &va_range))
+     |                                                                        +
+
+error: aborting due to 2 previous errors; 18 warnings emitted
+
+For more information about this error, try `rustc --explain E0308`.
+```
+
+**atmosphere / atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__check_address_space_va_range_free__va_2m_valid**
+
+```
+not find function `spec_va_2m_valid` in this scope
+    --> /tmp/specdet_sf_va_2m_valid_rfqhgv1u/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2196:24
+     |
+2151 | pub open spec fn spec_va_4k_valid(va: usize) -> bool {
+     | ---------------------------------------------------- similarly named function `spec_va_4k_valid` defined here
+...
+2196 |             &&& (r1 == spec_va_2m_valid(va))
+     |                        ^^^^^^^^^^^^^^^^
+     |
+help: a function with a similar name exists
+     |
+2196 -             &&& (r1 == spec_va_2m_valid(va))
+2196 +             &&& (r1 == spec_va_4k_valid(va))
+     |
+
+error[E0425]: cannot find function `spec_va_2m_valid` in this scope
+    --> /tmp/specdet_sf_va_2m_valid_rfqhgv1u/kernel__create_and_map_pages__impl0__check_address_space_va_range_free.rs:2197:24
+     |
+2151 | pub open spec fn spec_va_4k_valid(va: usize) -> bool {
+     | ---------------------------------------------------- similarly named function `spec_va_4k_valid` defined here
+...
+2197 |             &&& (r2 == spec_va_2m_valid(va))
+     |                        ^^^^^^^^^^^^^^^^
+     |
+help: a function with a similar name exists
+     |
+2197 -             &&& (r2 == spec_va_2m_valid(va))
+2197 +             &&& (r2 == spec_va_4k_valid(va))
+     |
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0425`.
+```
+
+_...and 204 more_
+
+### status=`runner_crash`  (2 cases)
+
+**atmosphere / atmosphere__verified__process_manager__process_manager__impl_base__impl0__new_endpoint__thread_set_endpoint_descriptor**
+
+```
+TypeError: can't concat str to bytes
+```
+
+**atmosphere / atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__get_payload_as_va_range**
+
+```
+TypeError: can't concat str to bytes
+```
+

@@ -1,0 +1,7 @@
+{
+  "verdict": "error",
+  "issues": [
+    "codex invocation failed: codex timeout after 180s"
+  ],
+  "duration_s": 180.02
+}

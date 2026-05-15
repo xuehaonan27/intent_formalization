@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Assumes MemRegion and Flags implement View; dependency views are marked uncovered, so correctness depends on external impls not shown."
+  ],
+  "duration_s": 9.2
+}

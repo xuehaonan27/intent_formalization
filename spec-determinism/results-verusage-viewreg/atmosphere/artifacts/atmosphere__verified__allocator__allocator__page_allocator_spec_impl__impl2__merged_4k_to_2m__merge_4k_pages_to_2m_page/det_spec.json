@@ -1,0 +1,90 @@
+{
+  "function": "merge_4k_pages_to_2m_page",
+  "det_check_template": "proof fn det_merge_4k_pages_to_2m_page(target_page_idx: usize, page_perms: Tracked<Map<usize, PagePerm4k>>, r1: Tracked<PagePerm2m>, r2: Tracked<PagePerm2m>)\n    requires (target_page_idx + 512 <= NUM_PAGES), (forall|i:usize|\n            #![auto]\n            0<=i<512 \n            ==>\n            page_perms@.dom().contains(i)\n            &&\n            page_perms@[i].is_init()\n            &&\n            page_perms@[i].addr() == page_index2page_ptr((target_page_idx + i) as usize)),\n    ensures\n        ({\n            &&& (r1@.is_init())\n            &&& (r1@.addr() == page_index2page_ptr(target_page_idx))\n            &&& (r2@.is_init())\n            &&& (r2@.addr() == page_index2page_ptr(target_page_idx))\n        }) ==> det_merge_4k_pages_to_2m_page_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "target_page_idx",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_perms",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<Map<usize, PagePerm4k>>",
+        "type_args": [
+          {
+            "kind": "Map",
+            "name": "Map<usize, PagePerm4k>",
+            "type_args": [
+              {
+                "kind": "usize",
+                "name": "usize"
+              },
+              {
+                "kind": "unknown",
+                "name": "PagePerm4k"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm2m>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm2m"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm2m>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm2m"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_merge_4k_pages_to_2m_page_equal(r1: Tracked<PagePerm2m>, r2: Tracked<PagePerm2m>) -> bool {\n    ((r1)@ == (r2)@)\n}",
+  "equal_fn_name": "det_merge_4k_pages_to_2m_page_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_merge_4k_pages_to_2m_page",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

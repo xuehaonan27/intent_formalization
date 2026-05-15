@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "EventResults",
+  "qualified_name": "EventResults",
+  "source_hash": "62f302102ebb01ef",
+  "view_source": "L4-llm",
+  "viewed_type": "EventResultsView",
+  "view_decl": "pub struct EventResultsView {\n    pub recvs: Seq<NetEvent>,\n    pub clocks: Seq<NetEvent>,\n    pub sends: Seq<NetEvent>,\n    pub ios: Ios,\n}\n\nimpl View for EventResults {\n    type V = EventResultsView;\n    closed spec fn view(&self) -> EventResultsView {\n        EventResultsView {\n            recvs: self.recvs,\n            clocks: self.clocks,\n            sends: self.sends,\n            ios: self.ios,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "EventResults is the per-step network I/O bundle whose four fields are all spec-meaningful: recvs/clocks/sends are the ordered sequences of NetEvents observed by the host (their order is the refinement witness, so each is kept as Seq<...>), and ios is the host's claimed event trace whose ordering must also align with event_seq() per the doc comment. There are no raw pointers, allocator handles, or ghost wrappers to drop. NetEvent is an uncovered leaf (alias to LIoOp<...> with no synthesized view), and Ios is a transparent L1 alias to Seq<NetEvent>, so following the AbstractHostState convention we carry every field structurally without calling `@` on uncovered dependencies; a future synthesis pass for NetEvent can refine these recursively.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"EventResultsView\",\n  \"view_decl\": \"pub struct EventResultsView {\\n    pub recvs: Seq<NetEvent>,\\n    pub clocks: Seq<NetEvent>,\\n    pub sends: Seq<NetEvent>,\\n    pub ios: Ios,\\n}\\n\\nimpl View for EventResults {\\n    type V = EventResultsView;\\n    closed spec fn view(&self) -> EventResultsView {\\n        EventResultsView {\\n            recvs: self.recvs,\\n            clocks: self.clocks,\\n            sends: self.sends,\\n            ios: self.ios,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"EventResults is the per-step network I/O bundle whose four fields are all spec-meaningful: recvs/clocks/sends are the ordered sequences of NetEvents observed by the host (their order is the refinement witness, so each is kept as Seq<...>), and ios is the host's claimed event trace whose ordering must also align with event_seq() per the doc comment. There are no raw pointers, allocator handles, or ghost wrappers to drop. NetEvent is an uncovered leaf (alias to LIoOp<...> with no synthesized view), and Ios is a transparent L1 alias to Seq<NetEvent>, so following the AbstractHostState convention we carry every field structurally without calling `@` on uncovered dependencies; a future synthesis pass for NetEvent can refine these recursively.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

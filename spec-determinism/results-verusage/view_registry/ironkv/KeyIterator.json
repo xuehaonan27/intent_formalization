@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "KeyIterator",
+  "qualified_name": "KeyIterator",
+  "source_hash": "ea7ad0823235b6d8",
+  "view_source": "L4-llm",
+  "viewed_type": "Option<<K as View>::V>",
+  "view_decl": "impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K> {\n    type V = Option<<K as View>::V>;\n    closed spec fn view(&self) -> Self::V {\n        self.k@\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "KeyIterator wraps a single Option<K> that represents the next key to iterate from (None signals the end). The semantic content is exactly the inner key compared by its abstract view, so any allocator-or-representation details inside K are dropped. We add a `K: View` bound so we can project Option<K> through vstd's Option View impl, yielding Option<K@>; no other user types are referenced.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Option<<K as View>::V>\",\n  \"view_decl\": \"impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K> {\\n    type V = Option<<K as View>::V>;\\n    closed spec fn view(&self) -> Self::V {\\n        self.k@\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"KeyIterator wraps a single Option<K> that represents the next key to iterate from (None signals the end). The semantic content is exactly the inner key compared by its abstract view, so any allocator-or-representation details inside K are dropped. We add a `K: View` bound so we can project Option<K> through vstd's Option View impl, yielding Option<K@>; no other user types are referenced.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

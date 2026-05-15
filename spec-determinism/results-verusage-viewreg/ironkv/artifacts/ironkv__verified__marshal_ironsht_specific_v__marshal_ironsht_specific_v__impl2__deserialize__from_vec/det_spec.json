@@ -1,0 +1,82 @@
+{
+  "function": "from_vec",
+  "det_check_template": "proof fn det_from_vec(v: Vec<CKeyKV>, r1: CKeyHashMap, r2: CKeyHashMap)\n    ensures\n        ({\n            &&& (r1 == CKeyHashMap::spec_from_vec(v))\n            &&& (r2 == CKeyHashMap::spec_from_vec(v))\n        }) ==> det_from_vec_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "v",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<CKeyKV>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "CKeyKV",
+            "fields": [
+              {
+                "name": "k",
+                "type": {
+                  "kind": "unknown",
+                  "name": "CKey"
+                }
+              },
+              {
+                "name": "v",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Vec<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "CKeyHashMap"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "CKeyHashMap"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_from_vec_equal(r1: CKeyHashMap, r2: CKeyHashMap) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_from_vec_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_from_vec",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "CKeyHashMap"
+}

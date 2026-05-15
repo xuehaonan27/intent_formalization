@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "PTE dependency view is not resolved in the provided context; assuming PTE implements View, the projection shape is appropriate."
+  ],
+  "duration_s": 9.62
+}

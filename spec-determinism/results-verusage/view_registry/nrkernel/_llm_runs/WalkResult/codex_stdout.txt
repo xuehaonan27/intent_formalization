@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Assumes PTE implements View; dependency view was not provided, so correctness of pte@ cannot be fully confirmed from the supplied context."]
+}
+```

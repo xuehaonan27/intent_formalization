@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "LPacket has no known view, so identity projection is assumed correct for this audit."
+  ],
+  "duration_s": 8.53
+}

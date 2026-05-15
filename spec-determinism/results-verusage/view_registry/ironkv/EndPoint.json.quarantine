@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "EndPoint",
+  "qualified_name": "EndPoint",
+  "source_hash": "741f4d62c038bbb7",
+  "view_source": "L4-llm",
+  "viewed_type": "Seq<u8>",
+  "view_decl": "impl View for EndPoint {\n    type V = Seq<u8>;\n    closed spec fn view(&self) -> Seq<u8> {\n        self.id@\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "EndPoint is a thin wrapper around a byte vector that uniquely identifies a network endpoint (e.g. IP+port bytes). Byte order is significant for identity, so the spec-meaningful projection is Seq<u8>, obtained via Vec's standard view. There are no other fields to keep or drop.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Seq<u8>\",\n  \"view_decl\": \"impl View for EndPoint {\\n    type V = Seq<u8>;\\n    closed spec fn view(&self) -> Seq<u8> {\\n        self.id@\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"EndPoint is a thin wrapper around a byte vector that uniquely identifies a network endpoint (e.g. IP+port bytes). Byte order is significant for identity, so the spec-meaningful projection is Seq<u8>, obtained via Vec's standard view. There are no other fields to keep or drop.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

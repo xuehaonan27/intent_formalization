@@ -1,0 +1,54 @@
+{
+  "function": "va2index",
+  "det_check_template": "proof fn det_va2index(va: usize, r1: (L4Index, L3Index, L2Index, L1Index), r2: (L4Index, L3Index, L2Index, L1Index))\n    requires (va_4k_valid(va) || va_2m_valid(va) || va_1g_valid(va)),\n    ensures\n        ({\n            &&& (r1.0 == spec_v2l4index(va) && KERNEL_MEM_END_L4INDEX <= r1.0 <= 0x1ff)\n            &&& (r1.1 == spec_v2l3index(va) && r1.1 <= 0x1ff)\n            &&& (r1.2 == spec_v2l2index(va) && r1.2 <= 0x1ff)\n            &&& (r1.3 == spec_v2l1index(va) && r1.3 <= 0x1ff)\n            &&& (r1 == spec_va2index(va))\n            &&& (r2.0 == spec_v2l4index(va) && KERNEL_MEM_END_L4INDEX <= r2.0 <= 0x1ff)\n            &&& (r2.1 == spec_v2l3index(va) && r2.1 <= 0x1ff)\n            &&& (r2.2 == spec_v2l2index(va) && r2.2 <= 0x1ff)\n            &&& (r2.3 == spec_v2l1index(va) && r2.3 <= 0x1ff)\n            &&& (r2 == spec_va2index(va))\n        }) ==> det_va2index_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "va",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(L4Index, L3Index, L2Index, L1Index)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(L4Index, L3Index, L2Index, L1Index)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_va2index_equal(r1: (L4Index, L3Index, L2Index, L1Index), r2: (L4Index, L3Index, L2Index, L1Index)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_va2index_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_va2index",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

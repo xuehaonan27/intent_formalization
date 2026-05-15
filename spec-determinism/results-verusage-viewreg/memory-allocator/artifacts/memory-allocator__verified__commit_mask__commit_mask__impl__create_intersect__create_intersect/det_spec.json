@@ -1,0 +1,135 @@
+{
+  "function": "create_intersect",
+  "det_check_template": "proof fn det_create_intersect(self_: CommitMask, other: CommitMask, pre_res: CommitMask, post1_res: CommitMask, r1: (), post2_res: CommitMask, r2: ())\n    ensures\n        ({\n            &&& (post1_res@ == self_@.intersect(other@))\n            &&& (post2_res@ == self_@.intersect(other@))\n        }) ==> det_create_intersect_equal(r1, r2, post1_res, post2_res),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "other",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_res",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_res",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_res",
+      "type": {
+        "kind": "struct",
+        "name": "CommitMask",
+        "fields": [
+          {
+            "name": "mask",
+            "type": {
+              "kind": "unknown",
+              "name": "[usize; 8]"
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\nimpl View for CommitMask {\n    type V = Seq<usize>;\n    closed spec fn view(&self) -> Seq<usize> {\n        self.mask@\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_create_intersect_equal(r1: (), r2: (), post1_res: CommitMask, post2_res: CommitMask) -> bool {\n    (r1 == r2)\n    && (((post1_res).view() == (post2_res).view()))\n}",
+  "equal_fn_name": "det_create_intersect_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_res",
+      "rhs": "post2_res"
+    }
+  ],
+  "check_fn_name": "det_create_intersect",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "CommitMask"
+}

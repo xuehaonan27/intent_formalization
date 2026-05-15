@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Assumes GPDE implements View, but no dependency view was provided in context."
+  ],
+  "duration_s": 9.18
+}

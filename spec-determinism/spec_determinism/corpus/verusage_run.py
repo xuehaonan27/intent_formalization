@@ -21,6 +21,14 @@ import sys
 import time
 from pathlib import Path
 
+from spec_determinism.classify import (
+    BUCKET_INCONCLUSIVE,
+    BUCKET_PROVED,
+    BUCKET_UNKNOWN_KIND,
+    BUCKET_WITNESS,
+    OK_BUCKETS,
+    classify_ok,
+)
 from spec_determinism.extract.extractor import extract_spec
 from spec_determinism.verus.single_file import (
     _DEFAULT_VERUS,
@@ -216,17 +224,22 @@ def main() -> int:
     # Summary
     total_ms = int((time.monotonic() - t0) * 1000)
     by_status: dict[str, int] = {}
-    with_witness = 0
+    ok_buckets: dict[str, int] = {b: 0 for b in OK_BUCKETS}
     for r in results:
-        by_status[r.get("status", "?")] = by_status.get(r.get("status", "?"), 0) + 1
-        if r.get("status") == "ok" and r.get("assumes"):
-            with_witness += 1
+        s = r.get("status", "?")
+        by_status[s] = by_status.get(s, 0) + 1
+        if s == "ok":
+            ok_buckets[classify_ok(r)] += 1
 
     print("\n" + "=" * 80)
     print(f"verusage run: project={args.project}  subdir={args.subdir}  "
           f"n={len(results)}  wall={total_ms/1000:.1f}s")
     print(f"by status: {by_status}")
-    print(f"ok-with-witness: {with_witness}")
+    print(f"  {BUCKET_PROVED:18s}: {ok_buckets[BUCKET_PROVED]:4d}  (R0=unsat, deterministic)")
+    print(f"  {BUCKET_WITNESS:18s}: {ok_buckets[BUCKET_WITNESS]:4d}  (R0=sat, real nondeterminism witness)")
+    print(f"  {BUCKET_INCONCLUSIVE:18s}: {ok_buckets[BUCKET_INCONCLUSIVE]:4d}  (R0=unknown / legacy, z3 undecided)")
+    if ok_buckets[BUCKET_UNKNOWN_KIND]:
+        print(f"  {BUCKET_UNKNOWN_KIND:18s}: {ok_buckets[BUCKET_UNKNOWN_KIND]:4d}  (unexpected r0_z3 value)")
     print(f"full → {full}")
     print("=" * 80)
     return 0

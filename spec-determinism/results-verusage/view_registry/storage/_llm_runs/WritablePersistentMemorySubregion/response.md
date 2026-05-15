@@ -1,0 +1,8 @@
+```json
+{
+  "viewed_type": "WritablePersistentMemorySubregionView",
+  "view_decl": "pub struct WritablePersistentMemorySubregionView {\n    pub start_: u64,\n    pub len_: nat,\n    pub constants_: PersistentMemoryConstants,\n    pub initial_region_view_: PersistentMemoryRegionView,\n    pub is_writable_absolute_addr_fn_: spec_fn(int) -> bool,\n}\n\nimpl View for WritablePersistentMemorySubregion {\n    type V = WritablePersistentMemorySubregionView;\n    open spec fn view(&self) -> WritablePersistentMemorySubregionView {\n        WritablePersistentMemorySubregionView {\n            start_: self.start_,\n            len_: self.len_@,\n            constants_: self.constants_@,\n            initial_region_view_: self.initial_region_view_@,\n            is_writable_absolute_addr_fn_: self.is_writable_absolute_addr_fn_@,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Every field is spec-meaningful for a writable subregion: start_/len_ delimit the slice, constants_ and initial_region_view_ pin the underlying PM model at construction time, and is_writable_absolute_addr_fn_ encodes the write-permission predicate the spec reasons about. Each Ghost<_> is unwrapped with a single @; the inner types (nat, PersistentMemoryConstants, PersistentMemoryRegionView, spec_fn) are leaf/primitive and carry no separate View, so structural equality on them is already semantic."
+}
+```

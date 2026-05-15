@@ -1,0 +1,97 @@
+{
+  "function": "index",
+  "det_check_template": "proof fn det_index(self_: VaRange4K, i: usize, r1: VAddr, r2: VAddr)\n    requires (self_.wf()), (0 <= i < self_.len),\n    ensures\n        ({\n            &&& (r1 == self_@[i as int])\n            &&& (r2 == self_@[i as int])\n        }) ==> det_index_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "VaRange4K",
+        "fields": [
+          {
+            "name": "start",
+            "type": {
+              "kind": "unknown",
+              "name": "VAddr"
+            }
+          },
+          {
+            "name": "len",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "view",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<VAddr>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<VAddr>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "VAddr"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "i",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "VAddr"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "VAddr"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_index_equal(r1: VAddr, r2: VAddr) -> bool {\n    ((r1 == r2))\n}",
+  "equal_fn_name": "det_index_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_index",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "VaRange4K"
+}

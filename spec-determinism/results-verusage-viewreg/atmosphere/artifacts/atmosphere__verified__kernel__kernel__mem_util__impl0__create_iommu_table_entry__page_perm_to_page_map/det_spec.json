@@ -1,0 +1,68 @@
+{
+  "function": "page_perm_to_page_map",
+  "det_check_template": "proof fn det_page_perm_to_page_map(page_ptr: PagePtr, ?: Tracked<PagePerm4k>, r1: (\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n), r2: (\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n))\n    requires (page_perm.is_init()), (page_perm.addr() == page_ptr),\n    ensures\n        ({\n            &&& (r1.0 == page_ptr)\n            &&& (r1.1@.addr() == r1.0)\n            &&& (r1.1@.is_init())\n            &&& (r1.1@.value().wf())\n            &&& (forall|i: usize|\n            #![trigger r1.1@.value()[i].is_empty()]\n            0 <= i < 512 ==> r1.1@.value()[i].is_empty())\n            &&& (r2.0 == page_ptr)\n            &&& (r2.1@.addr() == r2.0)\n            &&& (r2.1@.is_init())\n            &&& (r2.1@.value().wf())\n            &&& (forall|i: usize|\n            #![trigger r2.1@.value()[i].is_empty()]\n            0 <= i < 512 ==> r2.1@.value()[i].is_empty())\n        }) ==> det_page_perm_to_page_map_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PagePtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm4k>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm4k"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_perm_to_page_map_equal(r1: (\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n), r2: (\n    PageMapPtr,\n    Tracked<PointsTo<PageMap>>,\n)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_perm_to_page_map_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_perm_to_page_map",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

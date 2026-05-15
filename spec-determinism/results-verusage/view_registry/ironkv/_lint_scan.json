@@ -1,0 +1,71 @@
+{
+  "project": "",
+  "scanned": 40,
+  "rejected": 10,
+  "by_rule": {
+    "M1": 8,
+    "M3": 2
+  },
+  "rejections": [
+    {
+      "type_short": "CAckState",
+      "qualified_name": "CAckState",
+      "rule": "M1",
+      "reason": "M1: references `CSingleMessage` (via `<CSingleMessage as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "CKeyHashMap",
+      "qualified_name": "CKeyHashMap",
+      "rule": "M3",
+      "reason": "M3: `CKeyHashMap` is `#[verifier::external_body]` \u2014 Verus treats its fields as opaque and forbids field expressions in spec functions. Either drop `CKeyHashMap` from the L4 work list, rewrite via an `external_type_specification` shim, or collapse the view body to `type V = (); fn view -> () { () }`."
+    },
+    {
+      "type_short": "CPacket",
+      "qualified_name": "CPacket",
+      "rule": "M1",
+      "reason": "M1: references `CSingleMessage` (via `<CSingleMessage as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "CSendState",
+      "qualified_name": "CSendState",
+      "rule": "M1",
+      "reason": "M1: references `CAckState` (via `<CAckState as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "CSingleDelivery",
+      "qualified_name": "CSingleDelivery",
+      "rule": "M1",
+      "reason": "M1: references `CSendState` (via `<CSendState as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "CSingleMessage",
+      "qualified_name": "CSingleMessage",
+      "rule": "M1",
+      "reason": "M1: references `CMessage` (via `<CMessage as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "CTombstoneTable",
+      "qualified_name": "CTombstoneTable",
+      "rule": "M1",
+      "reason": "M1: references `HashMap` (via `<HashMap as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "HashMap",
+      "qualified_name": "HashMap",
+      "rule": "M3",
+      "reason": "M3: `HashMap` is `#[verifier::external_body]` \u2014 Verus treats its fields as opaque and forbids field expressions in spec functions. Either drop `HashMap` from the L4 work list, rewrite via an `external_type_specification` shim, or collapse the view body to `type V = (); fn view -> () { () }`."
+    },
+    {
+      "type_short": "ReceiveImplResult",
+      "qualified_name": "ReceiveImplResult",
+      "rule": "M1",
+      "reason": "M1: references `CPacket` (via `<CPacket as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    },
+    {
+      "type_short": "ReceiveResult",
+      "qualified_name": "ReceiveResult",
+      "rule": "M1",
+      "reason": "M1: references `CPacket` (via `<CPacket as View>::V` or `self.<\u2026>@`), which is currently quarantined. Re-attempting this view would cascade-break."
+    }
+  ]
+}

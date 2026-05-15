@@ -1,0 +1,93 @@
+{
+  "function": "extract_range_impl",
+  "det_check_template": "proof fn det_extract_range_impl(h: CKeyHashMap, kr: KeyRange<CKey>, r1: CKeyHashMap, r2: CKeyHashMap)\n    requires (forall |k| h@.contains_key(k) ==> /*#[trigger] valid_key(k) &&*/ #[trigger] valid_value(h@[k])),\n    ensures\n        ({\n            &&& (r1@ =~= extract_range(h@, kr))\n            &&& (r2@ =~= extract_range(h@, kr))\n        }) ==> det_extract_range_impl_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "h",
+      "type": {
+        "kind": "struct",
+        "name": "CKeyHashMap",
+        "fields": [
+          {
+            "name": "m",
+            "type": {
+              "kind": "unknown",
+              "name": "collections::HashMap<CKey, Vec<u8>>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "CKey"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "Vec<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "kr",
+      "type": {
+        "kind": "unknown",
+        "name": "KeyRange<CKey>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "CKey"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "CKeyHashMap"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "CKeyHashMap"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_extract_range_impl_equal(r1: CKeyHashMap, r2: CKeyHashMap) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_extract_range_impl_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_extract_range_impl",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

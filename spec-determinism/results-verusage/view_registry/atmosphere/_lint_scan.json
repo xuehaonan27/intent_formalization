@@ -1,0 +1,16 @@
+{
+  "project": "",
+  "scanned": 28,
+  "rejected": 1,
+  "by_rule": {
+    "M1": 1
+  },
+  "rejections": [
+    {
+      "type_short": "Kernel",
+      "qualified_name": "Kernel",
+      "rule": "M1",
+      "reason": "M1: references `MemoryManager` (via `<MemoryManager as View>::V` or `self.<\u2026>@`), but no View impl is registered for `MemoryManager` (not in VSTD_VIEW_HEADS, not a generic parameter of this impl, not in project view registry). Either restructure to avoid the dependency, add a manual `impl View for MemoryManager`, or quarantine `Kernel` until `MemoryManager` is covered."
+    }
+  ]
+}

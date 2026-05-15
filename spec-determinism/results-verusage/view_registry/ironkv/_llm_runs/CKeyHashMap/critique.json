@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Assumes collections::HashMap has a Verus view to Map<CKey, Vec<u8>>; dependency context marks HashMap as uncovered, so this cannot be confirmed here."
+  ],
+  "duration_s": 11.48
+}

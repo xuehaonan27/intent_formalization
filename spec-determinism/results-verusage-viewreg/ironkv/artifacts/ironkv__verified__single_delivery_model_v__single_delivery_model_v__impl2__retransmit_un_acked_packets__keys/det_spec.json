@@ -1,0 +1,96 @@
+{
+  "function": "keys",
+  "det_check_template": "proof fn det_keys<V>(self_: HashMap<V>, r1: Vec<EndPoint>, r2: Vec<EndPoint>)\n    ensures\n        ({\n            &&& (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n            &&& (r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n        }) ==> det_keys_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMap<V>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<EndPoint>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "EndPoint",
+            "fields": [
+              {
+                "name": "id",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Vec<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "Vec<EndPoint>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "EndPoint",
+            "fields": [
+              {
+                "name": "id",
+                "type": {
+                  "kind": "unknown",
+                  "name": "Vec<u8>",
+                  "type_args": [
+                    {
+                      "kind": "u8",
+                      "name": "u8"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_keys_equal(r1: Vec<EndPoint>, r2: Vec<EndPoint>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_keys_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_keys",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V>",
+  "where_decl": "",
+  "self_type": "HashMap<V>"
+}

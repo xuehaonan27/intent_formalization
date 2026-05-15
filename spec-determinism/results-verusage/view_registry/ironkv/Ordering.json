@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Ordering",
+  "qualified_name": "Ordering",
+  "source_hash": "d26c408663e11ad1",
+  "view_source": "L4-llm",
+  "viewed_type": "int",
+  "view_decl": "impl View for Ordering {\n    type V = int;\n    closed spec fn view(&self) -> int {\n        match self {\n            Ordering::Less => 0,\n            Ordering::Equal => 1,\n            Ordering::Greater => 2,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Ordering is a payload-free enum whose only semantic content is which of the three variants it is, so we project to a stable int tag (0/1/2). Using int avoids needing the original enum to derive Eq/PartialEq and gives the checker a primitive type with built-in semantic equality.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"int\",\n  \"view_decl\": \"impl View for Ordering {\\n    type V = int;\\n    closed spec fn view(&self) -> int {\\n        match self {\\n            Ordering::Less => 0,\\n            Ordering::Equal => 1,\\n            Ordering::Greater => 2,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Ordering is a payload-free enum whose only semantic content is which of the three variants it is, so we project to a stable int tag (0/1/2). Using int avoids needing the original enum to derive Eq/PartialEq and gives the checker a primitive type with built-in semantic equality.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

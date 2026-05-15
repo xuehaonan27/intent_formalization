@@ -1,0 +1,62 @@
+{
+  "function": "get",
+  "det_check_template": "proof fn det_get<A, const N: usize>(self_: Array<A, N>, i: usize, r1: &A, r2: &A)\n    requires (0 <= i < N), (self_.wf()),\n    ensures\n        ({\n            &&& (*r1 == self_.seq@[i as int])\n            &&& (*r2 == self_.seq@[i as int])\n        }) ==> det_get_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<A, N>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "i",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "&A"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "&A"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_equal<A>(r1: &A, r2: &A) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_get_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<A, const N: usize>",
+  "where_decl": "",
+  "self_type": "Array<A, N>"
+}

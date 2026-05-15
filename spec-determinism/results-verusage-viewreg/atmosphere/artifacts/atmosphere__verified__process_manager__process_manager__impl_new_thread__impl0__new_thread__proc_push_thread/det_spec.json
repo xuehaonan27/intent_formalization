@@ -1,0 +1,720 @@
+{
+  "function": "proc_push_thread",
+  "det_check_template": "proof fn det_proc_push_thread(proc_ptr: ProcPtr, pre_proc_perm: Tracked<PointsTo<Process>>, thread_ptr: ThreadPtr, post1_proc_perm: Tracked<PointsTo<Process>>, r1: SLLIndex, post2_proc_perm: Tracked<PointsTo<Process>>, r2: SLLIndex)\n    requires (pre_proc_perm@.is_init()), (pre_proc_perm@.addr() == proc_ptr), (pre_proc_perm@.value().owned_threads.wf()), (pre_proc_perm@.value().owned_threads.unique()), (pre_proc_perm@.value().owned_threads.len() < MAX_NUM_THREADS_PER_PROC), (pre_proc_perm@.value().owned_threads@.contains(thread_ptr) == false),\n    ensures\n        ({\n            &&& (post1_proc_perm@.is_init())\n            &&& (post1_proc_perm@.addr() == proc_ptr)\n            &&& (post1_proc_perm@.value().owning_container =~= pre_proc_perm@.value().owning_container)\n            &&& (post1_proc_perm@.value().rev_ptr =~= pre_proc_perm@.value().rev_ptr)\n            &&& (post1_proc_perm@.value().pcid =~= pre_proc_perm@.value().pcid)\n            &&& (post1_proc_perm@.value().ioid =~= pre_proc_perm@.value().ioid)\n            &&& (post1_proc_perm@.value().parent =~= pre_proc_perm@.value().parent)\n            &&& (post1_proc_perm@.value().parent_rev_ptr =~= pre_proc_perm@.value().parent_rev_ptr)\n            &&& (post1_proc_perm@.value().children =~= pre_proc_perm@.value().children)\n            &&& (post1_proc_perm@.value().uppertree_seq =~= pre_proc_perm@.value().uppertree_seq)\n            &&& (post1_proc_perm@.value().subtree_set =~= pre_proc_perm@.value().subtree_set)\n            &&& (post1_proc_perm@.value().depth =~= pre_proc_perm@.value().depth)\n            &&& (post1_proc_perm@.value().dmd_paging_mode =~= pre_proc_perm@.value().dmd_paging_mode)\n            &&& (post1_proc_perm@.value().owned_threads.wf())\n            &&& (post1_proc_perm@.value().owned_threads@ =~= pre_proc_perm@.value().owned_threads@.push(\n            thread_ptr,\n        ))\n            &&& (post1_proc_perm@.value().owned_threads.len() == pre_proc_perm@.value().owned_threads.len() + 1)\n            &&& (forall|v:ThreadPtr|\n            #![auto]\n            pre_proc_perm@.value().owned_threads@.contains(v) ==> \n                pre_proc_perm@.value().owned_threads.get_node_ref(v) == \n                    post1_proc_perm@.value().owned_threads.get_node_ref(v))\n            &&& (post1_proc_perm@.value().owned_threads.get_node_ref(thread_ptr) == r1)\n            &&& (post1_proc_perm@.value().owned_threads.unique())\n            &&& (post2_proc_perm@.is_init())\n            &&& (post2_proc_perm@.addr() == proc_ptr)\n            &&& (post2_proc_perm@.value().owning_container =~= pre_proc_perm@.value().owning_container)\n            &&& (post2_proc_perm@.value().rev_ptr =~= pre_proc_perm@.value().rev_ptr)\n            &&& (post2_proc_perm@.value().pcid =~= pre_proc_perm@.value().pcid)\n            &&& (post2_proc_perm@.value().ioid =~= pre_proc_perm@.value().ioid)\n            &&& (post2_proc_perm@.value().parent =~= pre_proc_perm@.value().parent)\n            &&& (post2_proc_perm@.value().parent_rev_ptr =~= pre_proc_perm@.value().parent_rev_ptr)\n            &&& (post2_proc_perm@.value().children =~= pre_proc_perm@.value().children)\n            &&& (post2_proc_perm@.value().uppertree_seq =~= pre_proc_perm@.value().uppertree_seq)\n            &&& (post2_proc_perm@.value().subtree_set =~= pre_proc_perm@.value().subtree_set)\n            &&& (post2_proc_perm@.value().depth =~= pre_proc_perm@.value().depth)\n            &&& (post2_proc_perm@.value().dmd_paging_mode =~= pre_proc_perm@.value().dmd_paging_mode)\n            &&& (post2_proc_perm@.value().owned_threads.wf())\n            &&& (post2_proc_perm@.value().owned_threads@ =~= pre_proc_perm@.value().owned_threads@.push(\n            thread_ptr,\n        ))\n            &&& (post2_proc_perm@.value().owned_threads.len() == pre_proc_perm@.value().owned_threads.len() + 1)\n            &&& (forall|v:ThreadPtr|\n            #![auto]\n            pre_proc_perm@.value().owned_threads@.contains(v) ==> \n                pre_proc_perm@.value().owned_threads.get_node_ref(v) == \n                    post2_proc_perm@.value().owned_threads.get_node_ref(v))\n            &&& (post2_proc_perm@.value().owned_threads.get_node_ref(thread_ptr) == r2)\n            &&& (post2_proc_perm@.value().owned_threads.unique())\n        }) ==> det_proc_push_thread_equal(r1, r2, post1_proc_perm, post2_proc_perm),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "proc_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ProcPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_proc_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Process>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Process>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Process",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "pcid",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Pcid"
+                    }
+                  },
+                  {
+                    "name": "ioid",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<IOid>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "IOid"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "IOid"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owned_threads",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_PROC>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_PROC"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<ProcPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "ProcPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "children",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ProcPtr, PROC_CHILD_LIST_LEN>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "PROC_CHILD_LIST_LEN"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "uppertree_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "subtree_set",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "depth",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "dmd_paging_mode",
+                    "type": {
+                      "kind": "enum",
+                      "name": "DemandPagingMode",
+                      "variants": [
+                        {
+                          "name": "NoDMDPG"
+                        },
+                        {
+                          "name": "DirectParentPrc"
+                        },
+                        {
+                          "name": "AllParentProc"
+                        },
+                        {
+                          "name": "AllParentContainer"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "thread_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ThreadPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_proc_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Process>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Process>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Process",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "pcid",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Pcid"
+                    }
+                  },
+                  {
+                    "name": "ioid",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<IOid>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "IOid"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "IOid"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owned_threads",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_PROC>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_PROC"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<ProcPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "ProcPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "children",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ProcPtr, PROC_CHILD_LIST_LEN>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "PROC_CHILD_LIST_LEN"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "uppertree_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "subtree_set",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "depth",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "dmd_paging_mode",
+                    "type": {
+                      "kind": "enum",
+                      "name": "DemandPagingMode",
+                      "variants": [
+                        {
+                          "name": "NoDMDPG"
+                        },
+                        {
+                          "name": "DirectParentPrc"
+                        },
+                        {
+                          "name": "AllParentProc"
+                        },
+                        {
+                          "name": "AllParentContainer"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_proc_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Process>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Process>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Process",
+                "fields": [
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  },
+                  {
+                    "name": "rev_ptr",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "SLLIndex"
+                    }
+                  },
+                  {
+                    "name": "pcid",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Pcid"
+                    }
+                  },
+                  {
+                    "name": "ioid",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<IOid>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "IOid"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "IOid"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owned_threads",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_PROC>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_PROC"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<ProcPtr>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "ProcPtr"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parent_rev_ptr",
+                    "type": {
+                      "kind": "Option",
+                      "name": "Option<SLLIndex>",
+                      "variants": [
+                        {
+                          "name": "Some",
+                          "inner": {
+                            "kind": "unknown",
+                            "name": "SLLIndex"
+                          }
+                        },
+                        {
+                          "name": "None"
+                        }
+                      ],
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "SLLIndex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "children",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ProcPtr, PROC_CHILD_LIST_LEN>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ProcPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "PROC_CHILD_LIST_LEN"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "uppertree_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "subtree_set",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<ProcPtr>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<ProcPtr>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "ProcPtr"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "depth",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "dmd_paging_mode",
+                    "type": {
+                      "kind": "enum",
+                      "name": "DemandPagingMode",
+                      "variants": [
+                        {
+                          "name": "NoDMDPG"
+                        },
+                        {
+                          "name": "DirectParentPrc"
+                        },
+                        {
+                          "name": "AllParentProc"
+                        },
+                        {
+                          "name": "AllParentContainer"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_proc_push_thread_equal(r1: SLLIndex, r2: SLLIndex, post1_proc_perm: Tracked<PointsTo<Process>>, post2_proc_perm: Tracked<PointsTo<Process>>) -> bool {\n    ((r1 == r2))\n    && ((((post1_proc_perm)@).is_init() == ((post2_proc_perm)@).is_init()) && (((post1_proc_perm)@).addr() == ((post2_proc_perm)@).addr()) && (((post1_proc_perm)@).is_init() ==> (((((post1_proc_perm)@).value().owning_container == ((post2_proc_perm)@).value().owning_container)) && ((((post1_proc_perm)@).value().rev_ptr == ((post2_proc_perm)@).value().rev_ptr)) && ((((post1_proc_perm)@).value().pcid == ((post2_proc_perm)@).value().pcid)) && (((((post1_proc_perm)@).value().ioid is Some) == (((post2_proc_perm)@).value().ioid is Some)) && ((((post1_proc_perm)@).value().ioid is Some) ==> ((((post1_proc_perm)@).value().ioid->Some_0 == ((post2_proc_perm)@).value().ioid->Some_0)))) && (((post1_proc_perm)@).value().owned_threads == ((post2_proc_perm)@).value().owned_threads) && (((((post1_proc_perm)@).value().parent is Some) == (((post2_proc_perm)@).value().parent is Some)) && ((((post1_proc_perm)@).value().parent is Some) ==> ((((post1_proc_perm)@).value().parent->Some_0 == ((post2_proc_perm)@).value().parent->Some_0)))) && (((((post1_proc_perm)@).value().parent_rev_ptr is Some) == (((post2_proc_perm)@).value().parent_rev_ptr is Some)) && ((((post1_proc_perm)@).value().parent_rev_ptr is Some) ==> ((((post1_proc_perm)@).value().parent_rev_ptr->Some_0 == ((post2_proc_perm)@).value().parent_rev_ptr->Some_0)))) && (((post1_proc_perm)@).value().children == ((post2_proc_perm)@).value().children) && ((((post1_proc_perm)@).value().uppertree_seq)@ == (((post2_proc_perm)@).value().uppertree_seq)@) && ((((post1_proc_perm)@).value().subtree_set)@ == (((post2_proc_perm)@).value().subtree_set)@) && (((post1_proc_perm)@).value().depth == ((post2_proc_perm)@).value().depth) && (((((post1_proc_perm)@).value().dmd_paging_mode is NoDMDPG) == (((post2_proc_perm)@).value().dmd_paging_mode is NoDMDPG)) && ((((post1_proc_perm)@).value().dmd_paging_mode is DirectParentPrc) == (((post2_proc_perm)@).value().dmd_paging_mode is DirectParentPrc)) && ((((post1_proc_perm)@).value().dmd_paging_mode is AllParentProc) == (((post2_proc_perm)@).value().dmd_paging_mode is AllParentProc)) && ((((post1_proc_perm)@).value().dmd_paging_mode is AllParentContainer) == (((post2_proc_perm)@).value().dmd_paging_mode is AllParentContainer))))))\n}",
+  "equal_fn_name": "det_proc_push_thread_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_proc_perm",
+      "rhs": "post2_proc_perm"
+    }
+  ],
+  "check_fn_name": "det_proc_push_thread",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

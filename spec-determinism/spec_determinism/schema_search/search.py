@@ -317,18 +317,23 @@ def run_schema_search(
     t0 = time.monotonic()
     r0 = schema_ctx.solver.check()
     r0_ms = (time.monotonic() - t0) * 1000
+    r0_z3 = str(r0)
     ctx.trace.append({
         "round": 0, "phase": "initial", "node_key": "root",
         "assumes": [], "new_assume": None,
         "result": "pass" if r0 == z3.unsat else "fail",
         "description": "full determinism check (schema-driven z3-py)",
-        "z3_raw": str(r0), "z3_ms": round(r0_ms, 2),
+        "z3_raw": r0_z3, "z3_ms": round(r0_ms, 2),
     })
     ctx._round = 0  # initial doesn't count as a search round
 
     if r0 == z3.unsat:
         logger.info(f"{det_spec.function}: deterministic (R0 unsat)")
-        return Witness(function=det_spec.function, trace=ctx.trace)
+        return Witness(
+            function=det_spec.function,
+            trace=ctx.trace,
+            r0_z3=r0_z3,
+        )
 
     logger.info(f"{det_spec.function}: nondeterministic (R0 = {r0}), starting schema search")
 
@@ -347,4 +352,5 @@ def run_schema_search(
         function=det_spec.function,
         assumes=ctx.tree.collect_assumes(),
         trace=ctx.trace,
+        r0_z3=r0_z3,
     )

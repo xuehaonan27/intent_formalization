@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["field h has a known view Map<AbstractKey, Seq<u8>> but the candidate keeps Hashtable/self.h, so the hashtable's semantic value projection is missing"]
+}
+```

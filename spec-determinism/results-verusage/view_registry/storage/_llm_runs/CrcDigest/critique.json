@@ -1,0 +1,7 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "`self.bytes_in_digest@@` over-projects a `Seq<Seq<u8>>`; after unwrapping `Ghost` with one `@`, the stored spec sequence should be returned as `self.bytes_in_digest@`, since the inner `u8` primitives cannot be `@`-projected."
+  ],
+  "duration_s": 9.55
+}

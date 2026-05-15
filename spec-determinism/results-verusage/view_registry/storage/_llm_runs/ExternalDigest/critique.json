@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Digest's dependency view is not resolved in the provided context, so this assumes Digest implements View and that its view preserves the needed semantic content."
+  ],
+  "duration_s": 19.54
+}

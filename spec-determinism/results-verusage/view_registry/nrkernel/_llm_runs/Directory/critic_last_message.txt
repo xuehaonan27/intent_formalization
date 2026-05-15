@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Dependency views for NodeEntry and Arch are marked uncovered, so this assumes View impls exist for both; if they do not, the projection would need to keep those fields structurally instead."]
+}
+```

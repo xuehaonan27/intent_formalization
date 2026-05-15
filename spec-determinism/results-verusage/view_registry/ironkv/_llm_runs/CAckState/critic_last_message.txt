@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["CSingleMessage view is uncovered, so correctness depends on a future View impl for CSingleMessage being available."]
+}
+```

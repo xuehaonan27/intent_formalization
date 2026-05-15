@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["Value already carries spec type Seq<u8>; projecting it as s@ is likely a typecheck error without a dependency View, and should preserve the sequence directly."]
+}
+```

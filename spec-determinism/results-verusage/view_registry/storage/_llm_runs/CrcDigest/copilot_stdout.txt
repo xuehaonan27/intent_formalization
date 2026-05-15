@@ -1,0 +1,28 @@
+● Read prompt.md
+  │ results-verusage/view_registry/storage/_llm_runs/CrcDigest/prompt.md
+  └ 108 lines read
+
+● Search (grep)
+  │ "CrcDigest|ExternalDigest" (~/intent_formalization)
+  └ 17 files found
+
+● Read ExternalDigest.json
+  │ results-verusage/view_registry/storage/ExternalDigest.json
+  └ 18 lines read
+
+● Search (grep)
+  │ "CrcDigest|ExternalDigest|bytes_in_digest" (~/intent_formalization/verusage/
+  │ source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs)
+  └ 59 lines found
+
+I have enough context. The `CrcDigest` has two fields:
+- `digest: ExternalDigest` — opaque external implementation state (never inspected by `ensures` clauses)
+- `bytes_in_digest: Ghost<Seq<Seq<u8>>>` — the spec-tracked content; all `ensures` clauses talk about `self.bytes_in_digest()`
+
+So the semantic view should keep only `bytes_in_digest` (projected via `@@` to unwrap Ghost and view), and omit the opaque `digest` field.
+
+● Create response.md +9
+  └ results-verusage/view_registry/storage/_llm_runs/CrcDigest/response.md
+
+Response written to `results-verusage/view_registry/storage/_llm_runs/CrcDigest/response.md`. The view projects `CrcDigest` to a `CrcDigestView` containing only `bytes_in_digest: Seq<Seq<u8>>` (via `self.bytes_in_digest@@`), omitting the opaque `ExternalDigest` field since no `ensures` clause inspects it.
+

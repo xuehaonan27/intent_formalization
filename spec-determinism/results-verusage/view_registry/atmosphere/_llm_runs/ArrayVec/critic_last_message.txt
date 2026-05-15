@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["Uses self.data@ even though Array has no known View in scope, so the candidate view depends on an unavailable dependency projection."]
+}
+```

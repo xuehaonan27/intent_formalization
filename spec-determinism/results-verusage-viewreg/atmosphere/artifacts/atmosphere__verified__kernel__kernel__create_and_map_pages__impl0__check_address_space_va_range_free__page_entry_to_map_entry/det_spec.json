@@ -1,0 +1,107 @@
+{
+  "function": "page_entry_to_map_entry",
+  "det_check_template": "proof fn det_page_entry_to_map_entry(p: PageEntry, r1: MapEntry, r2: MapEntry)\n    ensures\n        ({\n            &&& (r1 =~= spec_page_entry_to_map_entry(p))\n            &&& (r2 =~= spec_page_entry_to_map_entry(p))\n        }) ==> det_page_entry_to_map_entry_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "p",
+      "type": {
+        "kind": "struct",
+        "name": "PageEntry",
+        "fields": [
+          {
+            "name": "addr",
+            "type": {
+              "kind": "unknown",
+              "name": "PAddr"
+            }
+          },
+          {
+            "name": "perm",
+            "type": {
+              "kind": "struct",
+              "name": "PageEntryPerm",
+              "fields": [
+                {
+                  "name": "present",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "ps",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "write",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "execute_disable",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "user",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "MapEntry"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "MapEntry"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_entry_to_map_entry_equal(r1: MapEntry, r2: MapEntry) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_entry_to_map_entry_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_entry_to_map_entry",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

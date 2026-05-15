@@ -1,0 +1,8 @@
+```json
+{
+  "viewed_type": "HostStateView",
+  "view_decl": "pub struct HostStateView { pub next_action_index: u64, pub resend_count: u64, pub constants: Constants, pub delegation_map: DelegationMap<CKey>, pub h: CKeyHashMap, pub sd: CSingleDelivery, pub received_packet: Option<CPacket>, pub num_delegations: u64, pub received_requests: Seq<AppRequest> }\n\nimpl View for HostState {\n    type V = HostStateView;\n    closed spec fn view(&self) -> HostStateView {\n        HostStateView {\n            next_action_index: self.next_action_index,\n            resend_count: self.resend_count,\n            constants: self.constants,\n            delegation_map: self.delegation_map,\n            h: self.h,\n            sd: self.sd,\n            received_packet: self.received_packet,\n            num_delegations: self.num_delegations,\n            received_requests: self.received_requests@,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Primitive u64 fields are kept by value. All non-primitive dependency types (Constants, DelegationMap<CKey>, CKeyHashMap, CSingleDelivery, Option<CPacket>) are uncovered with no View impl available, so per the example pattern we use them as-is and rely on their structural equality. The Ghost<Seq<AppRequest>> field is unwrapped with a single `@` to expose the inner Seq<AppRequest>; AppRequest itself is uncovered so the sequence elements are kept identity-equal while ordering is preserved (Seq, not Set), since received_requests is a delivery/receipt log where order is spec-meaningful."
+}
+```

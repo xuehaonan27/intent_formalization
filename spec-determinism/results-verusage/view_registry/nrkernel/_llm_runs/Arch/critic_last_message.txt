@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["ArchLayer view is listed as uncovered, so this relies on an ArchLayer View impl/type being available elsewhere."]
+}
+```

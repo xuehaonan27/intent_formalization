@@ -1,0 +1,98 @@
+{
+  "function": "find_key",
+  "det_check_template": "proof fn det_find_key<K: KeyTrait + VerusClone>(self_: StrictlyOrderedMap<K>, k: K, r1: Option<usize>, r2: Option<usize>)\n    requires (self_.valid()),\n    ensures\n        ({\n            &&& (match r1 {\n                None => !self_@.contains_key(k),\n                Some(i) => 0 <= i < self_.keys@.len() && self_.keys@[i as int] == k,\n        })\n            &&& (match r2 {\n                None => !self_@.contains_key(k),\n                Some(i) => 0 <= i < self_.keys@.len() && self_.keys@[i as int] == k,\n        })\n        }) ==> det_find_key_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StrictlyOrderedMap<K>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<usize>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "usize",
+            "name": "usize"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<usize>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "usize",
+            "name": "usize"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_find_key_equal(r1: Option<usize>, r2: Option<usize>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n}",
+  "equal_fn_name": "det_find_key_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_find_key",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<K: KeyTrait + VerusClone>",
+  "where_decl": "",
+  "self_type": "StrictlyOrderedMap<K>"
+}

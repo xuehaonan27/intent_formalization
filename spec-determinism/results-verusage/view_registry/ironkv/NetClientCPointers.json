@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "NetClientCPointers",
+  "qualified_name": "NetClientCPointers",
+  "source_hash": "815cf0e011867a50",
+  "view_source": "L4-llm",
+  "viewed_type": "()",
+  "view_decl": "impl View for NetClientCPointers {\n    type V = ();\n    closed spec fn view(&self) -> () {\n        ()\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "All three fields are extern \"C\" function pointers binding to opaque C-side callbacks (get_time, receive, send); function pointers are allocator/runtime-opaque and the spec never inspects them, so the abstract view collapses to unit.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"()\",\n  \"view_decl\": \"impl View for NetClientCPointers {\\n    type V = ();\\n    closed spec fn view(&self) -> () {\\n        ()\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"All three fields are extern \\\"C\\\" function pointers binding to opaque C-side callbacks (get_time, receive, send); function pointers are allocator/runtime-opaque and the spec never inspects them, so the abstract view collapses to unit.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

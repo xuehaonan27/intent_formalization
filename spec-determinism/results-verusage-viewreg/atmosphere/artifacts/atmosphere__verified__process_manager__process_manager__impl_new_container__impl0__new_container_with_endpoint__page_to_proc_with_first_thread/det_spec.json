@@ -1,0 +1,226 @@
+{
+  "function": "page_to_proc_with_first_thread",
+  "det_check_template": "proof fn det_page_to_proc_with_first_thread(page_ptr: PagePtr, page_perm: Tracked<PagePerm4k>, owning_container: ContainerPtr, rev_ptr: SLLIndex, pcid: Pcid, ioid: Option<IOid>, first_thread: ThreadPtr, parent: Option<ProcPtr>, parent_rev_ptr: Option<SLLIndex>, uppertree_seq: Ghost<Seq<ProcPtr>>, subtree_set: Ghost<Set<ProcPtr>>, depth: usize, r1: (ProcPtr, Tracked<PointsTo<Process>>, SLLIndex), r2: (ProcPtr, Tracked<PointsTo<Process>>, SLLIndex))\n    requires (page_perm@.is_init()), (page_perm@.addr() == page_ptr),\n    ensures\n        ({\n            &&& (r1.0 == page_ptr)\n            &&& (r1.1@.is_init())\n            &&& (r1.1@.addr() == r1.0)\n            &&& (r1.1@.value().owning_container == owning_container)\n            &&& (r1.1@.value().rev_ptr == rev_ptr)\n            &&& (r1.1@.value().pcid == pcid)\n            &&& (r1.1@.value().ioid == ioid)\n            &&& (r1.1@.value().owned_threads.wf())\n            &&& (r1.1@.value().owned_threads@ == Seq::<ThreadPtr>::empty().push(first_thread))\n            &&& (r1.1@.value().owned_threads.len() == 1)\n            &&& (r1.1@.value().owned_threads.get_node_ref(first_thread) == r1.2)\n            &&& (r1.1@.value().parent == parent)\n            &&& (r1.1@.value().children.wf())\n            &&& (r1.1@.value().children@ =~= Seq::empty())\n            &&& (r1.1@.value().parent_rev_ptr == parent_rev_ptr)\n            &&& (r1.1@.value().uppertree_seq == uppertree_seq)\n            &&& (r1.1@.value().subtree_set == subtree_set)\n            &&& (r1.1@.value().depth == depth)\n            &&& (r1.1@.value().dmd_paging_mode == DemandPagingMode::NoDMDPG)\n            &&& (r2.0 == page_ptr)\n            &&& (r2.1@.is_init())\n            &&& (r2.1@.addr() == r2.0)\n            &&& (r2.1@.value().owning_container == owning_container)\n            &&& (r2.1@.value().rev_ptr == rev_ptr)\n            &&& (r2.1@.value().pcid == pcid)\n            &&& (r2.1@.value().ioid == ioid)\n            &&& (r2.1@.value().owned_threads.wf())\n            &&& (r2.1@.value().owned_threads@ == Seq::<ThreadPtr>::empty().push(first_thread))\n            &&& (r2.1@.value().owned_threads.len() == 1)\n            &&& (r2.1@.value().owned_threads.get_node_ref(first_thread) == r2.2)\n            &&& (r2.1@.value().parent == parent)\n            &&& (r2.1@.value().children.wf())\n            &&& (r2.1@.value().children@ =~= Seq::empty())\n            &&& (r2.1@.value().parent_rev_ptr == parent_rev_ptr)\n            &&& (r2.1@.value().uppertree_seq == uppertree_seq)\n            &&& (r2.1@.value().subtree_set == subtree_set)\n            &&& (r2.1@.value().depth == depth)\n            &&& (r2.1@.value().dmd_paging_mode == DemandPagingMode::NoDMDPG)\n        }) ==> det_page_to_proc_with_first_thread_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PagePtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm4k>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm4k"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "owning_container",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "rev_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pcid",
+      "type": {
+        "kind": "unknown",
+        "name": "Pcid"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "ioid",
+      "type": {
+        "kind": "Option",
+        "name": "Option<IOid>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "IOid"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "IOid"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "first_thread",
+      "type": {
+        "kind": "unknown",
+        "name": "ThreadPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "parent",
+      "type": {
+        "kind": "Option",
+        "name": "Option<ProcPtr>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "ProcPtr"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "ProcPtr"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "parent_rev_ptr",
+      "type": {
+        "kind": "Option",
+        "name": "Option<SLLIndex>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "SLLIndex"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "SLLIndex"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "uppertree_seq",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Seq<ProcPtr>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<ProcPtr>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "ProcPtr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "subtree_set",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Set<ProcPtr>>",
+        "type_args": [
+          {
+            "kind": "Set",
+            "name": "Set<ProcPtr>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "ProcPtr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "depth",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(ProcPtr, Tracked<PointsTo<Process>>, SLLIndex)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(ProcPtr, Tracked<PointsTo<Process>>, SLLIndex)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_to_proc_with_first_thread_equal(r1: (ProcPtr, Tracked<PointsTo<Process>>, SLLIndex), r2: (ProcPtr, Tracked<PointsTo<Process>>, SLLIndex)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_to_proc_with_first_thread_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_to_proc_with_first_thread",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

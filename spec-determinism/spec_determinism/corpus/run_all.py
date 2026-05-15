@@ -92,6 +92,7 @@ def run_one(corpus: CorpusConfig, crate: str, fn: str) -> dict:
         result["search_ms"] = int((time.monotonic() - t_s) * 1000)
         result["n_rounds"] = len(witness.trace) if witness.trace else 0
         result["assumes"] = [a.expression for a in (witness.assumes or [])]
+        result["r0_z3"] = witness.r0_z3
         result["status"] = "ok"
     except Exception as e:
         result["status"] = "search_error"

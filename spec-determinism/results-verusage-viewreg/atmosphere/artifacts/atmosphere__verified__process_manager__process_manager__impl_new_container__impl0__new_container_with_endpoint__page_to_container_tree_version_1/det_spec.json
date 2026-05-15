@@ -1,0 +1,217 @@
+{
+  "function": "page_to_container_tree_version_1",
+  "det_check_template": "proof fn det_page_to_container_tree_version_1(page_ptr: PagePtr, page_perm: Tracked<PagePerm4k>, parent_container: ContainerPtr, parent_rev_ptr: SLLIndex, init_quota: Quota, new_cpus: ArraySet<NUM_CPUS>, depth: usize, subtree_set: Ghost<Set<ContainerPtr>>, uppertree_seq: Ghost<Seq<ContainerPtr>>, root_process: Option<ProcPtr>, r1: (ContainerPtr, Tracked<PointsTo<Container>>), r2: (ContainerPtr, Tracked<PointsTo<Container>>))\n    requires (page_perm@.is_init()), (page_perm@.addr() == page_ptr),\n    ensures\n        ({\n            &&& (r1.1@.is_init())\n            &&& (r1.0 == page_ptr)\n            &&& (r1.1@.addr() == page_ptr)\n            &&& (r1.1@.value().owned_procs.wf())\n            &&& (r1.1@.value().owned_procs@ =~= Seq::<ProcPtr>::empty())\n            &&& (r1.1@.value().parent =~= Some(parent_container))\n            &&& (r1.1@.value().parent_rev_ptr =~= Some(parent_rev_ptr))\n            &&& (r1.1@.value().children.wf())\n            &&& (r1.1@.value().children@ =~= Seq::<ContainerPtr>::empty())\n            &&& (r1.1@.value().children.len() == 0)\n            &&& (r1.1@.value().owned_endpoints@ =~= Set::<EndpointPtr>::empty())\n            &&& (r1.1@.value().quota =~= init_quota)\n            &&& (r1.1@.value().owned_cpus =~= new_cpus)\n            &&& (r1.1@.value().scheduler.wf())\n            &&& (r1.1@.value().scheduler@ =~= Seq::<ThreadPtr>::empty())\n            &&& (r1.1@.value().owned_threads@ =~= Set::<ThreadPtr>::empty())\n            &&& (r1.1@.value().depth =~= depth)\n            &&& (r1.1@.value().subtree_set =~= subtree_set)\n            &&& (r1.1@.value().uppertree_seq =~= uppertree_seq)\n            &&& (r1.1@.value().root_process == root_process)\n            &&& (r1.1@.value().can_have_children =~= false)\n            &&& (r2.1@.is_init())\n            &&& (r2.0 == page_ptr)\n            &&& (r2.1@.addr() == page_ptr)\n            &&& (r2.1@.value().owned_procs.wf())\n            &&& (r2.1@.value().owned_procs@ =~= Seq::<ProcPtr>::empty())\n            &&& (r2.1@.value().parent =~= Some(parent_container))\n            &&& (r2.1@.value().parent_rev_ptr =~= Some(parent_rev_ptr))\n            &&& (r2.1@.value().children.wf())\n            &&& (r2.1@.value().children@ =~= Seq::<ContainerPtr>::empty())\n            &&& (r2.1@.value().children.len() == 0)\n            &&& (r2.1@.value().owned_endpoints@ =~= Set::<EndpointPtr>::empty())\n            &&& (r2.1@.value().quota =~= init_quota)\n            &&& (r2.1@.value().owned_cpus =~= new_cpus)\n            &&& (r2.1@.value().scheduler.wf())\n            &&& (r2.1@.value().scheduler@ =~= Seq::<ThreadPtr>::empty())\n            &&& (r2.1@.value().owned_threads@ =~= Set::<ThreadPtr>::empty())\n            &&& (r2.1@.value().depth =~= depth)\n            &&& (r2.1@.value().subtree_set =~= subtree_set)\n            &&& (r2.1@.value().uppertree_seq =~= uppertree_seq)\n            &&& (r2.1@.value().root_process == root_process)\n            &&& (r2.1@.value().can_have_children =~= false)\n        }) ==> det_page_to_container_tree_version_1_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PagePtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PagePerm4k>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "PagePerm4k"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "parent_container",
+      "type": {
+        "kind": "unknown",
+        "name": "ContainerPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "parent_rev_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "init_quota",
+      "type": {
+        "kind": "struct",
+        "name": "Quota",
+        "fields": [
+          {
+            "name": "mem_4k",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_2m",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "mem_1g",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "new_cpus",
+      "type": {
+        "kind": "unknown",
+        "name": "ArraySet<NUM_CPUS>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "NUM_CPUS"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "depth",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "subtree_set",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Set<ContainerPtr>>",
+        "type_args": [
+          {
+            "kind": "Set",
+            "name": "Set<ContainerPtr>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "ContainerPtr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "uppertree_seq",
+      "type": {
+        "kind": "Ghost",
+        "name": "Ghost<Seq<ContainerPtr>>",
+        "type_args": [
+          {
+            "kind": "Seq",
+            "name": "Seq<ContainerPtr>",
+            "type_args": [
+              {
+                "kind": "unknown",
+                "name": "ContainerPtr"
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "root_process",
+      "type": {
+        "kind": "Option",
+        "name": "Option<ProcPtr>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "ProcPtr"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "ProcPtr"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "(ContainerPtr, Tracked<PointsTo<Container>>)"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "(ContainerPtr, Tracked<PointsTo<Container>>)"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_to_container_tree_version_1_equal(r1: (ContainerPtr, Tracked<PointsTo<Container>>), r2: (ContainerPtr, Tracked<PointsTo<Container>>)) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_to_container_tree_version_1_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_to_container_tree_version_1",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

@@ -14,6 +14,7 @@ from .llm.manual import ManualLLMClient
 from .patch import apply_patch
 from .prompt import build_prompt
 from .report import write_report
+from .score import ScoreInputs, compute_metrics
 from .verify import verify
 
 
@@ -64,15 +65,39 @@ def cmd_run(args: argparse.Namespace) -> int:
     print(f"      got {len(response.raw)} chars, extracted {len(response.patch_text)} chars of patch")
 
     print(f"[4/5] Applying patch to {spec_path}")
+    original_spec_text = spec_path.read_text()
     patch = apply_patch(spec_path, response.patch_text)
     try:
-        print(f"[5/5] Verifying")
+        print(f"[5/5] Verifying (regen + spec-determinism-run)")
         report = verify(cfg.corpus, crate_cfg, fn, witness.assumes)
         r = report.rerun
         print(
             f"      spec-det rerun: {'PASS' if r.ok else 'FAIL'} "
             f"(rc={r.returncode}), closed={len(r.closed)}, added={len(r.added)}"
         )
+        if report.regen is not None:
+            print(
+                f"      regen: {'PASS' if report.regen.ok else 'FAIL'} "
+                f"(rc={report.regen.returncode})"
+            )
+        metrics = compute_metrics(ScoreInputs(
+            witness_before=witness,
+            after_assumes=r.after_assumes,
+            rerun_ok=r.ok,
+            impl_still_verifies=r.ok,   # P3 will replace with independent verus
+            n_rounds_after=r.n_rounds_after,
+            original_spec_text=original_spec_text,
+            new_spec_text=response.patch_text,
+            post_det_spec=report.post_det_spec,
+        ))
+        gc = metrics.gap_closure
+        print(
+            f"      driving_closed: {gc.driving_closed}/{gc.driving_before} "
+            f"(ratio={gc.driving_closed_ratio}), new_witness_driving={gc.new_witness_driving}"
+        )
+        hg = metrics.hard_gates
+        print(f"      hard_gates: {'PASS' if hg.passed else 'FAIL'} "
+              f"({'; '.join(hg.reject_reasons) if hg.reject_reasons else 'all gates passed'})")
     finally:
         if not args.keep:
             patch.revert()
@@ -80,9 +105,11 @@ def cmd_run(args: argparse.Namespace) -> int:
         else:
             print(f"      --keep: leaving patched file in place at {spec_path}")
 
-    json_path, md_path = write_report(run_dir, witness, response, response.patch_text, report)
+    json_path, md_path = write_report(
+        run_dir, witness, response, response.patch_text, report, metrics,
+    )
     print(f"Report: {md_path}")
-    return 0 if report.rerun.ok else 2
+    return 0 if hg.passed and gc.driving_closed_ratio >= 1.0 else 2
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -1,0 +1,94 @@
+{
+  "project": "memory-allocator",
+  "total_uncovered": 6,
+  "enable_critic": true,
+  "results": [
+    {
+      "type_short": "CommitMask",
+      "qualified_name": "CommitMask",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/commit_mask__impl__all_set.rs",
+      "source_line": 40,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "Seq<usize>",
+      "critic_verdict": "error",
+      "critic_issues": [
+        "codex invocation failed: codex timeout after 180s"
+      ]
+    },
+    {
+      "type_short": "SegmentId",
+      "qualified_name": "SegmentId",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/commit_mask__set_int_range_commit_size.rs",
+      "source_line": 44,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "SegmentId",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "Node",
+      "qualified_name": "Node",
+      "kind": "struct",
+      "n_fields": 1,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/layout__block_ptr_aligned_to_word.rs",
+      "source_line": 88,
+      "deps": [
+        "Node"
+      ],
+      "action": "ok",
+      "viewed_type": "()",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "PageId",
+      "qualified_name": "PageId",
+      "kind": "struct",
+      "n_fields": 2,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/layout__block_ptr_aligned_to_word.rs",
+      "source_line": 106,
+      "deps": [
+        "SegmentId"
+      ],
+      "action": "ok",
+      "viewed_type": "PageIdView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "BlockId",
+      "qualified_name": "BlockId",
+      "kind": "struct",
+      "n_fields": 4,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/layout__block_ptr_aligned_to_word.rs",
+      "source_line": 111,
+      "deps": [
+        "PageId"
+      ],
+      "action": "ok",
+      "viewed_type": "BlockIdView",
+      "critic_verdict": "accept"
+    },
+    {
+      "type_short": "HeapId",
+      "qualified_name": "HeapId",
+      "kind": "struct",
+      "n_fields": 3,
+      "n_variants": 0,
+      "source_file": "../verusage/source-projects/memory-allocator/unverified/layout__impl__calculate_page_block_at.rs",
+      "source_line": 117,
+      "deps": [],
+      "action": "ok",
+      "viewed_type": "HeapId",
+      "critic_verdict": "accept"
+    }
+  ]
+}

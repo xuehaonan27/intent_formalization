@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type_short": "ExternalDigest",
+  "qualified_name": "ExternalDigest",
+  "source_hash": "51f693d120bcff82",
+  "view_source": "L4-llm",
+  "viewed_type": "ExternalDigestView",
+  "view_decl": "pub struct ExternalDigestView { pub digest: <Digest as View>::V }\n\nimpl View for ExternalDigest {\n    type V = ExternalDigestView;\n    closed spec fn view(&self) -> ExternalDigestView {\n        ExternalDigestView { digest: self.digest@ }\n    }\n}",
+  "depends_on_views_of": [
+    "Digest"
+  ],
+  "rationale": "ExternalDigest is a single-field newtype wrapper around Digest with no additional state, so its semantic content is exactly the wrapped digest's view. We project through `self.digest@` and wrap in a thin ExternalDigestView record so the checker can still distinguish ExternalDigest from a bare Digest at the type level while comparing only Digest's semantic content.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"ExternalDigestView\",\n  \"view_decl\": \"pub struct ExternalDigestView { pub digest: <Digest as View>::V }\\n\\nimpl View for ExternalDigest {\\n    type V = ExternalDigestView;\\n    closed spec fn view(&self) -> ExternalDigestView {\\n        ExternalDigestView { digest: self.digest@ }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"Digest\"],\n  \"rationale\": \"ExternalDigest is a single-field newtype wrapper around Digest with no additional state, so its semantic content is exactly the wrapped digest's view. We project through `self.digest@` and wrap in a thin ExternalDigestView record so the checker can still distinguish ExternalDigest from a bare Digest at the type level while comparing only Digest's semantic content.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Digest's dependency view is not resolved in the provided context, so this assumes Digest implements View and that its view preserves the needed semantic content."
+  ]
+}

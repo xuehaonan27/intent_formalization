@@ -1,0 +1,7 @@
+{
+  "verdict": "reject",
+  "issues": [
+    "SuccessSeqUsize uses value@@; Ghost<Seq<usize>> should project to Seq<usize> with value@, and the extra @ attempts to view an already-spec Seq."
+  ],
+  "duration_s": 11.73
+}

@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "reject",
+  "issues": ["`self.seq@@` is not a valid/justified element-wise projection: after unwrapping `Ghost<Seq<A>>`, `Seq<A>` is already a spec sequence and `@` does not automatically map elements to `A::V`; the body likely has type `Seq<A>` or fails, not `Seq<A::V>`."]
+}
+```

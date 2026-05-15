@@ -1,0 +1,8 @@
+```json
+{
+  "viewed_type": "MessageView",
+  "view_decl": "pub enum MessageView {\n    GetRequest { key: AbstractKey },\n    SetRequest { key: AbstractKey, value: Option<Seq<u8>> },\n    Reply { key: AbstractKey, value: Option<Seq<u8>> },\n    Redirect { key: AbstractKey, id: AbstractEndPoint },\n    Shard { range: KeyRange<AbstractKey>, recipient: AbstractEndPoint },\n    Delegate { range: KeyRange<AbstractKey>, h: Map<AbstractKey, Seq<u8>> },\n}\n\nimpl View for Message {\n    type V = MessageView;\n    closed spec fn view(&self) -> MessageView {\n        match self {\n            Message::GetRequest { key } => MessageView::GetRequest { key: *key },\n            Message::SetRequest { key, value } => MessageView::SetRequest { key: *key, value: value@ },\n            Message::Reply { key, value } => MessageView::Reply { key: *key, value: value@ },\n            Message::Redirect { key, id } => MessageView::Redirect { key: *key, id: *id },\n            Message::Shard { range, recipient } => MessageView::Shard { range: *range, recipient: *recipient },\n            Message::Delegate { range, h } => MessageView::Delegate { range: *range, h: h@ },\n        }\n    }\n}",
+  "depends_on_views_of": ["AbstractValue", "Hashtable"],
+  "rationale": "Message is a tagged union, so we mirror it with a parallel MessageView enum and project each variant's fields. AbstractKey, AbstractEndPoint and KeyRange are uncovered leaves and carry identity views (used structurally); AbstractValue and Hashtable have resolved views (Seq<u8> and Map<AbstractKey, Seq<u8>>), so Option<AbstractValue> and Hashtable fields are projected with @. No raw pointers or ghost wrappers to drop."
+}
+```

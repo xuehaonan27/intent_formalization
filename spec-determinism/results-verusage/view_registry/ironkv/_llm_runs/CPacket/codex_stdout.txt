@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Assumes EndPoint and CSingleMessage implement View; dependency views are listed as uncovered, so correctness depends on that context."]
+}
+```

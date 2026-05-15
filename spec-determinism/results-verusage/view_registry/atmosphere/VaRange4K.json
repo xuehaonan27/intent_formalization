@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "VaRange4K",
+  "qualified_name": "VaRange4K",
+  "source_hash": "2df95808ecf6ce8a",
+  "view_source": "L4-llm",
+  "viewed_type": "VaRange4KView",
+  "view_decl": "pub struct VaRange4KView { pub start: VAddr, pub len: usize, pub view: Seq<VAddr> }\n\nimpl View for VaRange4K {\n    type V = VaRange4KView;\n    closed spec fn view(&self) -> VaRange4KView {\n        VaRange4KView { start: self.start, len: self.len, view: self.view@ }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "VAddr is a primitive alias to usize, so start and len are kept as-is (no `@` on primitives). The Ghost<Seq<VAddr>> field is unwrapped with a single `@` to expose the underlying Seq<VAddr> that the spec actually constrains; no inner view recursion is needed because the element type bottoms out at a primitive.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"VaRange4KView\",\n  \"view_decl\": \"pub struct VaRange4KView { pub start: VAddr, pub len: usize, pub view: Seq<VAddr> }\\n\\nimpl View for VaRange4K {\\n    type V = VaRange4KView;\\n    closed spec fn view(&self) -> VaRange4KView {\\n        VaRange4KView { start: self.start, len: self.len, view: self.view@ }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"VAddr is a primitive alias to usize, so start and len are kept as-is (no `@` on primitives). The Ghost<Seq<VAddr>> field is unwrapped with a single `@` to expose the underlying Seq<VAddr> that the spec actually constrains; no inner view recursion is needed because the element type bottoms out at a primitive.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

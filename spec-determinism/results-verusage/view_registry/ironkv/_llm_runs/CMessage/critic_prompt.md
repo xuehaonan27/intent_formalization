@@ -1,0 +1,116 @@
+You are auditing a Verus `impl View` block that another LLM just generated.
+A view is a pure spec-level projection of a runtime type to its
+information content: anything spec assertions need to compare semantically
+should survive; runtime ghost fields / permissions / raw pointers should
+be collapsed away.
+
+Your job is to spot **semantic** mistakes — the text already parses.
+Report only mistakes that matter. Do not nitpick style.
+
+## Common mistakes (non-exhaustive)
+
+1. **Lost information.** A struct field is used in spec ensures (e.g.
+   `post.field == old(self).field` or `self.field@`) but the view drops
+   it or replaces it with `()`.
+2. **Wrong container shape.** `Vec<T>` viewed as `Set<T@>` or `Multiset<T@>`
+   when spec accesses by index (`v[i]`) — should be `Seq<T@>`.
+3. **Primitive `@`.** A primitive (usize/u32/bool/char/…) cannot be
+   `@`-projected — Verus rejects `5_usize@`. Primitives stay verbatim.
+4. **type V mismatch.** The declared `type V = X;` doesn't match the body
+   of `spec fn view(&self) -> Self::V { … }` — different shape or fields.
+5. **Over-aggressive collapse.** A struct with real state (not just
+   pointers) collapsed to `type V = ();` — fine only when all fields are
+   ghost / raw-pointer.
+6. **Missing dep view.** Field of type `T` (which has a known view) used
+   as `self.field` instead of `self.field@`, leaving structural eq.
+7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
+   on element) when spec actually inspects element fields.
+
+## Output
+
+Reply with a SINGLE fenced ```json block of this exact shape, nothing
+else (no prose before or after):
+
+```json
+{
+  "verdict": "accept" | "revise" | "reject",
+  "issues": ["<short string per issue>", "..."]
+}
+```
+
+- `accept`: no issues found, view looks correct.
+- `revise`: minor concerns (cosmetic, edge cases) but the view still
+  compiles and preserves enough info. List concerns in `issues`.
+- `reject`: a hard mistake from the list above (or equivalent). The
+  view will fail typecheck or lose spec-relevant information.
+
+If you cannot tell whether the view is correct because of missing
+context (e.g. the dependency view is unknown), prefer `accept` with an
+issue noting the uncertainty. Do not reject for missing context alone.
+
+
+## Target type (ironkv)
+
+Qualified name: `CMessage`
+Short name: `CMessage`
+
+```rust
+pub enum CMessage {
+    GetRequest { k: CKey },
+    SetRequest { k: CKey, v: Option::<Vec<u8>> },
+    Reply { k: CKey, v: Option::<Vec::<u8>> },
+    Redirect { k: CKey, id: EndPoint },
+    Shard { kr: KeyRange::<CKey>, recipient: EndPoint },
+    Delegate { range: KeyRange::<CKey>, h: CKeyHashMap },
+}
+```
+
+## Dependency views already in scope
+
+  - CKey: uncovered (alias CKey → SHTKey unresolved: no L1/L2/L3/L4 rule for SHTKey (kind=leaf))
+  - EndPoint: uncovered (no L1/L2/L3/L4 rule for EndPoint (kind=leaf))
+  - KeyRange: uncovered (no L1/L2/L3/L4 rule for KeyRange (kind=leaf))
+  - CKeyHashMap: uncovered (no L1/L2/L3/L4 rule for CKeyHashMap (kind=leaf))
+
+## Candidate view (from the generator LLM)
+
+Declared `viewed_type`: `CMessageView`
+
+```rust
+pub enum CMessageView {
+    GetRequest { k: CKey },
+    SetRequest { k: CKey, v: Option<Seq<u8>> },
+    Reply { k: CKey, v: Option<Seq<u8>> },
+    Redirect { k: CKey, id: EndPoint },
+    Shard { kr: KeyRange<CKey>, recipient: EndPoint },
+    Delegate { range: KeyRange<CKey>, h: CKeyHashMap },
+}
+
+impl View for CMessage {
+    type V = CMessageView;
+    closed spec fn view(&self) -> CMessageView {
+        match self {
+            CMessage::GetRequest { k } => CMessageView::GetRequest { k: *k },
+            CMessage::SetRequest { k, v } => CMessageView::SetRequest {
+                k: *k,
+                v: match v {
+                    Some(b) => Some(b@),
+                    None => None,
+                },
+            },
+            CMessage::Reply { k, v } => CMessageView::Reply {
+                k: *k,
+                v: match v {
+                    Some(b) => Some(b@),
+                    None => None,
+                },
+            },
+            CMessage::Redirect { k, id } => CMessageView::Redirect { k: *k, id: *id },
+            CMessage::Shard { kr, recipient } => CMessageView::Shard { kr: *kr, recipient: *recipient },
+            CMessage::Delegate { range, h } => CMessageView::Delegate { range: *range, h: *h },
+        }
+    }
+}
+```
+
+Generator's rationale: CMessage is a tagged union of six wire-protocol messages whose every variant payload is spec-meaningful, so the projection is a parallel CMessageView enum that keeps all variants and fields. The dependency types CKey, EndPoint, KeyRange<CKey> and CKeyHashMap are uncovered leaves, so we carry them structurally (no @) following the same convention used for KeyIterator in KeyRange — once their View impls are synthesised a future pass can refine these fields recursively. The Vec<u8> payload is byte-order-sensitive, so we project it to Seq<u8> via Vec's standard view; the surrounding Option is unwrapped with an explicit match because vstd's `View for Option<T>` is the identity (only `DeepView` recurses), so we descend manually to obtain Option<Seq<u8>>.

@@ -1,0 +1,35 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/vest/verified/utils/utils__compare_slice.rs",
+    "function": "compare_slice",
+    "n_schemas": 5,
+    "n_params": 5,
+    "verus_ms": 555,
+    "smt2_bytes": 266713,
+    "ctx_ms": 25,
+    "search_ms": 23,
+    "n_rounds": 1,
+    "assumes": [],
+    "status": "ok",
+    "total_ms": 608,
+    "artifact_key": "vest__verified__utils__utils__compare_slice__compare_slice"
+  },
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/vest/verified/utils/utils__set_range.rs",
+    "function": "set_range",
+    "n_schemas": 3,
+    "n_params": 6,
+    "verus_ms": 406,
+    "smt2_bytes": 173245,
+    "ctx_ms": 20,
+    "search_ms": 33,
+    "n_rounds": 8,
+    "assumes": [
+      "i == 0",
+      "!det_set_range_equal(r1, r2, post1_data, post2_data)"
+    ],
+    "status": "ok",
+    "total_ms": 465,
+    "artifact_key": "vest__verified__utils__utils__set_range__set_range"
+  }
+]

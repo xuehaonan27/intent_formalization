@@ -1,0 +1,8 @@
+```json
+{
+  "verdict": "reject",
+  "issues": [
+    "StaticLinkedList is marked uncovered/no View in scope, but owned_threads and children require `<StaticLinkedList<...> as View>::V` and `self.field@`, which is a hard typecheck error."
+  ]
+}
+```

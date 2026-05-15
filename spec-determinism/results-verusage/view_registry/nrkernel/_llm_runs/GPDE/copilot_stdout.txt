@@ -1,0 +1,9 @@
+● Read prompt.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/GPDE/prompt.md
+  └ 148 lines read
+
+● Create response.md +9
+  └ results-verusage/view_registry/nrkernel/_llm_runs/GPDE/response.md
+
+Response written to `results-verusage/view_registry/nrkernel/_llm_runs/GPDE/response.md`. The view mirrors GPDE's tagged-union structure with a parallel `GPDEView` enum — all fields are primitives (usize/bool) that the spec meaningfully constrains, so nothing is dropped and no `@` projections are needed.
+

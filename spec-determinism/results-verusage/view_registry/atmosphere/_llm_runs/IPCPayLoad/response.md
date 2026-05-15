@@ -1,0 +1,8 @@
+```json
+{
+  "viewed_type": "IPCPayLoadView",
+  "view_decl": "pub enum IPCPayLoadView {\n    Message { va: VAddr, len: usize },\n    Pages { va_range: VaRange4K },\n    Endpoint { endpoint_index: EndpointIdx },\n    Pci { bus: u8, dev: u8, fun: u8 },\n    PageFault { vaddr: VAddr },\n    Empty,\n}\n\nimpl View for IPCPayLoad {\n    type V = IPCPayLoadView;\n    closed spec fn view(&self) -> IPCPayLoadView {\n        match self {\n            IPCPayLoad::Message { va, len } => IPCPayLoadView::Message { va: *va, len: *len },\n            IPCPayLoad::Pages { va_range } => IPCPayLoadView::Pages { va_range: *va_range },\n            IPCPayLoad::Endpoint { endpoint_index } => IPCPayLoadView::Endpoint { endpoint_index: *endpoint_index },\n            IPCPayLoad::Pci { bus, dev, fun } => IPCPayLoadView::Pci { bus: *bus, dev: *dev, fun: *fun },\n            IPCPayLoad::PageFault { vaddr } => IPCPayLoadView::PageFault { vaddr: *vaddr },\n            IPCPayLoad::Empty => IPCPayLoadView::Empty,\n        }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "IPCPayLoad is a tagged union, so we mirror it with a parallel IPCPayLoadView enum and project each variant's fields via match. VAddr and EndpointIdx resolve to the primitive usize (L2 aliases), and bus/dev/fun/len are u8/usize primitives, so all are copied structurally with no `@`. VaRange4K is an uncovered leaf whose structural equality is treated as semantic (same convention as AbstractKey/PageEntryPerm), so it is also kept identity. No raw pointers, ghost wrappers, or allocator handles to drop; the Empty variant carries no fields."
+}
+```

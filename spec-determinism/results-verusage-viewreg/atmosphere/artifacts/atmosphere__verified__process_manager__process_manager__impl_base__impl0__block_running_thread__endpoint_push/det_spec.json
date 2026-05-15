@@ -1,0 +1,327 @@
+{
+  "function": "endpoint_push",
+  "det_check_template": "proof fn det_endpoint_push(endpoint_ptr: EndpointPtr, pre_endpoint_perm: Tracked<PointsTo<Endpoint>>, t_ptr: ThreadPtr, post1_endpoint_perm: Tracked<PointsTo<Endpoint>>, r1: SLLIndex, post2_endpoint_perm: Tracked<PointsTo<Endpoint>>, r2: SLLIndex)\n    requires (pre_endpoint_perm@.is_init()), (pre_endpoint_perm@.addr() == endpoint_ptr), (pre_endpoint_perm@.value().queue.len() < MAX_NUM_THREADS_PER_ENDPOINT),\n    ensures\n        ({\n            &&& (post1_endpoint_perm@.is_init())\n            &&& (post1_endpoint_perm@.addr() == endpoint_ptr)\n            &&& (post1_endpoint_perm@.value().queue_state == pre_endpoint_perm@.value().queue_state)\n            &&& (post1_endpoint_perm@.value().rf_counter == pre_endpoint_perm@.value().rf_counter)\n            &&& (post1_endpoint_perm@.value().owning_threads == pre_endpoint_perm@.value().owning_threads)\n            &&& (post1_endpoint_perm@.value().owning_container == pre_endpoint_perm@.value().owning_container)\n            &&& (post1_endpoint_perm@.value().rf_counter == pre_endpoint_perm@.value().rf_counter)\n            &&& (post1_endpoint_perm@.value().queue.wf())\n            &&& (post1_endpoint_perm@.value().queue@ == pre_endpoint_perm@.value().queue@.push(t_ptr))\n            &&& (post1_endpoint_perm@.value().queue.len() == pre_endpoint_perm@.value().queue.len() + 1)\n            &&& (forall|v:ThreadPtr|\n            #![auto]\n            pre_endpoint_perm@.value().queue@.contains(v) ==> \n                pre_endpoint_perm@.value().queue.get_node_ref(v) == \n                    post1_endpoint_perm@.value().queue.get_node_ref(v))\n            &&& (post1_endpoint_perm@.value().queue.get_node_ref(t_ptr) == r1)\n            &&& (post1_endpoint_perm@.value().queue.unique())\n            &&& (post2_endpoint_perm@.is_init())\n            &&& (post2_endpoint_perm@.addr() == endpoint_ptr)\n            &&& (post2_endpoint_perm@.value().queue_state == pre_endpoint_perm@.value().queue_state)\n            &&& (post2_endpoint_perm@.value().rf_counter == pre_endpoint_perm@.value().rf_counter)\n            &&& (post2_endpoint_perm@.value().owning_threads == pre_endpoint_perm@.value().owning_threads)\n            &&& (post2_endpoint_perm@.value().owning_container == pre_endpoint_perm@.value().owning_container)\n            &&& (post2_endpoint_perm@.value().rf_counter == pre_endpoint_perm@.value().rf_counter)\n            &&& (post2_endpoint_perm@.value().queue.wf())\n            &&& (post2_endpoint_perm@.value().queue@ == pre_endpoint_perm@.value().queue@.push(t_ptr))\n            &&& (post2_endpoint_perm@.value().queue.len() == pre_endpoint_perm@.value().queue.len() + 1)\n            &&& (forall|v:ThreadPtr|\n            #![auto]\n            pre_endpoint_perm@.value().queue@.contains(v) ==> \n                pre_endpoint_perm@.value().queue.get_node_ref(v) == \n                    post2_endpoint_perm@.value().queue.get_node_ref(v))\n            &&& (post2_endpoint_perm@.value().queue.get_node_ref(t_ptr) == r2)\n            &&& (post2_endpoint_perm@.value().queue.unique())\n        }) ==> det_endpoint_push_equal(r1, r2, post1_endpoint_perm, post2_endpoint_perm),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "endpoint_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "EndpointPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_endpoint_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Endpoint>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Endpoint>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Endpoint",
+                "fields": [
+                  {
+                    "name": "queue",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_ENDPOINT>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_ENDPOINT"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "queue_state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "EndpointState",
+                      "variants": [
+                        {
+                          "name": "RECEIVE"
+                        },
+                        {
+                          "name": "SEND"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "rf_counter",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "owning_threads",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<(ThreadPtr, EndpointIdx)>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<(ThreadPtr, EndpointIdx)>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "(ThreadPtr, EndpointIdx)"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "t_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "ThreadPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "SLLIndex"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_endpoint_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Endpoint>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Endpoint>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Endpoint",
+                "fields": [
+                  {
+                    "name": "queue",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_ENDPOINT>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_ENDPOINT"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "queue_state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "EndpointState",
+                      "variants": [
+                        {
+                          "name": "RECEIVE"
+                        },
+                        {
+                          "name": "SEND"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "rf_counter",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "owning_threads",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<(ThreadPtr, EndpointIdx)>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<(ThreadPtr, EndpointIdx)>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "(ThreadPtr, EndpointIdx)"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_endpoint_perm",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<Endpoint>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<Endpoint>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "Endpoint",
+                "fields": [
+                  {
+                    "name": "queue",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "StaticLinkedList<ThreadPtr, MAX_NUM_THREADS_PER_ENDPOINT>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "ThreadPtr"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "MAX_NUM_THREADS_PER_ENDPOINT"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "queue_state",
+                    "type": {
+                      "kind": "enum",
+                      "name": "EndpointState",
+                      "variants": [
+                        {
+                          "name": "RECEIVE"
+                        },
+                        {
+                          "name": "SEND"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "rf_counter",
+                    "type": {
+                      "kind": "usize",
+                      "name": "usize"
+                    }
+                  },
+                  {
+                    "name": "owning_threads",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Set<(ThreadPtr, EndpointIdx)>>",
+                      "type_args": [
+                        {
+                          "kind": "Set",
+                          "name": "Set<(ThreadPtr, EndpointIdx)>",
+                          "type_args": [
+                            {
+                              "kind": "unknown",
+                              "name": "(ThreadPtr, EndpointIdx)"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "owning_container",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "ContainerPtr"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_endpoint_push_equal(r1: SLLIndex, r2: SLLIndex, post1_endpoint_perm: Tracked<PointsTo<Endpoint>>, post2_endpoint_perm: Tracked<PointsTo<Endpoint>>) -> bool {\n    ((r1 == r2))\n    && ((((post1_endpoint_perm)@).is_init() == ((post2_endpoint_perm)@).is_init()) && (((post1_endpoint_perm)@).addr() == ((post2_endpoint_perm)@).addr()) && (((post1_endpoint_perm)@).is_init() ==> ((((post1_endpoint_perm)@).value().queue == ((post2_endpoint_perm)@).value().queue) && (((((post1_endpoint_perm)@).value().queue_state is RECEIVE) == (((post2_endpoint_perm)@).value().queue_state is RECEIVE)) && ((((post1_endpoint_perm)@).value().queue_state is SEND) == (((post2_endpoint_perm)@).value().queue_state is SEND))) && (((post1_endpoint_perm)@).value().rf_counter == ((post2_endpoint_perm)@).value().rf_counter) && ((((post1_endpoint_perm)@).value().owning_threads)@ == (((post2_endpoint_perm)@).value().owning_threads)@) && ((((post1_endpoint_perm)@).value().owning_container == ((post2_endpoint_perm)@).value().owning_container)))))\n}",
+  "equal_fn_name": "det_endpoint_push_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_endpoint_perm",
+      "rhs": "post2_endpoint_perm"
+    }
+  ],
+  "check_fn_name": "det_endpoint_push",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

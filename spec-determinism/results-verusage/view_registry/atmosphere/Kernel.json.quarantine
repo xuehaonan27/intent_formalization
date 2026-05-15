@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "type_short": "Kernel",
+  "qualified_name": "Kernel",
+  "source_hash": "53e24f31e1e44579",
+  "view_source": "L4-llm",
+  "viewed_type": "KernelView",
+  "view_decl": "pub struct KernelView {\n    pub page_alloc: <PageAllocator as View>::V,\n    pub mem_man: <MemoryManager as View>::V,\n    pub proc_man: <ProcessManager as View>::V,\n    pub page_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,\n    pub page_io_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,\n}\n\nimpl View for Kernel {\n    type V = KernelView;\n    closed spec fn view(&self) -> KernelView {\n        KernelView {\n            page_alloc: self.page_alloc@,\n            mem_man: self.mem_man@,\n            proc_man: self.proc_man@,\n            page_mapping: self.page_mapping@,\n            page_io_mapping: self.page_io_mapping@,\n        }\n    }\n}",
+  "depends_on_views_of": [
+    "PageAllocator",
+    "MemoryManager",
+    "ProcessManager"
+  ],
+  "rationale": "Kernel is a pure aggregate of three component managers plus two ghost page-mapping tables; none of its fields are raw pointers or allocator-opaque IDs, so every field carries spec-relevant content. Each manager is projected through its own (recursively synthesized) View so impl-internal storage layout, free-list ordering, and PointsTo permission bookkeeping inside the manager are collapsed away. The two Ghost<Map<PagePtr, Set<(ProcPtr, VAddr)>>> fields are unwrapped with a single `@` (the Ghost wrapper's view); their keys and tuple element types are primitive aliases (PagePtr/ProcPtr/VAddr \u2192 usize) which need no further `.view()`, so the inner spec-level Map<\u2026, Set<(usize, usize)>> already is its own view.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"KernelView\",\n  \"view_decl\": \"pub struct KernelView {\\n    pub page_alloc: <PageAllocator as View>::V,\\n    pub mem_man: <MemoryManager as View>::V,\\n    pub proc_man: <ProcessManager as View>::V,\\n    pub page_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,\\n    pub page_io_mapping: Map<PagePtr, Set<(ProcPtr, VAddr)>>,\\n}\\n\\nimpl View for Kernel {\\n    type V = KernelView;\\n    closed spec fn view(&self) -> KernelView {\\n        KernelView {\\n            page_alloc: self.page_alloc@,\\n            mem_man: self.mem_man@,\\n            proc_man: self.proc_man@,\\n            page_mapping: self.page_mapping@,\\n            page_io_mapping: self.page_io_mapping@,\\n        }\\n    }\\n}\",\n  \"depends_on_views_of\": [\"PageAllocator\", \"MemoryManager\", \"ProcessManager\"],\n  \"rationale\": \"Kernel is a pure aggregate of three component managers plus two ghost page-mapping tables; none of its fields are raw pointers or allocator-opaque IDs, so every field carries spec-relevant content. Each manager is projected through its own (recursively synthesized) View so impl-internal storage layout, free-list ordering, and PointsTo permission bookkeeping inside the manager are collapsed away. The two Ghost<Map<PagePtr, Set<(ProcPtr, VAddr)>>> fields are unwrapped with a single `@` (the Ghost wrapper's view); their keys and tuple element types are primitive aliases (PagePtr/ProcPtr/VAddr \u2192 usize) which need no further `.view()`, so the inner spec-level Map<\u2026, Set<(usize, usize)>> already is its own view.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Uncertainty: PageAllocator, MemoryManager, and ProcessManager are listed as uncovered, so correctness depends on whether View impls for those managers actually exist in the surrounding context."
+  ]
+}

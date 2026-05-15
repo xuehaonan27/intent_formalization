@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Uncertainty: PageAllocator, MemoryManager, and ProcessManager are listed as uncovered, so correctness depends on whether View impls for those managers actually exist in the surrounding context."
+  ],
+  "duration_s": 12.39
+}

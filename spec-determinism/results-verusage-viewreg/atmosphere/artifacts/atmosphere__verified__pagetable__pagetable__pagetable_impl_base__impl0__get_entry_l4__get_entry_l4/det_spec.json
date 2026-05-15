@@ -1,0 +1,1291 @@
+{
+  "function": "get_entry_l4",
+  "det_check_template": "proof fn det_get_entry_l4(self_: PageTable, target_l4i: L4Index, r1: Option<PageEntry>, r2: Option<PageEntry>)\n    requires (self_.wf()), (self_.kernel_l4_end <= target_l4i < 512),\n    ensures\n        ({\n            &&& (self_.spec_resolve_mapping_l4(target_l4i) == r1)\n            &&& (forall|l3i: L3Index, l2i: L2Index, l1i: L1Index|\n                #![trigger spec_index2va((target_l4i, l3i, l2i, l1i))]\n                #![trigger self_.spec_resolve_mapping_4k_l1(target_l4i, l3i, l2i, l1i)]\n                0 <= l3i < 512 && 0 <= l2i < 512 && 0 <= l1i < 512 && r1.is_None()\n                    ==> self_.spec_resolve_mapping_4k_l1(target_l4i, l3i, l2i, l1i).is_None()\n                    && self_.mapping_4k().dom().contains(spec_index2va((target_l4i, l3i, l2i, l1i)))\n                    == false)\n            &&& (self_.spec_resolve_mapping_l4(target_l4i) == r2)\n            &&& (forall|l3i: L3Index, l2i: L2Index, l1i: L1Index|\n                #![trigger spec_index2va((target_l4i, l3i, l2i, l1i))]\n                #![trigger self_.spec_resolve_mapping_4k_l1(target_l4i, l3i, l2i, l1i)]\n                0 <= l3i < 512 && 0 <= l2i < 512 && 0 <= l1i < 512 && r2.is_None()\n                    ==> self_.spec_resolve_mapping_4k_l1(target_l4i, l3i, l2i, l1i).is_None()\n                    && self_.mapping_4k().dom().contains(spec_index2va((target_l4i, l3i, l2i, l1i)))\n                    == false)\n        }) ==> det_get_entry_l4_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "struct",
+        "name": "PageTable",
+        "fields": [
+          {
+            "name": "cr3",
+            "type": {
+              "kind": "unknown",
+              "name": "PageMapPtr"
+            }
+          },
+          {
+            "name": "pcid",
+            "type": {
+              "kind": "Option",
+              "name": "Option<Pcid>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "unknown",
+                    "name": "Pcid"
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "Pcid"
+                }
+              ]
+            }
+          },
+          {
+            "name": "ioid",
+            "type": {
+              "kind": "Option",
+              "name": "Option<IOid>",
+              "variants": [
+                {
+                  "name": "Some",
+                  "inner": {
+                    "kind": "unknown",
+                    "name": "IOid"
+                  }
+                },
+                {
+                  "name": "None"
+                }
+              ],
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "IOid"
+                }
+              ]
+            }
+          },
+          {
+            "name": "kernel_l4_end",
+            "type": {
+              "kind": "usize",
+              "name": "usize"
+            }
+          },
+          {
+            "name": "l4_table",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PageMapPtr, PointsTo<PageMap>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, PointsTo<PageMap>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "PointsTo",
+                      "name": "PointsTo<PageMap>",
+                      "type_args": [
+                        {
+                          "kind": "struct",
+                          "name": "PageMap",
+                          "fields": [
+                            {
+                              "name": "ar",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Array<usize, 512>",
+                                "type_args": [
+                                  {
+                                    "kind": "usize",
+                                    "name": "usize"
+                                  },
+                                  {
+                                    "kind": "unknown",
+                                    "name": "512"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "spec_seq",
+                              "type": {
+                                "kind": "Ghost",
+                                "name": "Ghost<Seq<PageEntry>>",
+                                "type_args": [
+                                  {
+                                    "kind": "Seq",
+                                    "name": "Seq<PageEntry>",
+                                    "type_args": [
+                                      {
+                                        "kind": "struct",
+                                        "name": "PageEntry",
+                                        "fields": [
+                                          {
+                                            "name": "addr",
+                                            "type": {
+                                              "kind": "unknown",
+                                              "name": "PAddr"
+                                            }
+                                          },
+                                          {
+                                            "name": "perm",
+                                            "type": {
+                                              "kind": "struct",
+                                              "name": "PageEntryPerm",
+                                              "fields": [
+                                                {
+                                                  "name": "present",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "ps",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "write",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "execute_disable",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "user",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l3_rev_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<PageMapPtr, (L4Index)>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, (L4Index)>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "(L4Index)"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l3_tables",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PageMapPtr, PointsTo<PageMap>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, PointsTo<PageMap>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "PointsTo",
+                      "name": "PointsTo<PageMap>",
+                      "type_args": [
+                        {
+                          "kind": "struct",
+                          "name": "PageMap",
+                          "fields": [
+                            {
+                              "name": "ar",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Array<usize, 512>",
+                                "type_args": [
+                                  {
+                                    "kind": "usize",
+                                    "name": "usize"
+                                  },
+                                  {
+                                    "kind": "unknown",
+                                    "name": "512"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "spec_seq",
+                              "type": {
+                                "kind": "Ghost",
+                                "name": "Ghost<Seq<PageEntry>>",
+                                "type_args": [
+                                  {
+                                    "kind": "Seq",
+                                    "name": "Seq<PageEntry>",
+                                    "type_args": [
+                                      {
+                                        "kind": "struct",
+                                        "name": "PageEntry",
+                                        "fields": [
+                                          {
+                                            "name": "addr",
+                                            "type": {
+                                              "kind": "unknown",
+                                              "name": "PAddr"
+                                            }
+                                          },
+                                          {
+                                            "name": "perm",
+                                            "type": {
+                                              "kind": "struct",
+                                              "name": "PageEntryPerm",
+                                              "fields": [
+                                                {
+                                                  "name": "present",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "ps",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "write",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "execute_disable",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "user",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l2_rev_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<PageMapPtr, (L4Index, L3Index)>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, (L4Index, L3Index)>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "(L4Index, L3Index)"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l2_tables",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PageMapPtr, PointsTo<PageMap>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, PointsTo<PageMap>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "PointsTo",
+                      "name": "PointsTo<PageMap>",
+                      "type_args": [
+                        {
+                          "kind": "struct",
+                          "name": "PageMap",
+                          "fields": [
+                            {
+                              "name": "ar",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Array<usize, 512>",
+                                "type_args": [
+                                  {
+                                    "kind": "usize",
+                                    "name": "usize"
+                                  },
+                                  {
+                                    "kind": "unknown",
+                                    "name": "512"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "spec_seq",
+                              "type": {
+                                "kind": "Ghost",
+                                "name": "Ghost<Seq<PageEntry>>",
+                                "type_args": [
+                                  {
+                                    "kind": "Seq",
+                                    "name": "Seq<PageEntry>",
+                                    "type_args": [
+                                      {
+                                        "kind": "struct",
+                                        "name": "PageEntry",
+                                        "fields": [
+                                          {
+                                            "name": "addr",
+                                            "type": {
+                                              "kind": "unknown",
+                                              "name": "PAddr"
+                                            }
+                                          },
+                                          {
+                                            "name": "perm",
+                                            "type": {
+                                              "kind": "struct",
+                                              "name": "PageEntryPerm",
+                                              "fields": [
+                                                {
+                                                  "name": "present",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "ps",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "write",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "execute_disable",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "user",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l1_rev_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<PageMapPtr, (L4Index, L3Index, L2Index)>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, (L4Index, L3Index, L2Index)>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "unknown",
+                      "name": "(L4Index, L3Index, L2Index)"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "l1_tables",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<Map<PageMapPtr, PointsTo<PageMap>>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<PageMapPtr, PointsTo<PageMap>>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "PageMapPtr"
+                    },
+                    {
+                      "kind": "PointsTo",
+                      "name": "PointsTo<PageMap>",
+                      "type_args": [
+                        {
+                          "kind": "struct",
+                          "name": "PageMap",
+                          "fields": [
+                            {
+                              "name": "ar",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "Array<usize, 512>",
+                                "type_args": [
+                                  {
+                                    "kind": "usize",
+                                    "name": "usize"
+                                  },
+                                  {
+                                    "kind": "unknown",
+                                    "name": "512"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "spec_seq",
+                              "type": {
+                                "kind": "Ghost",
+                                "name": "Ghost<Seq<PageEntry>>",
+                                "type_args": [
+                                  {
+                                    "kind": "Seq",
+                                    "name": "Seq<PageEntry>",
+                                    "type_args": [
+                                      {
+                                        "kind": "struct",
+                                        "name": "PageEntry",
+                                        "fields": [
+                                          {
+                                            "name": "addr",
+                                            "type": {
+                                              "kind": "unknown",
+                                              "name": "PAddr"
+                                            }
+                                          },
+                                          {
+                                            "name": "perm",
+                                            "type": {
+                                              "kind": "struct",
+                                              "name": "PageEntryPerm",
+                                              "fields": [
+                                                {
+                                                  "name": "present",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "ps",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "write",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "execute_disable",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                },
+                                                {
+                                                  "name": "user",
+                                                  "type": {
+                                                    "kind": "bool",
+                                                    "name": "bool"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapping_4k",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<VAddr, MapEntry>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<VAddr, MapEntry>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "VAddr"
+                    },
+                    {
+                      "kind": "struct",
+                      "name": "MapEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "write",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        },
+                        {
+                          "name": "execute_disable",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapping_2m",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<VAddr, MapEntry>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<VAddr, MapEntry>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "VAddr"
+                    },
+                    {
+                      "kind": "struct",
+                      "name": "MapEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "write",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        },
+                        {
+                          "name": "execute_disable",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mapping_1g",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<VAddr, MapEntry>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<VAddr, MapEntry>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "VAddr"
+                    },
+                    {
+                      "kind": "struct",
+                      "name": "MapEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "write",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        },
+                        {
+                          "name": "execute_disable",
+                          "type": {
+                            "kind": "bool",
+                            "name": "bool"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "kernel_entries",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<PageEntry>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<PageEntry>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "PageEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "perm",
+                          "type": {
+                            "kind": "struct",
+                            "name": "PageEntryPerm",
+                            "fields": [
+                              {
+                                "name": "present",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "ps",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "write",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "execute_disable",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "user",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "tlb_mapping_4k",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<Map<VAddr, MapEntry>>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<Map<VAddr, MapEntry>>",
+                  "type_args": [
+                    {
+                      "kind": "Map",
+                      "name": "Map<VAddr, MapEntry>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "VAddr"
+                        },
+                        {
+                          "kind": "struct",
+                          "name": "MapEntry",
+                          "fields": [
+                            {
+                              "name": "addr",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "PAddr"
+                              }
+                            },
+                            {
+                              "name": "write",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            },
+                            {
+                              "name": "execute_disable",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "tlb_mapping_2m",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<Map<VAddr, MapEntry>>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<Map<VAddr, MapEntry>>",
+                  "type_args": [
+                    {
+                      "kind": "Map",
+                      "name": "Map<VAddr, MapEntry>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "VAddr"
+                        },
+                        {
+                          "kind": "struct",
+                          "name": "MapEntry",
+                          "fields": [
+                            {
+                              "name": "addr",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "PAddr"
+                              }
+                            },
+                            {
+                              "name": "write",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            },
+                            {
+                              "name": "execute_disable",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "tlb_mapping_1g",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<Map<VAddr, MapEntry>>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<Map<VAddr, MapEntry>>",
+                  "type_args": [
+                    {
+                      "kind": "Map",
+                      "name": "Map<VAddr, MapEntry>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "VAddr"
+                        },
+                        {
+                          "kind": "struct",
+                          "name": "MapEntry",
+                          "fields": [
+                            {
+                              "name": "addr",
+                              "type": {
+                                "kind": "unknown",
+                                "name": "PAddr"
+                              }
+                            },
+                            {
+                              "name": "write",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            },
+                            {
+                              "name": "execute_disable",
+                              "type": {
+                                "kind": "bool",
+                                "name": "bool"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "target_l4i",
+      "type": {
+        "kind": "unknown",
+        "name": "L4Index"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<PageEntry>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "PageEntry",
+              "fields": [
+                {
+                  "name": "addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "PAddr"
+                  }
+                },
+                {
+                  "name": "perm",
+                  "type": {
+                    "kind": "struct",
+                    "name": "PageEntryPerm",
+                    "fields": [
+                      {
+                        "name": "present",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "ps",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "write",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "execute_disable",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "user",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "PageEntry",
+            "fields": [
+              {
+                "name": "addr",
+                "type": {
+                  "kind": "unknown",
+                  "name": "PAddr"
+                }
+              },
+              {
+                "name": "perm",
+                "type": {
+                  "kind": "struct",
+                  "name": "PageEntryPerm",
+                  "fields": [
+                    {
+                      "name": "present",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "ps",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "write",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "execute_disable",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "user",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<PageEntry>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "PageEntry",
+              "fields": [
+                {
+                  "name": "addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "PAddr"
+                  }
+                },
+                {
+                  "name": "perm",
+                  "type": {
+                    "kind": "struct",
+                    "name": "PageEntryPerm",
+                    "fields": [
+                      {
+                        "name": "present",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "ps",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "write",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "execute_disable",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "user",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "PageEntry",
+            "fields": [
+              {
+                "name": "addr",
+                "type": {
+                  "kind": "unknown",
+                  "name": "PAddr"
+                }
+              },
+              {
+                "name": "perm",
+                "type": {
+                  "kind": "struct",
+                  "name": "PageEntryPerm",
+                  "fields": [
+                    {
+                      "name": "present",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "ps",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "write",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "execute_disable",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    },
+                    {
+                      "name": "user",
+                      "type": {
+                        "kind": "bool",
+                        "name": "bool"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct PageEntryView { pub addr: usize, pub perm: PageEntryPerm }\n\nimpl View for PageEntry {\n    type V = PageEntryView;\n    closed spec fn view(&self) -> PageEntryView {\n        PageEntryView { addr: self.addr, perm: self.perm }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_entry_l4_equal(r1: Option<PageEntry>, r2: Option<PageEntry>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (((r1->Some_0).view() == (r2->Some_0).view()))))\n}",
+  "equal_fn_name": "det_get_entry_l4_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_entry_l4",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "PageTable"
+}

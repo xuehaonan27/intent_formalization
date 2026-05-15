@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "PTE dependency view is not resolved in the provided context, so this assumes PTE implements View and pte@ is available."
+  ],
+  "duration_s": 37.99
+}

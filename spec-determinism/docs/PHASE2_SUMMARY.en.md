@@ -19,33 +19,39 @@ project — "given the same inputs, the function always produces
 spec-equivalent outputs".
 
 Input: Verus source + `requires/ensures` annotations
-Output: a `status` per function — one of
-`{ok, ok_with_witness, verus_error, runner_crash}`
+Output: a raw `status` per function, plus a derived witness bucket.
+`ok_with_witness` is **not** a separate JSON status; it means
+`status=="ok" && assumes != []`.
 
 ```
-ok               function is provably deterministic (z3 unsat, no
-                 counterexample)
-ok_with_witness  z3 finds a spec-level counterexample, but Verus still
-                 accepts the equal-fn
-verus_error      the generated equal-fn does not type-check under Verus
+raw status:
+ok               pipeline completed; may or may not carry a witness
+verus_error      the generated equal-fn / injected code does not type-check
+                 under Verus
 runner_crash     internal pipeline failure
+
+derived buckets:
+ok_without_witness  status=="ok" && assumes==[]: ensures imply the equal-fn
+ok_with_witness     status=="ok" && assumes!=[]: schema search retained a
+                    counterexample assumption set, so some spec dimension is
+                    still unconstrained under the current equal-fn
 ```
 
-Ideal distribution: **many `ok`, few `witness`, few `verus_error`**.
+Ideal distribution: **many raw `ok`, few `ok_with_witness`, few `verus_error`**.
 
 ### 1.2 Three optimisation axes
 
 | Axis | Meaning | Failure shape |
 |---|---|---|
-| **A-1** | equal-fn narrowing is too coarse | `verus_error`: z3 cannot narrow on the dimensions the spec mentions |
+| **A-1** | missing observable dimensions / projections | `verus_error` / partial witness / `pass_untranslatable`: the tool cannot see the internal dimensions the spec mentions |
 | **A-2** | equal-fn is too strict | `ok_with_witness` (false positive): two semantically-equivalent runs are treated as unequal |
 | **A-3** | equal-fn has the wrong semantics | `verus_error`: `Err` payloads inside nested containers should collapse but do not |
 
 Phase 1 baseline (commit `42c1248`, n=1647 across 7 projects):
 
 ```
-ok               1455   ← push this up
-ok_with_witness   376   ← A-2 battleground
+ok               1455   ← raw ok count; push this up
+ok_with_witness   376   ← subset of raw ok; A-2 battleground
 verus_error       191   ← A-1 + A-3 battleground
 runner_crash        1
 ```
@@ -62,17 +68,17 @@ and asks Verus + z3 to check whether `eq(r1, r2)` holds under the function's
 (plus configurable policies, e.g. PR-G's errs-equivalent). It **never** adapts
 to whatever the `ensures` happens to say. So the verdict means:
 
-| verdict | meaning |
+| verdict bucket | meaning |
 |---|---|
-| `ok` | the `ensures` is tight enough to imply spec-level determinism |
-| `ok_with_witness` | the `ensures` is too loose — the tool produced a spec-meaningful counterexample (→ user should tighten) |
+| `ok_without_witness` | the `ensures` is tight enough to imply spec-level determinism under the current equal-fn |
+| `ok_with_witness` | raw `ok`, but `assumes` is non-empty: either the `ensures` is too loose, or the equal-fn still contains A-2 noise; the witness tells the user which dimensions to inspect |
 | `verus_error` / `runner_crash` | **the tool is broken** for this target, verdict carries no signal |
 
 The goal of PR-F / PR-G is **not** "make more functions look complete". It is:
 
-1. Promote "tool broken" states (`verus_error`) into "tool works + real signal" (`ok` / `ok_with_witness`)
-2. Where the `ensures` happens to be tight, let z3 chain through to `ok`
-3. Turn spurious witnesses (caused by byte-level noise — the A-2 axis) into meaningful witnesses or `ok`
+1. Promote "tool broken" states (`verus_error`) into "tool works + real signal" (`ok_without_witness` / `ok_with_witness`)
+2. Where the `ensures` happens to be tight, let z3 chain through to `ok_without_witness`
+3. Turn spurious witnesses (caused by byte-level noise — the A-2 axis) into meaningful witnesses or `ok_without_witness`
 
 The six examples below illustrate the three kinds of flip.
 
@@ -94,7 +100,7 @@ is the common shape in real atmosphere code.
 
 **The PR-F win here**: the verdict flips from "tool broken" to "tool working +
 genuine incompleteness signal". If the user later tightens `ensures` to
-`r@ == state.log@`, the verdict will further flip to `ok` (z3 chains via
+`r@ == state.log@`, the verdict will further flip to `ok_without_witness` (z3 chains via
 transitivity) — but that's the user's job, not PR-F's.
 
 #### A-1 example 2 — `Tracked<PointsTo<u32>>` output (storage shape)
@@ -134,9 +140,9 @@ The `ensures` pins `r.id@` (the spec projection of `id` onto `Seq<u8>`) —
 | | generated equal-fn | z3 counterexample | verdict |
 |---|---|---|---|
 | no view-registry | `r1 == r2` — `Vec` structural `==` compares `ptr / cap / len`, all runtime noise | `r1.cap=8, r2.cap=16, contents equal to bytes@` — **byte-level spurious** witness, no spec meaning | **ok_with_witness (spurious)** — low signal-to-noise |
-| L4-synth view | `r1.view() == r2.view()` where `view()` projects to `Seq<u8>` — spec-layer comparison | (unsat: `r1.view().id == bytes@ == r2.view().id`) | **ok** |
+| L4-synth view | `r1.view() == r2.view()` where `view()` projects to `Seq<u8>` — spec-layer comparison | (unsat: `r1.view().id == bytes@ == r2.view().id`) | **ok_without_witness** |
 
-**view-registry win**: spurious witness → `ok`. Equivalent to "after stripping
+**view-registry win**: spurious witness → `ok_without_witness`. Equivalent to "after stripping
 runtime noise the spec is actually tight enough; the tool can chain to
 determinism".
 
@@ -161,7 +167,7 @@ The `ensures` deliberately pins only the length.
 **PR-E win**: **verdict stays the same** (still ok_with_witness) but the
 witness quality flips from spurious (pointer noise) to meaningful (spec-layer
 underdetermination). If the user later tightens `ensures` to `r =~= t`, post
-flips to `ok` while pre remains spurious.
+flips to `ok_without_witness` while pre remains spurious.
 
 #### A-3 example 1 — `Seq<Result<u32, MyErr>>` output
 
@@ -310,28 +316,37 @@ pub struct PTDir { pub entries: Seq<Option<PTDir>>, ... }
 The LLM tends to write:
 
 ```rust
-type V = PTDirView { entries: Seq<Option<PTDir>>, ... }     // element is the original type!
-fn view(&self) { entries: self.entries@, ... }
+pub struct PTDirView { entries: Seq<Option<PTDirView>>, ... }  // recursive slot uses the View type
+impl View for PTDir {
+    type V = PTDirView;
+    fn view(&self) -> PTDirView {
+        PTDirView { entries: self.entries@, ... }              // bare @ does not descend
+    }
+}
 ```
 
 But `<Seq<Option<T>> as View>::V = Seq<Option<T>>` is identity —
-the inner View is **never applied**, the equal-fn collapses to
-trivially-true, and the determinism check returns false-`ok` for
-every PTDir-returning function. Silent.
+`self.entries@` is still `Seq<Option<PTDir>>`; it does not automatically
+become `Seq<Option<PTDirView>>`. That makes the declared V shape and the
+body mismatch. If the LLM works around the type mismatch another way, the
+same pattern can also leave structural comparison / wrong abstraction as a
+silent bug.
 
-**M4 lint** catches this class — the V declaration uses `T@`-lifted
-inner types, but the body emits bare `self.f@`. `lint_view_decl`
-priority becomes **M3 > M2 > M4 > M1**.
+**M4 lint** catches this class — the recursive slot in V mentions `TView`,
+but the body emits bare `self.f@`. `lint_view_decl` priority becomes
+**M3 > M2 > M4 > M1**.
 
 **Prompt rework**: `view/llm.py`'s `_VIEW_SCHEMA_DOC` gained an
 ~80-line "Self-recursive types" section laying out three legitimate
 strategies:
 
 - **Option A**: full recursive lift (`type V = MyView { entries:
-   Seq<Option<MyView>> }`) — most expensive
-- **Option B**: V mirrors concrete inner with spec-side type — medium
-- **Option C**: `type V = Self` (leaf-reuse, when no projection makes
-   sense) — cheapest
+   Seq<Option<MyView>> }`) plus explicit `Seq::new` / `match` lifting —
+   most expensive
+- **Option B**: V mirrors the concrete recursive inner
+   (`PTDirView { entries: Seq<Option<PTDir>> }`) and the body copies
+   `self.entries` directly — medium
+- **Option C**: `type V = Self` with body `*self` — cheapest
 
 Additionally, `build_view_prompt` detects self-recursion and **injects
 a callout block** naming the offending fields before the schema doc,
@@ -450,8 +465,10 @@ an independent LLM call with its own prompt:
 ```
 
 - `accept`  → cache it
-- `revise`  → forward the critic's notes back to the original
-              synthesiser for a retry
+- `revise`  → still cache it; persist the critic's notes in
+              `critic_issues` for later human review. The current
+              implementation does **not** feed those notes back to the
+              original synthesiser for an automatic retry.
 - `reject`  → write to `_rejected.jsonl`
 
 The acceptance criteria live in `docs/critic-criteria.md`, are
@@ -479,10 +496,12 @@ accept) as controls.
 between two runs:
 
 ```
-fixed         witness → ok            (true win)
+fixed         witness → ok            (script label; means ok_without_witness,
+                                        true win)
 witness → verus_error                  (view compiles but blocks Verus;
                                         not a clean win)
-regressed     ok → verus_error        (must be ≈ 0 to ship)
+regressed     clean ok → verus_error  (script label; raw ok with no witness,
+                                        must be ≈ 0 to ship)
 ```
 
 `scripts/auto_chain.sh` wires "wait for prefill → rerun → compare"
@@ -491,6 +510,10 @@ into one driver.
 ---
 
 ## 6. Numbers
+
+Accounting note: below, `witness` means the derived bucket
+`ok_with_witness`, which is a subset of raw `ok`. Therefore
+`ok + witness + verus_error` is not expected to sum to `n`.
 
 ### 6.1 Baseline (`42c1248`, snapshot 2026-04-29)
 

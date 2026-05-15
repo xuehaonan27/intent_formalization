@@ -406,3 +406,4 @@ class Witness:
     trace: list[dict] = field(default_factory=list)
     gap_type: str = ""
     gap_description: str = ""
+    r0_z3: str = ""

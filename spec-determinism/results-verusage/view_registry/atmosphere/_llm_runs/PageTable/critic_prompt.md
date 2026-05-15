@@ -1,0 +1,138 @@
+You are auditing a Verus `impl View` block that another LLM just generated.
+A view is a pure spec-level projection of a runtime type to its
+information content: anything spec assertions need to compare semantically
+should survive; runtime ghost fields / permissions / raw pointers should
+be collapsed away.
+
+Your job is to spot **semantic** mistakes — the text already parses.
+Report only mistakes that matter. Do not nitpick style.
+
+## Common mistakes (non-exhaustive)
+
+1. **Lost information.** A struct field is used in spec ensures (e.g.
+   `post.field == old(self).field` or `self.field@`) but the view drops
+   it or replaces it with `()`.
+2. **Wrong container shape.** `Vec<T>` viewed as `Set<T@>` or `Multiset<T@>`
+   when spec accesses by index (`v[i]`) — should be `Seq<T@>`.
+3. **Primitive `@`.** A primitive (usize/u32/bool/char/…) cannot be
+   `@`-projected — Verus rejects `5_usize@`. Primitives stay verbatim.
+4. **type V mismatch.** The declared `type V = X;` doesn't match the body
+   of `spec fn view(&self) -> Self::V { … }` — different shape or fields.
+5. **Over-aggressive collapse.** A struct with real state (not just
+   pointers) collapsed to `type V = ();` — fine only when all fields are
+   ghost / raw-pointer.
+6. **Missing dep view.** Field of type `T` (which has a known view) used
+   as `self.field` instead of `self.field@`, leaving structural eq.
+7. **Wrong dep view.** Field of type `Vec<T>` viewed as `Seq<T>` (no `@`
+   on element) when spec actually inspects element fields.
+
+## Output
+
+Reply with a SINGLE fenced ```json block of this exact shape, nothing
+else (no prose before or after):
+
+```json
+{
+  "verdict": "accept" | "revise" | "reject",
+  "issues": ["<short string per issue>", "..."]
+}
+```
+
+- `accept`: no issues found, view looks correct.
+- `revise`: minor concerns (cosmetic, edge cases) but the view still
+  compiles and preserves enough info. List concerns in `issues`.
+- `reject`: a hard mistake from the list above (or equivalent). The
+  view will fail typecheck or lose spec-relevant information.
+
+If you cannot tell whether the view is correct because of missing
+context (e.g. the dependency view is unknown), prefer `accept` with an
+issue noting the uncertainty. Do not reject for missing context alone.
+
+
+## Target type (atmosphere)
+
+Qualified name: `PageTable`
+Short name: `PageTable`
+
+```rust
+pub struct PageTable {
+    pub cr3: PageMapPtr,
+    pub pcid: Option<Pcid>,
+    pub ioid: Option<IOid>,
+    pub kernel_l4_end: usize,
+    pub l4_table: Tracked<Map<PageMapPtr, PointsTo<PageMap>>>,
+    pub l3_rev_map: Ghost<Map<PageMapPtr, (L4Index)>>,
+    pub l3_tables: Tracked<Map<PageMapPtr, PointsTo<PageMap>>>,
+    pub l2_rev_map: Ghost<Map<PageMapPtr, (L4Index, L3Index)>>,
+    pub l2_tables: Tracked<Map<PageMapPtr, PointsTo<PageMap>>>,
+    pub l1_rev_map: Ghost<Map<PageMapPtr, (L4Index, L3Index, L2Index)>>,
+    pub l1_tables: Tracked<Map<PageMapPtr, PointsTo<PageMap>>>,
+    pub mapping_4k: Ghost<Map<VAddr, MapEntry>>,
+    pub mapping_2m: Ghost<Map<VAddr, MapEntry>>,
+    pub mapping_1g: Ghost<Map<VAddr, MapEntry>>,
+    pub kernel_entries: Ghost<Seq<PageEntry>>,
+    pub tlb_mapping_4k: Ghost<Seq<Map<VAddr, MapEntry>>>,
+    pub tlb_mapping_2m: Ghost<Seq<Map<VAddr, MapEntry>>>,
+    pub tlb_mapping_1g: Ghost<Seq<Map<VAddr, MapEntry>>>,
+}
+```
+
+## Dependency views already in scope
+
+  - PageMapPtr: L2 → usize  (alias PageMapPtr → usize (primitive))
+  - Pcid: L2 → usize  (alias Pcid → usize (primitive))
+  - IOid: L2 → usize  (alias IOid → usize (primitive))
+  - PageMap: uncovered (no L1/L2/L3/L4 rule for PageMap (kind=leaf))
+  - L4Index: L2 → usize  (alias L4Index → usize (primitive))
+  - L3Index: L2 → usize  (alias L3Index → usize (primitive))
+  - L2Index: L2 → usize  (alias L2Index → usize (primitive))
+  - VAddr: L2 → usize  (alias VAddr → usize (primitive))
+  - MapEntry: uncovered (no L1/L2/L3/L4 rule for MapEntry (kind=leaf))
+  - PageEntry: uncovered (no L1/L2/L3/L4 rule for PageEntry (kind=leaf))
+
+## Candidate view (from the generator LLM)
+
+Declared `viewed_type`: `PageTableView`
+
+```rust
+pub struct PageTableView {
+    pub cr3: PageMapPtr,
+    pub pcid: Option<Pcid>,
+    pub ioid: Option<IOid>,
+    pub kernel_l4_end: usize,
+    pub l3_rev_map: Map<PageMapPtr, L4Index>,
+    pub l2_rev_map: Map<PageMapPtr, (L4Index, L3Index)>,
+    pub l1_rev_map: Map<PageMapPtr, (L4Index, L3Index, L2Index)>,
+    pub mapping_4k: Map<VAddr, MapEntry>,
+    pub mapping_2m: Map<VAddr, MapEntry>,
+    pub mapping_1g: Map<VAddr, MapEntry>,
+    pub kernel_entries: Seq<PageEntry>,
+    pub tlb_mapping_4k: Seq<Map<VAddr, MapEntry>>,
+    pub tlb_mapping_2m: Seq<Map<VAddr, MapEntry>>,
+    pub tlb_mapping_1g: Seq<Map<VAddr, MapEntry>>,
+}
+
+impl View for PageTable {
+    type V = PageTableView;
+    closed spec fn view(&self) -> PageTableView {
+        PageTableView {
+            cr3: self.cr3,
+            pcid: self.pcid,
+            ioid: self.ioid,
+            kernel_l4_end: self.kernel_l4_end,
+            l3_rev_map: self.l3_rev_map@,
+            l2_rev_map: self.l2_rev_map@,
+            l1_rev_map: self.l1_rev_map@,
+            mapping_4k: self.mapping_4k@,
+            mapping_2m: self.mapping_2m@,
+            mapping_1g: self.mapping_1g@,
+            kernel_entries: self.kernel_entries@,
+            tlb_mapping_4k: self.tlb_mapping_4k@,
+            tlb_mapping_2m: self.tlb_mapping_2m@,
+            tlb_mapping_1g: self.tlb_mapping_1g@,
+        }
+    }
+}
+```
+
+Generator's rationale: Keep the primitive-aliased configuration fields (cr3, pcid, ioid, kernel_l4_end) and project every Ghost<...> wrapper to its inner spec type (Map/Seq) via a single `@` — the inner Verus spec types Map and Seq are already abstract, so no further view is needed. Omit the four Tracked<Map<PageMapPtr, PointsTo<PageMap>>> permission tables: they are tracked ownership tokens whose meaningful contents (PageMap) is uncovered/opaque and whose abstract effect is already captured by the Ghost rev_maps and mapping_* fields, so including them would only reintroduce allocator-/identity-noise. MapEntry and PageEntry are uncovered leaf types, so they appear at identity (their structural equality is the only semantics available).

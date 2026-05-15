@@ -1,0 +1,14 @@
+● Read prompt.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/TokState/prompt.md
+  └ 110 lines read
+
+● Check directory contents (shell)
+  │ ls -la /home/chentianyu/intent_formalization/spec-determinism/results-verusa
+  │ ge/view_registry/nrkernel/_llm_runs/TokState/
+  └ 5 lines...
+
+● Create response.md +9
+  └ results-verusage/view_registry/nrkernel/_llm_runs/TokState/response.md
+
+Response written to `results-verusage/view_registry/nrkernel/_llm_runs/TokState/response.md`. The view projects `TokState` (an enum of four unit variants) onto a parallel `TokStateView` enum via a 1:1 match, giving the determinism checker an explicit identity-style view since structural variant equality is already semantic for payload-free enums.
+

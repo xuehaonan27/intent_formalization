@@ -1,0 +1,90 @@
+{
+  "function": "set",
+  "det_check_template": "proof fn det_set<K: KeyTrait + VerusClone>(pre_self_: StrictlyOrderedVec<K>, i: usize, k: K, post1_self_: StrictlyOrderedVec<K>, r1: (), post2_self_: StrictlyOrderedVec<K>, r2: ())\n    requires (pre_self_.valid()), (i < pre_self_@.len()), (i > 0 ==> pre_self_@[i as int - 1].cmp_spec(k).lt()), (i < pre_self_@.len() - 1 ==> k.cmp_spec(pre_self_@[i as int + 1]).lt()),\n    ensures\n        ({\n            &&& (post1_self_.valid())\n            &&& (post1_self_@ == pre_self_@.update(i as int, k))\n            &&& (post2_self_.valid())\n            &&& (post2_self_@ == pre_self_@.update(i as int, k))\n        }) ==> det_set_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StrictlyOrderedVec<K>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "i",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "K"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StrictlyOrderedVec<K>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StrictlyOrderedVec<K>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_set_equal<K: KeyTrait + VerusClone>(r1: (), r2: (), post1_self_: StrictlyOrderedVec<K>, post2_self_: StrictlyOrderedVec<K>) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_set_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_set",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<K: KeyTrait + VerusClone>",
+  "where_decl": "",
+  "self_type": "StrictlyOrderedVec<K>"
+}

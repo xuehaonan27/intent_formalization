@@ -1,0 +1,174 @@
+{
+  "function": "parse_end_points",
+  "det_check_template": "proof fn det_parse_end_points(args: Args, r1: Option<Vec<EndPoint>>, r2: Option<Vec<EndPoint>>)\n    ensures\n        ({\n            &&& (match r1 {\n            None => parse_args(abstractify_args(args)) is None,\n            Some(vec) => {\n                &&& parse_args(abstractify_args(args)) is Some\n                &&& abstractify_end_points(vec) == parse_args(abstractify_args(args)).unwrap()\n            },\n        })\n            &&& (match r2 {\n            None => parse_args(abstractify_args(args)) is None,\n            Some(vec) => {\n                &&& parse_args(abstractify_args(args)) is Some\n                &&& abstractify_end_points(vec) == parse_args(abstractify_args(args)).unwrap()\n            },\n        })\n        }) ==> det_parse_end_points_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "args",
+      "type": {
+        "kind": "unknown",
+        "name": "Args"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Vec<EndPoint>>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Vec<EndPoint>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Vec<EndPoint>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "EndPoint",
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Vec<u8>",
+                      "type_args": [
+                        {
+                          "kind": "u8",
+                          "name": "u8"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Vec<EndPoint>>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Vec<EndPoint>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "EndPoint",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "type": {
+                        "kind": "unknown",
+                        "name": "Vec<u8>",
+                        "type_args": [
+                          {
+                            "kind": "u8",
+                            "name": "u8"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Vec<EndPoint>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "EndPoint",
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Vec<u8>",
+                      "type_args": [
+                        {
+                          "kind": "u8",
+                          "name": "u8"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_parse_end_points_equal(r1: Option<Vec<EndPoint>>, r2: Option<Vec<EndPoint>>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n}",
+  "equal_fn_name": "det_parse_end_points_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_parse_end_points",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "HostState"
+}

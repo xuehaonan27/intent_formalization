@@ -1,0 +1,31 @@
+● Read prompt.md
+  │ results-verusage/view_registry/anvil-library/_llm_runs/TempPred/prompt.md
+  └ 107 lines read
+
+● Search (grep)
+  │ "TempPred" (results-verusage/view_registry/anvil-library/)
+  └ 1 file found
+
+● List LLM runs directories (shell)
+  │ find /home/chentianyu/intent_formalization/spec-determinism/results-verusage
+  │ /view_registry/anvil-library/_llm_runs/ -maxdepth 2 -type d | head -30
+  └ 4 lines...
+
+● List run directories (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/anvil-library/_llm_runs/Execution/
+  │ /home/chentianyu/intent_formalization/spec-determinism/results-verusage/view
+  │ _registry/anvil-library/_llm_runs/TempPred/
+  └ 7 lines...
+
+● Read response.md
+  │ results-verusage/view_registry/anvil-library/_llm_runs/Execution/response.md
+  └ 8 lines read
+
+Now I have enough context. The TempPred wraps a single `spec_fn(Execution<T>) -> bool`. Two predicates are semantically equal iff they agree on all executions — exactly extensional equality on spec_fn. The view just projects to the bare spec_fn, matching the pattern used for `Execution<T>`.
+
+● Create response.md +9
+  └ results-verusage/view_registry/anvil-library/_llm_runs/TempPred/response.md
+
+Wrote the response to `results-verusage/view_registry/anvil-library/_llm_runs/TempPred/response.md`. The view projects `TempPred<T>` to its underlying `spec_fn(Execution<T>) -> bool`, since extensional equality on spec_fn is exactly the semantic equality the checker wants.
+

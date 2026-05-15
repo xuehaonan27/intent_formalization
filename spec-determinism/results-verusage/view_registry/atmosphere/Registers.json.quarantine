@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Registers",
+  "qualified_name": "Registers",
+  "source_hash": "fbc223d86e3c7ad8",
+  "view_source": "L4-llm",
+  "viewed_type": "RegistersView",
+  "view_decl": "pub struct RegistersView { pub r15: u64, pub r14: u64, pub r13: u64, pub r12: u64, pub rbp: u64, pub rbx: u64, pub r11: u64, pub r10: u64, pub r9: u64, pub r8: u64, pub rcx: u64, pub rdx: u64, pub rsi: u64, pub rdi: u64, pub rax: u64, pub error_code: u64, pub rip: u64, pub cs: u64, pub flags: u64, pub rsp: u64, pub ss: u64 }\n\nimpl View for Registers {\n    type V = RegistersView;\n    closed spec fn view(&self) -> RegistersView {\n        RegistersView { r15: self.r15, r14: self.r14, r13: self.r13, r12: self.r12, rbp: self.rbp, rbx: self.rbx, r11: self.r11, r10: self.r10, r9: self.r9, r8: self.r8, rcx: self.rcx, rdx: self.rdx, rsi: self.rsi, rdi: self.rdi, rax: self.rax, error_code: self.error_code, rip: self.rip, cs: self.cs, flags: self.flags, rsp: self.rsp, ss: self.ss }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Every field is a u64 primitive capturing saved CPU register state for an interrupt stack frame; each register is architecturally observable and likely spec-meaningful, so the view mirrors all fields verbatim with no omissions or recursive `@` projections (u64 is a primitive whose value is its own view).",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"RegistersView\",\n  \"view_decl\": \"pub struct RegistersView { pub r15: u64, pub r14: u64, pub r13: u64, pub r12: u64, pub rbp: u64, pub rbx: u64, pub r11: u64, pub r10: u64, pub r9: u64, pub r8: u64, pub rcx: u64, pub rdx: u64, pub rsi: u64, pub rdi: u64, pub rax: u64, pub error_code: u64, pub rip: u64, pub cs: u64, pub flags: u64, pub rsp: u64, pub ss: u64 }\\n\\nimpl View for Registers {\\n    type V = RegistersView;\\n    closed spec fn view(&self) -> RegistersView {\\n        RegistersView { r15: self.r15, r14: self.r14, r13: self.r13, r12: self.r12, rbp: self.rbp, rbx: self.rbx, r11: self.r11, r10: self.r10, r9: self.r9, r8: self.r8, rcx: self.rcx, rdx: self.rdx, rsi: self.rsi, rdi: self.rdi, rax: self.rax, error_code: self.error_code, rip: self.rip, cs: self.cs, flags: self.flags, rsp: self.rsp, ss: self.ss }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Every field is a u64 primitive capturing saved CPU register state for an interrupt stack frame; each register is architecturally observable and likely spec-meaningful, so the view mirrors all fields verbatim with no omissions or recursive `@` projections (u64 is a primitive whose value is its own view).\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

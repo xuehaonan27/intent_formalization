@@ -1,0 +1,233 @@
+{
+  "function": "iommu_table_array_create_iommu_table_l2_entry_t",
+  "det_check_template": "proof fn det_iommu_table_array_create_iommu_table_l2_entry_t(pre_self_: Array<Option<PageTable>, PCID_MAX>, ioid: IOid, target_l4i: L4Index, target_l3i: L3Index, target_l2i: L2Index, target_l2_p: PageMapPtr, page_map_ptr: PageMapPtr, ?: Tracked<PointsTo<PageMap>>, post1_self_: Array<Option<PageTable>, PCID_MAX>, r1: (), post2_self_: Array<Option<PageTable>, PCID_MAX>, r2: ())\n    requires (pre_self_.wf()), (pre_self_@[ioid as int].unwrap().wf()), (0 <= target_l4i < 512), (0 <= target_l3i < 512), (0 <= target_l2i < 512), (pre_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(\n                target_l4i,\n                target_l3i,\n            ).is_Some()), (pre_self_@[ioid as int].unwrap().spec_resolve_mapping_1g_l3(\n                target_l4i,\n                target_l3i,\n            ).is_None()), (pre_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(\n                target_l4i,\n                target_l3i,\n            ).unwrap().addr == target_l2_p), (page_ptr_valid(page_map_ptr)), (pre_self_@[ioid as int].unwrap().page_closure().contains(page_map_ptr) == false), (pre_self_@[ioid as int].unwrap().page_not_mapped(page_map_ptr)), (page_map_perm.addr() == page_map_ptr), (page_map_perm.is_init()), (page_map_perm.value().wf()), (forall|i: usize|\n                #![trigger page_map_perm.value()[i].is_empty()]\n                0 <= i < 512 ==> page_map_perm.value()[i].is_empty()),\n    ensures\n        ({\n            &&& (post1_self_.wf())\n            &&& (forall|p: IOid|\n                #![trigger post1_self_@[p as int]]\n                #![trigger pre_self_@[p as int]]\n                0 <= p < IOID_MAX && p != ioid ==> post1_self_@[p as int] =~= pre_self_@[p as int])\n            &&& (post1_self_@[ioid as int].is_Some())\n            &&& (post1_self_@[ioid as int].unwrap().wf())\n            &&& (post1_self_@[ioid as int].unwrap().ioid == pre_self_@[ioid as int].unwrap().ioid)\n            &&& (post1_self_@[ioid as int].unwrap().kernel_l4_end == pre_self_@[ioid as int].unwrap().kernel_l4_end)\n            &&& (post1_self_@[ioid as int].unwrap().page_closure() =~= pre_self_@[ioid as int].unwrap().page_closure().insert(page_map_ptr))\n            &&& (post1_self_@[ioid as int].unwrap().mapping_4k() =~= pre_self_@[ioid as int].unwrap().mapping_4k())\n            &&& (post1_self_@[ioid as int].unwrap().mapping_2m() =~= pre_self_@[ioid as int].unwrap().mapping_2m())\n            &&& (post1_self_@[ioid as int].unwrap().mapping_1g() =~= pre_self_@[ioid as int].unwrap().mapping_1g())\n            &&& (post1_self_@[ioid as int].unwrap().spec_resolve_mapping_1g_l3(target_l4i, target_l3i) == pre_self_@[ioid as int].unwrap().spec_resolve_mapping_1g_l3(target_l4i, target_l3i))\n            &&& (post1_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(target_l4i, target_l3i) == pre_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(target_l4i, target_l3i))\n            &&& (post1_self_@[ioid as int].unwrap().spec_resolve_mapping_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).is_Some())\n            &&& (post1_self_@[ioid as int].unwrap().spec_resolve_mapping_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).get_Some_0().addr == page_map_ptr)\n            &&& (post1_self_@[ioid as int].unwrap().spec_resolve_mapping_2m_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).is_None())\n            &&& (post1_self_@[ioid as int].unwrap().kernel_entries =~= pre_self_@[ioid as int].unwrap().kernel_entries)\n            &&& (post2_self_.wf())\n            &&& (forall|p: IOid|\n                #![trigger post2_self_@[p as int]]\n                #![trigger pre_self_@[p as int]]\n                0 <= p < IOID_MAX && p != ioid ==> post2_self_@[p as int] =~= pre_self_@[p as int])\n            &&& (post2_self_@[ioid as int].is_Some())\n            &&& (post2_self_@[ioid as int].unwrap().wf())\n            &&& (post2_self_@[ioid as int].unwrap().ioid == pre_self_@[ioid as int].unwrap().ioid)\n            &&& (post2_self_@[ioid as int].unwrap().kernel_l4_end == pre_self_@[ioid as int].unwrap().kernel_l4_end)\n            &&& (post2_self_@[ioid as int].unwrap().page_closure() =~= pre_self_@[ioid as int].unwrap().page_closure().insert(page_map_ptr))\n            &&& (post2_self_@[ioid as int].unwrap().mapping_4k() =~= pre_self_@[ioid as int].unwrap().mapping_4k())\n            &&& (post2_self_@[ioid as int].unwrap().mapping_2m() =~= pre_self_@[ioid as int].unwrap().mapping_2m())\n            &&& (post2_self_@[ioid as int].unwrap().mapping_1g() =~= pre_self_@[ioid as int].unwrap().mapping_1g())\n            &&& (post2_self_@[ioid as int].unwrap().spec_resolve_mapping_1g_l3(target_l4i, target_l3i) == pre_self_@[ioid as int].unwrap().spec_resolve_mapping_1g_l3(target_l4i, target_l3i))\n            &&& (post2_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(target_l4i, target_l3i) == pre_self_@[ioid as int].unwrap().spec_resolve_mapping_l3(target_l4i, target_l3i))\n            &&& (post2_self_@[ioid as int].unwrap().spec_resolve_mapping_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).is_Some())\n            &&& (post2_self_@[ioid as int].unwrap().spec_resolve_mapping_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).get_Some_0().addr == page_map_ptr)\n            &&& (post2_self_@[ioid as int].unwrap().spec_resolve_mapping_2m_l2(\n                target_l4i,\n                target_l3i,\n                target_l2i,\n            ).is_None())\n            &&& (post2_self_@[ioid as int].unwrap().kernel_entries =~= pre_self_@[ioid as int].unwrap().kernel_entries)\n        }) ==> det_iommu_table_array_create_iommu_table_l2_entry_t_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<Option<PageTable>, PCID_MAX>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "ioid",
+      "type": {
+        "kind": "unknown",
+        "name": "IOid"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "target_l4i",
+      "type": {
+        "kind": "unknown",
+        "name": "L4Index"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "target_l3i",
+      "type": {
+        "kind": "unknown",
+        "name": "L3Index"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "target_l2i",
+      "type": {
+        "kind": "unknown",
+        "name": "L2Index"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "target_l2_p",
+      "type": {
+        "kind": "unknown",
+        "name": "PageMapPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "page_map_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PageMapPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<PointsTo<PageMap>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<PageMap>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "PageMap",
+                "fields": [
+                  {
+                    "name": "ar",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Array<usize, 512>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "512"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "spec_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<PageEntry>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<PageEntry>",
+                          "type_args": [
+                            {
+                              "kind": "struct",
+                              "name": "PageEntry",
+                              "fields": [
+                                {
+                                  "name": "addr",
+                                  "type": {
+                                    "kind": "unknown",
+                                    "name": "PAddr"
+                                  }
+                                },
+                                {
+                                  "name": "perm",
+                                  "type": {
+                                    "kind": "struct",
+                                    "name": "PageEntryPerm",
+                                    "fields": [
+                                      {
+                                        "name": "present",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "ps",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "write",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "execute_disable",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "user",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<Option<PageTable>, PCID_MAX>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "Array<Option<PageTable>, PCID_MAX>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_iommu_table_array_create_iommu_table_l2_entry_t_equal(r1: (), r2: (), post1_self_: Array<Option<PageTable>, PCID_MAX>, post2_self_: Array<Option<PageTable>, PCID_MAX>) -> bool {\n    (r1 == r2)\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_iommu_table_array_create_iommu_table_l2_entry_t_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_iommu_table_array_create_iommu_table_l2_entry_t",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Array<Option<PageTable>, PCID_MAX>"
+}

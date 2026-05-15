@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "Correctness depends on LogInfo and AbstractLogState actually having View impls; they are listed as uncovered in the provided context."
+  ],
+  "duration_s": 8.65
+}

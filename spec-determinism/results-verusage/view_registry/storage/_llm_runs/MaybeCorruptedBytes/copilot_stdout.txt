@@ -1,0 +1,32 @@
+● Read prompt.md
+  │ results-verusage/view_registry/storage/_llm_runs/MaybeCorruptedBytes/prompt.
+  │ md
+  └ 107 lines read
+
+● Find MaybeCorruptedBytes usage (shell)
+  │ cd /home/chentianyu/intent_formalization && grep -r "MaybeCorruptedBytes"
+  │ --include="*.rs" -l 2>/dev/null | head -20
+  └ 21 lines...
+
+● Find view of MaybeCorruptedBytes (shell)
+  │ cd /home/chentianyu/intent_formalization && grep -n
+  │ "MaybeCorruptedBytes\|impl.*View.*for.*MaybeCorruptedBytes\|fn view\|spec
+  │ fn.*MaybeCorruptedBytes" verusage/source-projects/storage/verified/pmem_subr
+  │ egion/subregion_read_relative_aligned.rs 2>/dev/null | head -30
+  └ 9 lines...
+
+● Read subregion_read_relative_aligned.rs
+  │ ~/intent_formalization/verusage/source-projects/storage/verified/pmem_subreg
+  │ ion/subregion_read_relative_aligned.rs
+  └ L50:90 (41 lines read)
+
+I have enough context. The existing codebase already declares `MaybeCorruptedBytes<S>` with view `Seq<u8>` (line 68 in `subregion_read_relative_aligned.rs`). The struct wraps `Box<MaybeUninit<S>>` representing bytes read from persistent memory that may be corrupted — the spec constrains only the underlying byte sequence (for CRC validation), while the Box pointer and MaybeUninit storage are allocator/uninit-opaque.
+
+Writing the response now.
+
+● Create response.md +9
+  └ results-verusage/view_registry/storage/_llm_runs/MaybeCorruptedBytes/respons
+    e.md
+
+Response written to `results-verusage/view_registry/storage/_llm_runs/MaybeCorruptedBytes/response.md`. The view projects `MaybeCorruptedBytes<S>` to `Seq<u8>`, matching the existing axiomatic view in the codebase (`subregion_read_relative_aligned.rs:68`).
+

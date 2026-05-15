@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["CTombstoneTable and CSendState dependency views are not shown; assuming their View impls exist, this product view preserves both fields correctly."]
+}
+```

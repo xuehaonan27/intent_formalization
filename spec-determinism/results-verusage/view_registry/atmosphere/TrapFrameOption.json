@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "type_short": "TrapFrameOption",
+  "qualified_name": "TrapFrameOption",
+  "source_hash": "c9f6cd4ef0b09366",
+  "view_source": "L4-llm",
+  "viewed_type": "TrapFrameOptionView",
+  "view_decl": "pub struct TrapFrameOptionView { pub reg: Registers, pub exists: bool }\n\nimpl View for TrapFrameOption {\n    type V = TrapFrameOptionView;\n    closed spec fn view(&self) -> TrapFrameOptionView {\n        TrapFrameOptionView { reg: self.reg, exists: self.exists }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Both fields are spec-meaningful (a trap frame's register state and presence flag are exactly what the spec constrains). Registers has no resolved View (leaf), so we project it by identity; exists is a primitive bool taken as-is.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"TrapFrameOptionView\",\n  \"view_decl\": \"pub struct TrapFrameOptionView { pub reg: Registers, pub exists: bool }\\n\\nimpl View for TrapFrameOption {\\n    type V = TrapFrameOptionView;\\n    closed spec fn view(&self) -> TrapFrameOptionView {\\n        TrapFrameOptionView { reg: self.reg, exists: self.exists }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Both fields are spec-meaningful (a trap frame's register state and presence flag are exactly what the spec constrains). Registers has no resolved View (leaf), so we project it by identity; exists is a primitive bool taken as-is.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": [
+    "Registers has no known dependency view, so this assumes identity preserves its spec-relevant state."
+  ]
+}

@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Assumes StaticLinkedList and EndpointState View impls exist or will be supplied; their concrete views are not known from the provided context."]
+}
+```

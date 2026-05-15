@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "DeviceTable",
+  "qualified_name": "DeviceTable",
+  "source_hash": "6ff4ef6f62218caa",
+  "view_source": "L4-llm",
+  "viewed_type": "DeviceTableView",
+  "view_decl": "pub struct DeviceTableView { pub ar: Seq<usize> }\n\nimpl View for DeviceTable {\n    type V = DeviceTableView;\n    closed spec fn view(&self) -> DeviceTableView {\n        DeviceTableView { ar: self.ar@ }\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "DeviceTable has a single indexed array field ar: [usize; 512] whose position-to-value mapping is the spec-meaningful content (the device table is addressed by index). Project the fixed-size array via its built-in array view to Seq<usize> so equality is element-wise on the abstract sequence, not on backing storage representation.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"DeviceTableView\",\n  \"view_decl\": \"pub struct DeviceTableView { pub ar: Seq<usize> }\\n\\nimpl View for DeviceTable {\\n    type V = DeviceTableView;\\n    closed spec fn view(&self) -> DeviceTableView {\\n        DeviceTableView { ar: self.ar@ }\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"DeviceTable has a single indexed array field ar: [usize; 512] whose position-to-value mapping is the spec-meaningful content (the device table is addressed by index). Project the fixed-size array via its built-in array view to Seq<usize> so equality is element-wise on the abstract sequence, not on backing storage representation.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

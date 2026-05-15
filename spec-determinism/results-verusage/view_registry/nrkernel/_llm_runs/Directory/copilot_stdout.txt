@@ -1,0 +1,43 @@
+● Read prompt.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/Directory/prompt.md
+  └ 111 lines read
+
+Let me check the existing context to understand any relevant patterns.
+
+● List Directory task folder (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/nrkernel/_llm_runs/Directory/ 2>&1
+  └ 2 lines...
+
+● Browse sibling runs (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/nrkernel/_llm_runs/ | head -30 2>&1
+  └ 10 lines...
+
+● Check dependency runs (shell)
+  │ ls /home/chentianyu/intent_formalization/spec-determinism/results-verusage/v
+  │ iew_registry/nrkernel/_llm_runs/NodeEntry/
+  │ /home/chentianyu/intent_formalization/spec-determinism/results-verusage/view
+  │ _registry/nrkernel/_llm_runs/Arch/ 2>&1
+  └ 8 lines...
+
+● Read response.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/NodeEntry/response.md
+  └ 8 lines read
+
+● Read response.md
+  │ results-verusage/view_registry/nrkernel/_llm_runs/Arch/response.md
+  └ 8 lines read
+
+Good, I have full context. The NodeEntry and Arch view runs already exist; both will have View impls (via recursive synthesis). I'll project each Directory field through their views, matching the style used in the Arch run (`map_values` over the Seq).
+
+For a paging Directory:
+- `entries`: ordered (indexed by VA slot) → `Seq<NodeEntry@>`
+- `layer`, `base_vaddr`: `nat` primitives, identity-projected
+- `arch`: project through Arch's view
+
+● Create response.md +9
+  └ results-verusage/view_registry/nrkernel/_llm_runs/Directory/response.md
+
+Response written to `results-verusage/view_registry/nrkernel/_llm_runs/Directory/response.md`.
+

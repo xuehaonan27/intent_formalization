@@ -1,0 +1,9 @@
+● Read prompt.md
+  │ results-verusage/view_registry/storage/_llm_runs/LogInfo/prompt.md
+  └ 111 lines read
+
+● Create response.md +9
+  └ results-verusage/view_registry/storage/_llm_runs/LogInfo/response.md
+
+Response file written.
+

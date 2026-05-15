@@ -100,7 +100,35 @@ criteria, four hard gates + one soft ranker) and revised by `METRICS.md`
   `(driving_closed_ratio, ¬new_witness_driving)`. **MDL ranking goes
   here once implemented** (currently missing — see §6).
 
-### 2.3 Prompt strategy
+### 2.3 Implementation status
+
+What `report.json` actually emits today (post this round's pipeline
+work):
+
+| Layer | Field | Module | Status |
+|---|---|---|---|
+| A | `driving_closed_ratio` | `score.py` | ✅ landed |
+| A | `new_witness_driving` | `score.py` | ✅ landed |
+| A | `collateral_closed` / `closed_count` / `added_count` | `score.py` | ✅ landed |
+| A.1 | `policy_verdict` (counterfactual) | `policy.py` | ⏳ next round |
+| B | `structural_fit` (ensures count, quantifiers, helpers) | `score.py` | ✅ landed (observation) |
+| C | `no_new_admissions_in_impl` (regex on patch diff) | `score.py` | ✅ landed |
+| C | `symbol_table_stable` / `equal_fn_def_stable` (post-regen diff) | `score.py` + `verify.py:run_regen` | ✅ landed |
+| D | `literal_bleed` | `score.py` | ✅ landed (observation) |
+| E | `impl_still_verifies` (currently = rerun rc==0) | `verify.py` | partial — independent `cargo verus build` is P3, deferred |
+| F | stability (multi-sample variance) | — | ⏳ deferred |
+| C5 | MDL ranker | `mdl.py` | ⏳ next round (design done in §6.2) |
+
+Pipeline now also runs `spec-determinism-regen` between patch and rerun
+so the post-patch `det_spec.json` is fresh — necessary for symbol /
+equal_fn diffing. If regen fails (e.g. signature break), the rerun
+proceeds with the stale template and stability metrics are recorded as
+`unknown` (not failed).
+
+`report.md` grew a `## Metrics` section: hard-gate verdict + per-axis
+breakdown.
+
+### 2.4 Prompt strategy
 
 - Expose goals to the LLM: `driving_closed`, `impl_verifies`,
   `new_witness_driving`.

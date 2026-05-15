@@ -1,0 +1,475 @@
+{
+  "function": "receive",
+  "det_check_template": "proof fn det_receive(pre_self_: NetClient, time_limit_s: i32, post1_self_: NetClient, r1: NetcReceiveResult, post2_self_: NetClient, r2: NetcReceiveResult)\n    requires (pre_self_.state() is Receiving),\n    ensures\n        ({\n            &&& (post1_self_.my_end_point() == pre_self_.my_end_point())\n            &&& (match r1 {\n            NetcReceiveResult::Received{sender, message} => {\n                &&& post1_self_.state() is Receiving\n                &&& sender.abstractable()\n                &&& post1_self_.history() == pre_self_.history() + seq![\n                    LIoOp::Receive{\n                        r: LPacket{\n                            dst: post1_self_.my_end_point(),\n                            src: sender@,\n                            msg: message@}\n                    }]\n            }\n            NetcReceiveResult::TimedOut{} => {\n                &&& post1_self_.state() is Sending\n                &&& post1_self_.history() == pre_self_.history() + seq![LIoOp/*TODO(verus) fix name when qpath fix*/::TimeoutReceive{}]\n            }\n            NetcReceiveResult::Error{} => {\n                post1_self_.state() is Error\n            }\n        })\n            &&& (post2_self_.my_end_point() == pre_self_.my_end_point())\n            &&& (match r2 {\n            NetcReceiveResult::Received{sender, message} => {\n                &&& post2_self_.state() is Receiving\n                &&& sender.abstractable()\n                &&& post2_self_.history() == pre_self_.history() + seq![\n                    LIoOp::Receive{\n                        r: LPacket{\n                            dst: post2_self_.my_end_point(),\n                            src: sender@,\n                            msg: message@}\n                    }]\n            }\n            NetcReceiveResult::TimedOut{} => {\n                &&& post2_self_.state() is Sending\n                &&& post2_self_.history() == pre_self_.history() + seq![LIoOp/*TODO(verus) fix name when qpath fix*/::TimeoutReceive{}]\n            }\n            NetcReceiveResult::Error{} => {\n                post2_self_.state() is Error\n            }\n        })\n        }) ==> det_receive_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "time_limit_s",
+      "type": {
+        "kind": "i32",
+        "name": "i32"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "NetcReceiveResult"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "NetcReceiveResult"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "NetClient",
+        "fields": [
+          {
+            "name": "state",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<State>",
+              "type_args": [
+                {
+                  "kind": "enum",
+                  "name": "State",
+                  "variants": [
+                    {
+                      "name": "Receiving"
+                    },
+                    {
+                      "name": "Sending"
+                    },
+                    {
+                      "name": "Error"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "history",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<History>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "History"
+                }
+              ]
+            }
+          },
+          {
+            "name": "end_point",
+            "type": {
+              "kind": "struct",
+              "name": "EndPoint",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "Vec<u8>",
+                    "type_args": [
+                      {
+                        "kind": "u8",
+                        "name": "u8"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "c_pointers",
+            "type": {
+              "kind": "struct",
+              "name": "NetClientCPointers",
+              "fields": [
+                {
+                  "name": "get_time_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn() -> u64"
+                  }
+                },
+                {
+                  "name": "receive_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(i32, *mut bool, *mut bool, *mut *mut std::vec::Vec<u8>, *mut *mut std::vec::Vec<u8>)"
+                  }
+                },
+                {
+                  "name": "send_func",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "extern \"C\" fn(u64, *const u8, u64, *const u8) -> bool"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "type": {
+              "kind": "struct",
+              "name": "DuctTapeProfiler",
+              "fields": [
+                {
+                  "name": "last_event",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "last_report",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "SystemTime"
+                  }
+                },
+                {
+                  "name": "event_counter",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "collections::HashMap<std::string::String, u64>",
+                    "type_args": [
+                      {
+                        "kind": "unknown",
+                        "name": "std::string::String"
+                      },
+                      {
+                        "kind": "u64",
+                        "name": "u64"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub enum NetcReceiveResultView {\n    Received { sender: EndPoint, message: Seq<u8> },\n    TimedOut,\n    Error,\n}\n\nimpl View for NetcReceiveResult {\n    type V = NetcReceiveResultView;\n    closed spec fn view(&self) -> NetcReceiveResultView {\n        match self {\n            NetcReceiveResult::Received { sender, message } =>\n                NetcReceiveResultView::Received { sender: *sender, message: message@ },\n            NetcReceiveResult::TimedOut => NetcReceiveResultView::TimedOut,\n            NetcReceiveResult::Error => NetcReceiveResultView::Error,\n        }\n    }\n}\n\npub struct NetClientView {\n    pub history: Seq<NetEvent>,\n    pub end_point: EndPoint,\n}\n\nimpl View for NetClient {\n    type V = NetClientView;\n    closed spec fn view(&self) -> NetClientView {\n        NetClientView {\n            history: self.history@@,\n            end_point: self.end_point,\n        }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_receive_equal(r1: NetcReceiveResult, r2: NetcReceiveResult, post1_self_: NetClient, post2_self_: NetClient) -> bool {\n    (((r1).view() == (r2).view()))\n    && (((post1_self_).view() == (post2_self_).view()))\n}",
+  "equal_fn_name": "det_receive_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_receive",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "NetClient"
+}

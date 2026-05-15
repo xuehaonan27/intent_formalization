@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "issues": [
+    "HashMap view is listed as uncovered, so this assumes an in-scope HashMap<u64> view returning a map compatible with TombstoneTable."
+  ],
+  "duration_s": 21.88
+}

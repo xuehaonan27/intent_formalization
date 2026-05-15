@@ -1,0 +1,17 @@
+● Read prompt.md
+  │ results-verusage/view_registry/atmosphere/_llm_runs/PageTable/prompt.md
+  └ 133 lines read
+
+Looking at the task, I need to analyze the PageTable struct and produce a View projection. Let me examine the fields:
+
+- Primitives (`cr3`, `kernel_l4_end`, `pcid`, `ioid` via usize aliases): keep
+- `l*_table`/`l*_tables`: `Tracked<Map<PageMapPtr, PointsTo<PageMap>>>` — permission tokens over an uncovered type; analogous to allocator-opaque, omit
+- `l*_rev_map`, `mapping_*`, `kernel_entries`, `tlb_mapping_*`: Ghost wrappers of spec types (Map/Seq) — keep via `@` unwrap
+
+Let me write the response:
+
+● Create response.md +9
+  └ results-verusage/view_registry/atmosphere/_llm_runs/PageTable/response.md
+
+Response written to `results-verusage/view_registry/atmosphere/_llm_runs/PageTable/response.md`. The projection keeps configuration primitives and all Ghost spec-data (rev maps, mappings, TLB sequences), and omits the four `Tracked<Map<…, PointsTo<PageMap>>>` permission tables (allocator/opacity-noise, since `PageMap` is uncovered and the abstract content lives in the Ghost mappings).
+

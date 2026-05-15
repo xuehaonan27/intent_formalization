@@ -1,0 +1,6 @@
+```json
+{
+  "verdict": "accept",
+  "issues": ["Walk and Core views are uncovered, so this assumes structural preservation of those leaf types is intended."]
+}
+```

@@ -1,0 +1,250 @@
+{
+  "function": "get_payload_as_va_range",
+  "det_check_template": "proof fn det_get_payload_as_va_range(self_: IPCPayLoad, r1: Option<VaRange4K>, r2: Option<VaRange4K>)\n    ensures\n        ({\n            &&& (r1 == self_.spec_get_payload_as_va_range())\n            &&& (r2 == self_.spec_get_payload_as_va_range())\n        }) ==> det_get_payload_as_va_range_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "enum",
+        "name": "IPCPayLoad",
+        "variants": [
+          {
+            "name": "Message"
+          },
+          {
+            "name": "Pages"
+          },
+          {
+            "name": "Endpoint"
+          },
+          {
+            "name": "Pci"
+          },
+          {
+            "name": "PageFault"
+          },
+          {
+            "name": "Empty"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<VaRange4K>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "VaRange4K",
+              "fields": [
+                {
+                  "name": "start",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "VAddr"
+                  }
+                },
+                {
+                  "name": "len",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                },
+                {
+                  "name": "view",
+                  "type": {
+                    "kind": "Ghost",
+                    "name": "Ghost<Seq<VAddr>>",
+                    "type_args": [
+                      {
+                        "kind": "Seq",
+                        "name": "Seq<VAddr>",
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "VAddr"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "VaRange4K",
+            "fields": [
+              {
+                "name": "start",
+                "type": {
+                  "kind": "unknown",
+                  "name": "VAddr"
+                }
+              },
+              {
+                "name": "len",
+                "type": {
+                  "kind": "usize",
+                  "name": "usize"
+                }
+              },
+              {
+                "name": "view",
+                "type": {
+                  "kind": "Ghost",
+                  "name": "Ghost<Seq<VAddr>>",
+                  "type_args": [
+                    {
+                      "kind": "Seq",
+                      "name": "Seq<VAddr>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "VAddr"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<VaRange4K>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "struct",
+              "name": "VaRange4K",
+              "fields": [
+                {
+                  "name": "start",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "VAddr"
+                  }
+                },
+                {
+                  "name": "len",
+                  "type": {
+                    "kind": "usize",
+                    "name": "usize"
+                  }
+                },
+                {
+                  "name": "view",
+                  "type": {
+                    "kind": "Ghost",
+                    "name": "Ghost<Seq<VAddr>>",
+                    "type_args": [
+                      {
+                        "kind": "Seq",
+                        "name": "Seq<VAddr>",
+                        "type_args": [
+                          {
+                            "kind": "unknown",
+                            "name": "VAddr"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "VaRange4K",
+            "fields": [
+              {
+                "name": "start",
+                "type": {
+                  "kind": "unknown",
+                  "name": "VAddr"
+                }
+              },
+              {
+                "name": "len",
+                "type": {
+                  "kind": "usize",
+                  "name": "usize"
+                }
+              },
+              {
+                "name": "view",
+                "type": {
+                  "kind": "Ghost",
+                  "name": "Ghost<Seq<VAddr>>",
+                  "type_args": [
+                    {
+                      "kind": "Seq",
+                      "name": "Seq<VAddr>",
+                      "type_args": [
+                        {
+                          "kind": "unknown",
+                          "name": "VAddr"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// L4-llm view declarations (generated, see view_registry cache)\npub struct VaRange4KView { pub start: VAddr, pub len: usize, pub view: Seq<VAddr> }\n\nimpl View for VaRange4K {\n    type V = VaRange4KView;\n    closed spec fn view(&self) -> VaRange4KView {\n        VaRange4KView { start: self.start, len: self.len, view: self.view@ }\n    }\n}\n\n// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_payload_as_va_range_equal(r1: Option<VaRange4K>, r2: Option<VaRange4K>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (((r1->Some_0).view() == (r2->Some_0).view()))))\n}",
+  "equal_fn_name": "det_get_payload_as_va_range_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get_payload_as_va_range",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "IPCPayLoad"
+}

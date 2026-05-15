@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "ArchExec",
+  "qualified_name": "ArchExec",
+  "source_hash": "fc5a0fee0715e2fb",
+  "view_source": "L4-llm",
+  "viewed_type": "Seq<ArchLayerExec>",
+  "view_decl": "impl View for ArchExec {\n    type V = Seq<ArchLayerExec>;\n    closed spec fn view(&self) -> Seq<ArchLayerExec> {\n        self.layers@\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "ArchExec is a thin wrapper around a fixed-size array of 4 ArchLayerExec page-table layers, so the view projects to the array's built-in Seq view. Layer order is semantically meaningful (the index encodes the page-table level), so Seq \u2014 not Set/Multiset \u2014 is the right shape. ArchLayerExec is currently an uncovered leaf type with no resolved View impl, so its elements are kept as-is and compared structurally inside the Seq; this projection can be tightened later by synthesising a View for ArchLayerExec without changing ArchExec's view shape.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Seq<ArchLayerExec>\",\n  \"view_decl\": \"impl View for ArchExec {\\n    type V = Seq<ArchLayerExec>;\\n    closed spec fn view(&self) -> Seq<ArchLayerExec> {\\n        self.layers@\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"ArchExec is a thin wrapper around a fixed-size array of 4 ArchLayerExec page-table layers, so the view projects to the array's built-in Seq view. Layer order is semantically meaningful (the index encodes the page-table level), so Seq \u2014 not Set/Multiset \u2014 is the right shape. ArchLayerExec is currently an uncovered leaf type with no resolved View impl, so its elements are kept as-is and compared structurally inside the Seq; this projection can be tightened later by synthesising a View for ArchLayerExec without changing ArchExec's view shape.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}

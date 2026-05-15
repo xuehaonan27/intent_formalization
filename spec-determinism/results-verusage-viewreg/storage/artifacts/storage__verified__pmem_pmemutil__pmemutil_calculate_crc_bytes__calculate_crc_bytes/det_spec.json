@@ -1,0 +1,54 @@
+{
+  "function": "calculate_crc_bytes",
+  "det_check_template": "proof fn det_calculate_crc_bytes(val: &[u8], r1: u64, r2: u64)\n    ensures\n        ({\n            &&& (r1 == spec_crc_u64(val@))\n            &&& (r1.spec_to_bytes() == spec_crc_bytes(val@))\n            &&& (r2 == spec_crc_u64(val@))\n            &&& (r2.spec_to_bytes() == spec_crc_bytes(val@))\n        }) ==> det_calculate_crc_bytes_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "val",
+      "type": {
+        "kind": "unknown",
+        "name": "[u8]"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "u64",
+        "name": "u64"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "u64",
+        "name": "u64"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_calculate_crc_bytes_equal(r1: u64, r2: u64) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_calculate_crc_bytes_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_calculate_crc_bytes",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

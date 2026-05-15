@@ -1,0 +1,234 @@
+{
+  "function": "page_map_set",
+  "det_check_template": "proof fn det_page_map_set(page_map_ptr: PageMapPtr, ?: Tracked<&mut PointsTo<PageMap>>, index: usize, value: PageEntry, r1: (), r2: ())\n    requires (old(page_map_perm).addr() == page_map_ptr), (old(page_map_perm).is_init()), (old(page_map_perm).value().wf()), (value.perm.present ==> MEM_valid(value.addr)), (value.perm.present == false ==> value.is_empty()), (0 <= index < 512),\n    ensures\n        ({\n            &&& (page_map_perm.addr() == page_map_ptr)\n            &&& (page_map_perm.is_init())\n            &&& (page_map_perm.value().wf())\n            &&& (forall|i: usize|\n            #![trigger page_map_perm.value()[i]]\n            0 <= i < 512 && i != index ==> page_map_perm.value()[i] =~= old(\n                page_map_perm,\n            ).value()[i])\n            &&& (page_map_perm.value()[index] =~= value)\n            &&& (page_map_perm.addr() == page_map_ptr)\n            &&& (page_map_perm.is_init())\n            &&& (page_map_perm.value().wf())\n            &&& (forall|i: usize|\n            #![trigger page_map_perm.value()[i]]\n            0 <= i < 512 && i != index ==> page_map_perm.value()[i] =~= old(\n                page_map_perm,\n            ).value()[i])\n            &&& (page_map_perm.value()[index] =~= value)\n        }) ==> det_page_map_set_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "page_map_ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "PageMapPtr"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "?",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<&mut PointsTo<PageMap>>",
+        "type_args": [
+          {
+            "kind": "PointsTo",
+            "name": "PointsTo<PageMap>",
+            "type_args": [
+              {
+                "kind": "struct",
+                "name": "PageMap",
+                "fields": [
+                  {
+                    "name": "ar",
+                    "type": {
+                      "kind": "unknown",
+                      "name": "Array<usize, 512>",
+                      "type_args": [
+                        {
+                          "kind": "usize",
+                          "name": "usize"
+                        },
+                        {
+                          "kind": "unknown",
+                          "name": "512"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "spec_seq",
+                    "type": {
+                      "kind": "Ghost",
+                      "name": "Ghost<Seq<PageEntry>>",
+                      "type_args": [
+                        {
+                          "kind": "Seq",
+                          "name": "Seq<PageEntry>",
+                          "type_args": [
+                            {
+                              "kind": "struct",
+                              "name": "PageEntry",
+                              "fields": [
+                                {
+                                  "name": "addr",
+                                  "type": {
+                                    "kind": "unknown",
+                                    "name": "PAddr"
+                                  }
+                                },
+                                {
+                                  "name": "perm",
+                                  "type": {
+                                    "kind": "struct",
+                                    "name": "PageEntryPerm",
+                                    "fields": [
+                                      {
+                                        "name": "present",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "ps",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "write",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "execute_disable",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      },
+                                      {
+                                        "name": "user",
+                                        "type": {
+                                          "kind": "bool",
+                                          "name": "bool"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "index",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "value",
+      "type": {
+        "kind": "struct",
+        "name": "PageEntry",
+        "fields": [
+          {
+            "name": "addr",
+            "type": {
+              "kind": "unknown",
+              "name": "PAddr"
+            }
+          },
+          {
+            "name": "perm",
+            "type": {
+              "kind": "struct",
+              "name": "PageEntryPerm",
+              "fields": [
+                {
+                  "name": "present",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "ps",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "write",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "execute_disable",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                },
+                {
+                  "name": "user",
+                  "type": {
+                    "kind": "bool",
+                    "name": "bool"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_page_map_set_equal(r1: (), r2: ()) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_page_map_set_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_page_map_set",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null
+}

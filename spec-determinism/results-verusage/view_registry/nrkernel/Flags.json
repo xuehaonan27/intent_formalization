@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "type_short": "Flags",
+  "qualified_name": "Flags",
+  "source_hash": "76c659b07bc762d9",
+  "view_source": "L4-llm",
+  "viewed_type": "Flags",
+  "view_decl": "impl View for Flags {\n    type V = Flags;\n    closed spec fn view(&self) -> Flags {\n        *self\n    }\n}",
+  "depends_on_views_of": [],
+  "rationale": "Flags is a Copy/Clone struct of three bool fields (is_writable, is_supervisor, disable_execute), each a permission bit the spec genuinely constrains. Since all fields are primitives and structural equality on bools is already semantic equality, the identity view (Self::V = Flags, view = *self) is the correct minimal projection \u2014 no fields to drop, no nested views to call.",
+  "raw_response": "```json\n{\n  \"viewed_type\": \"Flags\",\n  \"view_decl\": \"impl View for Flags {\\n    type V = Flags;\\n    closed spec fn view(&self) -> Flags {\\n        *self\\n    }\\n}\",\n  \"depends_on_views_of\": [],\n  \"rationale\": \"Flags is a Copy/Clone struct of three bool fields (is_writable, is_supervisor, disable_execute), each a permission bit the spec genuinely constrains. Since all fields are primitives and structural equality on bools is already semantic equality, the identity view (Self::V = Flags, view = *self) is the correct minimal projection \u2014 no fields to drop, no nested views to call.\"\n}\n```\n",
+  "critic_verdict": "accept",
+  "critic_issues": []
+}
