@@ -1,6 +1,6 @@
 # spec-determinism — STATUS
 
-_Last updated: 2026-05-11_
+_Last updated: 2026-05-15_
 
 ## What this project does
 
@@ -372,15 +372,74 @@ spec_determinism/
     llm.py        # L4 synthesiser + prefill CLI
     critic.py     # codex-backed semantic critic pass
   llm/
-    copilot.py    # shared CopilotCLI used by view/llm + codegen/policy_llm
+    copilot.py    # shared CopilotCLI used by view/llm + codegen/policy_llm + llm_proof
+  llm_proof/      # Idea A: LLM-authored Verus proof annotations (opt-in)
+    sandbox.py    # lex-level allowlist (rejects assume/admit/external_body/...)
+    prompt.py     # K-iteration prompt builder + retry feedback
+    parser.py     # ```verus / ```json fenced-block parser
+    prover.py     # main loop driver (calls CopilotCLI + Verus, persists artifacts)
   schema_search/  # narrow predicate schema enumeration
 scripts/
   prefill_all.sh      # batch L4 prefill across 7 projects
   rerun_corpus.sh     # rerun corpus with --use-view-registry → results-verusage-viewreg/
   compare_runs.py     # baseline vs candidate → A-2 transition tables
   auto_chain.sh       # wait-for-prefill → rerun → compare
+  smoke_llm_proof.py  # end-to-end smoke test for llm_proof (mocks CopilotCLI)
 results-verusage/
   view_registry/<project>/<Type>.json   # per-type L4 cache (+ critic_verdict / critic_issues)
   view_registry/<project>/_rejected.jsonl  # durable critic-reject log
   view_registry/<project>/_prefill_summary.json
 ```
+
+### Today (2026-05-15 — Idea A wired in, opt-in)
+
+| commit    | scope | |
+|-----------|---|---|
+| `<this>`  | **`spec_determinism/llm_proof/` package + opt-in escalation in `run_single_file`** | Idea A |
+
+**Idea A — LLM proof annotation loop.** When the baseline schema
+search returns `r0_z3 == "unknown"`, optionally escalate to a K-iteration
+LLM loop that asks Copilot to author Verus proof annotations
+(`assert`, `assert forall ... implies ... by { ... }`, `assert(... =~= ...)`,
+`reveal`, `broadcast use`) inside the synthetic `det_<fn>` body, then
+re-runs Verus. On success Verus self-validates the annotation, so the
+result is trustworthy.
+
+* **Sandbox**: a lex-level allowlist (`llm_proof/sandbox.py`) rejects
+  any LLM proof that contains `assume(...)`, `admit()`,
+  `unimplemented!()`, `assume_specification`, `#[verifier::external_body]`,
+  or new `fn`/`spec fn`/`impl`/`trait`/`struct`/`enum` definitions.
+  Comments and string literals are stripped first so commented-out
+  mentions don't false-positive. Mandatory because Verus silently
+  accepts `assume(false)` (empirically verified).
+* **Loop**: K attempts (default 3); on rejection or sandbox violation
+  the next prompt includes the prior proof block + verus stderr tail /
+  sandbox violations. Few-shot uses the set_owning_container worked
+  example.
+* **Wiring**: `run_single_file(..., use_llm_proof=True, ...)` and CLI
+  flags `--use-llm-proof`, `--llm-proof-max-attempts`,
+  `--llm-proof-model`, `--llm-proof-effort` on `verusage_run`. Env
+  toggle `SPEC_DET_LLM_PROOF=1` also enables it. Default is OFF —
+  no behaviour change for existing callers.
+* **Classifier**: new bucket `ok_proved_llm`
+  (`spec_determinism.classify`) for `r0_z3 == "unsat" AND llm_assisted`.
+  Surfaces in `verusage_summary` overview table + JSON.
+* **Artifacts**: per-attempt prompts/responses/verus logs land under
+  `<artifact_dir>/llm_proof/attempt_NN/`; aggregate `result.json` and
+  `llm_proof_block.txt` / `llm_proof.verus_pass.rs` on success.
+* **End-to-end smoke** (`scripts/smoke_llm_proof.py`): mocks
+  `CopilotCLI` (no real LLM tokens) and runs both the graceful-failure
+  path (real Verus rejects the worked-example proof, which is
+  insufficient without Phase-2 view-eq) and the simulated-success path
+  (Verus mocked to `rc=0`, validates `r0_z3='unsat'` /
+  `llm_assisted=True` promotion). Both PASS.
+
+**Limitation flagged by the smoke test.** The worked-example case
+(atmosphere `set_owning_container`) needs **both** Phase-2 view-eq AND
+the LLM proof to close (see
+`docs/examples/idea_a_set_owning_container/README.md` §4.1). The
+proof alone leaves a residual on raw struct fields the ensures
+doesn't constrain. So a clean success-path corpus run is gated on
+Phase-2 A-2 landing first. The wiring/escalation logic is fully
+exercised and ready.
+

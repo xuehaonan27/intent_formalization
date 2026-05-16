@@ -23,6 +23,7 @@ from pathlib import Path
 from spec_determinism.classify import (
     BUCKET_INCONCLUSIVE,
     BUCKET_PROVED,
+    BUCKET_PROVED_LLM,
     BUCKET_UNKNOWN_KIND,
     BUCKET_WITNESS,
     OK_BUCKETS,
@@ -53,6 +54,9 @@ def render(per_project: dict[str, list[dict]]) -> str:
                  "determinism check before any schema narrowing):")
     lines.append(">")
     lines.append("> * **`ok_proved`** — R0 = `unsat` → function is provably deterministic.")
+    lines.append("> * **`ok_proved_llm`** — R0 was `unknown`; the LLM proof loop "
+                 "wrote an `assert/by`-style block that Verus accepted. Soundness "
+                 "preserved by the sandbox lex-allowlist.")
     lines.append("> * **`ok_witness`** — R0 = `sat` → z3 produced a real "
                  "nondeterminism counterexample.")
     lines.append("> * **`ok_inconclusive`** — R0 = `unknown` (or legacy run without "
@@ -63,10 +67,10 @@ def render(per_project: dict[str, list[dict]]) -> str:
     # --- Overview table ---
     lines.append("## Per-project overview")
     lines.append("")
-    lines.append("| project | n | ok_proved | ok_witness | ok_inconclusive | search_error | verus_error | extract_error | other |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("| project | n | ok_proved | ok_proved_llm | ok_witness | ok_inconclusive | search_error | verus_error | extract_error | other |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     total = Counter()
-    proved_total = witness_total = inconc_total = unk_total = 0
+    proved_total = proved_llm_total = witness_total = inconc_total = unk_total = 0
     for proj, results in per_project.items():
         c = Counter(r.get("status", "?") for r in results)
         ok = c.get("ok", 0)
@@ -79,21 +83,27 @@ def render(per_project: dict[str, list[dict]]) -> str:
             if r.get("status") == "ok":
                 buckets[classify_ok(r)] += 1
         proved = buckets[BUCKET_PROVED]
+        proved_llm = buckets[BUCKET_PROVED_LLM]
         witness = buckets[BUCKET_WITNESS]
         inconc = buckets[BUCKET_INCONCLUSIVE]
         unk = buckets[BUCKET_UNKNOWN_KIND]
         total.update(c)
         proved_total += proved
+        proved_llm_total += proved_llm
         witness_total += witness
         inconc_total += inconc
         unk_total += unk
-        if (proved + witness + inconc + unk) != ok:
-            other += ok - (proved + witness + inconc + unk)
-        lines.append(f"| {proj} | {len(results)} | {proved} | {witness} | {inconc} | {se} | {ve} | {ee} | {other} |")
+        if (proved + proved_llm + witness + inconc + unk) != ok:
+            other += ok - (proved + proved_llm + witness + inconc + unk)
+        lines.append(
+            f"| {proj} | {len(results)} | {proved} | {proved_llm} | {witness} "
+            f"| {inconc} | {se} | {ve} | {ee} | {other} |"
+        )
     n_total = sum(len(r) for r in per_project.values())
     lines.append(
-        f"| **TOTAL** | **{n_total}** | **{proved_total}** | **{witness_total}** "
-        f"| **{inconc_total}** | **{total.get('search_error',0)}** "
+        f"| **TOTAL** | **{n_total}** | **{proved_total}** | **{proved_llm_total}** "
+        f"| **{witness_total}** | **{inconc_total}** "
+        f"| **{total.get('search_error',0)}** "
         f"| **{total.get('verus_error',0)}** | **{total.get('extract_error',0)}** | — |"
     )
     if unk_total:
@@ -214,6 +224,7 @@ def main() -> int:
             "n": len(results),
             "by_status": dict(Counter(r.get("status", "?") for r in results)),
             "ok_proved": buckets[BUCKET_PROVED],
+            "ok_proved_llm": buckets[BUCKET_PROVED_LLM],
             "ok_witness": buckets[BUCKET_WITNESS],
             "ok_inconclusive": buckets[BUCKET_INCONCLUSIVE],
             # Legacy compatibility: pre-T0 callers expected this single number.

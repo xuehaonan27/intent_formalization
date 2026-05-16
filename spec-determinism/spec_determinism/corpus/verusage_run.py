@@ -24,6 +24,7 @@ from pathlib import Path
 from spec_determinism.classify import (
     BUCKET_INCONCLUSIVE,
     BUCKET_PROVED,
+    BUCKET_PROVED_LLM,
     BUCKET_UNKNOWN_KIND,
     BUCKET_WITNESS,
     OK_BUCKETS,
@@ -127,6 +128,18 @@ def main() -> int:
                          "results-verusage/view_registry/<project>/ "
                          "location). Pass an empty/nonexistent path to "
                          "explicitly disable L4.")
+    ap.add_argument("--use-llm-proof", action="store_true",
+                    help="Escalate to LLM proof loop when the baseline z3 "
+                         "check returns `unknown`. Requires the `copilot` "
+                         "CLI on PATH. Disabled by default; can also be "
+                         "toggled via the env var SPEC_DET_LLM_PROOF=1.")
+    ap.add_argument("--llm-proof-max-attempts", type=int, default=3,
+                    help="Maximum LLM iterations per target before giving "
+                         "up and reporting ok_inconclusive (default: 3).")
+    ap.add_argument("--llm-proof-model", default=None,
+                    help="Copilot CLI --model passthrough.")
+    ap.add_argument("--llm-proof-effort", default=None,
+                    help="Copilot CLI --effort passthrough (e.g. low/medium/high).")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -208,6 +221,10 @@ def main() -> int:
                 artifact_dir=art_dir,
                 keep_tmp=args.keep_tmp,
                 view_registry=view_registry,
+                use_llm_proof=args.use_llm_proof,
+                llm_proof_max_attempts=args.llm_proof_max_attempts,
+                llm_proof_model=args.llm_proof_model,
+                llm_proof_effort=args.llm_proof_effort,
             )
         except Exception as e:
             r = {"file": str(file_path), "function": fn,
@@ -215,8 +232,12 @@ def main() -> int:
                  "error": f"{type(e).__name__}: {e}"}
         r["artifact_key"] = key
         results.append(r)
-        log.info("  → %s  rounds=%s  assumes=%s",
-                 r.get("status"), r.get("n_rounds"), len(r.get("assumes", [])))
+        log.info(
+            "  → %s  rounds=%s  assumes=%s  llm=%s",
+            r.get("status"), r.get("n_rounds"), len(r.get("assumes", [])),
+            "yes" if r.get("llm_assisted") else
+            (str(r.get("llm_proof_attempts")) if r.get("llm_proof_attempts") else "-"),
+        )
 
     full = out_root / "full_run.json"
     full.write_text(json.dumps(results, indent=2, default=str))
@@ -236,6 +257,8 @@ def main() -> int:
           f"n={len(results)}  wall={total_ms/1000:.1f}s")
     print(f"by status: {by_status}")
     print(f"  {BUCKET_PROVED:18s}: {ok_buckets[BUCKET_PROVED]:4d}  (R0=unsat, deterministic)")
+    if ok_buckets[BUCKET_PROVED_LLM]:
+        print(f"  {BUCKET_PROVED_LLM:18s}: {ok_buckets[BUCKET_PROVED_LLM]:4d}  (R0=unknown → LLM proof closed it)")
     print(f"  {BUCKET_WITNESS:18s}: {ok_buckets[BUCKET_WITNESS]:4d}  (R0=sat, real nondeterminism witness)")
     print(f"  {BUCKET_INCONCLUSIVE:18s}: {ok_buckets[BUCKET_INCONCLUSIVE]:4d}  (R0=unknown / legacy, z3 undecided)")
     if ok_buckets[BUCKET_UNKNOWN_KIND]:

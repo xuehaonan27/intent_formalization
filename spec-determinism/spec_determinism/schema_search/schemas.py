@@ -535,7 +535,23 @@ def _inject_extra_params(tmpl: str, extra_str: str) -> str:
 def render_guarded_template(
     det_spec: DetCheckSpec,
     schemas: list[SchemaBinding],
+    *,
+    proof_prelude: Optional[str] = None,
 ) -> str:
+    """Render the synthetic ``proof fn det_<f>`` source.
+
+    ``proof_prelude`` (optional) is a block of Verus statements that will
+    be inserted at the END of the proof fn body, *after* the schema
+    `if g_… { assume(...) }` scaffolding. The placement matches the
+    hand-written worked examples under
+    ``docs/examples/idea_a_set_owning_container/``: the LLM proof closes
+    the postcondition by deriving ``equal(r1, r2)`` from the ensures
+    hypotheses; whether the schema assumes have fired or not, the
+    proof's deduction is the same.
+
+    (The parameter is named ``proof_prelude`` for backward symmetry
+    with hand-written examples; logically it acts as a postlude.)
+    """
     extra_params: list[str] = []
     for s in schemas:
         extra_params.append(f"{s.guard_name}: bool")
@@ -549,6 +565,13 @@ def render_guarded_template(
     equal_call = f"{det_spec.equal_fn_name}({', '.join(eq_args)})"
 
     body = _render_body(schemas, equal_call)
+    if proof_prelude is not None and proof_prelude.strip():
+        body = (
+            body
+            + "\n    // === LLM PROOF BLOCK ===\n"
+            + proof_prelude.rstrip()
+            + "\n    // === END LLM PROOF BLOCK ===\n"
+        )
 
     tmpl = det_spec.det_check_template
     new_tmpl = _inject_extra_params(tmpl, extra_str)

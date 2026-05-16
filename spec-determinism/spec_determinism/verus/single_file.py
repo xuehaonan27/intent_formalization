@@ -11,6 +11,16 @@ Usage:
 
 The result dict matches the shape emitted by ``run_all.run_one`` so batch
 runners can aggregate results across both backends uniformly.
+
+LLM proof loop integration (opt-in)
+-----------------------------------
+When ``use_llm_proof=True`` (or env ``SPEC_DET_LLM_PROOF=1``) AND the
+baseline schema search returns ``r0_z3='unknown'``, we invoke
+:func:`spec_determinism.llm_proof.run_llm_proof_loop`. On success the
+function is reclassified as ``ok_proved_llm`` (see
+:mod:`spec_determinism.classify`) and the winning proof block is
+persisted alongside the artifact. Independent of the schema search
+result — the loop is opt-in and never runs by default.
 """
 from __future__ import annotations
 
@@ -24,6 +34,7 @@ import tempfile
 import time
 import traceback
 from pathlib import Path
+from typing import Optional
 
 from spec_determinism.extract.extractor import extract_spec
 from spec_determinism.codegen.gen_det import build_det_check_spec
@@ -145,6 +156,10 @@ def run_single_file(
     artifact_dir: Path | None = None,
     keep_tmp: bool = False,
     view_registry=None,
+    use_llm_proof: bool | None = None,
+    llm_proof_max_attempts: int = 3,
+    llm_proof_model: str | None = None,
+    llm_proof_effort: str | None = None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
 
@@ -159,6 +174,15 @@ def run_single_file(
     / unknown type whose ``TypeInfo.spec_view`` is unset, before
     falling back to recursive structural equality. ``None`` preserves
     the legacy (pre-Phase-2) behaviour.
+
+    ``use_llm_proof`` (opt-in): when True AND the baseline returns
+    ``r0_z3='unknown'``, escalate to the LLM proof loop. Default is
+    ``None``, which respects env ``SPEC_DET_LLM_PROOF`` (any truthy
+    value enables). Successful runs set ``llm_assisted=True`` and
+    ``r0_z3='unsat'`` in the returned dict; the winning proof block
+    is persisted to ``artifact_dir/llm_proof_block.txt`` (when
+    artifact_dir is given) and the per-attempt logs land under
+    ``artifact_dir/llm_proof/``.
     """
     result: dict = {
         "file": str(file_path),
@@ -242,6 +266,71 @@ def run_single_file(
             result["error"] = (
                 f"{type(e).__name__}: {e}\n{traceback.format_exc()[-800:]}"
             )
+
+        # LLM proof loop escalation (opt-in). Triggered when baseline
+        # returned r0_z3=unknown AND opt-in. On success we overwrite
+        # r0_z3='unsat' and mark llm_assisted=True so the classifier
+        # buckets this as ok_proved_llm rather than ok_proved.
+        _llm_enabled = (
+            use_llm_proof
+            if use_llm_proof is not None
+            else bool(os.environ.get("SPEC_DET_LLM_PROOF"))
+        )
+        if (
+            _llm_enabled
+            and result.get("status") == "ok"
+            and result.get("r0_z3") == "unknown"
+        ):
+            try:
+                from spec_determinism.llm_proof import run_llm_proof_loop
+
+                proof_root = (
+                    (artifact_dir / "llm_proof")
+                    if artifact_dir is not None
+                    else (tmp_root / "llm_proof")
+                )
+                pr = run_llm_proof_loop(
+                    det_spec=det_spec,
+                    fn_spec=spec,
+                    source=source,
+                    file_stem=file_path.stem,
+                    verus_path=verus_path,
+                    work_root=proof_root,
+                    timeout=timeout,
+                    max_attempts=llm_proof_max_attempts,
+                    model=llm_proof_model,
+                    reasoning_effort=llm_proof_effort,
+                    artifact_dir=artifact_dir,
+                )
+                result["llm_proof_attempts"] = len(pr.attempts)
+                result["llm_proof_total_ms"] = pr.total_ms
+                if pr.success:
+                    result["llm_assisted"] = True
+                    result["r0_z3"] = "unsat"
+                    result["llm_proof_block"] = pr.winning_proof_block
+                    result["llm_proof_rationale"] = pr.winning_rationale
+                    logger.info(
+                        "llm_proof[%s]: succeeded after %d attempt(s) in %dms",
+                        fn_name, len(pr.attempts), pr.total_ms,
+                    )
+                else:
+                    result["llm_assisted"] = False
+                    last = pr.attempts[-1] if pr.attempts else None
+                    result["llm_proof_last_status"] = (
+                        last.status if last else "no_attempts"
+                    )
+                    logger.info(
+                        "llm_proof[%s]: exhausted %d attempt(s) without success",
+                        fn_name, len(pr.attempts),
+                    )
+            except Exception as e:
+                # Never crash the main pipeline on an LLM glitch.
+                result["llm_proof_error"] = (
+                    f"{type(e).__name__}: {e}\n{traceback.format_exc()[-800:]}"
+                )
+                logger.warning(
+                    "llm_proof[%s]: escalation crashed: %s", fn_name, e,
+                )
 
     finally:
         if not keep_tmp:

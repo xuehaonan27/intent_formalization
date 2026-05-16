@@ -407,3 +407,8 @@ class Witness:
     gap_type: str = ""
     gap_description: str = ""
     r0_z3: str = ""
+    # LLM proof loop attribution (populated by spec_determinism.llm_proof).
+    # Empty string means the loop was not invoked or did not succeed.
+    llm_proof_block: str = ""
+    llm_proof_rationale: str = ""
+    llm_proof_attempts: int = 0

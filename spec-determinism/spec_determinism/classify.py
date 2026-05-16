@@ -23,9 +23,17 @@ depends on what z3 returned at R0 (no schema narrowing applied):
     100 % of ``ok`` + ``assumes`` legacy results were R0=unknown, so we
     fall back to that classification.
 
+When the LLM proof loop (:mod:`spec_determinism.llm_proof`) closes an
+``unknown`` case by re-running Verus with an LLM-authored proof block,
+the driver overwrites ``r0_z3`` with ``"unsat"`` and sets the result key
+``llm_assisted=True``. The classifier then yields the dedicated
+``ok_proved_llm`` bucket so paper claims can distinguish baseline z3
+proofs from LLM-assisted proofs.
+
 This module returns one of:
 
-  * ``"ok_proved"``        — deterministic (R0=unsat)
+  * ``"ok_proved"``        — deterministic (R0=unsat, baseline z3 alone)
+  * ``"ok_proved_llm"``    — deterministic after LLM-authored proof block
   * ``"ok_witness"``       — real nondeterminism witness (R0=sat)
   * ``"ok_inconclusive"``  — undecided (R0=unknown, including legacy)
   * ``"ok_unknown_kind"``  — status==ok but r0_z3 has an unexpected value
@@ -35,11 +43,18 @@ from __future__ import annotations
 
 # Public bucket names — keep stable; tooling, summaries, slides reference them.
 BUCKET_PROVED = "ok_proved"
+BUCKET_PROVED_LLM = "ok_proved_llm"
 BUCKET_WITNESS = "ok_witness"
 BUCKET_INCONCLUSIVE = "ok_inconclusive"
 BUCKET_UNKNOWN_KIND = "ok_unknown_kind"
 
-OK_BUCKETS = (BUCKET_PROVED, BUCKET_WITNESS, BUCKET_INCONCLUSIVE, BUCKET_UNKNOWN_KIND)
+OK_BUCKETS = (
+    BUCKET_PROVED,
+    BUCKET_PROVED_LLM,
+    BUCKET_WITNESS,
+    BUCKET_INCONCLUSIVE,
+    BUCKET_UNKNOWN_KIND,
+)
 
 
 def classify_ok(result: dict) -> str:
@@ -49,6 +64,8 @@ def classify_ok(result: dict) -> str:
     """
     r0 = result.get("r0_z3", "")
     if r0 == "unsat":
+        if result.get("llm_assisted"):
+            return BUCKET_PROVED_LLM
         return BUCKET_PROVED
     if r0 == "sat":
         return BUCKET_WITNESS

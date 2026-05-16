@@ -1,6 +1,8 @@
 # Handling z3 `unknown` in the determinism check — strategy note
 
-> **Status**: discussion document (not yet implementation spec).
+> **Status**: discussion document. Idea A wired into the pipeline
+> 2026-05-15 (see `spec_determinism/llm_proof/` package and the
+> `--use-llm-proof` flag on `verusage_run`).
 > **Audience**: anyone working on the schema-search or its post-processing.
 > **Context**: empirical findings 2026-05-13 / 14, T0 bucket split landed 2026-05-15.
 
