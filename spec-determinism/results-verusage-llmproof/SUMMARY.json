@@ -1,0 +1,37 @@
+{
+  "memory-allocator": {
+    "by_status": {
+      "ok": 15,
+      "verus_error": 1
+    },
+    "n": 16,
+    "ok_inconclusive": 1,
+    "ok_proved": 14,
+    "ok_proved_llm": 0,
+    "ok_with_witness": 1,
+    "ok_witness": 0
+  },
+  "nrkernel": {
+    "by_status": {
+      "ok": 6,
+      "verus_error": 2
+    },
+    "n": 8,
+    "ok_inconclusive": 0,
+    "ok_proved": 6,
+    "ok_proved_llm": 0,
+    "ok_with_witness": 0,
+    "ok_witness": 0
+  },
+  "vest": {
+    "by_status": {
+      "ok": 2
+    },
+    "n": 2,
+    "ok_inconclusive": 0,
+    "ok_proved": 2,
+    "ok_proved_llm": 0,
+    "ok_with_witness": 0,
+    "ok_witness": 0
+  }
+}

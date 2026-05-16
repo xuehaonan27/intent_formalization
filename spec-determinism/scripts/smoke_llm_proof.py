@@ -136,6 +136,9 @@ def _run_test_b() -> bool:
     art = Path("/tmp/smoke_llm_proof_B")
     if art.exists(): shutil.rmtree(art)
     art.mkdir()
+    cache = Path("/tmp/smoke_llm_proof_cache")
+    if cache.exists(): shutil.rmtree(cache)
+    cache.mkdir()
     _real = _pv._run_verus
     _pv._run_verus = lambda *a, **kw: (0, "9 verified, 0 errors", 42)
     try:
@@ -145,6 +148,8 @@ def _run_test_b() -> bool:
             use_llm_proof=True,
             llm_proof_max_attempts=2,
             timeout=180,
+            llm_proof_cache_dir=cache,
+            llm_proof_cache_mode="use",
         )
     finally:
         _pv._run_verus = _real
@@ -156,7 +161,9 @@ def _run_test_b() -> bool:
         (art / "llm_proof_block.txt").exists()
         and (art / "llm_proof.verus_pass.rs").exists()
     )
+    cache_files = list(cache.glob("*.json"))
     print(f"  winning artifacts written: {artifacts_ok}")
+    print(f"  cache entries written: {len(cache_files)}")
     ok = (
         result.get("status") == "ok"
         and result.get("r0_z3") == "unsat"
@@ -164,19 +171,75 @@ def _run_test_b() -> bool:
         and result.get("llm_proof_attempts") == 1
         and bucket == BUCKET_PROVED_LLM
         and artifacts_ok
+        and len(cache_files) == 1
     )
     print("  Test B:", "PASS" if ok else "FAIL")
+    return ok
+
+
+def _run_test_c() -> bool:
+    """Cache hit re-uses prior proof without calling LLM."""
+    print()
+    print("=" * 60)
+    print("Test C: cache hit (skip LLM, re-verify via Verus)")
+    print("=" * 60)
+    cache = Path("/tmp/smoke_llm_proof_cache")  # populated by Test B
+    if not cache.exists() or not list(cache.glob("*.json")):
+        print("  SKIP — Test B did not populate the cache")
+        return False
+    art = Path("/tmp/smoke_llm_proof_C")
+    if art.exists(): shutil.rmtree(art)
+    art.mkdir()
+
+    # Patch CopilotCLI to raise — should not be called on a cache hit.
+    class _ExplodingClient:
+        def __init__(self, *a, **kw): pass
+        def query(self, *a, **kw):
+            raise AssertionError("LLM must not be called on a cache hit")
+    _real_cli = _pv.CopilotCLI
+    _pv.CopilotCLI = _ExplodingClient
+    _real_verus = _pv._run_verus
+    _pv._run_verus = lambda *a, **kw: (0, "re-verified", 17)
+    try:
+        result = run_single_file(
+            SRC, "set_owning_container",
+            artifact_dir=art,
+            use_llm_proof=True,
+            llm_proof_max_attempts=2,
+            timeout=180,
+            llm_proof_cache_dir=cache,
+            llm_proof_cache_mode="use",
+        )
+    finally:
+        _pv.CopilotCLI = _real_cli
+        _pv._run_verus = _real_verus
+
+    bucket = classify_ok(result) if result.get("status") == "ok" else "non-ok"
+    print(f"  status={result.get('status')} r0_z3={result.get('r0_z3')} "
+          f"llm_assisted={result.get('llm_assisted')} bucket={bucket}")
+    print(f"  llm_proof_attempts={result.get('llm_proof_attempts')} "
+          f"notes={result.get('llm_proof_notes')}")
+    ok = (
+        result.get("status") == "ok"
+        and result.get("r0_z3") == "unsat"
+        and result.get("llm_assisted") is True
+        and result.get("llm_proof_notes") == "cache_hit_verified"
+        and bucket == BUCKET_PROVED_LLM
+    )
+    print("  Test C:", "PASS" if ok else "FAIL")
     return ok
 
 
 def main() -> int:
     a = _run_test_a()
     b = _run_test_b()
+    c = _run_test_c()
     print()
     print("=" * 60)
-    print(f"OVERALL: {'PASS' if (a and b) else 'FAIL'}")
+    all_ok = a and b and c
+    print(f"OVERALL: {'PASS' if all_ok else 'FAIL'}")
     print("=" * 60)
-    return 0 if (a and b) else 1
+    return 0 if all_ok else 1
 
 
 if __name__ == "__main__":

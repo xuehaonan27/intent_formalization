@@ -160,6 +160,10 @@ def run_single_file(
     llm_proof_max_attempts: int = 3,
     llm_proof_model: str | None = None,
     llm_proof_effort: str | None = None,
+    llm_proof_cache_dir: Path | None = None,
+    llm_proof_cache_mode: str = "use",
+    llm_proof_timeout: int | None = None,
+    artifact_key: str | None = None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
 
@@ -283,6 +287,7 @@ def run_single_file(
         ):
             try:
                 from spec_determinism.llm_proof import run_llm_proof_loop
+                from spec_determinism.llm_proof.cache import CacheMode
 
                 proof_root = (
                     (artifact_dir / "llm_proof")
@@ -301,9 +306,15 @@ def run_single_file(
                     model=llm_proof_model,
                     reasoning_effort=llm_proof_effort,
                     artifact_dir=artifact_dir,
+                    cache_dir=llm_proof_cache_dir,
+                    cache_mode=CacheMode.parse(llm_proof_cache_mode),
+                    artifact_key=artifact_key,
+                    llm_timeout=llm_proof_timeout,
                 )
                 result["llm_proof_attempts"] = len(pr.attempts)
                 result["llm_proof_total_ms"] = pr.total_ms
+                if pr.notes:
+                    result["llm_proof_notes"] = pr.notes
                 if pr.success:
                     result["llm_assisted"] = True
                     result["r0_z3"] = "unsat"

@@ -140,6 +140,20 @@ def main() -> int:
                     help="Copilot CLI --model passthrough.")
     ap.add_argument("--llm-proof-effort", default=None,
                     help="Copilot CLI --effort passthrough (e.g. low/medium/high).")
+    ap.add_argument("--llm-proof-cache-dir", type=Path, default=None,
+                    help="Directory to persist LLM-authored proof blocks "
+                         "across runs. On hit the loop re-verifies the "
+                         "cached proof against current Verus and skips the "
+                         "LLM. Default: <results-root>/llm_proof_cache/<proj>/ "
+                         "computed from --out.")
+    ap.add_argument("--llm-proof-cache-mode", default="use",
+                    choices=["use", "refresh", "bypass"],
+                    help="`use` (default): read+write; `refresh`: ignore "
+                         "prior hits and overwrite; `bypass`: don't touch "
+                         "the cache.")
+    ap.add_argument("--llm-proof-timeout", type=int, default=None,
+                    help="Per-LLM-invocation timeout in seconds (default: "
+                         "max(--timeout, 600)). Separate from Verus timeout.")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -208,6 +222,21 @@ def main() -> int:
                  (len(llm_cache.all_entries()) if llm_cache else 0),
                  time.monotonic() - t_reg)
 
+    # Resolve LLM proof cache dir. Default: <out_root>/llm_proof_cache/
+    # (note: out_root already includes the project subdir in the rerun
+    # script's invocation, so this is per-project automatically).
+    llm_proof_cache_dir = None
+    if args.use_llm_proof:
+        if args.llm_proof_cache_dir is not None:
+            llm_proof_cache_dir = args.llm_proof_cache_dir.expanduser().resolve()
+        else:
+            # Co-locate cache with results so the same `--out` tree owns
+            # everything for a given experiment.
+            llm_proof_cache_dir = out_root / "llm_proof_cache"
+        llm_proof_cache_dir.mkdir(parents=True, exist_ok=True)
+        log.info("LLM-proof cache: %s (mode=%s)",
+                 llm_proof_cache_dir, args.llm_proof_cache_mode)
+
     results: list[dict] = []
     t0 = time.monotonic()
     for i, (file_path, fn, key) in enumerate(targets, 1):
@@ -225,6 +254,10 @@ def main() -> int:
                 llm_proof_max_attempts=args.llm_proof_max_attempts,
                 llm_proof_model=args.llm_proof_model,
                 llm_proof_effort=args.llm_proof_effort,
+                llm_proof_cache_dir=llm_proof_cache_dir,
+                llm_proof_cache_mode=args.llm_proof_cache_mode,
+                llm_proof_timeout=args.llm_proof_timeout,
+                artifact_key=key,
             )
         except Exception as e:
             r = {"file": str(file_path), "function": fn,

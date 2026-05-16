@@ -46,6 +46,10 @@ from spec_determinism.llm.copilot import CopilotCLI
 from .parser import ParsedProof, ProofParseError, parse_proof_response
 from .prompt import PromptInputs, build_proof_prompt
 from .sandbox import SandboxViolation, format_violations, scan_proof_block
+from .cache import (
+    CacheMode, CachedProof, compute_cache_key, default_artifact_key,
+    default_safe_name, load as cache_load, save as cache_save, utc_now_iso,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -214,21 +218,154 @@ def run_llm_proof_loop(
     reasoning_effort: Optional[str] = None,
     artifact_dir: Optional[Path] = None,
     crate_name: str = "",
+    cache_dir: Optional[Path] = None,
+    cache_mode: CacheMode = CacheMode.USE,
+    artifact_key: Optional[str] = None,
+    llm_timeout: Optional[int] = None,
 ) -> ProofResult:
     """Run K LLM round-trips trying to close a z3-unknown det check.
 
     Returns a :class:`ProofResult`. The caller decides how to fold the
     result into its existing per-target dict (e.g. set ``r0_z3='unsat'``
     on success and add ``llm_assisted=True``).
+
+    Persistent cache
+    ----------------
+    When ``cache_dir`` is provided and ``cache_mode != BYPASS`` we store
+    the final outcome (pass or fail) to
+    ``<cache_dir>/<artifact_key>.json`` keyed by
+    ``hash(det_spec, source)``. A subsequent run with mode ``USE`` and
+    a cache hit:
+
+      * **status=verus_pass**: re-verify the cached proof_block against
+        the current source via Verus. If Verus still accepts → return
+        a single synthetic ``ProofAttempt`` with status=verus_pass and
+        skip the LLM. If Verus rejects → log "stale cache", fall through
+        to a fresh LLM loop.
+      * **status != verus_pass**: trust the prior negative result and
+        return immediately without spending LLM tokens. Use mode
+        ``REFRESH`` to bypass this and retry.
+
+    ``cache_mode = REFRESH`` always ignores prior entries and overwrites.
+    ``cache_mode = BYPASS`` neither reads nor writes the cache.
     """
     t_total = time.monotonic()
     work_root.mkdir(parents=True, exist_ok=True)
+
+    # --- cache check ---
+    cache_key = compute_cache_key(det_spec, source)
+    if artifact_key is None:
+        artifact_key = default_artifact_key(det_spec, source)
+    cache_hit: Optional[CachedProof] = None
+    if cache_dir is not None and cache_mode is not CacheMode.BYPASS:
+        cache_hit = cache_load(cache_dir, artifact_key)
+        if cache_hit is not None and cache_hit.cache_key != cache_key:
+            logger.info(
+                "llm_proof[%s] cache: key mismatch (artifact_key=%s, stale entry); ignoring",
+                det_spec.function, artifact_key,
+            )
+            cache_hit = None
+
+    if cache_hit is not None and cache_mode is CacheMode.USE:
+        if cache_hit.status == "verus_pass":
+            # Re-verify the cached proof. Verus is the soundness check
+            # for any "trust me" hit, so we never promote without it.
+            logger.info("llm_proof[%s] cache hit (verus_pass) — re-verifying",
+                        det_spec.function)
+            try:
+                # Sandbox scan first (in case allowlist tightened).
+                violations = scan_proof_block(cache_hit.proof_block)
+                if violations:
+                    logger.warning(
+                        "llm_proof[%s] cache: cached proof now fails sandbox; falling through",
+                        det_spec.function,
+                    )
+                else:
+                    code = _render_det_body_with_proof(det_spec, cache_hit.proof_block)
+                    injected_text = _inject_into_source(source, code)
+                    verify_dir = work_root / "cache_verify"
+                    verify_dir.mkdir(exist_ok=True)
+                    rs_path = verify_dir / f"{file_stem}.rs"
+                    rs_path.write_text(injected_text)
+                    log_dir = verify_dir / "verus_log"
+                    log_dir.mkdir(exist_ok=True)
+                    rc, tail, dur = _run_verus(
+                        rs_path, verus_path, log_dir, timeout=timeout,
+                    )
+                    if rc == 0:
+                        # SUCCESS: return synthetic attempt and skip LLM.
+                        att = ProofAttempt(
+                            iteration=0,
+                            proof_block=cache_hit.proof_block,
+                            rationale=cache_hit.rationale,
+                            verus_returncode=0,
+                            verus_stderr_tail=tail,
+                            verus_ms=dur,
+                            status="verus_pass",
+                        )
+                        result = ProofResult(
+                            success=True,
+                            attempts=[att],
+                            winning_proof_block=cache_hit.proof_block,
+                            winning_rationale=cache_hit.rationale,
+                            total_ms=int((time.monotonic() - t_total) * 1000),
+                            notes="cache_hit_verified",
+                        )
+                        if artifact_dir is not None:
+                            artifact_dir.mkdir(parents=True, exist_ok=True)
+                            (artifact_dir / "llm_proof.verus_pass.rs").write_text(injected_text)
+                            (artifact_dir / "llm_proof_block.txt").write_text(
+                                cache_hit.proof_block
+                            )
+                        (work_root / "result.json").write_text(
+                            __import__("json").dumps(result.to_dict(), indent=2, default=str)
+                        )
+                        logger.info(
+                            "llm_proof[%s] cache hit re-verified in %dms (LLM skipped)",
+                            det_spec.function, dur,
+                        )
+                        return result
+                    logger.info(
+                        "llm_proof[%s] cache hit stale (Verus rc=%d); re-running LLM",
+                        det_spec.function, rc,
+                    )
+            except Exception as e:
+                logger.warning(
+                    "llm_proof[%s] cache re-verify crashed: %s; re-running LLM",
+                    det_spec.function, e,
+                )
+        else:
+            # Negative cache hit — skip LLM, return synthetic failure
+            # attempt so the caller can still surface why we didn't try.
+            logger.info(
+                "llm_proof[%s] cache hit (status=%s) — skipping LLM (use mode=refresh to retry)",
+                det_spec.function, cache_hit.status,
+            )
+            att = ProofAttempt(
+                iteration=0,
+                proof_block=cache_hit.proof_block,
+                rationale=cache_hit.rationale,
+                verus_returncode=None,
+                verus_stderr_tail=cache_hit.verus_stderr_tail,
+                verus_ms=cache_hit.verus_ms,
+                status=cache_hit.status,
+            )
+            result = ProofResult(
+                success=False,
+                attempts=[att],
+                total_ms=int((time.monotonic() - t_total) * 1000),
+                notes="cache_hit_negative",
+            )
+            (work_root / "result.json").write_text(
+                __import__("json").dumps(result.to_dict(), indent=2, default=str)
+            )
+            return result
 
     # Build LLM client lazily; CLI cost is one process spawn per attempt.
     client = CopilotCLI(
         model=model,
         reasoning_effort=reasoning_effort,
-        timeout=timeout,
+        timeout=llm_timeout if llm_timeout is not None else max(timeout, 600),
     )
 
     det_body_for_prompt = _render_det_fn_body_only(det_spec)
@@ -368,5 +505,38 @@ def run_llm_proof_loop(
     (work_root / "result.json").write_text(
         __import__("json").dumps(result.to_dict(), indent=2, default=str)
     )
+
+    # Persist to cache (USE / REFRESH; never on BYPASS).
+    if cache_dir is not None and cache_mode is not CacheMode.BYPASS:
+        last = result.attempts[-1] if result.attempts else None
+        entry = CachedProof(
+            cache_key=cache_key,
+            function=det_spec.function,
+            file=file_stem,
+            status=(last.status if last else "init"),
+            proof_block=(
+                result.winning_proof_block
+                if result.success
+                else (last.proof_block if last else "")
+            ),
+            rationale=(
+                result.winning_rationale
+                if result.success
+                else (last.rationale if last else "")
+            ),
+            attempts=len(result.attempts),
+            saved_at=utc_now_iso(),
+            verus_ms=(last.verus_ms if last else 0),
+            verus_stderr_tail=(
+                "" if result.success
+                else (last.verus_stderr_tail if last else "")
+            ),
+        )
+        try:
+            cache_save(cache_dir, entry)
+        except Exception as e:
+            logger.warning(
+                "llm_proof[%s] cache write failed: %s", det_spec.function, e,
+            )
 
     return result
