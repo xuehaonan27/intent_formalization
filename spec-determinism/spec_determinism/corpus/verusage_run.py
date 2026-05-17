@@ -287,6 +287,7 @@ def main() -> int:
                 llm_proof_timeout=args.llm_proof_timeout,
                 llm_proof_mode=args.llm_proof_mode,
                 llm_proof_session_timeout=args.llm_proof_session_timeout,
+                llm_proof_source_project_root=proj_root,
                 artifact_key=key,
             )
         except Exception as e:

@@ -165,6 +165,7 @@ def run_single_file(
     llm_proof_timeout: int | None = None,
     llm_proof_mode: str = "single_shot",
     llm_proof_session_timeout: int = 1800,
+    llm_proof_source_project_root: Path | None = None,
     artifact_key: str | None = None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
@@ -314,6 +315,8 @@ def run_single_file(
                     llm_timeout=llm_proof_timeout,
                     mode=llm_proof_mode,
                     session_timeout=llm_proof_session_timeout,
+                    source_project_root=llm_proof_source_project_root,
+                    source_file_path=file_path,
                 )
                 result["llm_proof_attempts"] = len(pr.attempts)
                 result["llm_proof_total_ms"] = pr.total_ms

@@ -26,6 +26,8 @@ LOG_DIR=/home/chentianyu/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b27
 MAX_ATTEMPTS=${MAX_ATTEMPTS:-2}
 CACHE_MODE=${CACHE_MODE:-use}
 LLM_TIMEOUT=${LLM_TIMEOUT:-600}
+LLM_MODE=${LLM_MODE:-single_shot}
+SESSION_TIMEOUT=${SESSION_TIMEOUT:-1800}
 MODEL=${MODEL:-}
 EFFORT=${EFFORT:-}
 
@@ -81,6 +83,8 @@ for proj in "${PROJECTS[@]}"; do
     --llm-proof-max-attempts "$MAX_ATTEMPTS" \
     --llm-proof-cache-mode   "$CACHE_MODE" \
     --llm-proof-timeout      "$LLM_TIMEOUT" \
+    --llm-proof-mode         "$LLM_MODE" \
+    --llm-proof-session-timeout "$SESSION_TIMEOUT" \
     "${model_flag[@]}" \
     > "$LOG_DIR/${proj}.log" 2>&1
   rc=$?

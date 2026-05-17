@@ -219,6 +219,8 @@ def _run_agentic_and_wrap(
     cache_mode: CacheMode,
     file: str,
     t_total: float,
+    source_project_root: Optional[Path] = None,
+    source_file_path: Optional[Path] = None,
 ) -> ProofResult:
     """Run one agentic Copilot CLI session and project the outcome into
     the existing :class:`ProofResult` shape so downstream tooling
@@ -236,6 +238,8 @@ def _run_agentic_and_wrap(
         verus_timeout=verus_timeout,
         sandbox_scan=scan_proof_block,
         file_stem=file,
+        source_project_root=source_project_root,
+        source_file_path=source_file_path,
     )
 
     # Project into the existing single-shot record types so the rest of
@@ -325,6 +329,8 @@ def run_llm_proof_loop(
     llm_timeout: Optional[int] = None,
     mode: str = "single_shot",
     session_timeout: int = 1800,
+    source_project_root: Optional[Path] = None,
+    source_file_path: Optional[Path] = None,
 ) -> ProofResult:
     """Run the LLM proof loop in either single-shot or agentic mode.
 
@@ -476,6 +482,8 @@ def run_llm_proof_loop(
             session_timeout=session_timeout, verus_timeout=timeout,
             cache_dir=cache_dir, cache_mode=cache_mode, file=file_stem,
             t_total=t_total,
+            source_project_root=source_project_root,
+            source_file_path=source_file_path,
         )
     if mode != "single_shot":
         raise ValueError(

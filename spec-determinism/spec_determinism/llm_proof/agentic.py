@@ -189,6 +189,8 @@ def _build_prompt(
     verus_path: str,
     timeout_min: int,
     prior_verus_tail: Optional[str],
+    source_project_root: Optional[Path] = None,
+    source_file_path: Optional[Path] = None,
 ) -> str:
     """Compose the single mega-prompt that drives the agentic session."""
     fn_ctx = ""
@@ -201,11 +203,42 @@ def _build_prompt(
         )
     elif source:
         fn_ctx = (
-            "\n## Source file (read-only reference; the relevant fn is "
+            "\n## Source file (full text; the relevant fn is "
             f"`{det_spec.function}`)\n\n"
             "```rust\n"
-            f"{source.strip()[:6000]}\n"
+            f"{source.rstrip()}\n"
             "```\n"
+        )
+
+    root_section = ""
+    if source_project_root is not None:
+        sfp = (
+            f"\nFile containing this function: `{source_file_path}`\n"
+            if source_file_path is not None
+            else ""
+        )
+        root_section = (
+            "\n## Source-project root (read-only; grep here for missing types)\n\n"
+            f"```\n{source_project_root}\n```\n"
+            f"{sfp}\n"
+            "The synthetic `det.rs` in the workdir is a **stub** — it lacks "
+            "imports and most type/struct/enum/impl/trait definitions. "
+            "**The proof block you write will be re-injected back into the "
+            "REAL source file** above and re-verified by us as the final "
+            "soundness check, so:\n\n"
+            "* **Do NOT invent struct fields, enum variants, or lemma names.** "
+            "If your proof references `r.id.data`, that field must actually "
+            "exist on the real type — otherwise the re-verify will fail with "
+            "`E0609: no field …`.\n"
+            "* When you don't know how a type is defined, `grep -rn` the "
+            "project root above. Type defs are often in sibling files. "
+            "Example:\n"
+            "  ```\n"
+            f"  grep -rn 'pub struct EndPoint' {source_project_root}\n"
+            f"  grep -rn 'pub enum CMessage' {source_project_root}\n"
+            f"  grep -rn 'fn view\\b' {source_project_root} | head -20\n"
+            "  ```\n"
+            "* Reason from the **real** types, not the synthetic stub.\n"
         )
 
     prior_section = ""
@@ -282,7 +315,7 @@ via bash to test. Read its stderr. Iterate.
   closing it, write a `give_up` result and exit so we can record
   the attempt.
 
-{fn_ctx}{prior_section}
+{root_section}{fn_ctx}{prior_section}
 ## Begin
 Start now. Don't print plans or commentary to stdout — operate by
 editing the file and running verus. Exit cleanly when done.
@@ -379,6 +412,8 @@ def run_agentic_session(
     prior_verus_tail: Optional[str] = None,
     sandbox_scan,  # callable: (proof_block: str) -> list[SandboxViolation]
     file_stem: str = "det_verify",
+    source_project_root: Optional[Path] = None,
+    source_file_path: Optional[Path] = None,
 ) -> AgenticOutcome:
     """Run a single Copilot-CLI agentic session against a synthetic det.rs.
 
@@ -427,6 +462,8 @@ def run_agentic_session(
         workdir=work_root, det_rs=det_rs, result_json=result_json,
         verus_path=verus_path, timeout_min=timeout_min,
         prior_verus_tail=prior_verus_tail,
+        source_project_root=source_project_root,
+        source_file_path=source_file_path,
     )
     (log_dir / "prompt.md").parent.mkdir(parents=True, exist_ok=True)
     (log_dir / "prompt.md").write_text(prompt)
