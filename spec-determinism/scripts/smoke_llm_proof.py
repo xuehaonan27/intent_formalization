@@ -230,13 +230,103 @@ def _run_test_c() -> bool:
     return ok
 
 
+def _run_test_d() -> bool:
+    """Agentic mode: one Copilot CLI session per target."""
+    print()
+    print("=" * 60)
+    print("Test D: agentic mode (CLI session mocked, Verus mocked rc=0)")
+    print("=" * 60)
+    art = Path("/tmp/smoke_llm_proof_D")
+    if art.exists(): shutil.rmtree(art)
+    art.mkdir()
+    cache = Path("/tmp/smoke_llm_proof_cache_agentic")
+    if cache.exists(): shutil.rmtree(cache)
+    cache.mkdir()
+
+    # Mock just the Copilot CLI session function (NOT subprocess.run
+    # globally — that would break single_file.py's own Verus invocation).
+    # The mock 'edits' det.rs by replacing the placeholder with a fake
+    # proof and writes the agent's result.json, then returns a happy
+    # AgenticSession.
+    import spec_determinism.llm_proof.agentic as _ag
+
+    FAKE_PROOF = "assert(true);  // pretend the agent proved it"
+
+    def _fake_session(*, prompt, timeout_s, cwd, log_dir):
+        det = Path(cwd) / "det.rs"
+        if det.exists():
+            text = det.read_text()
+            det.write_text(text.replace(_ag._INITIAL_PLACEHOLDER, FAKE_PROOF))
+        (Path(cwd) / "result.json").write_text(
+            json.dumps({"status": "pass", "iterations": 3,
+                        "notes": "mocked agent: replaced placeholder"})
+        )
+        log_dir.mkdir(parents=True, exist_ok=True)
+        (log_dir / "cli.stdout").write_text("mock CLI ok\n")
+        (log_dir / "cli.stderr").write_text("")
+        s = _ag.AgenticSession()
+        s.started_at = _ag._utc_now()
+        s.finished_at = _ag._utc_now()
+        s.cli_returncode = 0
+        s.cli_stderr_tail = ""
+        s.cli_ms = 12
+        return s
+
+    _real_verus = _ag._run_verus
+    _real_session = _ag._run_copilot_session
+    _ag._run_verus = lambda *a, **kw: (0, "0 verified mocked", 17)
+    _ag._run_copilot_session = _fake_session
+    try:
+        result = run_single_file(
+            SRC, "set_owning_container",
+            artifact_dir=art,
+            use_llm_proof=True,
+            llm_proof_max_attempts=1,
+            timeout=180,
+            llm_proof_cache_dir=cache,
+            llm_proof_cache_mode="use",
+            llm_proof_mode="agentic",
+            llm_proof_session_timeout=30,  # don't care, mocked
+        )
+    finally:
+        _ag._run_verus = _real_verus
+        _ag._run_copilot_session = _real_session
+
+    bucket = classify_ok(result) if result.get("status") == "ok" else "non-ok"
+    cache_files = list(cache.glob("*.json"))
+    print(f"  status={result.get('status')} r0_z3={result.get('r0_z3')} "
+          f"llm_assisted={result.get('llm_assisted')} bucket={bucket}")
+    print(f"  llm_proof_attempts={result.get('llm_proof_attempts')} "
+          f"notes={result.get('llm_proof_notes')}")
+    print(f"  cache entries: {len(cache_files)}")
+    block_ok = (art / "llm_proof_block.txt").exists() and (
+        FAKE_PROOF in (art / "llm_proof_block.txt").read_text()
+    )
+    outcome_dump_ok = (art / "agentic_outcome.json").exists()
+    print(f"  proof_block written + matches mock: {block_ok}")
+    print(f"  agentic_outcome.json written: {outcome_dump_ok}")
+    ok = (
+        result.get("status") == "ok"
+        and result.get("r0_z3") == "unsat"
+        and result.get("llm_assisted") is True
+        and result.get("llm_proof_attempts") == 1
+        and (result.get("llm_proof_notes") or "").startswith("agentic_session")
+        and bucket == BUCKET_PROVED_LLM
+        and len(cache_files) == 1
+        and block_ok and outcome_dump_ok
+    )
+    print("  Test D:", "PASS" if ok else "FAIL")
+    return ok
+
+
 def main() -> int:
     a = _run_test_a()
     b = _run_test_b()
     c = _run_test_c()
+    d = _run_test_d()
     print()
     print("=" * 60)
-    all_ok = a and b and c
+    all_ok = a and b and c and d
     print(f"OVERALL: {'PASS' if all_ok else 'FAIL'}")
     print("=" * 60)
     return 0 if all_ok else 1

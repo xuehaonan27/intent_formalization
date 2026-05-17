@@ -154,6 +154,19 @@ def main() -> int:
     ap.add_argument("--llm-proof-timeout", type=int, default=None,
                     help="Per-LLM-invocation timeout in seconds (default: "
                          "max(--timeout, 600)). Separate from Verus timeout.")
+    ap.add_argument("--llm-proof-mode", default="single_shot",
+                    choices=["single_shot", "agentic"],
+                    help="`single_shot` (default): N stateless `copilot -p` "
+                         "calls per target with Python-side iteration; "
+                         "`agentic`: one `copilot -p ... --allow-all-tools` "
+                         "session per target — the CLI edits a workdir "
+                         "file, runs Verus itself, and iterates inside one "
+                         "model session. Cache is namespaced per mode so "
+                         "the two can co-exist on disk for A/B comparison.")
+    ap.add_argument("--llm-proof-session-timeout", type=int, default=1800,
+                    help="Wall-clock cap for the agentic Copilot CLI "
+                         "session, in seconds (default: 1800 = 30 min). "
+                         "Ignored in single_shot mode.")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -225,17 +238,32 @@ def main() -> int:
     # Resolve LLM proof cache dir. Default: <out_root>/llm_proof_cache/
     # (note: out_root already includes the project subdir in the rerun
     # script's invocation, so this is per-project automatically).
+    #
+    # When --llm-proof-mode is set we namespace the cache by mode so the
+    # two modes can co-exist on disk (apples-to-apples A/B comparison).
+    # Legacy flat caches from before this flag existed are migrated
+    # automatically into the `single_shot/` subdir.
     llm_proof_cache_dir = None
     if args.use_llm_proof:
         if args.llm_proof_cache_dir is not None:
-            llm_proof_cache_dir = args.llm_proof_cache_dir.expanduser().resolve()
+            llm_proof_cache_base = args.llm_proof_cache_dir.expanduser().resolve()
         else:
-            # Co-locate cache with results so the same `--out` tree owns
-            # everything for a given experiment.
-            llm_proof_cache_dir = out_root / "llm_proof_cache"
+            llm_proof_cache_base = out_root / "llm_proof_cache"
+        llm_proof_cache_base.mkdir(parents=True, exist_ok=True)
+        llm_proof_cache_dir = llm_proof_cache_base / args.llm_proof_mode
         llm_proof_cache_dir.mkdir(parents=True, exist_ok=True)
-        log.info("LLM-proof cache: %s (mode=%s)",
-                 llm_proof_cache_dir, args.llm_proof_cache_mode)
+        # Migrate legacy flat *.json entries (pre-mode caches) into
+        # single_shot/ so they remain useable as the historical
+        # baseline without colliding with future agentic entries.
+        if args.llm_proof_mode == "single_shot":
+            for p in llm_proof_cache_base.glob("*.json"):
+                target = llm_proof_cache_dir / p.name
+                if not target.exists():
+                    p.rename(target)
+                    log.info("migrated legacy cache entry: %s → %s", p.name, target)
+        log.info("LLM-proof cache: %s (cache_mode=%s, llm_mode=%s)",
+                 llm_proof_cache_dir, args.llm_proof_cache_mode,
+                 args.llm_proof_mode)
 
     results: list[dict] = []
     t0 = time.monotonic()
@@ -257,6 +285,8 @@ def main() -> int:
                 llm_proof_cache_dir=llm_proof_cache_dir,
                 llm_proof_cache_mode=args.llm_proof_cache_mode,
                 llm_proof_timeout=args.llm_proof_timeout,
+                llm_proof_mode=args.llm_proof_mode,
+                llm_proof_session_timeout=args.llm_proof_session_timeout,
                 artifact_key=key,
             )
         except Exception as e:

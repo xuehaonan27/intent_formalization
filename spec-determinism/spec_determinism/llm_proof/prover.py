@@ -200,6 +200,107 @@ def _render_det_fn_body_only(det_spec: DetCheckSpec) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Agentic mode adapter — keeps the rest of single_file.py mode-agnostic.
+# ---------------------------------------------------------------------------
+
+
+def _run_agentic_and_wrap(
+    *,
+    det_spec: DetCheckSpec,
+    fn_spec: Optional[FunctionSpec],
+    source: str,
+    verus_path: str,
+    work_root: Path,
+    artifact_dir: Optional[Path],
+    artifact_key: Optional[str],
+    session_timeout: int,
+    verus_timeout: int,
+    cache_dir: Optional[Path],
+    cache_mode: CacheMode,
+    file: str,
+    t_total: float,
+) -> ProofResult:
+    """Run one agentic Copilot CLI session and project the outcome into
+    the existing :class:`ProofResult` shape so downstream tooling
+    (single_file.py, summary builders) is mode-agnostic.
+    """
+    from .agentic import run_agentic_session  # local import to avoid cycle
+
+    outcome = run_agentic_session(
+        det_spec=det_spec,
+        fn_spec=fn_spec,
+        source=source,
+        verus_path=verus_path,
+        work_root=work_root,
+        session_timeout=session_timeout,
+        verus_timeout=verus_timeout,
+        sandbox_scan=scan_proof_block,
+        file_stem=file,
+    )
+
+    # Project into the existing single-shot record types so the rest of
+    # the pipeline doesn't have to special-case mode.
+    sess = outcome.session
+    attempt = ProofAttempt(
+        iteration=1,
+        proof_block=outcome.final_proof_block,
+        rationale=sess.agent_notes,
+        sandbox_violations=outcome.sandbox_violations,
+        verus_returncode=outcome.verus_returncode,
+        verus_stderr_tail=outcome.verus_stderr_tail,
+        verus_ms=outcome.verus_ms,
+        llm_ms=sess.cli_ms,
+        status=outcome.status,
+    )
+    success = (outcome.status == "verus_pass")
+    result = ProofResult(
+        success=success,
+        attempts=[attempt],
+        winning_proof_block=outcome.final_proof_block if success else "",
+        winning_rationale=sess.agent_notes if success else "",
+        total_ms=int((time.monotonic() - t_total) * 1000),
+        notes=(
+            "agentic_session"
+            + (f":iters={sess.agent_iterations}" if sess.agent_iterations is not None else "")
+        ),
+    )
+
+    # Persist the agent's own session record for post-mortem debugging.
+    if artifact_dir is not None:
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        (artifact_dir / "agentic_outcome.json").write_text(
+            __import__("json").dumps(outcome.to_dict(), indent=2, default=str)
+        )
+        if outcome.final_proof_block:
+            (artifact_dir / "llm_proof_block.txt").write_text(outcome.final_proof_block)
+    (work_root / "result.json").write_text(
+        __import__("json").dumps(result.to_dict(), indent=2, default=str)
+    )
+
+    # Cache write (mirrors the single-shot post-loop write).
+    if cache_dir is not None and cache_mode is not CacheMode.BYPASS:
+        try:
+            cache_key = compute_cache_key(det_spec, source)
+            entry = CachedProof(
+                cache_key=cache_key,
+                function=det_spec.function or "",
+                file=file,
+                status=outcome.status,
+                proof_block=outcome.final_proof_block,
+                rationale=sess.agent_notes,
+                attempts=1,
+                saved_at=utc_now_iso(),
+                verus_ms=outcome.verus_ms,
+                verus_stderr_tail=outcome.verus_stderr_tail[-2000:] if outcome.verus_stderr_tail else "",
+            )
+            cache_save(cache_dir, entry)
+        except Exception as e:
+            logger.warning("agentic cache write failed for %s: %s", det_spec.function, e)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Main entry
 # ---------------------------------------------------------------------------
 
@@ -222,8 +323,10 @@ def run_llm_proof_loop(
     cache_mode: CacheMode = CacheMode.USE,
     artifact_key: Optional[str] = None,
     llm_timeout: Optional[int] = None,
+    mode: str = "single_shot",
+    session_timeout: int = 1800,
 ) -> ProofResult:
-    """Run K LLM round-trips trying to close a z3-unknown det check.
+    """Run the LLM proof loop in either single-shot or agentic mode.
 
     Returns a :class:`ProofResult`. The caller decides how to fold the
     result into its existing per-target dict (e.g. set ``r0_z3='unsat'``
@@ -360,6 +463,24 @@ def run_llm_proof_loop(
                 __import__("json").dumps(result.to_dict(), indent=2, default=str)
             )
             return result
+
+    # ===========================================================
+    # Mode dispatch: single_shot (default, the original loop) or
+    # agentic (one Copilot-CLI session per target, the new path).
+    # ===========================================================
+    if mode == "agentic":
+        return _run_agentic_and_wrap(
+            det_spec=det_spec, fn_spec=fn_spec, source=source,
+            verus_path=verus_path, work_root=work_root,
+            artifact_dir=artifact_dir, artifact_key=artifact_key,
+            session_timeout=session_timeout, verus_timeout=timeout,
+            cache_dir=cache_dir, cache_mode=cache_mode, file=file_stem,
+            t_total=t_total,
+        )
+    if mode != "single_shot":
+        raise ValueError(
+            f"unknown llm_proof mode: {mode!r} (allowed: single_shot, agentic)"
+        )
 
     # Build LLM client lazily; CLI cost is one process spawn per attempt.
     client = CopilotCLI(

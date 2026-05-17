@@ -163,6 +163,8 @@ def run_single_file(
     llm_proof_cache_dir: Path | None = None,
     llm_proof_cache_mode: str = "use",
     llm_proof_timeout: int | None = None,
+    llm_proof_mode: str = "single_shot",
+    llm_proof_session_timeout: int = 1800,
     artifact_key: str | None = None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
@@ -310,6 +312,8 @@ def run_single_file(
                     cache_mode=CacheMode.parse(llm_proof_cache_mode),
                     artifact_key=artifact_key,
                     llm_timeout=llm_proof_timeout,
+                    mode=llm_proof_mode,
+                    session_timeout=llm_proof_session_timeout,
                 )
                 result["llm_proof_attempts"] = len(pr.attempts)
                 result["llm_proof_total_ms"] = pr.total_ms
