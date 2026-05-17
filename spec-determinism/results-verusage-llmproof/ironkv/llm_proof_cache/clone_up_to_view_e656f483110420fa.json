@@ -1,0 +1,13 @@
+{
+  "cache_key": "e656f483110420fad2029a74b63f5a0954ac380928008e243757db065ce5fd6d",
+  "function": "clone_up_to_view",
+  "file": "single_delivery_model_impl2__receive_ack_impl",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures (`res@ == self@`) into context for r1 and r2 so the two\n// ensures-instances line up on the same `self_@` witness.\nassert(r1@ == self_@);\nassert(r2@ == self_@);\n\n// Transitively, the two views must coincide.\nassert(r1@ == r2@);\n\n// Unfold the view equality to the underlying byte sequence and close with\n// sequence extensionality, so any per-index check inside\n// `det_clone_up_to_view_equal` is discharged.\nassert(r1.id@ == self_.id@);\nassert(r2.id@ == self_.id@);\nassert(r1.id@ =~= r2.id@);\nassert(r1.id@ == r2.id@);",
+  "rationale": "Re-assert each ensures `ri@ == self_@` so both quantifier-free instances are pinned to the same `self_@`, then chain to `r1@ == r2@`; unfold to the underlying `id@` sequences and lift to extensional equality with `=~=` so any per-index/per-length check in `det_clone_up_to_view_equal` is closed.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T18:24:01Z",
+  "verus_ms": 1052,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1145:7\n     |\n1145 | proof fn det_clone_up_to_view(g_self...self_: EndPoint, r1: EndPoint, r2: EndPoint)\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1210:8\n     |\n1210 | assert(r1@ == self_@);\n     |        ^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1211:8\n     |\n1211 | assert(r2@ == self_@);\n     |        ^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

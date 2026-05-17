@@ -1,0 +1,13 @@
+{
+  "cache_key": "ceb31ff7bbd6f0455bb2d28d147db0e70330bb3611bb356ea2c36357bbb0afa3",
+  "function": "remove",
+  "file": "delegation_map_v__impl1_erase",
+  "status": "verus_fail",
+  "proof_block": "// Pull both runs' ensures-derived equalities for the returned key into\n// the proof context so the trigger gap between r1 and r2 is closed.\nassert(r1 == pre_self_@.index(i as int));\nassert(r2 == pre_self_@.index(i as int));\nassert(r1 == r2);\n\n// Do the same for the resulting view: both posts agree with\n// pre_self_@.remove(i as int), so by transitivity their views match.\nassert(post1_self_@ == pre_self_@.remove(i as int));\nassert(post2_self_@ == pre_self_@.remove(i as int));\nassert(post1_self_@ =~= post2_self_@);",
+  "rationale": "Both runs' ensures pin r_k to pre_self_@.index(i as int) and post_k@ to pre_self_@.remove(i as int); re-asserting each conjunct for r1 and r2 separately and closing with Seq::ext_equal (=~=) makes r1 == r2 and post1_self_@ == post2_self_@ explicit, which is what det_remove_equal needs.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T09:57:54Z",
+  "verus_ms": 539,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove/llm_proof/attempt_01/delegation_map_v__impl1_erase.rs:165:7\n    |\n165 | proof fn det_remove<K: KeyTrait + Veru..., post2_self_: StrictlyOrderedVec<K>, r2: K)\n    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove/llm_proof/attempt_01/delegation_map_v__impl1_erase.rs:185:8\n    |\n185 | assert(r1 == pre_self_@.index(i as int));\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_erase__remove/llm_proof/attempt_01/delegation_map_v__impl1_erase.rs:186:8\n    |\n186 | assert(r2 == pre_self_@.index(i as int));\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

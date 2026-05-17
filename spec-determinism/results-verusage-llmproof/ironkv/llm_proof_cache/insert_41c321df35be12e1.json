@@ -1,0 +1,13 @@
+{
+  "cache_key": "41c321df35be12e192079dff38aa1f9136204290cd1de26a5c2b8785d1312c99",
+  "function": "insert",
+  "file": "single_delivery_state_v__impl3__un_acked_messages_extend",
+  "status": "verus_fail",
+  "proof_block": "let common = pre_self_@.insert(key@, value);\nassert(\n    (post1_self_@ == common && post2_self_@ == common)\n        ==> post1_self_@ == post2_self_@\n);\nassert(\n    (post1_self_@ == pre_self_@.insert(key@, value)\n        && post2_self_@ == pre_self_@.insert(key@, value))\n        ==> post1_self_@ == post2_self_@\n);\nassert(\n    (post1_self_@ == pre_self_@.insert(key@, value)\n        && post2_self_@ == pre_self_@.insert(key@, value))\n        ==> post1_self_@ =~= post2_self_@\n);\nassert(r1 == r2);",
+  "rationale": "Bind the shared `pre_self_@.insert(key@, value)` term to a `let` so the two ensures equalities reduce to a common skolem, then assert the transitivity implication (both extensionally and structurally) that the determinism check needs; the unit return equality is trivial.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T20:16:58Z",
+  "verus_ms": 870,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nerror: postcondition not satisfied\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__insert/llm_proof/attempt_01/single_delivery_state_v__impl3__un_acked_messages_extend.rs:912:9\n    |\n910 |   proof fn det_insert<V>(g_key_id_len...<V>, r1: (), post2_self_: HashMap<V>, r2: ())\n    |         -----------------------------...--------------------------------------------- at the end of the function body\n911 |       ensures\n912 | /         ({\n913 | |             &&& (post1_self_@ == pre_self_@.insert(key@, value))\n914 | |             &&& (post2_self_@ == pre_self_@.insert(key@, value))\n915 | |         }) ==> det_insert_equal(r1, r2, post1_self_, post2_self_),\n    | |_________________________________________________________________^ failed this postcondition\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

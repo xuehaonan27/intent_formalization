@@ -1,4 +1,16 @@
 {
+  "ironkv": {
+    "by_status": {
+      "ok": 169,
+      "verus_error": 45
+    },
+    "n": 214,
+    "ok_inconclusive": 70,
+    "ok_proved": 98,
+    "ok_proved_llm": 1,
+    "ok_with_witness": 70,
+    "ok_witness": 0
+  },
   "memory-allocator": {
     "by_status": {
       "ok": 15,

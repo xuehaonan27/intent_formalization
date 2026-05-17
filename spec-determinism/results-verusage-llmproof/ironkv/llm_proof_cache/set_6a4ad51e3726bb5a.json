@@ -1,0 +1,13 @@
+{
+  "cache_key": "6a4ad51e3726bb5a44235c313468e9e893f44338dfbdf3dd8cfe9d2ec3f3fa00",
+  "function": "set",
+  "file": "delegation_map_v__impl1_set",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into the proof context so the two `forall`-bearing\n// `valid()` triggers and the `update`-equality facts line up.\nassert(post1_self_.valid());\nassert(post1_self_@ == pre_self_@.update(i as int, k));\nassert(post2_self_.valid());\nassert(post2_self_@ == pre_self_@.update(i as int, k));\n\n// Both views are the same Seq, so they are equal by transitivity.\nassert(post1_self_@ == post2_self_@);\n\n// Sequence extensionality lifts the view equality for the determinism check.\nassert(post1_self_@ =~= post2_self_@);",
+  "rationale": "Re-assert each run's ensures so z3 sees that post1_self_@ and post2_self_@ both equal the same `pre_self_@.update(i as int, k)`; then transitive view equality plus `=~=` (Seq extensionality) closes the determinism postcondition.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T10:33:49Z",
+  "verus_ms": 457,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set/llm_proof/attempt_01/delegation_map_v__impl1_set.rs:125:7\n    |\n125 | proof fn det_set<K: KeyTrait + VerusCl... post2_self_: StrictlyOrderedVec<K>, r2: ())\n    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set/llm_proof/attempt_01/delegation_map_v__impl1_set.rs:141:8\n    |\n141 | assert(post1_self_.valid());\n    |        ^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set/llm_proof/attempt_01/delegation_map_v__impl1_set.rs:142:8\n    |\n142 | assert(post1_self_@ == pre_self_@.update(i as int, k));\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

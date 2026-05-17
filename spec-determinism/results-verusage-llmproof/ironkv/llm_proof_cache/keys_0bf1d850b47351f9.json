@@ -1,0 +1,13 @@
+{
+  "cache_key": "0bf1d850b47351f9bd27de01a0db74e38bbd1903b5a84f040f9ace2b9423f903",
+  "function": "keys",
+  "file": "single_delivery_model_v__impl2__retransmit_un_acked_packets",
+  "status": "verus_fail",
+  "proof_block": "// Case-split on the antecedent of the implication so that, inside the\n// branch, both run-1 and run-2 ensures clauses are available as path\n// conditions on the same `self_@.dom()` witness. Then explicitly assert\n// the cross-run set equality so z3 instantiates `to_set()` /\n// `map_values` triggers on both `r1@` and `r2@` and chains through the\n// shared `self_@.dom()`.\nif (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n    && (r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom()) {\n    assert(r1@.map_values(|e: EndPoint| e@).to_set()\n        == r2@.map_values(|e: EndPoint| e@).to_set());\n}",
+  "rationale": "Case-split on the implication antecedent and assert the cross-run set equality so z3 instantiates the `to_set()`/`map_values` triggers on both `r1@` and `r2@` and chains them through the shared `self_@.dom()` witness.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T19:36:51Z",
+  "verus_ms": 1077,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__keys/llm_proof/attempt_01/single_delivery_model_v__impl2__retransmit_un_acked_packets.rs:1116:9\n     |\n1116 | /         ({\n1117 | |             &&& (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n1118 | |             &&& (r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n1119 | |         }) ==> det_keys_equal(r1, r2),\n     | |_____________________________________^ failed this postcondition\n...\n1165 | / if (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n1166 | |     && (r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom()) {\n1167 | |     assert(r1@.map_values(|e: EndPoint| e@).to_set()\n1168 | |         == r2@.map_values(|e: EndPoint| e@).to_set());\n1169 | | }\n     | |_- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

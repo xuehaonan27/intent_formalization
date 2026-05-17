@@ -1,0 +1,13 @@
+{
+  "cache_key": "608286d9f1085518030f2adb552a5b029afe8ce9172850fdc95e5421c0760f5a",
+  "function": "set",
+  "file": "array__impl2__init2zero",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into the proof context so the `=~=` triggers line up.\nassert(post1_self_.seq@ =~= pre_self_.seq@.update(i as int, out));\nassert(post2_self_.seq@ =~= pre_self_.seq@.update(i as int, out));\n\n// Restate the well-formedness facts so `det_set_equal` sees them too.\nassert(post1_self_.wf());\nassert(post2_self_.wf());\n\n// Both post-state seq views equal the same `pre_self_.seq@.update(i as int, out)`,\n// so by transitivity (sequence extensionality) they agree pointwise.\nassert(post1_self_.seq@ =~= post2_self_.seq@);",
+  "rationale": "Re-assert each run's `=~=` ensures so z3 instantiates both forall-triggers against the shared `pre_self_.seq@.update(i as int, out)`, then close with Seq::ext_equal (`=~=`) by transitivity to get `post1_self_.seq@ =~= post2_self_.seq@`.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T16:10:45Z",
+  "verus_ms": 521,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n  --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array__impl2__init2zero__set/llm_proof/attempt_01/array__impl2__init2zero.rs:81:7\n   |\n81 | proof fn det_set<A, const N: usize>(g_i..., r1: (), post2_self_: Array<A, N>, r2: ())\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n  --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array__impl2__init2zero__set/llm_proof/attempt_01/array__impl2__init2zero.rs:96:8\n   |\n96 | assert(post1_self_.seq@ =~= pre_self_.seq@.update(i as int, out));\n   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n  --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array__impl2__init2zero__set/llm_proof/attempt_01/array__impl2__init2zero.rs:97:8\n   |\n97 | assert(post2_self_.seq@ =~= pre_self_.seq@.update(i as int, out));\n   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

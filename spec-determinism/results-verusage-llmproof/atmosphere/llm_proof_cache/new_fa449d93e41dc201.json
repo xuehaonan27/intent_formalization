@@ -1,0 +1,13 @@
+{
+  "cache_key": "fa449d93e41dc20172e0c8be58272d4c37795cd864de2f97d56bd1f574b42a0f",
+  "function": "new",
+  "file": "array_set__impl0__new",
+  "status": "verus_fail",
+  "proof_block": "// The only ensures of `new()` is `ret.wf()`, i.e. `seq@.len() == N`.\n// Re-assert it for both candidate results and unfold to the underlying\n// seq-length equality, so z3 has the matching `r1.seq@.len()`,\n// `r2.seq@.len()`, and `N` terms in scope when it tries to discharge\n// the synthetic `det_new_equal(r1, r2)` check.\nassert(r1.wf());\nassert(r2.wf());\nassert(r1.seq@.len() == N);\nassert(r2.seq@.len() == N);\nassert(r1.seq@.len() == r2.seq@.len());",
+  "rationale": "The single ensures `ret.wf()` only constrains `seq@.len() == N`; re-asserting it for both `r1` and `r2` and unfolding to the shared seq-length equality lines up the two ensures-instantiations so z3 can close the determinism check.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T16:35:19Z",
+  "verus_ms": 519,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array_set__impl0__new__new/llm_proof/attempt_01/array_set__impl0__new.rs:126:7\n    |\n126 | proof fn det_new<A, const N: usize>(g_neq_tuple: bool, r1: Array<A, N>, r2: Array<A, N>)\n    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array_set__impl0__new__new/llm_proof/attempt_01/array_set__impl0__new.rs:140:8\n    |\n140 | assert(r1.wf());\n    |        ^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/atmosphere/artifacts/atmosphere__verified__array__array_set__impl0__new__new/llm_proof/attempt_01/array_set__impl0__new.rs:141:8\n    |\n141 | assert(r2.wf());\n    |        ^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

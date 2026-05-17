@@ -1,0 +1,13 @@
+{
+  "cache_key": "4d5184e6cd6d80e3508110ca28efff714ba9322a37943be0852abb451f273b70",
+  "function": "new",
+  "file": "single_delivery_model_impl2__receive_ack_impl",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into the proof context so triggers line up.\nassert(r1@ == Map::<AbstractEndPoint, V>::empty());\nassert(r2@ == Map::<AbstractEndPoint, V>::empty());\n\n// Map equality often needs the extensionality hint (`=~=`).\nassert(r1@ =~= r2@);\nassert(r1@ == r2@);",
+  "rationale": "Both runs of `new()` ensure the view equals `Map::empty()`, so re-asserting each side lifts the ensures into context, and `=~=` discharges Map extensionality so z3 can conclude `r1@ == r2@`.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T18:26:57Z",
+  "verus_ms": 930,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__new/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1145:7\n     |\n1145 | proof fn det_new<V>(g_neq_tuple: bool, r1: HashMap<V>, r2: HashMap<V>)\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__new/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1155:8\n     |\n1155 | assert(r1@ == Map::<AbstractEndPoint, V>::empty());\n     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__new/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1156:8\n     |\n1156 | assert(r2@ == Map::<AbstractEndPoint, V>::empty());\n     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

@@ -1,0 +1,13 @@
+{
+  "cache_key": "2f0c71cdc3c22b0164765c0b3a5fef35a8b0439ba1a0e36baf34fe7129a00b11",
+  "function": "insert",
+  "file": "delegation_map_v__impl3__set",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 1,
+  "saved_at": "2026-05-16T11:28:10Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__insert/llm_proof/attempt_01/llm/response.md (last error: timeout after 600s). See attempt logs in /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__set__insert/llm_proof/attempt_01/llm.",
+  "cache_schema": 1
+}

@@ -1,0 +1,13 @@
+{
+  "cache_key": "553cee93d75bf50cde1645b308a37cdc0ab4b5afeec965497e1048aab365a10c",
+  "function": "clone_up_to_view",
+  "file": "single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into the proof context so z3 lines up the two view obligations.\nassert(r1@ == self_@);\nassert(r2@ == self_@);\n\n// Transitivity through self_@ gives the view-equality that\n// det_clone_up_to_view_equal(r1, r2) reduces to.\nassert(r1@ == r2@);",
+  "rationale": "Re-assert each ensures (`ri@ == self_@`) so Verus instantiates both view-equality facts in the same context, then close by transitivity to obtain `r1@ == r2@`, which is exactly what `det_clone_up_to_view_equal` boils down to since the function's only ensures is the view equality.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T20:13:05Z",
+  "verus_ms": 749,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list__clone_up_to_view/llm_proof/attempt_01/single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list.rs:761:7\n    |\n761 | proof fn det_clone_up_to_view(g_neq_tuple: bool, self_: CSingleMessage, r1: CSingleMessage, r2: CSingleMessage)\n    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list__clone_up_to_view/llm_proof/attempt_01/single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list.rs:771:8\n    |\n771 | assert(r1@ == self_@);\n    |        ^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list__clone_up_to_view/llm_proof/attempt_01/single_delivery_state_v__impl0__lemma_seqno_in_un_acked_list.rs:772:8\n    |\n772 | assert(r2@ == self_@);\n    |        ^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

@@ -1,0 +1,13 @@
+{
+  "cache_key": "36d3c7f4458098266847566f8441a42b9a14708533ba80e3a76d638c21adc291",
+  "function": "insert",
+  "file": "single_delivery_state_v__impl1__insert",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into the proof context so the Map equality triggers line up.\nassert(post1_self_@ == pre_self_@.insert(key@, value));\nassert(post2_self_@ == pre_self_@.insert(key@, value));\n// Map extensionality: both views equal the same pre_self_@.insert(key@, value),\n// so they agree at every key and are equal to each other.\nassert(post1_self_@ =~= post2_self_@);",
+  "rationale": "Re-assert each run's ensures so the Map equality triggers fire for both post1_self_@ and post2_self_@, then close the determinism obligation by Map extensionality (=~=) since both views equal the same pre_self_@.insert(key@, value).",
+  "attempts": 1,
+  "saved_at": "2026-05-16T20:15:33Z",
+  "verus_ms": 439,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n  --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert/llm_proof/attempt_01/single_delivery_state_v__impl1__insert.rs:93:7\n   |\n93 | proof fn det_insert<V>(g_key_id_leneq: ...>, r1: (), post2_self_: HashMap<V>, r2: ())\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert/llm_proof/attempt_01/single_delivery_state_v__impl1__insert.rs:121:8\n    |\n121 | assert(post1_self_@ == pre_self_@.insert(key@, value));\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert/llm_proof/attempt_01/single_delivery_state_v__impl1__insert.rs:122:8\n    |\n122 | assert(post2_self_@ == pre_self_@.insert(key@, value));\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}
