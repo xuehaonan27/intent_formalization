@@ -109,6 +109,11 @@ class VariantInfo:
     name: str
     inner: Optional[TypeInfo] = None
     discriminant: Optional[int] = None  # explicit `= N` literal on unit variants
+    # True for Rust struct-form variants ``V { f1: T1, f2: T2 }``. The
+    # ``inner`` for these is a synthetic STRUCT whose fields are the
+    # variant's named fields; codegen accesses them via ``r->fname``
+    # (NOT ``r->V_0.fname`` like for tuple-form ``V(T1, T2)``).
+    struct_form: bool = False
 
     def to_dict(self) -> dict:
         d: dict = {"name": self.name}
@@ -116,6 +121,8 @@ class VariantInfo:
             d["inner"] = self.inner.to_dict()
         if self.discriminant is not None:
             d["discriminant"] = self.discriminant
+        if self.struct_form:
+            d["struct_form"] = True
         return d
 
     @staticmethod
@@ -124,6 +131,7 @@ class VariantInfo:
             name=d["name"],
             inner=TypeInfo.from_dict(d["inner"]) if d.get("inner") else None,
             discriminant=d.get("discriminant"),
+            struct_form=bool(d.get("struct_form", False)),
         )
 
 

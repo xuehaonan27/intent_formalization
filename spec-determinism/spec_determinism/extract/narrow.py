@@ -240,8 +240,23 @@ def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
                                   f"variant: {variant.name}")
         if ctx.test_and_set(variant_node, assume):
             if variant.inner:
-                inner_node = node.get_or_create(f"{variant.name}_0")
-                narrow(variant.inner, f"{var}->{variant.name}_0", inner_node, ctx)
+                if variant.struct_form and variant.inner.fields:
+                    # Struct-form variant: fields accessed via ``var->fname``.
+                    # Recurse into each named field independently so the
+                    # narrow strategies can probe them.
+                    for fld in variant.inner.fields:
+                        field_node = node.get_or_create(
+                            f"{variant.name}_0_{fld.name}"
+                        )
+                        narrow(
+                            fld.type,
+                            f"{var}->{fld.name}",
+                            field_node,
+                            ctx,
+                        )
+                else:
+                    inner_node = node.get_or_create(f"{variant.name}_0")
+                    narrow(variant.inner, f"{var}->{variant.name}_0", inner_node, ctx)
             return
 
 

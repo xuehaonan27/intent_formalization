@@ -1318,12 +1318,29 @@ def build_equal_expr(
             disc = f"(({lhs} is {v.name}) == ({rhs} is {v.name}))"
             parts.append(disc)
             if v.inner is not None:
-                # Single-field variant (e.g. Foo(T)). Compare ->{name}_0
-                inner_eq = build_equal_expr(
-                    v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0", policy,
-                    view_registry=view_registry,
-                    prelude_collector=prelude_collector,
-                )
+                if v.struct_form and v.inner.fields:
+                    # Struct-form variant ``V { f1, f2, ... }`` — Verus
+                    # accesses fields directly as ``lhs->fname``.
+                    field_clauses: list[str] = []
+                    for fld in v.inner.fields:
+                        field_clauses.append(build_equal_expr(
+                            fld.type,
+                            f"{lhs}->{fld.name}",
+                            f"{rhs}->{fld.name}",
+                            policy,
+                            view_registry=view_registry,
+                            prelude_collector=prelude_collector,
+                        ))
+                    inner_eq = " && ".join(f"({c})" for c in field_clauses) \
+                        if field_clauses else "true"
+                else:
+                    # Tuple-form variant ``V(T)`` — accessed via ``lhs->V_0``.
+                    inner_eq = build_equal_expr(
+                        v.inner, f"{lhs}->{v.name}_0", f"{rhs}->{v.name}_0",
+                        policy,
+                        view_registry=view_registry,
+                        prelude_collector=prelude_collector,
+                    )
                 parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
         return " && ".join(parts)
 

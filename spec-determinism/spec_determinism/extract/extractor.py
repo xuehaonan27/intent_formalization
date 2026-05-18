@@ -764,12 +764,51 @@ def _find_enum(
                         vname = _child_by_type(v, "identifier")
                         # Check for tuple inner type
                         inner = None
+                        struct_form = False
                         ofl = _child_by_type(v, "ordered_field_declaration_list")
                         if ofl:
                             for cc in ofl.children:
                                 if cc.type not in ("(", ")", ","):
                                     inner = _parse_type_node(cc)
                                     break
+                        else:
+                            # Rust struct-form variant: ``V { f1: T1, f2: T2 }``
+                            # Tree-sitter exposes the body as a
+                            # ``field_declaration_list``.
+                            fdl_v = _child_by_type(v, "field_declaration_list")
+                            if fdl_v is not None:
+                                named_fields: list[FieldInfo] = []
+                                for fc in fdl_v.children:
+                                    if fc.type != "field_declaration":
+                                        continue
+                                    fname_node = _child_by_type(fc, "field_identifier")
+                                    if fname_node is None:
+                                        continue
+                                    # The field's type is the first non-name,
+                                    # non-punct child; reuse _parse_type_node.
+                                    ftype_info: Optional[TypeInfo] = None
+                                    for fcc in fc.children:
+                                        if fcc.type in ("field_identifier",
+                                                        ":", ",",
+                                                        "visibility_modifier",
+                                                        "attribute_item"):
+                                            continue
+                                        ftype_info = _parse_type_node(fcc)
+                                        if ftype_info is not None:
+                                            break
+                                    if ftype_info is None:
+                                        continue
+                                    named_fields.append(FieldInfo(
+                                        name=_text(fname_node),
+                                        type=ftype_info,
+                                    ))
+                                if named_fields and vname:
+                                    inner = TypeInfo(
+                                        kind=TypeKind.STRUCT,
+                                        name=f"{name}::{_text(vname)}",
+                                        fields=named_fields,
+                                    )
+                                    struct_form = True
                         # Explicit discriminant: `Slab8 = 8` — parse the
                         # integer literal that follows '='. This turns the
                         # enum into a C-like int enum so narrow can emit
@@ -794,6 +833,7 @@ def _find_enum(
                                 name=_text(vname),
                                 inner=inner,
                                 discriminant=discriminant,
+                                struct_form=struct_form,
                             ))
                 return TypeInfo(kind=TypeKind.ENUM, name=name, variants=variants)
         for child in node.children:

@@ -158,7 +158,9 @@ def _patch_to_typeinfo(p: TypePatch) -> TypeInfo:
                     name=f"{p.name}::{vn}",
                     fields=tuple_fields,
                 )
-                variants.append(VariantInfo(name=vn, inner=inner))
+                variants.append(VariantInfo(
+                    name=vn, inner=inner, struct_form=True,
+                ))
             elif tuple_strs and not named_pairs:
                 if len(tuple_strs) == 1:
                     variants.append(

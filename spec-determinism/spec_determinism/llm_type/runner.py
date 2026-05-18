@@ -53,6 +53,7 @@ class CompletionTelemetry:
     llm_returncode: int = 0
     llm_timed_out: bool = False
     llm_wall_ms: int = 0
+    rounds_run: int = 0
     patches_proposed: int = 0
     patches_accepted: int = 0
     patches_rejected: int = 0
@@ -69,6 +70,7 @@ class CompletionTelemetry:
             "llm_returncode": self.llm_returncode,
             "llm_timed_out": self.llm_timed_out,
             "llm_wall_ms": self.llm_wall_ms,
+            "rounds_run": self.rounds_run,
             "patches_proposed": self.patches_proposed,
             "patches_accepted": self.patches_accepted,
             "patches_rejected": self.patches_rejected,
@@ -139,26 +141,79 @@ def complete_types(
     work_dir: Optional[str] = None,
     timeout_s: int = 300,
     skip_v3: bool = False,
+    max_rounds: int = 3,
     invoke_copilot=_invoke_copilot,         # injectable for tests
 ) -> CompletionResult:
     """Tier 1.5 entry point.
 
     Mutates ``spec.type_defs`` in place with any accepted patches.
+
+    Iterates: after applying patches in round N, re-runs ``detect_gaps``
+    in case the newly-resolved types reference yet-unresolved types
+    (e.g. ``CSingleMessage`` whose ``Message`` variant carries an
+    ``EndPoint``). Caps at ``max_rounds`` to bound LLM cost.
     """
     tel = CompletionTelemetry()
     result = CompletionResult(spec=spec, telemetry=tel)
 
     source = _read_source(project_root)
-    gaps = detect_gaps(spec, source)
-    tel.gap_count = len(gaps)
-    tel.gaps = sorted({g.name for g in gaps})
+    initial_gaps = detect_gaps(spec, source)
+    tel.gap_count = len(initial_gaps)
+    tel.gaps = sorted({g.name for g in initial_gaps})
 
-    if not gaps:
+    if not initial_gaps:
         return result
 
     if cache is None:
         cache = TypeCompletionCache(project_root)
 
+    if work_dir is None:
+        work_dir = os.path.join("/tmp", f"llmtype_{int(time.time()*1000)}_{os.getpid()}")
+    os.makedirs(work_dir, exist_ok=True)
+
+    resolved_names: set[str] = set()  # gaps fully handled (accepted or rejected)
+
+    for round_idx in range(max_rounds):
+        gaps = detect_gaps(spec, source)
+        # Drop names already processed (accepted+applied OR negatively cached)
+        gaps = [g for g in gaps if g.name not in resolved_names]
+        if not gaps:
+            break
+        tel.rounds_run = round_idx + 1
+        round_dir = os.path.join(work_dir, f"round_{round_idx}")
+        os.makedirs(round_dir, exist_ok=True)
+        _run_one_round(
+            spec=spec, gaps=gaps, project_root=project_root,
+            cache=cache, work_dir=round_dir, timeout_s=timeout_s,
+            skip_v3=skip_v3, invoke_copilot=invoke_copilot,
+            result=result, tel=tel, resolved_names=resolved_names,
+        )
+
+    # Persist telemetry artifact for debugging.
+    try:
+        (Path(work_dir) / "telemetry.json").write_text(
+            json.dumps(tel.to_dict(), indent=2)
+        )
+    except OSError:
+        pass
+
+    return result
+
+
+def _run_one_round(
+    *,
+    spec: FunctionSpec,
+    gaps: list[Gap],
+    project_root: str,
+    cache: TypeCompletionCache,
+    work_dir: str,
+    timeout_s: int,
+    skip_v3: bool,
+    invoke_copilot,
+    result: CompletionResult,
+    tel: CompletionTelemetry,
+    resolved_names: set[str],
+) -> None:
     # 1. Try cache first (per-type).
     remaining_gaps: list[Gap] = []
     cached_patches: list[TypePatch] = []
@@ -179,6 +234,7 @@ def complete_types(
             result.rejected_patches.append(
                 (entry.patch, f"cache-negative: {entry.reject_reason}")
             )
+            resolved_names.add(g.name)
         else:
             tel.cache_hits += 1
             cached_patches.append(entry.patch)
@@ -193,14 +249,12 @@ def complete_types(
             else:
                 result.rejected_patches.append((p, f"apply-skipped: {r.reason}"))
                 tel.patches_rejected += 1
+            resolved_names.add(p.name)
 
     if not remaining_gaps:
-        return result
+        return
 
-    # 3. LLM call for remaining gaps.
-    if work_dir is None:
-        work_dir = os.path.join("/tmp", f"llmtype_{int(time.time()*1000)}_{os.getpid()}")
-    os.makedirs(work_dir, exist_ok=True)
+    # 3. LLM call for remaining gaps in this round.
     out_path = os.path.join(work_dir, "type_patches.json")
     if os.path.isfile(out_path):
         os.unlink(out_path)  # ensure stale file doesn't pollute
@@ -217,7 +271,7 @@ def complete_types(
         timeout_s=timeout_s,
         log_dir=Path(work_dir),
     )
-    tel.llm_wall_ms = int((time.monotonic() - t0) * 1000)
+    tel.llm_wall_ms += int((time.monotonic() - t0) * 1000)
     tel.llm_returncode = getattr(session, "cli_returncode", -1)
     tel.llm_timed_out = bool(getattr(session, "cli_timed_out", False))
 
@@ -233,33 +287,47 @@ def complete_types(
             for g in remaining_gaps:
                 cache.put_rejected(g.name, f"LLM output parse error: {e}")
                 tel.rejected_by_gate["parse"] = tel.rejected_by_gate.get("parse", 0) + 1
+                resolved_names.add(g.name)
     else:
         logger.warning("Tier1.5: agent did not write %s", out_path)
         for g in remaining_gaps:
             cache.put_rejected(g.name, "LLM did not produce output file")
             tel.rejected_by_gate["no_output"] = tel.rejected_by_gate.get("no_output", 0) + 1
+            resolved_names.add(g.name)
 
-    tel.patches_proposed = len(raw_patches)
+    tel.patches_proposed += len(raw_patches)
 
     # 5. Convert raw → TypePatch, run V1/V2/V3.
     proposed: list[TypePatch] = []
+    proposed_names: set[str] = set()
     for d in raw_patches:
         try:
-            proposed.append(TypePatch.from_dict(d))
+            p = TypePatch.from_dict(d)
+            proposed.append(p)
+            proposed_names.add(p.name)
         except (KeyError, TypeError, ValueError) as e:
             logger.warning("Tier1.5: bad patch dict skipped: %s", e)
             tel.rejected_by_gate["schema"] = tel.rejected_by_gate.get("schema", 0) + 1
             tel.patches_rejected += 1
+
+    # Any requested gap the LLM declined to resolve in this round → mark as
+    # processed-this-round so we don't re-prompt for the same name. (A
+    # transitive re-detection in the next round would be a new entry.)
+    for g in remaining_gaps:
+        if g.name not in proposed_names:
+            resolved_names.add(g.name)
+            cache.put_rejected(g.name, "LLM did not propose a patch")
 
     accepted, rejected = run_gates(spec, proposed, project_root, skip_v3=skip_v3)
 
     for p, gate_result in rejected:
         result.rejected_patches.append((p, gate_result.reason))
         tel.reject_reasons.append(gate_result.reason)
-        # crude gate identifier from reason prefix
         gate_id = gate_result.reason.split(":", 1)[0] if ":" in gate_result.reason else "unknown"
         tel.rejected_by_gate[gate_id] = tel.rejected_by_gate.get(gate_id, 0) + 1
+        tel.patches_rejected += 1
         cache.put_rejected(p.name, gate_result.reason)
+        resolved_names.add(p.name)
 
     if accepted:
         apply_results = apply_patches(spec, accepted)
@@ -277,18 +345,7 @@ def complete_types(
                 tel.patches_rejected += 1
                 tel.rejected_by_gate["apply"] = tel.rejected_by_gate.get("apply", 0) + 1
                 cache.put_rejected(p.name, f"apply: {r.reason}")
-
-    tel.patches_rejected = len(result.rejected_patches)
-
-    # 6. Persist telemetry artifact for debugging.
-    try:
-        (Path(work_dir) / "telemetry.json").write_text(
-            json.dumps(tel.to_dict(), indent=2)
-        )
-    except OSError:
-        pass
-
-    return result
+            resolved_names.add(p.name)
 
 
 # ---------------------------------------------------------------------------
@@ -372,6 +429,7 @@ def _self_test() -> bool:
             spec_with_gap, proj,
             cache=TypeCompletionCache(proj, cache_root=cache_root),
             skip_v3=True,
+            max_rounds=1,
             invoke_copilot=fake_copilot,
         )
         if r.telemetry.gap_count == 0:
@@ -405,6 +463,7 @@ def _self_test() -> bool:
             spec_with_gap2, proj,
             cache=TypeCompletionCache(proj, cache_root=cache_root),
             skip_v3=True,
+            max_rounds=1,
             invoke_copilot=cant_call,
         )
         if invoked:
@@ -445,6 +504,7 @@ def _self_test() -> bool:
             spec_bad, proj,
             cache=TypeCompletionCache(proj, cache_root=cache_root),
             skip_v3=True,
+            max_rounds=1,
             invoke_copilot=fake_bad,
         )
         if r.telemetry.patches_accepted != 0:

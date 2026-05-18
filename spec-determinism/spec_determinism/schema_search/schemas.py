@@ -208,9 +208,17 @@ def _emit(
                 ("None", None),
             ]
         else:  # ENUM — may have no inner
-            variant_items = [(v.name, v.inner) for v in (ty.variants or [])]
+            variant_items = [(v.name, v.inner, v.struct_form)
+                             for v in (ty.variants or [])]
 
-        for (vname, inner_ty) in variant_items:
+        for item in variant_items:
+            # variant_items entries are 2-tuples for Result/Option, 3-tuples
+            # for ENUM (including struct_form flag); normalise to 3-tuple.
+            if len(item) == 2:
+                vname, inner_ty = item
+                struct_form_v = False
+            else:
+                vname, inner_ty, struct_form_v = item
             sid = _uniq(f"{tag_base}_is_{vname}")
             out.append(SchemaBinding(
                 id=sid, kind=SchemaKind.VARIANT_IS, rust_var=var,
@@ -219,10 +227,21 @@ def _emit(
                 parent_chain=list(parent_chain),
             ))
             if inner_ty is not None:
-                inner_var = f"{var}->{vname}_0"
-                child_chain = parent_chain + [(var, vname)]
-                _emit(inner_var, inner_ty, child_chain, out, seen_tags,
-                      projections_by_type, container_depth=container_depth)
+                if struct_form_v and inner_ty.fields:
+                    # Struct-form variant: each named field is its own
+                    # narrow target, accessed directly via ``var->fname``.
+                    child_chain = parent_chain + [(var, vname)]
+                    for fld in inner_ty.fields:
+                        _emit(
+                            f"{var}->{fld.name}", fld.type, child_chain,
+                            out, seen_tags, projections_by_type,
+                            container_depth=container_depth,
+                        )
+                else:
+                    inner_var = f"{var}->{vname}_0"
+                    child_chain = parent_chain + [(var, vname)]
+                    _emit(inner_var, inner_ty, child_chain, out, seen_tags,
+                          projections_by_type, container_depth=container_depth)
 
         # C-like enums (all unit variants with explicit discriminants, e.g.
         # `enum SlabSize { Slab8 = 8, ... }`) get an additional SCALAR_EQ
