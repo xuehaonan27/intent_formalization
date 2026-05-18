@@ -184,11 +184,15 @@ def main() -> int:
     log.info("Discovered %d target(s) under %s/%s/%s",
              len(targets), roots, args.project, args.subdir)
 
+    # Project root path (used both as a ViewRegistry input and as the
+    # `source_project_root` we pass to the LLM-proof pipeline so the
+    # agentic CLI can grep for missing type definitions).
+    proj_root = roots / args.project
+
     view_registry = None
     if args.use_view_registry:
         from spec_determinism.view.registry import ViewRegistry
         from spec_determinism.view.llm import ViewCache
-        proj_root = roots / args.project
         log.info("Building ViewRegistry from %s ...", proj_root)
         t_reg = time.monotonic()
         # PR-D2: attach the L4 LLM cache if one exists on disk.  We

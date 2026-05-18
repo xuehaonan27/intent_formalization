@@ -1172,6 +1172,17 @@ def build_equal_expr(
     # comparison so `errs_equivalent` reaches the nested Err. Raw `==` on
     # a spec Seq is element-wise structural and would compare Err payloads.
     if k == TypeKind.SEQ:
+        # PR-N: when the extractor recorded a `spec_view` on this SEQ, the
+        # type is really a wrapper (e.g. exec `Vec<T>`) whose struct-eq is
+        # not derivable from view equality (`Vec` is external_body in
+        # Verus). Compare through the view so the obligation matches what
+        # the wrapper's `ensures` actually delivers.
+        if ty.spec_view is not None:
+            return build_equal_expr(
+                ty.spec_view, f"({lhs})@", f"({rhs})@", policy,
+                view_registry=view_registry,
+                prelude_collector=prelude_collector,
+            )
         elem_ty = ty.type_args[0] if ty.type_args else None
         if elem_ty is not None and _container_needs_elementwise(elem_ty, policy):
             elem_eq = build_equal_expr(elem_ty, f"{lhs}[i]", f"{rhs}[i]", policy,
@@ -1187,6 +1198,15 @@ def build_equal_expr(
     # value-wise comparison. Domain must match, then each value is
     # compared via the policy-aware equal-expr.
     if k == TypeKind.MAP:
+        # PR-N: same wrapper rule as SEQ — when the extractor saw `spec_view`
+        # on this MAP, the type is really an exec `HashMap<K,V>` (or
+        # similar) and struct-eq is not derivable from view equality.
+        if ty.spec_view is not None:
+            return build_equal_expr(
+                ty.spec_view, f"({lhs})@", f"({rhs})@", policy,
+                view_registry=view_registry,
+                prelude_collector=prelude_collector,
+            )
         v_ty = ty.type_args[1] if len(ty.type_args) > 1 else None
         if v_ty is not None and _container_needs_elementwise(v_ty, policy):
             val_eq = build_equal_expr(v_ty, f"{lhs}[k]", f"{rhs}[k]", policy,
@@ -1519,6 +1539,7 @@ def _run_self_tests() -> int:
     # --- PR-G fixtures: nested Result inside containers ---
     int_ty = TypeInfo(TypeKind.INT, "int")
     u32_ty = TypeInfo(TypeKind.U32, "u32")
+    u8_ty = TypeInfo(TypeKind.U8, "u8")
     err_ty = TypeInfo(TypeKind.STRUCT, "MyErr")  # opaque error struct
     result_u32_err = TypeInfo(
         TypeKind.RESULT, "Result<u32, MyErr>",
@@ -1562,6 +1583,39 @@ def _run_self_tests() -> int:
     expr_seq_u32 = build_equal_expr(seq_u32, "s1", "s2", default_policy())
     check("Seq<u32> stays raw ==", expr_seq_u32, ["s1 == s2"],
           forbidden_substrs=["forall"])
+
+    # PR-N: Vec<u8> wrapper (kind=SEQ, spec_view=Seq<u8>) — Vec is
+    # external_body so struct-eq is not derivable. Must compare via @.
+    vec_u8_view = TypeInfo(TypeKind.SEQ, "Seq<u8>", type_args=[u8_ty])
+    vec_u8 = TypeInfo(TypeKind.SEQ, "Vec<u8>", type_args=[u8_ty],
+                      spec_view=vec_u8_view)
+    expr_vec_u8 = build_equal_expr(vec_u8, "v1", "v2", default_policy())
+    check("Vec<u8> (SEQ + spec_view) compares via @",
+          expr_vec_u8, ["(v1)@ == (v2)@"],
+          forbidden_substrs=["v1 == v2"])
+
+    # PR-N: Struct{ id: Vec<u8> } — STRUCT recurses into the Vec field,
+    # which must in turn compare via @ (the Case-1 ironkv shape).
+    from spec_determinism.extract.types import FieldInfo as _FI
+    end_point = TypeInfo(
+        TypeKind.STRUCT, "EndPoint",
+        fields=[_FI("id", vec_u8)],
+    )
+    expr_end_point = build_equal_expr(end_point, "r1", "r2", default_policy())
+    check("Struct{id: Vec<u8>} drops to view-eq on the Vec field",
+          expr_end_point, ["(r1.id)@ == (r2.id)@"],
+          forbidden_substrs=["r1.id == r2.id"])
+
+    # PR-N: HashMap<K,V> wrapper (kind=MAP, spec_view=Map<K,V>) — symmetric
+    # to the Vec case. struct-eq is not derivable; compare via @.
+    map_view = TypeInfo(TypeKind.MAP, "Map<int, u32>",
+                        type_args=[int_ty, u32_ty])
+    hashmap = TypeInfo(TypeKind.MAP, "HashMap<int, u32>",
+                       type_args=[int_ty, u32_ty], spec_view=map_view)
+    expr_hashmap = build_equal_expr(hashmap, "h1", "h2", default_policy())
+    check("HashMap<K,V> (MAP + spec_view) compares via @",
+          expr_hashmap, ["(h1)@ == (h2)@"],
+          forbidden_substrs=["h1 == h2"])
 
     # Map<int, Result<u32, MyErr>> — was buggy pre-PR-G.
     map_of_result = TypeInfo(TypeKind.MAP, "Map<int, Result<u32, MyErr>>",
