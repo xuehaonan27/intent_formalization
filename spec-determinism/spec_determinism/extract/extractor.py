@@ -673,6 +673,69 @@ def _find_struct(
     return walk(tree.root_node)
 
 
+def _find_view_method_return(tree: ts.Tree, struct_name: str) -> Optional[TypeInfo]:
+    """C-patch: find ``impl <struct_name> { spec fn view(self) -> X { ... } }``
+    and return the parsed return type ``X`` as a TypeInfo.
+
+    The ironkv convention (and the canonical Verus pattern for exposing a
+    spec view from an ``external_body`` struct or any exec wrapper) is to
+    write the view as an inherent ``spec fn`` rather than as a sibling
+    ``TView`` struct. Without picking this up, gen_det's STRUCT branch
+    would descend into the wrapper's exec fields and emit field-access
+    obligations that Verus rejects for opaque datatypes.
+
+    Recognises both ``function_item`` (body present) and
+    ``function_signature_item`` (declarations like
+    ``pub uninterp spec fn view(self) -> Map<K,V>;``). Skips trait impls
+    (``impl Trait for Type``) and any view that lacks a named return type.
+    """
+    def walk(node: ts.Node) -> Optional[TypeInfo]:
+        if node.type == "impl_item":
+            # `impl Trait for Type` includes a `for` keyword child — skip
+            # those; only handle bare `impl Type { ... }`.
+            has_for = any(c.type == "for" for c in node.children)
+            type_id = _child_by_type(node, "type_identifier")
+            if not has_for and type_id and _text(type_id) == struct_name:
+                decl_list = _child_by_type(node, "declaration_list")
+                if decl_list:
+                    for d in decl_list.children:
+                        fn_node = d
+                        if d.type == "declaration_with_attrs":
+                            fn_node = next(
+                                (cc for cc in d.children
+                                 if cc.type in ("function_item",
+                                                "function_signature_item")),
+                                None,
+                            )
+                            if fn_node is None:
+                                continue
+                        if fn_node.type not in ("function_item",
+                                                "function_signature_item"):
+                            continue
+                        fmode = _child_by_type(fn_node, "function_mode")
+                        fid = _child_by_type(fn_node, "identifier")
+                        if (fmode is None or _text(fmode) != "spec"
+                                or fid is None or _text(fid) != "view"):
+                            continue
+                        ret = _child_by_type(fn_node, "named_return_type")
+                        if ret is None:
+                            continue
+                        type_node = next(
+                            (cc for cc in ret.children if cc.type != "->"),
+                            None,
+                        )
+                        if type_node is None:
+                            continue
+                        return _parse_type_node(type_node)
+        for child in node.children:
+            result = walk(child)
+            if result is not None:
+                return result
+        return None
+
+    return walk(tree.root_node)
+
+
 def _find_enum(
     tree: ts.Tree,
     name: str,
@@ -1109,6 +1172,24 @@ def _resolve_types(
                 _collect_unknown(view_type, view_worklist)
                 break
 
+    # C-patch (Tier 1, semantics-preserving): also pick up the ironkv-style
+    # `impl T { spec fn view(self) -> X { ... } }` convention. This is the
+    # canonical Verus pattern for exposing a spec view from an external_body
+    # struct (or any wrapper). Without this, codegen would descend into the
+    # struct's exec fields and emit obligations that Verus rejects (`field
+    # expression for an opaque datatype`). When the impl-side view exists,
+    # populate `spec_view` so the gen_det STRUCT branch falls back to
+    # `(lhs)@ == (rhs)@`.
+    for name, td in list(type_defs.items()):
+        if td.spec_view is not None:
+            continue
+        for t in trees:
+            ret_ty = _find_view_method_return(t, name)
+            if ret_ty is not None:
+                td.spec_view = ret_ty
+                _collect_unknown(ret_ty, view_worklist)
+                break
+
     while view_worklist:
         name = view_worklist.pop()
         if name in seen:
@@ -1131,6 +1212,16 @@ def _resolve_types(
                     extra: set[str] = set()
                     _collect_unknown(v, extra)
                     view_worklist.update(extra - seen)
+                    break
+        # C-patch — also try `impl T { spec fn view -> X }` for pulled-in T.
+        if resolved.spec_view is None:
+            for t in trees:
+                ret_ty = _find_view_method_return(t, name)
+                if ret_ty is not None:
+                    resolved.spec_view = ret_ty
+                    extra2: set[str] = set()
+                    _collect_unknown(ret_ty, extra2)
+                    view_worklist.update(extra2 - seen)
                     break
 
     # Second-pass substitution so newly-resolved names propagate into every slot
@@ -1185,6 +1276,61 @@ def _run_self_tests() -> int:
             f"got spec_view={id_field.type.spec_view if id_field else None!r}"
         )
 
+    # C-patch (Tier 1) — an external_body wrapper that exposes its spec view
+    # via `impl T { spec fn view(self) -> X }` must populate `T.spec_view`
+    # to X. Without this, gen_det descends into the wrapper's exec fields
+    # and emits obligations rejected by Verus.
+    src_view_impl_map = (
+        "#[verifier(external_body)] pub struct CKeyHashMap { m: u32 } "
+        "impl CKeyHashMap { "
+        "  pub uninterp spec fn view(self) -> Map<AbstractKey, Seq<u8>>; "
+        "}"
+    )
+    tdefs, _ = _resolve_types(
+        [],
+        TypeInfo(kind=TypeKind.UNKNOWN, name="CKeyHashMap"),
+        [src_view_impl_map],
+    )
+    chm = tdefs.get("CKeyHashMap")
+    if chm is None or chm.spec_view is None:
+        failures.append(
+            "C-patch: CKeyHashMap.spec_view must be populated from "
+            f"`impl CKeyHashMap {{ spec fn view -> ... }}`; got {chm}"
+        )
+    elif chm.spec_view.kind != TypeKind.MAP:
+        failures.append(
+            "C-patch: CKeyHashMap.spec_view should be Map<K,V> "
+            f"(kind=MAP); got kind={chm.spec_view.kind}, name={chm.spec_view.name!r}"
+        )
+
+    # Also exercise the inherent-view case where the view is itself a named
+    # struct (typical for `impl T { spec fn view -> AbstractT }`).
+    src_view_impl_struct = (
+        "pub struct EndPoint { pub id: Vec<u8>, } "
+        "impl EndPoint { "
+        "  pub open spec fn view(self) -> AbstractEndPoint { "
+        "    AbstractEndPoint { id: self.id@ } "
+        "  } "
+        "} "
+        "pub struct AbstractEndPoint { pub id: Seq<u8>, }"
+    )
+    tdefs2, _ = _resolve_types(
+        [],
+        TypeInfo(kind=TypeKind.UNKNOWN, name="EndPoint"),
+        [src_view_impl_struct],
+    )
+    ep = tdefs2.get("EndPoint")
+    if ep is None or ep.spec_view is None:
+        failures.append(
+            "C-patch: EndPoint.spec_view must be populated from "
+            f"`impl EndPoint {{ spec fn view -> AbstractEndPoint }}`; got {ep}"
+        )
+    elif ep.spec_view.name != "AbstractEndPoint":
+        failures.append(
+            "C-patch: EndPoint.spec_view should be AbstractEndPoint; "
+            f"got {ep.spec_view.name!r}"
+        )
+
     if failures:
         print(f"\n{len(failures)} failure(s):")
         for f in failures:
@@ -1195,6 +1341,11 @@ def _run_self_tests() -> int:
 
 
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        raise SystemExit(_run_self_tests())
+    print("usage: python -m spec_determinism.extract.extractor test")
+    raise SystemExit(2)
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "test":
         raise SystemExit(_run_self_tests())
