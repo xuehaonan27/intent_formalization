@@ -167,6 +167,10 @@ def run_single_file(
     llm_proof_session_timeout: int = 1800,
     llm_proof_source_project_root: Path | None = None,
     artifact_key: str | None = None,
+    use_llm_type_completion: bool = False,
+    llm_type_completion_cache_dir: Path | None = None,
+    llm_type_completion_timeout: int = 300,
+    llm_type_completion_project_root: Path | None = None,
 ) -> dict:
     """Extract, gen_det, verus, parse SMT2, run schema search.
 
@@ -208,6 +212,32 @@ def run_single_file(
     if not spec.ensures:
         result["status"] = "no_ensures"
         return result
+
+    if use_llm_type_completion:
+        try:
+            from spec_determinism.llm_type.runner import complete_types as _complete_types
+            from spec_determinism.llm_type.cache import TypeCompletionCache as _TCC
+            proj_root = str(
+                llm_type_completion_project_root
+                or llm_proof_source_project_root
+                or Path(file_path).parent
+            )
+            tcc = _TCC(proj_root, cache_root=str(llm_type_completion_cache_dir))\
+                if llm_type_completion_cache_dir else _TCC(proj_root)
+            work_dir = None
+            if artifact_dir is not None:
+                (artifact_dir / "tier15").mkdir(parents=True, exist_ok=True)
+                work_dir = str(artifact_dir / "tier15")
+            tier15 = _complete_types(
+                spec, proj_root,
+                cache=tcc,
+                work_dir=work_dir,
+                timeout_s=llm_type_completion_timeout,
+                skip_v3=True,  # gen_det downstream is the real V3 check
+            )
+            result["tier15"] = tier15.telemetry.to_dict()
+        except Exception as e:
+            result["tier15_error"] = f"{type(e).__name__}: {e}"
 
     det_spec = build_det_check_spec(spec, view_registry=view_registry)
     fn_det_name = det_spec.check_fn_name
@@ -337,6 +367,28 @@ def run_single_file(
                     result["llm_proof_last_status"] = (
                         last.status if last else "no_attempts"
                     )
+                    # Propagate the failing attempt's verus stderr tail so
+                    # downstream classification (assertion_failed vs
+                    # postcondition_unsat — the Tier 2 demand signal) can
+                    # be done from full_run.json without re-reading cache.
+                    if last and last.verus_stderr_tail:
+                        result["llm_proof_verus_stderr_tail"] = (
+                            last.verus_stderr_tail[-3000:]
+                        )
+                        tail = last.verus_stderr_tail.lower()
+                        if "postcondition not satisfied" in tail:
+                            kind = "postcondition_unsat"
+                        elif "assertion failed" in tail:
+                            kind = "assertion_failed"
+                        elif "recommends not met" in tail:
+                            kind = "recommends_not_met"
+                        elif "rlimit" in tail or "timeout" in tail:
+                            kind = "timeout"
+                        elif "error:" in tail:
+                            kind = "other_error"
+                        else:
+                            kind = "unknown_error"
+                        result["llm_proof_failure_kind"] = kind
                     logger.info(
                         "llm_proof[%s]: exhausted %d attempt(s) without success",
                         fn_name, len(pr.attempts),

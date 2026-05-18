@@ -167,6 +167,18 @@ def main() -> int:
                     help="Wall-clock cap for the agentic Copilot CLI "
                          "session, in seconds (default: 1800 = 30 min). "
                          "Ignored in single_shot mode.")
+    ap.add_argument("--llm-type-completion", action="store_true",
+                    help="Tier 1.5: between extract and gen_det, invoke "
+                         "Copilot CLI to fill in missing TypeInfo for "
+                         "generic/macro-wrapped types the extractor "
+                         "couldn't resolve. Results are cached per project "
+                         "+ type-name.")
+    ap.add_argument("--llm-type-completion-cache-dir", type=Path, default=None,
+                    help="Override default cache root "
+                         "(~/.cache/spec_determinism/type_completion).")
+    ap.add_argument("--llm-type-completion-timeout", type=int, default=300,
+                    help="Per-target Copilot CLI timeout for Tier 1.5 "
+                         "(default: 300s).")
     args = ap.parse_args()
 
     roots = args.roots.expanduser().resolve()
@@ -293,6 +305,10 @@ def main() -> int:
                 llm_proof_session_timeout=args.llm_proof_session_timeout,
                 llm_proof_source_project_root=proj_root,
                 artifact_key=key,
+                use_llm_type_completion=args.llm_type_completion,
+                llm_type_completion_cache_dir=args.llm_type_completion_cache_dir,
+                llm_type_completion_timeout=args.llm_type_completion_timeout,
+                llm_type_completion_project_root=proj_root,
             )
         except Exception as e:
             r = {"file": str(file_path), "function": fn,
