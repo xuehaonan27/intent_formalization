@@ -1,0 +1,13 @@
+Verus 's stderr tail for the agent's final det.rs (verus_ms = 1148):
+
+error: assertion failed
+  --> .../delegation_map_v__impl4__set.rs:657:16
+   |
+657|         assert(r1.id == r2.id);
+   |                ^^^^^^^^^^^^^^ assertion failed
+
+error: aborting due to 1 previous error; 12 warnings emitted
+
+(The 12 warnings are unrelated `get_Some_0` deprecation notes from
+ironkv's existing AbstractEndPoint::cmp_spec — they predate this
+example and are emitted regardless of what the proof block contains.)

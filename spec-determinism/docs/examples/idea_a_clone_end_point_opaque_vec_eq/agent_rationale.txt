@@ -1,0 +1,13 @@
+Agent's rationale on exit (verbatim from llm_proof_cache JSON):
+
+  clone_end_point spec ensures cloned_ep@ == ep@ (Seq-level equality
+  on id), but det_clone_end_point_equal(r1, r2) is r1.id == r2.id
+  (Vec equality). In Verus, Vec<T> has uninterpreted View, and there
+  is no axiom or ext_equal that lifts Seq-view equality to Vec
+  equality. Verified locally that even `requires a@==b@ ensures a==b`
+  for Vec<u8> fails. With opaque_ok=False the equivalence check is
+  fundamentally not provable from the given clone_end_point spec, so
+  giving up.
+
+Session stats: 1 attempt, 5 verus invocations during the session,
+1148 ms on the final re-verification we ran ourselves.
