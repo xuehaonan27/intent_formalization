@@ -59,6 +59,11 @@ class CompletionTelemetry:
     patches_rejected: int = 0
     reject_reasons: list[str] = field(default_factory=list)
     rejected_by_gate: dict[str, int] = field(default_factory=dict)
+    # Bug B — shape-mismatch probe (gen_det compile check) telemetry.
+    probe_invocations: int = 0
+    probe_wall_ms: int = 0
+    shape_mismatch_detected: int = 0
+    shape_mismatch_repaired: int = 0
 
     def to_dict(self) -> dict:
         return {
@@ -76,6 +81,10 @@ class CompletionTelemetry:
             "patches_rejected": self.patches_rejected,
             "reject_reasons": list(self.reject_reasons),
             "rejected_by_gate": dict(self.rejected_by_gate),
+            "probe_invocations": self.probe_invocations,
+            "probe_wall_ms": self.probe_wall_ms,
+            "shape_mismatch_detected": self.shape_mismatch_detected,
+            "shape_mismatch_repaired": self.shape_mismatch_repaired,
         }
 
 
@@ -143,6 +152,11 @@ def complete_types(
     skip_v3: bool = False,
     max_rounds: int = 3,
     invoke_copilot=_invoke_copilot,         # injectable for tests
+    # Bug B — gen_det compile probe for shape-mismatch detection.
+    probe_source_text: Optional[str] = None,
+    probe_verus_path: Optional[str] = None,
+    probe_timeout_s: int = 30,
+    view_registry=None,
 ) -> CompletionResult:
     """Tier 1.5 entry point.
 
@@ -152,6 +166,14 @@ def complete_types(
     in case the newly-resolved types reference yet-unresolved types
     (e.g. ``CSingleMessage`` whose ``Message`` variant carries an
     ``EndPoint``). Caps at ``max_rounds`` to bound LLM cost.
+
+    When ``probe_source_text`` is supplied, runs a ``verus --no-verify``
+    compile probe on the current gen_det output at the end of every
+    round. If the probe flags a "no method `view` found for struct
+    (Seq|Map|Set|Multiset)" pattern, the offending patches are reverted
+    (set back to UNKNOWN), their cache entries deleted, and a
+    ``REASON_SHAPE_MISMATCH`` gap with the captured stderr is queued for
+    the next round so the LLM gets a chance to correct the shape.
     """
     tel = CompletionTelemetry()
     result = CompletionResult(spec=spec, telemetry=tel)
@@ -172,11 +194,36 @@ def complete_types(
     os.makedirs(work_dir, exist_ok=True)
 
     resolved_names: set[str] = set()  # gaps fully handled (accepted or rejected)
+    pending_shape_gaps: list[Gap] = []
+    pending_stderr_tail: str = ""
 
     for round_idx in range(max_rounds):
+        # Bug B: revert any previously-applied bad patches so the next round
+        # gets a clean slate. detect_gaps will then re-surface the names as
+        # UNKNOWN_KIND; we then *replace* those entries with our richer
+        # SHAPE_MISMATCH gaps so the LLM gets the gen_det stderr context.
+        if pending_shape_gaps:
+            from spec_determinism.extract.types import TypeInfo as _TI, TypeKind as _TK
+            for g in pending_shape_gaps:
+                if g.name in spec.type_defs:
+                    spec.type_defs[g.name] = _TI(kind=_TK.UNKNOWN, name=g.name)
+                cache.delete(g.name)
+                resolved_names.discard(g.name)
+
         gaps = detect_gaps(spec, source)
-        # Drop names already processed (accepted+applied OR negatively cached)
         gaps = [g for g in gaps if g.name not in resolved_names]
+        # Replace detect_gaps entries whose name has a pending shape_mismatch
+        # so the LLM sees the richer reason+hint in the prompt.
+        if pending_shape_gaps:
+            pending_names = {g.name for g in pending_shape_gaps}
+            gaps = [g for g in gaps if g.name not in pending_names]
+            gaps.extend(pending_shape_gaps)
+
+        consumed_stderr_tail = pending_stderr_tail
+        repairing_names = {g.name for g in pending_shape_gaps}
+        pending_shape_gaps = []
+        pending_stderr_tail = ""
+
         if not gaps:
             break
         tel.rounds_run = round_idx + 1
@@ -187,7 +234,41 @@ def complete_types(
             cache=cache, work_dir=round_dir, timeout_s=timeout_s,
             skip_v3=skip_v3, invoke_copilot=invoke_copilot,
             result=result, tel=tel, resolved_names=resolved_names,
+            compile_stderr_tail=consumed_stderr_tail,
         )
+
+        # Count successful shape-mismatch repairs: a repairing name now has
+        # a non-UNKNOWN TypeInfo (LLM produced a corrected patch).
+        from spec_determinism.extract.types import TypeKind as _TK_repair
+        for nm in repairing_names:
+            td = spec.type_defs.get(nm)
+            if td is not None and td.kind != _TK_repair.UNKNOWN:
+                tel.shape_mismatch_repaired += 1
+
+        # Bug B probe: catch shape-mismatch errors the static gates miss.
+        if probe_source_text and result.applied_patches:
+            try:
+                from .probe import probe_gen_det_compile
+                probe = probe_gen_det_compile(
+                    spec, probe_source_text,
+                    file_stem=f"round_{round_idx}_probe",
+                    verus_path=probe_verus_path
+                    or str(Path.home() / "nanvix/toolchain/verus"),
+                    view_registry=view_registry,
+                    timeout=probe_timeout_s,
+                    work_dir=Path(round_dir) / "probe",
+                )
+                tel.probe_invocations += 1
+                tel.probe_wall_ms += probe.duration_ms
+                if probe.returncode != 0 and probe.stderr:
+                    from .gaps import gaps_from_compile_stderr
+                    new_shape = gaps_from_compile_stderr(probe.stderr, spec)
+                    if new_shape:
+                        tel.shape_mismatch_detected += len(new_shape)
+                        pending_shape_gaps = new_shape
+                        pending_stderr_tail = probe.stderr[-1500:]
+            except Exception as e:                  # pragma: no cover
+                logger.warning("Tier1.5 probe failed: %s", e)
 
     # Persist telemetry artifact for debugging.
     try:
@@ -213,6 +294,7 @@ def _run_one_round(
     result: CompletionResult,
     tel: CompletionTelemetry,
     resolved_names: set[str],
+    compile_stderr_tail: str = "",
 ) -> None:
     # 1. Try cache first (per-type).
     remaining_gaps: list[Gap] = []
@@ -259,7 +341,10 @@ def _run_one_round(
     if os.path.isfile(out_path):
         os.unlink(out_path)  # ensure stale file doesn't pollute
 
-    prompt = build_prompt(spec, remaining_gaps, out_path)
+    prompt = build_prompt(
+        spec, remaining_gaps, out_path,
+        compile_stderr_tail=compile_stderr_tail,
+    )
     (Path(work_dir) / "prompt.txt").write_text(prompt)
 
     tel.llm_invoked = True
@@ -512,6 +597,99 @@ def _self_test() -> bool:
             ok = False
         if r.telemetry.patches_rejected < 1:
             print(f"FAIL: should record rejection; got {r.telemetry.patches_rejected}")
+            ok = False
+
+        # Path 5: Bug B — gen_det compile probe detects shape mismatch
+        # (LLM patches an alias as a struct with spec_view=Seq<...>),
+        # the entry is reverted, and the next round's LLM (mocked) produces
+        # a corrected patch that survives the probe. We monkey-patch
+        # probe_gen_det_compile to return controlled stderr on the first
+        # call and clean stderr on the second.
+        from . import probe as probe_mod  # noqa: WPS433 (deliberate test patch)
+        from .probe import ProbeResult
+
+        with open(os.path.join(proj, "src", "host.rs"), "a") as f:
+            f.write(textwrap.dedent("""\
+                pub type AckList = Vec<u8>;
+                pub uninterp spec fn view(s: AckList) -> Seq<u8>;
+            """))
+
+        spec_shape = FunctionSpec(
+            name="g",
+            params=[Param(name="al", type=TI(TK.UNKNOWN, "AckList"))],
+            return_type=TI(TK.UNIT, "()"),
+            requires=[], ensures=["self.al@ == post.al@"],
+            type_defs={},
+        )
+
+        round_calls: list[dict] = []
+
+        def fake_two_round(*, prompt, cwd, out_path, timeout_s, log_dir):
+            round_calls.append({"has_stderr": "compile error" in prompt.lower()
+                                                  or "shape mismatch" in prompt.lower()
+                                                  or "no method named `view`" in prompt})
+            out = {
+                "type_patches": [{
+                    "name": "AckList",
+                    "kind": "struct",
+                    "fields": [],
+                    "spec_view": {"type_str": "Seq<u8>"},
+                    "source_evidence": {
+                        "rel_path": "src/host.rs",
+                        "line": 1,
+                        "snippet": "// line 1",
+                    },
+                }]
+            }
+            out_path.write_text(json.dumps(out))
+            class S: cli_returncode = 0; cli_timed_out = False; cli_ms = 10
+            return S()
+
+        probe_calls: list[int] = []
+
+        def fake_probe(spec, source_text, *, file_stem, verus_path,
+                       view_registry, timeout, work_dir):
+            probe_calls.append(1)
+            if len(probe_calls) == 1:
+                return ProbeResult(
+                    returncode=1,
+                    stderr=("error[E0599]: no method named `view` found "
+                            "for struct `vstd::seq::Seq<u8>` in the current scope"),
+                    duration_ms=42,
+                    skipped=False,
+                )
+            return ProbeResult(returncode=0, stderr="", duration_ms=10, skipped=False)
+
+        orig = probe_mod.probe_gen_det_compile
+        probe_mod.probe_gen_det_compile = fake_probe
+        try:
+            r = complete_types(
+                spec_shape, proj,
+                cache=TypeCompletionCache(proj, cache_root=cache_root),
+                skip_v3=True,
+                max_rounds=3,
+                invoke_copilot=fake_two_round,
+                probe_source_text="// dummy probe source",
+                probe_verus_path="/nonexistent/verus",
+            )
+        finally:
+            probe_mod.probe_gen_det_compile = orig
+
+        if r.telemetry.probe_invocations < 1:
+            print(f"FAIL: probe not invoked; tel={r.telemetry.to_dict()}")
+            ok = False
+        if r.telemetry.shape_mismatch_detected < 1:
+            print(f"FAIL: shape_mismatch not detected; tel={r.telemetry.to_dict()}")
+            ok = False
+        if r.telemetry.rounds_run < 2:
+            print(f"FAIL: shape-mismatch should force a 2nd round; got "
+                  f"rounds_run={r.telemetry.rounds_run}")
+            ok = False
+        if r.telemetry.shape_mismatch_repaired < 1:
+            print(f"FAIL: shape_mismatch_repaired should be ≥1; tel={r.telemetry.to_dict()}")
+            ok = False
+        if "AckList" not in spec_shape.type_defs:
+            print("FAIL: AckList not in type_defs after repair round")
             ok = False
 
     print("runner self-test:", "PASS" if ok else "FAIL")

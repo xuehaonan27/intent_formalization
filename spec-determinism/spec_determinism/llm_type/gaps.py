@@ -85,6 +85,7 @@ REASON_GENERIC_UNRESOLVED = "generic_unresolved"
 REASON_UNKNOWN_KIND = "unknown_kind"
 REASON_MACRO_WRAPPED = "macro_wrapped"
 REASON_MISSING_SPEC_VIEW = "missing_spec_view"
+REASON_SHAPE_MISMATCH = "shape_mismatch"
 
 
 # ---------------------------------------------------------------------------
@@ -285,6 +286,89 @@ def detect_gaps(spec: FunctionSpec, source: str) -> list[Gap]:
 
 
 # ---------------------------------------------------------------------------
+# Shape-mismatch detection from gen_det compile errors
+# ---------------------------------------------------------------------------
+
+# Match Verus/rustc errors emitted when gen_det's STRUCT/SEQ/MAP/SET branch
+# tries to call ``.view()`` on a prelude container that has no such method.
+# These occur when Tier 1.5 patched the outer type T with ``kind=STRUCT,
+# spec_view=Map<K,V>`` (or similar) but T is in fact a type alias for the
+# container itself — Verus resolves T to the container post-alias, then
+# rejects the gen_det-emitted ``(lhs)@`` because Map / Seq / Set / Multiset
+# do not carry a user-level ``view`` method.
+_VIEW_NOT_FOUND_RE = re.compile(
+    r"no method named\s+`view`\s+found for struct\s+"
+    r"`(?:[\w:]+::)?(Seq|Map|Set|Multiset)<[^`]*>`",
+)
+
+
+def gaps_from_compile_stderr(stderr: str, spec: FunctionSpec) -> list[Gap]:
+    """Inspect a Verus stderr captured after ``build_det_check_spec`` and
+    map any ``no method `view` found for struct <container>`` errors to
+    :data:`REASON_SHAPE_MISMATCH` gaps targeting the patched outer type.
+
+    The heuristic: for each detected container-kind error, scan
+    ``spec.type_defs`` for entries whose ``spec_view`` resolves to the
+    same container kind. Each match becomes a gap. We surface every
+    plausible candidate — the LLM is expected to disambiguate which
+    one(s) actually need correcting.
+    """
+    if not stderr:
+        return []
+    container_hits: set[str] = set()
+    for m in _VIEW_NOT_FOUND_RE.finditer(stderr):
+        container_hits.add(m.group(1))
+    if not container_hits:
+        return []
+
+    out: list[Gap] = []
+    seen: set[str] = set()
+
+    container_to_kind = {
+        "Seq": TypeKind.SEQ,
+        "Map": TypeKind.MAP,
+        "Set": TypeKind.SET,
+        # Multiset has no TypeKind enum value; name-based match still works.
+    }
+    for tname, td in spec.type_defs.items():
+        if td.kind != TypeKind.STRUCT:
+            continue
+        sv = td.spec_view
+        if sv is None:
+            continue
+        # Match the spec_view kind against the failing container heads.
+        for head in container_hits:
+            target_kind = container_to_kind.get(head)
+            sv_head_match = (
+                (target_kind is not None and sv.kind == target_kind)
+                or _bare_name(sv.name or "") == head
+            )
+            if not sv_head_match:
+                continue
+            key = (tname, head)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(Gap(
+                name=tname,
+                reason=REASON_SHAPE_MISMATCH,
+                where_seen=(
+                    f"gen_det emitted `({tname}_value)@` but Verus refused: "
+                    f"struct {tname} resolves to {head}<…> which has no view()"
+                ),
+                hint=(
+                    f"previous Tier 1.5 patch set kind=STRUCT, "
+                    f"spec_view={sv.name or head!r}; this is wrong when "
+                    f"{tname} is in fact a type alias `pub type {tname}<…> = "
+                    f"{head}<…>;` — change kind to {head.upper()} (drop the "
+                    f"wrapper struct) OR introduce a real one-field wrapper "
+                    f"struct + view body OR drop the patch entirely"
+                ),
+            ))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Self-tests
 # ---------------------------------------------------------------------------
 
@@ -384,6 +468,65 @@ impl Plain {
         ok = False
     if _bare_name("Foo") != "Foo":
         print("FAIL: _bare_name('Foo')")
+        ok = False
+
+    # --- gaps_from_compile_stderr ----------------------------------------
+    # Synthesise a spec whose AckList struct has spec_view=Seq<...> and a
+    # CSelf struct whose spec_view=Map<K,V>. Feed in a stderr that mentions
+    # both: we expect both names back as SHAPE_MISMATCH gaps.
+    from spec_determinism.extract.types import (
+        FunctionSpec as _FS, Param as _PP, TypeInfo as _TI, TypeKind as _TK,
+    )
+    sv_seq = _TI(_TK.SEQ, "Seq<SingleMessage<MT>>",
+                 type_args=[_TI(_TK.UNKNOWN, "SingleMessage<MT>")])
+    sv_map = _TI(_TK.MAP, "Map<EndPoint, V>",
+                 type_args=[_TI(_TK.UNKNOWN, "EndPoint"),
+                            _TI(_TK.UNKNOWN, "V")])
+    sm_spec = _FS(
+        name="f",
+        params=[_PP(name="x", type=_TI(_TK.UNIT, "()"))],
+        return_type=_TI(_TK.UNIT, "()"),
+        requires=[], ensures=[],
+        type_defs={
+            "AckList": _TI(_TK.STRUCT, "AckList", spec_view=sv_seq),
+            "CSelf": _TI(_TK.STRUCT, "CSelf", spec_view=sv_map),
+            "Plain": _TI(_TK.STRUCT, "Plain"),
+        },
+        self_type="CSelf",
+    )
+    stderr = (
+        "   |\n"
+        "error[E0599]: no method named `view` found for struct "
+        "`vstd::seq::Seq<A>` in the current scope\n"
+        "  --> /tmp/foo.rs:1118:35\n"
+        "   |\n"
+        "error[E0599]: no method named `view` found for struct "
+        "`vstd::map::Map<K, V>` in the current scope\n"
+    )
+    shape_gaps = gaps_from_compile_stderr(stderr, sm_spec)
+    shape_names = sorted((g.name, g.reason) for g in shape_gaps)
+    expected_shape = sorted([
+        ("AckList", REASON_SHAPE_MISMATCH),
+        ("CSelf", REASON_SHAPE_MISMATCH),
+    ])
+    if shape_names != expected_shape:
+        print(f"FAIL: shape_gaps {shape_names!r} != {expected_shape!r}")
+        ok = False
+    # Plain (no spec_view) must not surface
+    if any(g.name == "Plain" for g in shape_gaps):
+        print(f"FAIL: shape_gaps surfaced Plain (no spec_view)")
+        ok = False
+
+    # An unrelated stderr (no view-method error) produces no gaps.
+    no_match = gaps_from_compile_stderr(
+        "error[E0277]: the trait bound `T: Foo` is not satisfied\n", sm_spec)
+    if no_match:
+        print(f"FAIL: gaps_from_compile_stderr produced gaps on unrelated stderr: {no_match}")
+        ok = False
+
+    # Empty stderr returns empty list.
+    if gaps_from_compile_stderr("", sm_spec):
+        print("FAIL: empty stderr produced gaps")
         ok = False
 
     print("gaps self-test:", "PASS" if ok else "FAIL")

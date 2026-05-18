@@ -18,7 +18,7 @@ set -u
 
 cd /home/chentianyu/intent_formalization/spec-determinism
 
-ROOTS=/home/chentianyu/intent_formalization/verusage/source-projects
+ROOTS=${ROOTS:-/home/chentianyu/intent_formalization/verusage/source-projects}
 VIEW_CACHE_BASE=results-verusage/view_registry
 OUT=results-verusage-llmproof
 LOG_DIR=/home/chentianyu/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/llmproof_corpus_logs

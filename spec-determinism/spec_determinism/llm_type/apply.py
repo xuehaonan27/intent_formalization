@@ -229,14 +229,24 @@ def _substitute(ti: TypeInfo, type_defs: dict[str, TypeInfo]) -> TypeInfo:
 def apply_patches(
     spec: FunctionSpec,
     patches: list[TypePatch],
+    *,
+    allow_overwrite: bool = False,
 ) -> list[ApplyResult]:
     """Apply each patch to ``spec.type_defs`` in-place. Returns per-patch
-    outcomes; the caller decides what to do with rejections."""
+    outcomes; the caller decides what to do with rejections.
+
+    ``allow_overwrite=True`` lets the Tier 1.5 shape-mismatch loop replace
+    a previously-applied (but broken) patch with a corrected version. By
+    default we refuse to overwrite a non-UNKNOWN entry to avoid clobbering
+    real extractor output.
+    """
     results: list[ApplyResult] = []
 
     for p in patches:
         bare = p.name.split("<", 1)[0]
-        if bare in spec.type_defs and spec.type_defs[bare].kind != TypeKind.UNKNOWN:
+        if (bare in spec.type_defs
+                and spec.type_defs[bare].kind != TypeKind.UNKNOWN
+                and not allow_overwrite):
             results.append(ApplyResult(
                 name=p.name, accepted=False,
                 reason=f"{bare!r} already in type_defs as "

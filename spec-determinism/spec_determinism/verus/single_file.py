@@ -234,6 +234,9 @@ def run_single_file(
                 work_dir=work_dir,
                 timeout_s=llm_type_completion_timeout,
                 skip_v3=True,  # gen_det downstream is the real V3 check
+                probe_source_text=source,
+                probe_verus_path=verus_path,
+                view_registry=view_registry,
             )
             result["tier15"] = tier15.telemetry.to_dict()
         except Exception as e:

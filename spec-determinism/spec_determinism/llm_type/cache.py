@@ -161,6 +161,23 @@ class TypeCompletionCache:
             reject_reason=reason,
         ))
 
+    def delete(self, type_name: str) -> bool:
+        """Remove a cache entry. Returns True if a file was removed.
+
+        Used by the Tier 1.5 shape-mismatch loop: when a previously-cached
+        patch is shown (by the gen_det compile probe) to produce a bad
+        ``(lhs)@`` access, the cached patch is invalidated so the next
+        round's LLM call is not short-circuited by the same broken entry.
+        """
+        p = self._path(type_name)
+        try:
+            os.unlink(p)
+            return True
+        except FileNotFoundError:
+            return False
+        except OSError:
+            return False
+
     def list_entries(self) -> list[CacheEntry]:
         out = []
         for fn in sorted(os.listdir(self.cache_dir)):

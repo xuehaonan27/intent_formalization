@@ -40,7 +40,7 @@ guarded by macros) and emit a structured patch.
 TYPES TO RESOLVE
 ----------------
 {gap_table}
-
+{shape_mismatch_block}
 EXISTING type_defs (for context)
 --------------------------------
 {type_defs_summary}
@@ -57,6 +57,10 @@ WHAT TO DO
      — these are invisible to AST parsers; you must grep the macro body.
    - Implemented across multiple `impl<T> X<T> {{ ... }}` blocks — collect
      the `view` (or `view_with_args`) fn signature when present.
+   - **Type aliases**: `pub type X<T> = Map<K, T>;` — in that case the
+     correct patch sets `kind` to the container kind (struct→map/seq/set
+     in JSON would be wrong; see SHAPE-MISMATCH section below for
+     guidance) AND drops `spec_view`.
 2. For each type, identify:
    - kind: "struct" or "enum"
    - type_params (e.g. ["V"], ["K", "V"])
@@ -102,6 +106,46 @@ REQUIRED SCHEMA (strict)
 
 Important: write ONLY the JSON document to `{out_path}`. Do not embed
 markdown fences, prose, or anything else. After writing, exit cleanly.
+"""
+
+
+_SHAPE_MISMATCH_TEMPLATE = """
+PREVIOUS PATCH FAILED — gen_det compile error
+---------------------------------------------
+A prior Tier 1.5 round patched the type(s) below, but the synthesized
+det-fn fails to type-check with Verus. The error pattern is::
+
+    error[E0599]: no method named `view` found for struct
+    `vstd::{{seq,map,set}}::<container>` in the current scope
+
+Verus stderr (tail)::
+{compile_stderr_tail}
+
+This means the patch set ``kind=struct`` with ``spec_view=<container>``
+but the actual type in source is one of:
+
+  (A) a TYPE ALIAS to the container (e.g. ``pub type T<K,V> = Map<K,V>;``).
+      Verus resolves T post-alias, so calling ``T::view()`` is invalid.
+      Correct fix: do NOT patch T as a struct. Instead, return the patch
+      with ``kind`` reflecting the container head and omit ``spec_view``.
+      In JSON, since the schema only accepts "struct" or "enum", the
+      cleanest action is to OMIT the patch for T altogether (the
+      validator will drop it; the pipeline then falls back to the
+      prelude rule for the container, which is correct).
+
+  (B) a one-field wrapper struct (e.g. ``pub struct T<K,V> {{ m: Map<K,V> }}``).
+      Correct fix: re-patch with ``kind=struct`` and an explicit
+      ``fields`` list naming the inner field and its container type.
+      Keep or drop ``spec_view`` according to whether T actually has an
+      inherent ``spec fn view`` returning the container; if you keep
+      ``spec_view``, the source MUST contain that view fn.
+
+  (C) something else this assistant can't tell — drop the patch by
+      omitting it from the output.
+
+Re-grep the source to determine A vs B for each type listed in the
+TYPES TO RESOLVE table (rows tagged `shape_mismatch`). DO NOT re-emit
+the previous broken patch.
 """
 
 
@@ -155,13 +199,32 @@ def build_prompt(
     spec: FunctionSpec,
     gaps: list[Gap],
     out_path: str,
+    *,
+    compile_stderr_tail: str = "",
 ) -> str:
     # NOTE: _PROMPT_TEMPLATE uses ``str.format`` interpolation. Any literal
     # ``{`` / ``}`` in the template must be escaped as ``{{`` / ``}}``.
+    from .gaps import REASON_SHAPE_MISMATCH
+    shape_block = ""
+    has_shape = any(g.reason == REASON_SHAPE_MISMATCH for g in gaps)
+    if has_shape and compile_stderr_tail:
+        # Indent the stderr tail so it nests under the template heading.
+        indented = "\n".join(
+            "    " + ln for ln in compile_stderr_tail.splitlines()
+        )[:3000]
+        try:
+            shape_block = _SHAPE_MISMATCH_TEMPLATE.format(
+                compile_stderr_tail=indented,
+            )
+        except (KeyError, IndexError) as e:
+            raise RuntimeError(
+                f"build_prompt: shape-mismatch template has unescaped braces: {e}"
+            ) from e
     try:
         return _PROMPT_TEMPLATE.format(
             fn_name=spec.name,
             gap_table=_format_gap_table(gaps),
+            shape_mismatch_block=shape_block,
             type_defs_summary=_format_type_defs_summary(spec),
             ensures_block=_format_ensures_block(spec),
             out_path=out_path,
@@ -265,6 +328,32 @@ def _self_test() -> bool:
         pass
     else:
         print("FAIL: parse_llm_output should reject non-JSON")
+        ok = False
+
+    # build_prompt with shape_mismatch context — must include shape-block.
+    from .gaps import REASON_SHAPE_MISMATCH
+    shape_gaps = [Gap(
+        name="AckList", reason=REASON_SHAPE_MISMATCH,
+        where_seen="gen_det probe",
+        hint="prior patch set kind=struct, spec_view=Seq<...>",
+    )]
+    prompt_sm = build_prompt(
+        spec, shape_gaps, "/tmp/test_patches.json",
+        compile_stderr_tail=(
+            "error[E0599]: no method named `view` found for struct "
+            "`vstd::seq::Seq<A>`"
+        ),
+    )
+    for needle in ("PREVIOUS PATCH FAILED", "shape_mismatch",
+                   "Seq<A>", "TYPE ALIAS"):
+        if needle not in prompt_sm:
+            print(f"FAIL: shape_mismatch prompt missing {needle!r}")
+            ok = False
+
+    # build_prompt without shape_mismatch context — must NOT include shape-block.
+    prompt_plain = build_prompt(spec, gaps, "/tmp/test_patches.json")
+    if "PREVIOUS PATCH FAILED" in prompt_plain:
+        print("FAIL: non-shape_mismatch prompt should not include shape-block")
         ok = False
 
     print("prompt self-test:", "PASS" if ok else "FAIL")
