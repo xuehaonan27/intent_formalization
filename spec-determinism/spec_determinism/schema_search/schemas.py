@@ -210,6 +210,13 @@ def _emit(
         else:  # ENUM — may have no inner
             variant_items = [(v.name, v.inner, v.struct_form)
                              for v in (ty.variants or [])]
+        # Struct-form field names that occur in 2+ variants — Verus
+        # cannot emit ``arrow_f`` for them. Skip the per-field schema
+        # so the assume block does not reference uncompilable accessors.
+        ambiguous_struct_fields: set[str] = (
+            ty.ambiguous_struct_variant_fields()
+            if ty.kind == TypeKind.ENUM else set()
+        )
 
         for item in variant_items:
             # variant_items entries are 2-tuples for Result/Option, 3-tuples
@@ -228,6 +235,11 @@ def _emit(
             ))
             if inner_ty is not None:
                 if struct_form_v and inner_ty.fields:
+                    # Skip body schemas when any field name is shared with
+                    # another variant (no ``arrow_f`` accessor exists).
+                    if any(fld.name in ambiguous_struct_fields
+                           for fld in inner_ty.fields):
+                        continue
                     # Struct-form variant: each named field is its own
                     # narrow target, accessed directly via ``var->fname``.
                     child_chain = parent_chain + [(var, vname)]

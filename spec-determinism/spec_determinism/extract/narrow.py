@@ -235,6 +235,7 @@ def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
         return
 
     variant_node = node.get_or_create("variant")
+    ambiguous_struct_fields = ty.ambiguous_struct_variant_fields()
     for variant in ty.variants:
         assume = Assume.from_pred(var, VariantIsPred(var, variant.name),
                                   f"variant: {variant.name}")
@@ -242,6 +243,14 @@ def narrow_enum(ty: TypeInfo, var: str, node: AssumeNode, ctx: "SearchContext"):
             if variant.inner:
                 if variant.struct_form and variant.inner.fields:
                     # Struct-form variant: fields accessed via ``var->fname``.
+                    # Skip per-field narrowing when any field name is
+                    # ambiguous across variants — Verus cannot generate the
+                    # ``arrow_f`` accessor for those, so emitting the assume
+                    # would yield uncompilable det fns. The variant tag is
+                    # still pinned via the assume above.
+                    if any(fld.name in ambiguous_struct_fields
+                           for fld in variant.inner.fields):
+                        return
                     # Recurse into each named field independently so the
                     # narrow strategies can probe them.
                     for fld in variant.inner.fields:
@@ -991,6 +1000,55 @@ def _run_self_tests() -> int:
             failures.append(
                 f"CommitMask regression: missing {needle!r}; recorded:\n  {joined}"
             )
+
+    # Bug A — struct-form enum with field name shared across variants
+    # must NOT emit per-field assumes for the ambiguous variants (Verus
+    # cannot synthesize ``arrow_v`` when ``v`` is in 2+ variants). The
+    # variant-tag assume itself is still emitted.
+    from spec_determinism.extract.types import VariantInfo as _VI
+    sr_inner = TypeInfo(kind=TypeKind.STRUCT, name="CMsg::SetRequest",
+                        fields=[FieldInfo(name="v",
+                                          type=TypeInfo(kind=TypeKind.U32,
+                                                        name="u32"))])
+    rep_inner = TypeInfo(kind=TypeKind.STRUCT, name="CMsg::Reply",
+                         fields=[FieldInfo(name="v",
+                                           type=TypeInfo(kind=TypeKind.U32,
+                                                         name="u32"))])
+    del_inner = TypeInfo(kind=TypeKind.STRUCT, name="CMsg::Delegate",
+                         fields=[FieldInfo(name="h",
+                                           type=TypeInfo(kind=TypeKind.U32,
+                                                         name="u32"))])
+    cmsg_ty = TypeInfo(
+        kind=TypeKind.ENUM, name="CMsg",
+        variants=[
+            _VI("SetRequest", sr_inner, struct_form=True),
+            _VI("Reply", rep_inner, struct_form=True),
+            _VI("Delegate", del_inner, struct_form=True),
+        ],
+    )
+    # SetRequest matches first → ambiguous, skip body.
+    ctx = _StubCtx(replies=[True])
+    narrow(cmsg_ty, "self_", AssumeNode(key="self_"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "self_->v" in joined:
+        failures.append(
+            "Bug A: ambiguous struct-form field ``v`` must not be "
+            f"narrowed; recorded:\n  {joined}"
+        )
+    if "self_ is SetRequest" not in joined:
+        failures.append(
+            "Bug A: variant tag for ambiguous variant must still be "
+            f"emitted; recorded:\n  {joined}"
+        )
+    # Delegate has only ``h`` (unambiguous) → body should narrow.
+    ctx = _StubCtx(replies=[False, False, True])
+    narrow(cmsg_ty, "self_", AssumeNode(key="self_"), ctx)
+    joined = " | ".join(expr for (_, expr) in ctx.recorded)
+    if "self_->h" not in joined:
+        failures.append(
+            "Bug A: unambiguous struct-form field ``h`` should still be "
+            f"narrowed; recorded:\n  {joined}"
+        )
 
     if failures:
         print(f"\n{len(failures)} failure(s):")

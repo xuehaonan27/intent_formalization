@@ -1311,6 +1311,14 @@ def build_equal_expr(
         # when some variants are cfg-gated out of the active build.
         if ty.is_c_like_enum():
             return f"({lhs} as int) == ({rhs} as int)"
+        # Pre-compute the set of struct-form field names that appear in
+        # more than one variant. Verus only auto-generates an ``arrow_f``
+        # accessor when ``f`` is unique across all variants of the enum;
+        # for ambiguous names ``lhs->f`` errors with "method `arrow_f`
+        # not found". We fall back to whole-variant structural equality
+        # in that case (sound: ``lhs == rhs`` is strictly stronger than
+        # per-field equality given matching discriminators).
+        ambiguous_struct_fields = ty.ambiguous_struct_variant_fields()
         # For each variant, require both sides to be that variant and inner
         # fields to match. The discriminators must agree first.
         parts = []
@@ -1320,19 +1328,30 @@ def build_equal_expr(
             if v.inner is not None:
                 if v.struct_form and v.inner.fields:
                     # Struct-form variant ``V { f1, f2, ... }`` — Verus
-                    # accesses fields directly as ``lhs->fname``.
-                    field_clauses: list[str] = []
-                    for fld in v.inner.fields:
-                        field_clauses.append(build_equal_expr(
-                            fld.type,
-                            f"{lhs}->{fld.name}",
-                            f"{rhs}->{fld.name}",
-                            policy,
-                            view_registry=view_registry,
-                            prelude_collector=prelude_collector,
-                        ))
-                    inner_eq = " && ".join(f"({c})" for c in field_clauses) \
-                        if field_clauses else "true"
+                    # accesses fields directly as ``lhs->fname`` only when
+                    # the name is unambiguous across all variants.
+                    has_ambiguous = any(
+                        fld.name in ambiguous_struct_fields
+                        for fld in v.inner.fields
+                    )
+                    if has_ambiguous:
+                        # Fall back to whole-variant structural equality.
+                        # Sound: under the discriminator guard ``lhs is V``,
+                        # ``lhs == rhs`` implies all per-field equalities.
+                        inner_eq = f"{lhs} == {rhs}"
+                    else:
+                        field_clauses: list[str] = []
+                        for fld in v.inner.fields:
+                            field_clauses.append(build_equal_expr(
+                                fld.type,
+                                f"{lhs}->{fld.name}",
+                                f"{rhs}->{fld.name}",
+                                policy,
+                                view_registry=view_registry,
+                                prelude_collector=prelude_collector,
+                            ))
+                        inner_eq = " && ".join(f"({c})" for c in field_clauses) \
+                            if field_clauses else "true"
                 else:
                     # Tuple-form variant ``V(T)`` — accessed via ``lhs->V_0``.
                     inner_eq = build_equal_expr(
@@ -1540,7 +1559,7 @@ def rebuild_equal_fn(det_spec: DetCheckSpec,
 
 def _run_self_tests() -> int:
     """Lightweight in-process tests for build_equal_expr + PR-G nested-Err."""
-    from spec_determinism.extract.types import VariantInfo
+    from spec_determinism.extract.types import VariantInfo, FieldInfo
 
     failures: list[str] = []
 
@@ -1746,6 +1765,58 @@ def _run_self_tests() -> int:
           expr_tsr,
           ["(t1)@", "(t2)@", "forall|i: int|", "is Ok"],
           forbidden_substrs=["Err_0"])
+
+    # --- Bug A: struct-form enum with field name shared across variants.
+    # Verus refuses to auto-generate ``arrow_v`` when ``v`` is not unique
+    # across all variants. The struct-form branch must detect this and
+    # fall back to whole-variant structural equality for variants that
+    # contain any ambiguous field.
+    payload_ty = TypeInfo(TypeKind.SEQ, "Seq<u8>", type_args=[u8_ty])
+    sr_inner = TypeInfo(TypeKind.STRUCT, "CMessage::SetRequest",
+                        fields=[FieldInfo("v", payload_ty),
+                                FieldInfo("k", u32_ty)])
+    rep_inner = TypeInfo(TypeKind.STRUCT, "CMessage::Reply",
+                         fields=[FieldInfo("v", payload_ty),
+                                 FieldInfo("rk", u32_ty)])
+    del_inner = TypeInfo(TypeKind.STRUCT, "CMessage::Delegate",
+                         fields=[FieldInfo("h", u32_ty)])
+    cmessage_ty = TypeInfo(
+        TypeKind.ENUM, "CMessage",
+        variants=[
+            VariantInfo("SetRequest", sr_inner, struct_form=True),
+            VariantInfo("Reply", rep_inner, struct_form=True),
+            VariantInfo("Delegate", del_inner, struct_form=True),
+        ],
+    )
+    assert cmessage_ty.ambiguous_struct_variant_fields() == {"v"}
+    expr_cmsg = build_equal_expr(cmessage_ty, "lhs", "rhs", default_policy())
+    # ambiguous-field variants must NOT emit ``->v`` accessors anywhere
+    check("CMessage ambiguous `v` falls back to whole-variant equality",
+          expr_cmsg,
+          ["(lhs is SetRequest) ==> (lhs == rhs)",
+           "(lhs is Reply) ==> (lhs == rhs)",
+           # Delegate has only ``h`` (unambiguous) — keeps per-field form
+           "(lhs is Delegate) ==> ((lhs->h == rhs->h))"],
+          forbidden_substrs=["lhs->v", "rhs->v"])
+
+    # An enum whose struct-form fields are all unique keeps per-field form.
+    a_inner = TypeInfo(TypeKind.STRUCT, "Msg::A",
+                       fields=[FieldInfo("a", u32_ty)])
+    b_inner = TypeInfo(TypeKind.STRUCT, "Msg::B",
+                       fields=[FieldInfo("b", u32_ty)])
+    msg_ty = TypeInfo(
+        TypeKind.ENUM, "Msg",
+        variants=[
+            VariantInfo("A", a_inner, struct_form=True),
+            VariantInfo("B", b_inner, struct_form=True),
+        ],
+    )
+    assert msg_ty.ambiguous_struct_variant_fields() == set()
+    expr_msg = build_equal_expr(msg_ty, "lhs", "rhs", default_policy())
+    check("Msg unambiguous struct-form keeps per-field accessors",
+          expr_msg,
+          ["lhs->a == rhs->a", "lhs->b == rhs->b"],
+          forbidden_substrs=["(lhs is A) ==> (lhs == rhs)"])
 
     if failures:
         print(f"\n{len(failures)} failure(s):")

@@ -90,6 +90,33 @@ class TypeInfo:
             for v in self.variants
         )
 
+    def ambiguous_struct_variant_fields(self) -> set[str]:
+        """Names of struct-form variant fields that occur in more than one
+        variant of this enum.
+
+        Verus only auto-generates an ``arrow_<f>`` accessor when the field
+        name ``f`` is unique across all variants of the enum. When two or
+        more variants share a struct-form field name, ``self_->f`` errors
+        with "method ``arrow_f`` not found". Callers that emit per-field
+        accessors must fall back to a whole-variant comparison (or skip
+        per-field narrowing) for those names.
+
+        Empty set for non-enum types, tuple-form-only enums, and enums
+        whose struct-form field names are all distinct.
+        """
+        if self.kind != TypeKind.ENUM or not self.variants:
+            return set()
+        seen: set[str] = set()
+        ambiguous: set[str] = set()
+        for v in self.variants:
+            if v.struct_form and v.inner is not None and v.inner.fields:
+                for fld in v.inner.fields:
+                    if fld.name in seen:
+                        ambiguous.add(fld.name)
+                    else:
+                        seen.add(fld.name)
+        return ambiguous
+
 
 @dataclass
 class FieldInfo:
