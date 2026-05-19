@@ -94,7 +94,7 @@ proof annotations. So:
 | C-patch: spec_view from `impl T { spec fn view }` | →unsat | ✅ landed | Auto-populate `TypeInfo.spec_view` from the source |
 | **Tier 1.5: LLM type-completion (gap-filling)** | →unsat | ✅ landed `baf8347a` | Kind/fields/spec_view via LLM when extractor can't infer |
 | Bug A: ambiguous struct-form variant fields | →unsat | ✅ landed `08e98116` | gen_det fallback for `r->v` ambiguity |
-| Bug B: gen_det compile probe (shape-mismatch) | →unsat | ✅ landed `9a480346` | LLM revert-and-retry when its patch causes verus E0599 |
+| Bug B: gen_det compile probe (shape-mismatch) | →unsat | ✅ landed `9a480346`, refactored out of main path | Detects LLM patches whose gen_det output doesn't type-check. **No longer on the verusage_run hot path** — moved into `scripts/validate_tier15_cache.py` as a re-baseline-only validator. Measured contribution at steady state was indistinguishable from LLM variance (every "win" had `shape_det=0` once the cache was warm). |
 | Tier 2: equal_fn relaxation (multiset / sort / ignore_fields) | →unsat | 🟡 designed, not implemented | Relax the *semantic* model so legitimate impl variants count as equal |
 | Tier 3: LLM proof annotation | →unsat | ✅ landed (corpus-integrated 2026-05-16) | Add lemma / forall hints to guide z3 past quantifier walls |
 | Deep schema narrowing (k-sampling, more rounds) | →unsat | 🟡 partial | Search for narrower assume that makes z3 decide |
@@ -201,7 +201,7 @@ contaminated by:
 | keep prompts deterministic | already done: per-type prompt depends only on `spec.type_defs` + extracted snippet |
 | keep cache deterministic | use a **pinned (read-only) cache snapshot** for both A and B (`--llm-type-completion-pinned-dir`); writes from this run go to the **live** layer and never touch the pin |
 | prove A and B used the same cache | each result records `tier15.pinned_hash`, `tier15.current_source_hash`, `tier15.pinned_hash_matches`, `tier15.gap_sources` (per-name `"live"\|"pinned"\|"miss"`) — diff these across A and B to verify byte-equality of the cache substrate |
-| handle source drift | pin still serves matching types as warm-start; `pinned_hash_matches=False` is surfaced in telemetry so a stale pin gets flagged but doesn't silently mis-resolve (Bug B's probe still catches shape mismatches on stale entries) |
+| handle source drift | pin still serves matching types as warm-start; `pinned_hash_matches=False` is surfaced in telemetry so a stale pin gets flagged but doesn't silently mis-resolve. Pre-commit re-baseline validation against shape-mismatched entries is done out-of-band via `scripts/validate_tier15_cache.py` (see below). |
 
 Pinned snapshots live at `verusage/cache_snapshots/<project>/` and are
 auto-detected by `verusage_run`. The 49-entry ironkv pin captured from the
@@ -224,6 +224,28 @@ cp ~/.cache/spec_determinism/type_completion/<hash>/*.json \
 
 A re-baseline must be a deliberate decision (commit + PR), not a side
 effect of any A/B test run.
+
+#### 6.2.2 Re-baseline shape-mismatch validator
+
+Before committing a refreshed `verusage/cache_snapshots/<project>/` snapshot,
+run the standalone validator. It re-runs the gen_det compile probe (formerly
+"Bug B", now off the main path) against every corpus target with the
+candidate cache pre-applied. It never calls the LLM and never writes to the
+cache. Failures surface the offending cache entry name + a stderr tail so
+you can decide whether to delete, hand-edit, or re-prompt that entry.
+
+```bash
+python spec-determinism/scripts/validate_tier15_cache.py \
+  --project ironkv --subdir verified \
+  --roots verusage/source-projects \
+  --cache-dir verusage/cache_snapshots/ironkv \
+  --out /tmp/validate_tier15_ironkv.json
+```
+
+Exit code `0` = clean snapshot, `1` = at least one shape mismatch detected
+(the `offending_cache_entries` summary lists them by frequency). This is
+strictly a quality gate on the snapshot — main-path verusage_run still
+never invokes the probe.
 
 ### 6.3 Roadmap priority
 
