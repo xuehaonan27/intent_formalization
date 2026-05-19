@@ -412,15 +412,15 @@ def _build_template(
             output1_params.append((post1_name, ty))
             output2_params.append((post2_name, ty))
         elif p.is_ref:
-            # For shared refs, proof-fn params are ghost values (no
-            # ownership concerns), so we typically drop the `&` — ensures
-            # clauses reference the param by name as if it were the
-            # pointee. That only fails for unsized pointees (slices,
-            # str, dyn Trait), which must keep the `&` to be Sized.
-            if _is_unsized_ty(ty):
-                input_params.append((_var_name(p), f"&{ty}"))
-            else:
-                input_params.append((_var_name(p), ty))
+            # Shared reference param: keep the `&` in the synthesized fn
+            # signature. Verus spec mode auto-derefs field access (`p.f`),
+            # `is` checks (`p is Some`), and equality (`p == x`), so this
+            # is no worse than dropping the `&`. Crucially, ensures often
+            # call spec methods that take `&T` and pass the param verbatim
+            # (e.g. `b == self.range_consistent(lo, hi, dst)` where
+            # `range_consistent` takes `&KeyIterator<K>`); preserving the
+            # `&` lets those calls type-check unchanged.
+            input_params.append((_var_name(p), f"&{ty}"))
         else:
             input_params.append((_var_name(p), ty))
 
@@ -608,6 +608,30 @@ def build_det_check_spec(
     """
     if equal_policy is None:
         equal_policy = default_policy()
+
+    # For trait-decl synth fns (Self appears in ensures, no concrete impl
+    # target) the extractor may have resolved ``Self`` to a same-file impl's
+    # concrete struct (e.g. ``SHTKey``). Both schema enumeration AND the
+    # equal-fn body would then emit field-projections like ``r1.ukey``,
+    # which Verus rejects with E0609 because the synth fn's ``Self`` is the
+    # bound type parameter ``__DetSelf``. Quench by rewriting any TypeInfo
+    # whose name is ``Self`` to an opaque generic placeholder before either
+    # the template or the symbols are built.
+    if spec.self_type is None and spec.trait_name is not None:
+        opaque_self = TypeInfo(kind=TypeKind.STRUCT, name="__DetSelf",
+                               fields=[], variants=[])
+
+        def _quench_self(ti):
+            if ti is None:
+                return ti
+            if ti.kind == TypeKind.STRUCT and ti.name == "Self":
+                return opaque_self
+            return ti
+
+        spec.return_type = _quench_self(spec.return_type)
+        for p in spec.params:
+            p.type = _quench_self(p.type)
+
     template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(
         spec, check_name, equal_policy, view_registry=view_registry,
     )
@@ -711,7 +735,12 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
                 target = f'pre_{vn}'
             else:
                 target = vn
+            # Strip `*old(self)` / `*self` first so we don't leave a
+            # dangling unary `*` in front of the substituted variable
+            # (the det-check fn passes the pre-state by value, not by ref).
+            result = re.sub(r'\*\s*old\s*\(\s*self\s*,?\s*\)', target, result)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', target, result)
+            result = _strip_unary_deref(result, 'self', target)
             result = re.sub(r'\bself\b', target, result)
         elif p.is_mut_ref:
             # Non-self `&mut T` param: in requires, `old(p)` refers to
@@ -731,9 +760,12 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
             result = _strip_unary_deref(result, p.name, f'pre_{vn}')
             result = re.sub(rf'\b{re.escape(p.name)}\b', f'pre_{vn}', result)
         elif p.is_ref and not p.is_mut_ref:
-            # Shared reference param passed by value in det-check fn:
-            # strip `*p` dereferences.
-            result = _strip_unary_deref(result, p.name, p.name)
+            # Shared reference param: the det-check fn signature keeps `&T`
+            # (see render_template), so any `*p` deref in the source ensures
+            # is still well-typed; leaving it intact also lets Verus check
+            # `contains_key(*p)`-style calls that take owned `T`. We do NOT
+            # strip the leading `*` here.
+            pass
     return result
 
 
@@ -836,9 +868,10 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', vn, result)
             name_map['self'] = vn
         elif p.is_ref:
-            # Shared reference: spec body may write `*p`; strip deref since the
-            # det-check fn takes the param by value.
-            result = _strip_unary_deref(result, p.name, p.name)
+            # Shared reference param: the det-check fn signature keeps `&T`
+            # (see render_template), so any `*p` deref in the source ensures
+            # is still well-typed. We do NOT strip the leading `*` here.
+            pass
 
     # Honour the function's actual return-value binding (from `(name: T)`
     # in the signature or `#[verus_spec(name => ...)]`).
@@ -1448,6 +1481,18 @@ def build_equal_expr(
         view = ty.spec_view
         lhs_is_viewed = lhs.endswith("@")
         rhs_is_viewed = rhs.endswith("@")
+        # Transparent alias: an LLM type-completion patch with empty
+        # `fields` + a `spec_view` is the canonical encoding of a
+        # ``pub type Alias<...> = SomeView<...>;`` alias. At the Rust
+        # type level the alias resolves to the view directly, so any
+        # value-of-type-Alias is already a value-of-type-View and we
+        # must NOT wrap with ``()@`` (the view side has no ``.view()``
+        # method). Recurse into the spec_view type directly using the
+        # caller's lhs/rhs unchanged.
+        if view is not None and not ty.fields and not ty.variants:
+            return build_equal_expr(view, lhs, rhs, policy,
+                                    view_registry=view_registry,
+                                    prelude_collector=prelude_collector)
         if view is not None and view.fields and lhs_is_viewed and rhs_is_viewed:
             clauses = []
             for fld in view.fields:
@@ -1959,6 +2004,32 @@ def _run_self_tests() -> int:
         failures.append(
             f"A3: synthesized fn must bound __DetSelf by trait name 'KeyTrait'; "
             f"template head:\n{tpl[:400]}"
+        )
+
+    # Regression — _substitute_input for &mut self must strip leading `*`
+    # on `*old(self)` (and bare `*self`). Pre-fix, gen_det left a stray
+    # `*pre_self_` in the requires block, which Verus rejected with E0614
+    # because `HostState` (the by-value param type) cannot be dereferenced.
+    self_param = Param(name='self', type='HostState',
+                       is_self=True, is_ref=True, is_mut_ref=True)
+    spec_self = FunctionSpec(
+        name="dummy",
+        params=[self_param],
+        return_type=TypeInfo(TypeKind.UNIT, "()"),
+        requires=[],
+        ensures=[],
+        type_defs={},
+    )
+    got = _substitute_input("let x = *old(self);", spec_self)
+    if got.strip() != "let x = pre_self_;":
+        failures.append(
+            f"requires-self-deref: expected `let x = pre_self_;`, "
+            f"got {got!r}"
+        )
+    got = _substitute_input("foo(*self)", spec_self)
+    if got.strip() != "foo(pre_self_)":
+        failures.append(
+            f"requires-self-deref: expected `foo(pre_self_)`, got {got!r}"
         )
 
     if failures:

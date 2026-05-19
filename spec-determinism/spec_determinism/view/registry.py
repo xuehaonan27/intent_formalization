@@ -478,10 +478,10 @@ def _cmd_selftest(args: argparse.Namespace) -> int:
                      kind="generic", head="Option",
                      args=[_t("u32", kind="primitive")], raw="Option<u32>")))
          ))
-    case("Map<K,V> uses @ view with both args viewed",
+    case("Map<K,V> is identity (vstd::map::Map is spec primitive, no .view())",
          lambda: (
              (lambda r: r.layer == "L1"
-              and r.view_expr("m") == "(m)@"
+              and r.view_expr("m") == "(m)"
               and "Map<" in r.view_type_text)(
                  _empty_reg().resolve(TypeExpr(
                      kind="generic", head="Map",

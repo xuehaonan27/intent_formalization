@@ -102,13 +102,15 @@ PRELUDE_RULES: tuple[PreludeRule, ...] = (
                                 else "Option<()>"),
         view_expr=lambda expr, e, v: f"({expr})@",
     ),
-    # Map<K, V> -> Map<K@, V@>
+    # Map<K, V> -> Map<K@, V@>  (Verus `vstd::map::Map` is a spec primitive
+    # with no `.view()` method — its view is identity. Emitting `({expr})@`
+    # here trips E0599 "no method named `view` on vstd::map::Map<K,V>".)
     PreludeRule(
         head="Map", kind_matches=("generic",),
         view_type=lambda e, v: (
             f"Map<{v(_arg(e, 0))}, {v(_arg(e, 1))}>"
             if _arg(e, 0) and _arg(e, 1) else "Map<(), ()>"),
-        view_expr=lambda expr, e, v: f"({expr})@",
+        view_expr=lambda expr, e, v: f"({expr})",
     ),
     # Seq<T> -> Seq<T@>  (view of Seq is already itself but its elements
     # need viewing)
