@@ -17,7 +17,7 @@ Workflow per attempt:
   5. Re-render the synthetic det-check, this time with the proof block
      appended at the bottom of the proof fn body. Write the modified
      ``.rs`` to a fresh path; run Verus.
-  6. Verus accepts → success (``ok_proved_llm`` at the caller's level).
+  6. Verus accepts → success (``complete_llm`` at the caller's level).
      Verus rejects → record stderr tail and loop.
 
 Results are persisted under ``<artifact_dir>/llm_proof/attempt_N/`` so

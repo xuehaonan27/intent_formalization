@@ -15,7 +15,7 @@ instantiation gaps, not a real spec gap). The loop:
      new fn definitions). This is *mandatory*: Verus silently accepts
      ``assume(false)``, so the soundness gate cannot live downstream.
   3. Re-runs Verus on the patched file. If Verus accepts the postcondition,
-     the function is proved deterministic (``ok_proved_llm`` bucket).
+     the function is proved deterministic (``complete_llm`` bucket).
      Otherwise the stderr tail is fed back into the next attempt
      (default K=3 iterations).
 

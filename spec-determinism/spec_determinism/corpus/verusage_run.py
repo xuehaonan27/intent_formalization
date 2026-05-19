@@ -22,11 +22,11 @@ import time
 from pathlib import Path
 
 from spec_determinism.classify import (
+    BUCKET_COMPLETE,
+    BUCKET_COMPLETE_LLM,
+    BUCKET_INCOMPLETE,
     BUCKET_INCONCLUSIVE,
-    BUCKET_PROVED,
-    BUCKET_PROVED_LLM,
     BUCKET_UNKNOWN_KIND,
-    BUCKET_WITNESS,
     OK_BUCKETS,
     classify_ok,
 )
@@ -378,10 +378,18 @@ def main() -> int:
     print(f"verusage run: project={args.project}  subdir={args.subdir}  "
           f"n={len(results)}  wall={total_ms/1000:.1f}s")
     print(f"by status: {by_status}")
-    print(f"  {BUCKET_PROVED:18s}: {ok_buckets[BUCKET_PROVED]:4d}  (R0=unsat, deterministic)")
-    if ok_buckets[BUCKET_PROVED_LLM]:
-        print(f"  {BUCKET_PROVED_LLM:18s}: {ok_buckets[BUCKET_PROVED_LLM]:4d}  (R0=unknown → LLM proof closed it)")
-    print(f"  {BUCKET_WITNESS:18s}: {ok_buckets[BUCKET_WITNESS]:4d}  (R0=sat, real nondeterminism witness)")
+    print(f"  {BUCKET_COMPLETE:18s}: {ok_buckets[BUCKET_COMPLETE]:4d}  (R0=unsat, spec pins unique post)")
+    if ok_buckets[BUCKET_COMPLETE_LLM]:
+        print(f"  {BUCKET_COMPLETE_LLM:18s}: {ok_buckets[BUCKET_COMPLETE_LLM]:4d}  (R0=unknown → LLM proof closed it)")
+    permitted = sum(1 for r in results
+                    if r.get("status") == "ok"
+                    and classify_ok(r) == BUCKET_INCOMPLETE
+                    and r.get("permitted"))
+    incomplete_note = f"  (R0=sat, spec admits multiple posts"
+    if permitted:
+        incomplete_note += f"; {permitted} permitted by `|||`"
+    incomplete_note += ")"
+    print(f"  {BUCKET_INCOMPLETE:18s}: {ok_buckets[BUCKET_INCOMPLETE]:4d}{incomplete_note}")
     print(f"  {BUCKET_INCONCLUSIVE:18s}: {ok_buckets[BUCKET_INCONCLUSIVE]:4d}  (R0=unknown / legacy, z3 undecided)")
     if ok_buckets[BUCKET_UNKNOWN_KIND]:
         print(f"  {BUCKET_UNKNOWN_KIND:18s}: {ok_buckets[BUCKET_UNKNOWN_KIND]:4d}  (unexpected r0_z3 value)")

@@ -21,11 +21,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from spec_determinism.classify import (
+    BUCKET_COMPLETE,
+    BUCKET_COMPLETE_LLM,
+    BUCKET_INCOMPLETE,
     BUCKET_INCONCLUSIVE,
-    BUCKET_PROVED,
-    BUCKET_PROVED_LLM,
     BUCKET_UNKNOWN_KIND,
-    BUCKET_WITNESS,
     OK_BUCKETS,
     classify_ok,
 )
@@ -53,12 +53,13 @@ def render(per_project: dict[str, list[dict]]) -> str:
     lines.append("> `ok` results are classified by the **R0** z3 verdict (initial "
                  "determinism check before any schema narrowing):")
     lines.append(">")
-    lines.append("> * **`ok_proved`** — R0 = `unsat` → function is provably deterministic.")
-    lines.append("> * **`ok_proved_llm`** — R0 was `unknown`; the LLM proof loop "
+    lines.append("> * **`complete`** — R0 = `unsat` → spec pins the function's behaviour to a unique post-state (deterministic).")
+    lines.append("> * **`complete_llm`** — R0 was `unknown`; the LLM proof loop "
                  "wrote an `assert/by`-style block that Verus accepted. Soundness "
                  "preserved by the sandbox lex-allowlist.")
-    lines.append("> * **`ok_witness`** — R0 = `sat` → z3 produced a real "
-                 "nondeterminism counterexample.")
+    lines.append("> * **`incomplete`** — R0 = `sat` → spec admits multiple "
+                 "observable posts (z3 produced a real witness). May be intentional "
+                 "(see `permitted` flag).")
     lines.append("> * **`ok_inconclusive`** — R0 = `unknown` (or legacy run without "
                  "`r0_z3`) → z3 surrendered; assumes from narrowing are not a "
                  "witness, just refinement attempts.")
@@ -67,7 +68,7 @@ def render(per_project: dict[str, list[dict]]) -> str:
     # --- Overview table ---
     lines.append("## Per-project overview")
     lines.append("")
-    lines.append("| project | n | ok_proved | ok_proved_llm | ok_witness | ok_inconclusive | search_error | verus_error | extract_error | other |")
+    lines.append("| project | n | complete | complete_llm | incomplete | ok_inconclusive | search_error | verus_error | extract_error | other |")
     lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     total = Counter()
     proved_total = proved_llm_total = witness_total = inconc_total = unk_total = 0
@@ -82,9 +83,9 @@ def render(per_project: dict[str, list[dict]]) -> str:
         for r in results:
             if r.get("status") == "ok":
                 buckets[classify_ok(r)] += 1
-        proved = buckets[BUCKET_PROVED]
-        proved_llm = buckets[BUCKET_PROVED_LLM]
-        witness = buckets[BUCKET_WITNESS]
+        proved = buckets[BUCKET_COMPLETE]
+        proved_llm = buckets[BUCKET_COMPLETE_LLM]
+        witness = buckets[BUCKET_INCOMPLETE]
         inconc = buckets[BUCKET_INCONCLUSIVE]
         unk = buckets[BUCKET_UNKNOWN_KIND]
         total.update(c)
@@ -110,25 +111,39 @@ def render(per_project: dict[str, list[dict]]) -> str:
         lines.append("")
         lines.append(f"_{unk_total} `ok` results had an unexpected `r0_z3` value "
                      f"(`{BUCKET_UNKNOWN_KIND}`)._")
+    permitted_total = sum(
+        1 for results in per_project.values()
+        for r in results
+        if r.get("status") == "ok"
+        and classify_ok(r) == BUCKET_INCOMPLETE
+        and r.get("permitted")
+    )
+    if permitted_total:
+        lines.append("")
+        lines.append(
+            f"_Of the {witness_total} `incomplete` results, {permitted_total} "
+            f"are **permitted by spec ``|||``** (intentional non-determinism)._"
+        )
     lines.append("")
 
     # --- Real witnesses (R0=sat) ---
-    lines.append("## Real determinism witnesses (R0 = sat)")
+    lines.append("## Spec-incompleteness witnesses (R0 = sat)")
     lines.append("")
     any_real = False
     for proj, results in per_project.items():
         rw = [r for r in results
-              if r.get("status") == "ok" and classify_ok(r) == BUCKET_WITNESS]
+              if r.get("status") == "ok" and classify_ok(r) == BUCKET_INCOMPLETE]
         if not rw:
             continue
         any_real = True
-        lines.append(f"### {proj} ({len(rw)} real-witness)")
+        lines.append(f"### {proj} ({len(rw)} incomplete)")
         lines.append("")
         for r in rw:
             key = r.get("artifact_key", r.get("file", "?"))
             rounds = r.get("n_rounds", "?")
             assumes = r.get("assumes", [])
-            lines.append(f"- `{key}`  (rounds={rounds})")
+            permitted = " *(permitted by spec `|||`)*" if r.get("permitted") else ""
+            lines.append(f"- `{key}`  (rounds={rounds}){permitted}")
             for a in assumes:
                 al = a if len(a) < 180 else a[:180] + "…"
                 lines.append(f"  - `{al}`")
@@ -223,13 +238,21 @@ def main() -> int:
         summary_json[proj] = {
             "n": len(results),
             "by_status": dict(Counter(r.get("status", "?") for r in results)),
-            "ok_proved": buckets[BUCKET_PROVED],
-            "ok_proved_llm": buckets[BUCKET_PROVED_LLM],
-            "ok_witness": buckets[BUCKET_WITNESS],
+            "complete": buckets[BUCKET_COMPLETE],
+            "complete_llm": buckets[BUCKET_COMPLETE_LLM],
+            "incomplete": buckets[BUCKET_INCOMPLETE],
             "ok_inconclusive": buckets[BUCKET_INCONCLUSIVE],
+            # How many of the `incomplete` results carry the spec-`|||`
+            # permitted-incompleteness flag (intentional non-determinism).
+            "incomplete_permitted": sum(
+                1 for r in results
+                if r.get("status") == "ok"
+                and classify_ok(r) == BUCKET_INCOMPLETE
+                and r.get("permitted")
+            ),
             # Legacy compatibility: pre-T0 callers expected this single number.
-            # It now equals ok_witness + ok_inconclusive (everything with assumes).
-            "ok_with_witness": buckets[BUCKET_WITNESS] + buckets[BUCKET_INCONCLUSIVE],
+            # It now equals incomplete + ok_inconclusive (everything with assumes).
+            "ok_with_witness": buckets[BUCKET_INCOMPLETE] + buckets[BUCKET_INCONCLUSIVE],
         }
     (args.out.with_suffix(".json")).write_text(
         json.dumps(summary_json, indent=2, sort_keys=True)

@@ -15,7 +15,7 @@ Mocks ``CopilotCLI`` so we don't burn real LLM tokens. Two scenarios:
   * **Test B — simulated success path** (Verus mocked to return rc=0):
     same input as Test A, but ``_run_verus`` is patched to always
     succeed. Validates the success-promotion logic. Expect:
-    ``r0_z3='unsat'``, ``llm_assisted=True``, bucket=``ok_proved_llm``,
+    ``r0_z3='unsat'``, ``llm_assisted=True``, bucket=``complete_llm``,
     winning_proof artifacts written.
 
 Usage:

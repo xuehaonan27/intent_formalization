@@ -17,7 +17,7 @@ LLM proof loop integration (opt-in)
 When ``use_llm_proof=True`` (or env ``SPEC_DET_LLM_PROOF=1``) AND the
 baseline schema search returns ``r0_z3='unknown'``, we invoke
 :func:`spec_determinism.llm_proof.run_llm_proof_loop`. On success the
-function is reclassified as ``ok_proved_llm`` (see
+function is reclassified as ``complete_llm`` (see
 :mod:`spec_determinism.classify`) and the winning proof block is
 persisted alongside the artifact. Independent of the schema search
 result — the loop is opt-in and never runs by default.
@@ -41,6 +41,7 @@ from spec_determinism.codegen.gen_det import build_det_check_spec
 from spec_determinism.schema_search import enumerate_schemas, render_guarded_template
 from spec_determinism.schema_search.search import build_schema_ctx, run_schema_search
 from spec_determinism.extract.types import DetCheckSpec
+from spec_determinism.classify import ensures_uses_permissive_or
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +286,18 @@ def run_single_file(
         result["status"] = "no_ensures"
         return result
 
+    # Permitted-incompleteness flag: spec uses ``|||`` (directly or via a
+    # referenced closed spec fn) to permit multiple post-states. Set
+    # unconditionally so renderers / aggregators can show the annotation
+    # regardless of the eventual R0 verdict.
+    try:
+        result["permitted"] = ensures_uses_permissive_or(
+            spec.ensures, source=source
+        )
+    except Exception as e:
+        result["permitted_error"] = f"{type(e).__name__}: {e}"
+        result["permitted"] = False
+
     if use_llm_type_completion:
         try:
             from spec_determinism.llm_type.runner import complete_types as _complete_types
@@ -387,7 +400,7 @@ def run_single_file(
         # LLM proof loop escalation (opt-in). Triggered when baseline
         # returned r0_z3=unknown AND opt-in. On success we overwrite
         # r0_z3='unsat' and mark llm_assisted=True so the classifier
-        # buckets this as ok_proved_llm rather than ok_proved.
+        # buckets this as complete_llm rather than complete.
         _llm_enabled = (
             use_llm_proof
             if use_llm_proof is not None
