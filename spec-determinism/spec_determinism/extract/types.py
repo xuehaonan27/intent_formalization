@@ -358,6 +358,14 @@ class DetCheckSpec:
     generics_decl: str = ""
     where_decl: str = ""
     self_type: Optional[str] = None
+    # P0 opacity fix: names of ``closed spec fn`` declarations reachable
+    # from the target's ensures that gen_det requested to be rewritten
+    # to ``#[verifier::opaque] open spec fn``. The inject phase
+    # (single_file._inject_into_source) consumes this list to apply the
+    # source-level rewrite; the proof body already emits matching
+    # ``reveal(<name>);`` statements. Empty when ``source`` was not
+    # passed to ``build_det_check_spec``.
+    opened_closed_specs: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -375,6 +383,7 @@ class DetCheckSpec:
             "generics_decl": self.generics_decl,
             "where_decl": self.where_decl,
             "self_type": self.self_type,
+            "opened_closed_specs": list(self.opened_closed_specs),
         }
 
     @staticmethod
@@ -395,6 +404,7 @@ class DetCheckSpec:
             generics_decl=d.get("generics_decl", ""),
             where_decl=d.get("where_decl", ""),
             self_type=d.get("self_type"),
+            opened_closed_specs=list(d.get("opened_closed_specs") or []),
         )
 
     def to_json(self) -> str:

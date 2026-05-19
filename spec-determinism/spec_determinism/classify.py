@@ -224,6 +224,305 @@ def ensures_uses_permissive_or(
     return False
 
 
+# --------------------------------------------------------------------------
+# Closed-spec-fn opening (P0 unknowns -> unsat: closed spec fn opacity)
+# --------------------------------------------------------------------------
+#
+# Many ``unknown`` det-check results trace back to ensures of the form
+# ``self.foo_postconditions(...)`` where ``foo_postconditions`` is a
+# ``pub closed spec fn`` whose body contains the key determinism facts
+# (e.g., ``self.constants == pre.constants``). Because the function is
+# *closed*, z3 sees only an uninterpreted predicate and cannot derive
+# those facts.
+#
+# The fix: rewrite ``[pub] closed spec fn <name>`` to
+# ``#[verifier::opaque] [pub] open spec fn <name>`` for spec fns
+# transitively reachable from the target ensures, and emit
+# ``reveal(<name>);`` at the top of the det-check proof body. ``open
+# spec fn`` is a strict generalisation of ``closed``, so original
+# proofs in the same file still hold; ``#[verifier::opaque]`` keeps the
+# default opacity intact for any caller that doesn't ``reveal()``.
+
+# Match the ``closed`` modifier on a spec fn header. Capture the
+# leading visibility (pub / pub(crate) / blank) in group 1 and the
+# function name in group 2. The replacement form is
+# ``#[verifier::opaque]\n<vis>open spec fn <name>``.
+#
+# Note we don't allow ``closed`` to follow ``open`` (mutually exclusive
+# in Verus syntax) so a single ``closed`` token is unambiguous.
+_CLOSED_SPEC_FN_RE = re.compile(
+    r"(?P<lead>(?:^|\n)[ \t]*)"
+    r"(?P<vis>(?:pub(?:\([^)]*\))?\s+)?)"
+    r"closed\s+spec\s+fn\s+"
+    r"(?P<name>[A-Za-z_][A-Za-z_0-9]*)"
+)
+
+
+def reachable_spec_fns(
+    ensures_texts: Iterable[str],
+    source: str,
+    *,
+    max_depth: int = 4,
+) -> set[str]:
+    """Return the set of ``spec fn`` names transitively reachable from
+    the ensures texts, restricted to those *defined in* ``source``
+    (i.e., ``_spec_fn_body`` returns a body).
+
+    Used by the det-check pipeline to know which closed spec fns to
+    open + reveal."""
+    joined = "\n".join(ensures_texts)
+    seen: set[str] = set()
+    reachable: set[str] = set()
+    queue: list[tuple[str, int]] = [
+        (name, 0) for name in _CALLEE_RE.findall(joined)
+    ]
+    while queue:
+        name, depth = queue.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        if depth >= max_depth:
+            continue
+        body = _spec_fn_body(source, name)
+        if body is None:
+            continue
+        reachable.add(name)
+        for callee in _CALLEE_RE.findall(body):
+            if callee not in seen:
+                queue.append((callee, depth + 1))
+    return reachable
+
+
+def closed_spec_fns_in(source: str, names: Iterable[str]) -> set[str]:
+    """Return the subset of ``names`` that are declared as ``closed
+    spec fn`` in ``source`` (so are candidates for the ``closed → opaque
+    open`` rewrite)."""
+    names = set(names)
+    found: set[str] = set()
+    for m in _CLOSED_SPEC_FN_RE.finditer(source):
+        if m.group("name") in names:
+            found.add(m.group("name"))
+    return found
+
+
+# Match an ``impl [<Generics>] <Type> [for <Trait>] { ... }`` header.
+# When the "for" clause is present, the *Self* type is the LHS-of-for
+# (the implementing type); the RHS is the trait we're implementing.
+# When absent, Self IS the first type token (inherent impl).
+# We capture the impl-header span up to the opening brace and post-process
+# in Python to locate Self vs trait.
+_IMPL_HEADER_RE = re.compile(
+    r"\bimpl\b"                                # impl keyword
+    r"(?:\s*<[^>]*>)?"                         # optional generics
+    r"\s+"
+    r"(?P<rest>[^{]+?)"                        # everything up to the brace
+    r"\s*\{"
+)
+
+
+def _impl_self_type(rest: str) -> Optional[str]:
+    """Given the text between ``impl`` (incl. its generics) and the
+    opening ``{``, return the bare Self-type identifier of the impl.
+
+    Inherent impl ``impl Foo<K> { ... }``      -> ``"Foo"``
+    Trait impl    ``impl Trait for Foo<K> {}`` -> ``"Foo"``
+    """
+    s = rest.strip()
+    # ``for`` keyword at a word boundary marks a trait impl. Use rsplit
+    # so we don't get confused by an earlier ``for`` inside a generic.
+    m = re.search(r"\bfor\b", s)
+    if m:
+        s = s[m.end():].strip()
+    # First identifier token in s is the Self type (possibly followed by
+    # generic args / trait bounds / lifetime, all of which we strip).
+    m2 = re.match(r"([A-Za-z_][A-Za-z_0-9]*)", s)
+    return m2.group(1) if m2 else None
+
+
+def _has_external_body_attr_before(source: str, pos: int) -> bool:
+    """Return True if the closest preceding non-whitespace tokens before
+    ``pos`` contain ``#[verifier::external_body]``. We scan up to ~160
+    chars back (enough to skip another attribute or two)."""
+    start = max(0, pos - 160)
+    window = source[start:pos]
+    # Walk backwards through attribute/whitespace lines. If we hit a
+    # non-attribute, non-whitespace token, stop — the attribute (if any)
+    # belongs to something else.
+    lines = window.splitlines()
+    for line in reversed(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("#["):
+            if "external_body" in stripped:
+                return True
+            continue
+        # Hit a non-attr token before finding external_body.
+        return False
+    return False
+
+
+def _has_opaque_attr_before(source: str, decl_start: int) -> bool:
+    """Return True iff a ``#[verifier::opaque]`` attribute is present
+    in the attribute-block immediately preceding ``decl_start``.
+
+    Walks back over consecutive attribute lines (and blank lines)
+    until a non-attribute line is reached, then returns True if any
+    of those attribute lines contain ``opaque``.
+    """
+    window = source[max(0, decl_start - 240) : decl_start]
+    lines = window.splitlines()
+    for line in reversed(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("#["):
+            if "opaque" in stripped:
+                return True
+            continue
+        return False
+    return False
+
+
+def closed_spec_fn_qualified_names(
+    source: str,
+    names: Iterable[str],
+) -> dict[str, str]:
+    """For each name in ``names`` that is declared as a ``closed spec fn``
+    in ``source``, return the qualified path Verus needs to ``reveal`` it.
+
+    Free fns (declared at module scope) map to their bare name.
+    Impl-method spec fns (declared inside ``impl <Type> {...}``) map
+    to ``"<Type>::<name>"``. ``impl Trait for Type`` correctly maps to
+    ``<Type>::<name>`` (not ``<Trait>::<name>``).
+
+    Skips declarations annotated with ``#[verifier::external_body]`` —
+    their bodies are deliberately opaque (e.g., ``unimplemented!()``)
+    and Verus rejects ``#[verifier::opaque]`` on them.
+
+    Also skips declarations with no ``{ body }`` (forward decls / trait
+    method signatures inside a ``trait`` block).
+
+    A spec fn is considered to live inside an impl block iff the
+    nearest enclosing ``{...}`` opened by an ``impl ... { ... }`` header
+    surrounds it (by brace depth).
+    """
+    names = set(names)
+    if not names:
+        return {}
+
+    # Pre-compute impl-block ranges: (open_brace_idx, close_brace_idx, self_type)
+    impl_blocks: list[tuple[int, int, str]] = []
+    for m in _IMPL_HEADER_RE.finditer(source):
+        self_ty = _impl_self_type(m.group("rest"))
+        if self_ty is None:
+            continue
+        # Brace-match to find the matching close.
+        open_idx = m.end() - 1
+        depth = 0
+        close_idx = -1
+        for j in range(open_idx, len(source)):
+            if source[j] == "{":
+                depth += 1
+            elif source[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    close_idx = j
+                    break
+        if close_idx > 0:
+            impl_blocks.append((open_idx, close_idx, self_ty))
+
+    def _enclosing_impl_type(pos: int) -> Optional[str]:
+        candidates = [
+            (open_, close_, ty)
+            for (open_, close_, ty) in impl_blocks
+            if open_ < pos < close_
+        ]
+        if not candidates:
+            return None
+        candidates.sort(key=lambda x: x[1] - x[0])
+        return candidates[0][2]
+
+    out: dict[str, str] = {}
+    for m in _CLOSED_SPEC_FN_RE.finditer(source):
+        name = m.group("name")
+        if name not in names or name in out:
+            continue
+        # Skip if marked external_body — has no real Verus-visible body.
+        if _has_external_body_attr_before(source, m.start()):
+            continue
+        # Skip if there's no body block (forward decl in a trait).
+        if _spec_fn_body(source, name) is None:
+            continue
+        ty = _enclosing_impl_type(m.start("name"))
+        out[name] = f"{ty}::{name}" if ty else name
+    return out
+
+
+def rewrite_closed_to_opaque(
+    source: str,
+    names: Iterable[str],
+) -> str:
+    """Inject ``#[verifier::opaque]`` on top of each ``[pub] closed
+    spec fn <name>`` declaration in ``names``. Returns the modified
+    source text.
+
+    Critically, we **do not** rewrite ``closed`` to ``open``. Verus
+    requires ``open spec fn`` to be ``pub`` (otherwise: "function is
+    marked `open` but not marked `pub`"), but ``pub open spec fn``
+    requires the body to be well-formed at every external call site
+    — which fails when the body references module-private fields
+    (e.g. ``self.delegation_map`` on a struct whose fields are
+    pkg-private). Verus does, however, accept
+    ``#[verifier::opaque] pub closed spec fn``: the body is closed
+    by default (preserving the visibility invariant) but can be
+    revealed inside our injected det-check proof with
+    ``reveal(<qualified_name>);``.
+
+    Idempotent: skips declarations already preceded by an
+    ``#[verifier::opaque]`` attribute (the regex match still fires,
+    but ``_already_has_opaque_attr_before`` returns True). Idempotent
+    by inspection of the immediate preceding attribute line(s).
+
+    Skips declarations annotated with ``#[verifier::external_body]``
+    — Verus rejects ``#[verifier::opaque]`` on those. Also skips
+    declarations with no ``{ body }`` (forward decls in trait blocks
+    — also rejected by ``#[verifier::opaque]``).
+
+    The injected ``#[verifier::opaque]`` attribute is placed on its
+    own line preceding the original modifier, matching the ironkv
+    convention (see e.g.
+    ``host_impl_v__impl2__real_init_impl.rs:1110``).
+    """
+    names = set(names)
+    if not names:
+        return source
+
+    def _sub(m: "re.Match[str]") -> str:
+        if m.group("name") not in names:
+            return m.group(0)
+        # Skip external_body decls (Verus rejects opaque on them).
+        if _has_external_body_attr_before(source, m.start()):
+            return m.group(0)
+        # Skip if already annotated opaque (idempotency).
+        if _has_opaque_attr_before(source, m.start()):
+            return m.group(0)
+        # Skip bodyless forward decls.
+        if _spec_fn_body(source, m.group("name")) is None:
+            return m.group(0)
+        lead = m.group("lead")
+        vis = m.group("vis")
+        name = m.group("name")
+        prefix_newline = "\n" if lead.startswith("\n") else ""
+        prefix_indent = lead.lstrip("\n")
+        return (
+            f"{prefix_newline}{prefix_indent}#[verifier::opaque]"
+            f"\n{prefix_indent}{vis}closed spec fn {name}"
+        )
+
+    return _CLOSED_SPEC_FN_RE.sub(_sub, source)
+
+
 # ----------------------------- self-tests --------------------------------
 
 def _selftest_classify() -> None:
@@ -281,9 +580,108 @@ def _selftest_permitted_or() -> None:
     assert ensures_uses_permissive_or(["self.p(x)"], "") is False
 
 
+def _selftest_reachable_and_rewrite() -> None:
+    # reachable_spec_fns: single-hop reaches p, two-hop reaches p+q.
+    source = """
+        pub closed spec fn p(x: T) -> bool { q(x) && r(x) }
+        pub open spec fn q(x: T) -> bool { true }
+        pub closed spec fn r(x: T) -> bool { s(x) }
+        pub open spec fn s(x: T) -> bool { true }
+        pub closed spec fn unrelated(x: T) -> bool { true }
+    """
+    reach = reachable_spec_fns(["self.p(x)"], source, max_depth=4)
+    assert reach == {"p", "q", "r", "s"}, reach
+    assert "unrelated" not in reach
+
+    # closed_spec_fn_qualified_names: free fns map to bare names.
+    qual = closed_spec_fn_qualified_names(source, reach)
+    assert qual == {"p": "p", "r": "r"}, qual
+
+    # rewrite_closed_to_opaque: rewrites the closed fns we asked for.
+    rewritten = rewrite_closed_to_opaque(source, set(qual.keys()))
+    assert "#[verifier::opaque]" in rewritten
+    # The decl stays ``pub closed spec fn``; only the attr is added.
+    assert "pub closed spec fn p" in rewritten
+    assert "pub closed spec fn r" in rewritten
+    # ``q`` was already open; left alone (no attr injected).
+    assert rewritten.count("#[verifier::opaque]") == 2
+    # ``unrelated`` is still closed and unannotated.
+    assert "closed spec fn unrelated" in rewritten
+
+    # Idempotent: re-applying does nothing extra.
+    rewritten2 = rewrite_closed_to_opaque(rewritten, set(qual.keys()))
+    assert rewritten2 == rewritten
+
+    # Empty names set is a no-op.
+    assert rewrite_closed_to_opaque(source, set()) == source
+
+    # Pub-modifier is preserved (needed for ``pub closed`` to compile
+    # AND for ``reveal()`` to find the qualified path).
+    src_pub_crate = "    pub(crate) closed spec fn foo(x: T) -> bool { true }\n"
+    out = rewrite_closed_to_opaque(src_pub_crate, {"foo"})
+    assert "pub(crate) closed spec fn foo" in out
+    assert "#[verifier::opaque]" in out
+
+    # Impl-method closed spec fns get the Type::name qualified path.
+    src_impl = """
+        struct Foo {}
+        impl Foo {
+            pub closed spec fn bar(&self) -> bool { true }
+        }
+        pub closed spec fn free_fn(x: T) -> bool { true }
+    """
+    qual2 = closed_spec_fn_qualified_names(src_impl, {"bar", "free_fn"})
+    assert qual2 == {"bar": "Foo::bar", "free_fn": "free_fn"}, qual2
+
+    # Generic impl with bare type token.
+    src_generic = """
+        impl<K: Trait> StrictlyOrderedMap<K> {
+            pub closed spec fn valid(&self) -> bool { true }
+        }
+    """
+    qual3 = closed_spec_fn_qualified_names(src_generic, {"valid"})
+    assert qual3 == {"valid": "StrictlyOrderedMap::valid"}, qual3
+
+    # impl ... for Trait syntax: capture the SELF type, not the trait.
+    src_trait_impl = """
+        impl View for HostState {
+            closed spec fn view(&self) -> AbstractHostState { todo!() }
+        }
+    """
+    qual4 = closed_spec_fn_qualified_names(src_trait_impl, {"view"})
+    assert qual4 == {"view": "HostState::view"}, qual4
+
+    # external_body and bodyless decls are skipped.
+    src_external = """
+        #[verifier::external_body]
+        pub closed spec fn opaque_fn(x: T) -> bool {
+            unimplemented!()
+        }
+        pub trait MyTrait {
+            closed spec fn no_body(&self) -> bool;
+        }
+        pub closed spec fn real_fn(x: T) -> bool { true }
+    """
+    qual5 = closed_spec_fn_qualified_names(
+        src_external, {"opaque_fn", "no_body", "real_fn"}
+    )
+    assert qual5 == {"real_fn": "real_fn"}, qual5
+
+    # Rewrite respects the same filter: external_body / no-body decls
+    # are not rewritten.
+    out5 = rewrite_closed_to_opaque(
+        src_external, {"opaque_fn", "no_body", "real_fn"}
+    )
+    assert "closed spec fn opaque_fn" in out5
+    assert "closed spec fn no_body" in out5
+    assert "pub closed spec fn real_fn" in out5
+    assert "#[verifier::opaque]" in out5
+
+
 def _selftest() -> None:
     _selftest_classify()
     _selftest_permitted_or()
+    _selftest_reachable_and_rewrite()
     print("classify self-tests PASS")
 
 

@@ -399,6 +399,7 @@ def _build_template(
     check_name: str | None = None,
     policy: EqualPolicy | None = None,
     view_registry: Optional["ViewRegistry"] = None,
+    reveal_specs: Optional[list[str]] = None,
 ) -> str:
     """
     Generate the det check proof fn with {ASSUMES} placeholder.
@@ -550,6 +551,18 @@ def _build_template(
             pruned_generics = f"<{placeholder_decl}>"
 
     where_block = f"\n    {pruned_where}" if pruned_where else ""
+    # Reveal block: opt-in opening of ``#[verifier::opaque] open spec fn``
+    # bodies in the body of the det check proof. Caller (single_file)
+    # supplies the names of spec fns it has just rewritten from
+    # ``closed`` to ``opaque open``; we emit ``reveal(name);`` for each
+    # so z3 sees the body when checking the det conclusion.
+    reveal_block = ""
+    if reveal_specs:
+        # ``reveal(...)`` is a proof statement; the body of the det fn
+        # is proof mode, so this is in-scope. Reveals are scoped to the
+        # enclosing proof fn — they do not leak into other call sites.
+        reveal_lines = "\n    ".join(f"reveal({n});" for n in reveal_specs)
+        reveal_block = f"    {reveal_lines}\n"
     code = f"""proof fn {fn_name}{pruned_generics}({params_str}){where_block}{requires_str}
     ensures
         ({{
@@ -557,7 +570,7 @@ def _build_template(
             &&& {run2}
         }}) ==> {conclusion},
 {{
-{{ASSUMES}}}}"""
+{reveal_block}{{ASSUMES}}}}"""
 
     # Substitute `Self` (word-boundary) with the impl target text so the
     # generated proof fn — which lives at module scope — typechecks even
@@ -600,6 +613,7 @@ def build_det_check_spec(
     verus_config: dict | None = None,
     equal_policy: EqualPolicy | None = None,
     view_registry: Optional["ViewRegistry"] = None,
+    source: str = "",
 ) -> DetCheckSpec:
     """
     Build a DetCheckSpec from a FunctionSpec.
@@ -616,6 +630,16 @@ def build_det_check_spec(
     impl-View tables, and a ``.view()`` / ``@`` projection will be
     emitted instead of recursive structural comparison. Pass ``None`` for
     the legacy (pre-Phase-2) behaviour.
+
+    ``source`` (optional, full file text) enables closed-spec-fn opening:
+    spec fns transitively reachable from the target's ensures that are
+    declared ``closed spec fn`` in ``source`` will be (a) recorded on
+    the returned DetCheckSpec so the inject phase can rewrite their
+    declarations to ``#[verifier::opaque] open spec fn``, and (b)
+    ``reveal``'d in the det-check proof body. This eliminates the
+    "closed spec fn opacity" class of unknowns where z3 cannot derive
+    key facts (e.g. ``self.constants == pre.constants``) from a body
+    it can't see.
     """
     if equal_policy is None:
         equal_policy = default_policy()
@@ -643,8 +667,28 @@ def build_det_check_spec(
         for p in spec.params:
             p.type = _quench_self(p.type)
 
+    # Closed-spec-fn opening: compute the set of spec fns reachable from
+    # the ensures that are currently declared ``closed`` in source. Pass
+    # them to _build_template (emits ``reveal(...)``) and surface them
+    # via DetCheckSpec so the inject phase can rewrite their
+    # declarations to ``#[verifier::opaque] open``.
+    reveal_specs: list[str] = []        # qualified names for reveal() calls
+    opened_names: list[str] = []        # bare names for the source rewrite
+    if source:
+        # Import locally to avoid a module-load cycle through classify.
+        from spec_determinism.classify import (
+            reachable_spec_fns as _reachable_spec_fns,
+            closed_spec_fn_qualified_names as _qualified_names,
+        )
+        reach = _reachable_spec_fns(spec.ensures, source, max_depth=4)
+        qual_map = _qualified_names(source, reach)
+        # Deterministic order (alphabetical by bare name).
+        opened_names = sorted(qual_map.keys())
+        reveal_specs = [qual_map[n] for n in opened_names]
+
     template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(
         spec, check_name, equal_policy, view_registry=view_registry,
+        reveal_specs=reveal_specs,
     )
     symbols = _build_symbols(spec)
     check_fn_name = check_name or f"det_{spec.name}"
@@ -666,6 +710,7 @@ def build_det_check_spec(
         generics_decl=spec.generics_decl,
         where_decl=spec.where_decl,
         self_type=spec.self_type,
+        opened_closed_specs=opened_names,
     )
 
 

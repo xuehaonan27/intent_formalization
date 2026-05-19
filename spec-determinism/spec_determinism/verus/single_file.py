@@ -34,7 +34,7 @@ import tempfile
 import time
 import traceback
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 from spec_determinism.extract.extractor import extract_spec
 from spec_determinism.codegen.gen_det import build_det_check_spec
@@ -155,7 +155,12 @@ _INJECT_BEGIN = "// === INJECTED DET CHECK ===\n"
 _INJECT_END = "// === END INJECTED ===\n"
 
 
-def _inject_into_source(source: str, code: str) -> str:
+def _inject_into_source(
+    source: str,
+    code: str,
+    *,
+    open_closed_specs: Optional[Iterable[str]] = None,
+) -> str:
     """Insert det-check code just before the last `}` (end of ``verus!{}``).
 
     Also inserts a small "deprecation shim" for vstd lemma names that the
@@ -173,8 +178,16 @@ def _inject_into_source(source: str, code: str) -> str:
     to the dereferenced form lets these files compile. The rewrite is
     purely textual on top-level identifiers — it does not modify
     qualified paths or field accesses.
+
+    When ``open_closed_specs`` is provided, the listed ``closed spec fn``
+    declarations are rewritten to ``#[verifier::opaque] open spec fn``
+    so that the det-check proof can ``reveal`` them and z3 sees their
+    bodies. Non-listed spec fns are untouched.
     """
     source = _rewrite_self_eq_old_self(source)
+    if open_closed_specs:
+        from spec_determinism.classify import rewrite_closed_to_opaque
+        source = rewrite_closed_to_opaque(source, open_closed_specs)
     idx = source.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
@@ -328,7 +341,7 @@ def run_single_file(
         except Exception as e:
             result["tier15_error"] = f"{type(e).__name__}: {e}"
 
-    det_spec = build_det_check_spec(spec, view_registry=view_registry)
+    det_spec = build_det_check_spec(spec, view_registry=view_registry, source=source)
     fn_det_name = det_spec.check_fn_name
 
     # Write artifact for post-mortem.
@@ -340,7 +353,12 @@ def run_single_file(
 
         schemas = enumerate_schemas(det_spec)
         code = det_spec.equal_fn_def + "\n\n" + render_guarded_template(det_spec, schemas)
-        injected = _inject_into_source(source, code)
+        injected = _inject_into_source(
+            source, code,
+            open_closed_specs=det_spec.opened_closed_specs,
+        )
+        if det_spec.opened_closed_specs:
+            result["opened_closed_specs"] = list(det_spec.opened_closed_specs)
 
         # Verus derives crate name from file stem — keep it stable.
         injected_path = tmp_root / f"{file_path.stem}.rs"
