@@ -1,0 +1,40 @@
+{
+  "patch": {
+    "name": "CSingleMessage",
+    "kind": "enum",
+    "type_params": [],
+    "fields": [],
+    "variants": [
+      {
+        "name": "Message",
+        "inner_types_str": [
+          "seqno: u64",
+          "dst: EndPoint",
+          "m: CMessage"
+        ]
+      },
+      {
+        "name": "Ack",
+        "inner_types_str": [
+          "ack_seqno: u64"
+        ]
+      },
+      {
+        "name": "InvalidMessage",
+        "inner_types_str": []
+      }
+    ],
+    "spec_view": {
+      "type_str": "SingleMessage<Message>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "line": 996,
+      "snippet": "/* $line_count$Exec$ */ pub enum CSingleMessage {"
+    }
+  },
+  "cached_at_ms": 1779096514470,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

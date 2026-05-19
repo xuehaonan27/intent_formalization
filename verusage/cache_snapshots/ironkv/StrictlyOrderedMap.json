@@ -1,0 +1,36 @@
+{
+  "patch": {
+    "name": "StrictlyOrderedMap",
+    "kind": "struct",
+    "type_params": [
+      "K"
+    ],
+    "fields": [
+      {
+        "name": "keys",
+        "type_str": "StrictlyOrderedVec<K>"
+      },
+      {
+        "name": "vals",
+        "type_str": "Vec<ID>"
+      },
+      {
+        "name": "m",
+        "type_str": "Ghost<Map<K, ID>>"
+      }
+    ],
+    "variants": [],
+    "spec_view": {
+      "type_str": "Map<K, ID>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/delegation_map_v/delegation_map_v__impl3__find_key.rs",
+      "line": 77,
+      "snippet": "struct StrictlyOrderedMap<K: KeyTrait + VerusClone> {"
+    }
+  },
+  "cached_at_ms": 1779095960076,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

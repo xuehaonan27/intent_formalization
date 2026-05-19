@@ -1,0 +1,24 @@
+{
+  "patch": {
+    "name": "AbstractKey",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [
+      {
+        "name": "ukey",
+        "type_str": "u64"
+      }
+    ],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/delegation_map_v/delegation_map_v__impl5__delegate_for_key_range_is_host_impl.rs",
+      "line": 304,
+      "snippet": "pub type AbstractKey = SHTKey;"
+    }
+  },
+  "cached_at_ms": 1779096246356,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

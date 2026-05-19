@@ -1,0 +1,63 @@
+{
+  "patch": {
+    "name": "CMessage",
+    "kind": "enum",
+    "type_params": [],
+    "fields": [],
+    "variants": [
+      {
+        "name": "GetRequest",
+        "inner_types_str": [
+          "k: CKey"
+        ]
+      },
+      {
+        "name": "SetRequest",
+        "inner_types_str": [
+          "k: CKey",
+          "v: Option::<Vec<u8>>"
+        ]
+      },
+      {
+        "name": "Reply",
+        "inner_types_str": [
+          "k: CKey",
+          "v: Option::<Vec::<u8>>"
+        ]
+      },
+      {
+        "name": "Redirect",
+        "inner_types_str": [
+          "k: CKey",
+          "id: EndPoint"
+        ]
+      },
+      {
+        "name": "Shard",
+        "inner_types_str": [
+          "kr: KeyRange::<CKey>",
+          "recipient: EndPoint"
+        ]
+      },
+      {
+        "name": "Delegate",
+        "inner_types_str": [
+          "range: KeyRange::<CKey>",
+          "h: CKeyHashMap"
+        ]
+      }
+    ],
+    "spec_view": {
+      "type_str": "Message"
+    },
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "line": 15,
+      "snippet": "pub enum CMessage {"
+    }
+  },
+  "cached_at_ms": 1779096586052,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

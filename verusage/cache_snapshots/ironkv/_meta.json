@@ -1,0 +1,8 @@
+{
+  "project_root": "/home/chentianyu/intent_formalization/verusage/source-projects/ironkv",
+  "project_hash": "18f92beb221b2d12ba82532e0066c48baf0e20eae3d6134fb72e3e70c57a82da",
+  "first_seen_ms": 1779092035467,
+  "captured_at_iso": "2026-05-19T00:00Z",
+  "notes": "Bug A cache: 49 entries used as deterministic A/B baseline. Sources hash matches verusage ironkv source-projects/ironkv at capture time. See spec-determinism/docs/determinism-funnel-framework.md.",
+  "captured_run": "/tmp/tier15_bugA_ironkv/"
+}

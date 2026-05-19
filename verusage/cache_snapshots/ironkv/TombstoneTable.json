@@ -1,0 +1,21 @@
+{
+  "patch": {
+    "name": "TombstoneTable",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [],
+    "variants": [],
+    "spec_view": {
+      "type_str": "Map<AbstractEndPoint, nat>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__host_model_next_delegate.rs",
+      "line": 1459,
+      "snippet": "pub type TombstoneTable = Map<AbstractEndPoint, nat>;"
+    }
+  },
+  "cached_at_ms": 1779097035762,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

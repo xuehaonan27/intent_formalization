@@ -1,0 +1,19 @@
+{
+  "patch": {
+    "name": "AbstractEndPoint",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "",
+      "line": 0,
+      "snippet": ""
+    }
+  },
+  "cached_at_ms": 1779092242210,
+  "llm_round_count": 0,
+  "validator_verdict": "rejected",
+  "reject_reason": "apply: 'AbstractEndPoint' already in type_defs as kind=struct \u2014 refusing to overwrite"
+}

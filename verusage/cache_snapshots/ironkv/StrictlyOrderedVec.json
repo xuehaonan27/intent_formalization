@@ -1,0 +1,28 @@
+{
+  "patch": {
+    "name": "StrictlyOrderedVec",
+    "kind": "struct",
+    "type_params": [
+      "K"
+    ],
+    "fields": [
+      {
+        "name": "v",
+        "type_str": "Vec<K>"
+      }
+    ],
+    "variants": [],
+    "spec_view": {
+      "type_str": "Seq<K>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/delegation_map_v/delegation_map_v__impl3__erase.rs",
+      "line": 32,
+      "snippet": "struct StrictlyOrderedVec<K: KeyTrait> {"
+    }
+  },
+  "cached_at_ms": 1779092094726,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

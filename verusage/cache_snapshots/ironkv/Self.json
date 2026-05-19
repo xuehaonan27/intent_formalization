@@ -1,0 +1,24 @@
+{
+  "patch": {
+    "name": "Self",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [
+      {
+        "name": "ukey",
+        "type_str": "u64"
+      }
+    ],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__real_init_impl.rs",
+      "line": 1015,
+      "snippet": "pub struct SHTKey {"
+    }
+  },
+  "cached_at_ms": 1779097945817,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

@@ -49,6 +49,17 @@ class CompletionTelemetry:
     gaps: list[str] = field(default_factory=list)
     cache_hits: int = 0
     cache_misses: int = 0
+    # Per-gap source: name → "live" | "pinned" | "miss".
+    # Only recorded for the first lookup in a target (per :meth:`get_with_source`).
+    gap_sources: dict[str, str] = field(default_factory=dict)
+    # Aggregate counters for quick triage.
+    cache_hits_live: int = 0
+    cache_hits_pinned: int = 0
+    # A/B reproducibility metadata.
+    current_source_hash: str = ""
+    pinned_hash: str = ""
+    pinned_hash_matches: Optional[bool] = None
+    pinned_cache_dir: str = ""
     llm_invoked: bool = False
     llm_returncode: int = 0
     llm_timed_out: bool = False
@@ -71,6 +82,13 @@ class CompletionTelemetry:
             "gaps": list(self.gaps),
             "cache_hits": self.cache_hits,
             "cache_misses": self.cache_misses,
+            "gap_sources": dict(self.gap_sources),
+            "cache_hits_live": self.cache_hits_live,
+            "cache_hits_pinned": self.cache_hits_pinned,
+            "current_source_hash": self.current_source_hash,
+            "pinned_hash": self.pinned_hash,
+            "pinned_hash_matches": self.pinned_hash_matches,
+            "pinned_cache_dir": self.pinned_cache_dir,
             "llm_invoked": self.llm_invoked,
             "llm_returncode": self.llm_returncode,
             "llm_timed_out": self.llm_timed_out,
@@ -189,6 +207,12 @@ def complete_types(
     if cache is None:
         cache = TypeCompletionCache(project_root)
 
+    # Capture cache identity for A/B reproducibility — recorded once per run.
+    tel.current_source_hash = cache.current_source_hash
+    tel.pinned_hash = cache.pinned_hash or ""
+    tel.pinned_hash_matches = cache.pinned_hash_matches
+    tel.pinned_cache_dir = cache.pinned_cache_dir or ""
+
     if work_dir is None:
         work_dir = os.path.join("/tmp", f"llmtype_{int(time.time()*1000)}_{os.getpid()}")
     os.makedirs(work_dir, exist_ok=True)
@@ -304,11 +328,21 @@ def _run_one_round(
         if g.name in seen_names:
             continue
         seen_names.add(g.name)
-        entry = cache.get(g.name)
+        entry, source = cache.get_with_source(g.name)
         if entry is None:
             tel.cache_misses += 1
+            tel.gap_sources.setdefault(g.name, "miss")
             remaining_gaps.append(g)
-        elif entry.validator_verdict == "rejected":
+            continue
+        # Record provenance once per name (first lookup wins; subsequent
+        # rounds may re-resolve via LLM but the initial source is what
+        # matters for A/B audit).
+        tel.gap_sources.setdefault(g.name, source)
+        if source == "live":
+            tel.cache_hits_live += 1
+        elif source == "pinned":
+            tel.cache_hits_pinned += 1
+        if entry.validator_verdict == "rejected":
             tel.cache_hits += 1
             tel.rejected_by_gate["cache_negative"] = (
                 tel.rejected_by_gate.get("cache_negative", 0) + 1

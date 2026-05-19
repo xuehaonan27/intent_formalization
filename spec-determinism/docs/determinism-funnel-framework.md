@@ -181,6 +181,50 @@ A monotone unsat-side tool should have **0 in `unsat→unknown`, `unsat→sat`,
 `unsat→verus_err`**. Any non-zero entries there are regressions and must
 be investigated. This is exactly how Bug A / Bug B were caught.
 
+#### 6.2.1 LLM cache stability (Tier 1.5 / Tier 3)
+
+Any tool that calls an LLM has **two** sources of variance an A/B can be
+contaminated by:
+
+1. **Code logic** — the thing you actually want to measure.
+2. **LLM non-determinism** — the same prompt yields different outputs across
+   runs. This was the root cause of the Bug B "regression" mis-diagnosis on
+   2026-05-18: clearing the Tier 1.5 cache before the Bug B run forced
+   LLM rebuild, and 15 ironkv targets received *different* patches than the
+   Bug A run had, producing 11 false-positive verus_error regressions
+   that vanished once the Bug A cache was restored.
+
+**Protocol** (canonical for Tier 1.5 / Tier 3 A/B):
+
+| concern | mechanism |
+|---|---|
+| keep prompts deterministic | already done: per-type prompt depends only on `spec.type_defs` + extracted snippet |
+| keep cache deterministic | use a **pinned (read-only) cache snapshot** for both A and B (`--llm-type-completion-pinned-dir`); writes from this run go to the **live** layer and never touch the pin |
+| prove A and B used the same cache | each result records `tier15.pinned_hash`, `tier15.current_source_hash`, `tier15.pinned_hash_matches`, `tier15.gap_sources` (per-name `"live"\|"pinned"\|"miss"`) — diff these across A and B to verify byte-equality of the cache substrate |
+| handle source drift | pin still serves matching types as warm-start; `pinned_hash_matches=False` is surfaced in telemetry so a stale pin gets flagged but doesn't silently mis-resolve (Bug B's probe still catches shape mismatches on stale entries) |
+
+Pinned snapshots live at `verusage/cache_snapshots/<project>/` and are
+auto-detected by `verusage_run`. The 49-entry ironkv pin captured from the
+Bug A run is the current reference. To re-baseline (e.g., after a major
+schema change), regenerate via:
+
+```bash
+# 1. clear live cache
+rm -rf ~/.cache/spec_determinism/type_completion/<project_hash>/
+
+# 2. let the corpus run fill live from LLM (this is the canonical re-baseline)
+python -m spec_determinism.corpus.verusage_run --project ironkv \
+  --llm-type-completion --no-llm-type-completion-pinned-autodetect ...
+
+# 3. copy live → pin and refresh _meta.json
+cp ~/.cache/spec_determinism/type_completion/<hash>/*.json \
+   verusage/cache_snapshots/ironkv/
+# update _meta.json: project_root, captured_at_iso, captured_run, notes
+```
+
+A re-baseline must be a deliberate decision (commit + PR), not a side
+effect of any A/B test run.
+
 ### 6.3 Roadmap priority
 
 Inside the unsat-side funnel: prioritise tools that target the **largest

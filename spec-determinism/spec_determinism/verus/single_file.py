@@ -169,6 +169,7 @@ def run_single_file(
     artifact_key: str | None = None,
     use_llm_type_completion: bool = False,
     llm_type_completion_cache_dir: Path | None = None,
+    llm_type_completion_pinned_dir: Path | None = None,
     llm_type_completion_timeout: int = 300,
     llm_type_completion_project_root: Path | None = None,
 ) -> dict:
@@ -222,8 +223,12 @@ def run_single_file(
                 or llm_proof_source_project_root
                 or Path(file_path).parent
             )
-            tcc = _TCC(proj_root, cache_root=str(llm_type_completion_cache_dir))\
-                if llm_type_completion_cache_dir else _TCC(proj_root)
+            tcc_kwargs = {}
+            if llm_type_completion_cache_dir:
+                tcc_kwargs["cache_root"] = str(llm_type_completion_cache_dir)
+            if llm_type_completion_pinned_dir:
+                tcc_kwargs["pinned_cache_dir"] = str(llm_type_completion_pinned_dir)
+            tcc = _TCC(proj_root, **tcc_kwargs)
             work_dir = None
             if artifact_dir is not None:
                 (artifact_dir / "tier15").mkdir(parents=True, exist_ok=True)

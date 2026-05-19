@@ -1,0 +1,26 @@
+{
+  "patch": {
+    "name": "KeyIterator",
+    "kind": "struct",
+    "type_params": [
+      "K"
+    ],
+    "fields": [
+      {
+        "name": "k",
+        "type_str": "Option<K>"
+      }
+    ],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "unverified/delegation_map_v__impl3__choose_gap_violator.rs",
+      "line": 69,
+      "snippet": "pub struct KeyIterator<K: KeyTrait + VerusClone> {"
+    }
+  },
+  "cached_at_ms": 1779093969523,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

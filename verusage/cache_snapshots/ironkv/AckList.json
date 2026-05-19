@@ -1,0 +1,23 @@
+{
+  "patch": {
+    "name": "AckList",
+    "kind": "struct",
+    "type_params": [
+      "MT"
+    ],
+    "fields": [],
+    "variants": [],
+    "spec_view": {
+      "type_str": "Seq<SingleMessage<MT>>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__host_model_next_delegate.rs",
+      "line": 1456,
+      "snippet": "pub type AckList<MT> = Seq<SingleMessage<MT>>;"
+    }
+  },
+  "cached_at_ms": 1779097108255,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

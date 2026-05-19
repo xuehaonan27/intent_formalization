@@ -1,0 +1,26 @@
+{
+  "patch": {
+    "name": "EndPoint",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [
+      {
+        "name": "id",
+        "type_str": "Vec<u8>"
+      }
+    ],
+    "variants": [],
+    "spec_view": {
+      "type_str": "AbstractEndPoint"
+    },
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__real_init_impl.rs",
+      "line": 910,
+      "snippet": "pub struct EndPoint {"
+    }
+  },
+  "cached_at_ms": 1779097850816,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

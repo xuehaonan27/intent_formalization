@@ -1,0 +1,61 @@
+{
+  "patch": {
+    "name": "Message",
+    "kind": "enum",
+    "type_params": [],
+    "fields": [],
+    "variants": [
+      {
+        "name": "GetRequest",
+        "inner_types_str": [
+          "key: AbstractKey"
+        ]
+      },
+      {
+        "name": "SetRequest",
+        "inner_types_str": [
+          "key: AbstractKey",
+          "value: Option<AbstractValue>"
+        ]
+      },
+      {
+        "name": "Reply",
+        "inner_types_str": [
+          "key: AbstractKey",
+          "value: Option<AbstractValue>"
+        ]
+      },
+      {
+        "name": "Redirect",
+        "inner_types_str": [
+          "key: AbstractKey",
+          "id: AbstractEndPoint"
+        ]
+      },
+      {
+        "name": "Shard",
+        "inner_types_str": [
+          "range: KeyRange<AbstractKey>",
+          "recipient: AbstractEndPoint"
+        ]
+      },
+      {
+        "name": "Delegate",
+        "inner_types_str": [
+          "range: KeyRange<AbstractKey>",
+          "h: Hashtable"
+        ]
+      }
+    ],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "line": 719,
+      "snippet": "pub enum Message {"
+    }
+  },
+  "cached_at_ms": 1779096586052,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

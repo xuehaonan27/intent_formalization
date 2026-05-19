@@ -1,0 +1,19 @@
+{
+  "patch": {
+    "name": "NetEvent",
+    "kind": "struct",
+    "type_params": [],
+    "fields": [],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "",
+      "line": 0,
+      "snippet": ""
+    }
+  },
+  "cached_at_ms": 1779096514468,
+  "llm_round_count": 0,
+  "validator_verdict": "rejected",
+  "reject_reason": "LLM did not propose a patch"
+}

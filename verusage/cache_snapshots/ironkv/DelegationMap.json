@@ -1,0 +1,32 @@
+{
+  "patch": {
+    "name": "DelegationMap",
+    "kind": "struct",
+    "type_params": [
+      "K"
+    ],
+    "fields": [
+      {
+        "name": "lows",
+        "type_str": "StrictlyOrderedMap<K>"
+      },
+      {
+        "name": "m",
+        "type_str": "Ghost<Map<K, AbstractEndPoint>>"
+      }
+    ],
+    "variants": [],
+    "spec_view": {
+      "type_str": "Map<K, AbstractEndPoint>"
+    },
+    "source_evidence": {
+      "rel_path": "verified/delegation_map_v/delegation_map_v__impl4__range_consistent_impl.rs",
+      "line": 213,
+      "snippet": "pub struct DelegationMap<K: KeyTrait + VerusClone> {"
+    }
+  },
+  "cached_at_ms": 1779096144264,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

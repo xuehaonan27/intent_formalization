@@ -174,8 +174,21 @@ def main() -> int:
                          "couldn't resolve. Results are cached per project "
                          "+ type-name.")
     ap.add_argument("--llm-type-completion-cache-dir", type=Path, default=None,
-                    help="Override default cache root "
-                         "(~/.cache/spec_determinism/type_completion).")
+                    help="Override default live cache root "
+                         "(~/.cache/spec_determinism/type_completion). "
+                         "Writes from this run land here.")
+    ap.add_argument("--llm-type-completion-pinned-dir", type=Path, default=None,
+                    help="Optional pinned (read-only) cache snapshot for "
+                         "Tier 1.5. Read-through fallback when a type is "
+                         "missing from the live cache; never modified. Use "
+                         "this for deterministic A/B testing. If omitted, "
+                         "auto-detect at "
+                         "<roots>/../cache_snapshots/<project>/ "
+                         "(where <roots> is --roots).")
+    ap.add_argument("--no-llm-type-completion-pinned-autodetect",
+                    dest="llm_type_completion_pinned_autodetect",
+                    action="store_false", default=True,
+                    help="Disable auto-detection of pinned cache snapshot.")
     ap.add_argument("--llm-type-completion-timeout", type=int, default=300,
                     help="Per-target Copilot CLI timeout for Tier 1.5 "
                          "(default: 300s).")
@@ -281,6 +294,30 @@ def main() -> int:
                  llm_proof_cache_dir, args.llm_proof_cache_mode,
                  args.llm_proof_mode)
 
+    # Resolve Tier 1.5 pinned cache directory. Priority:
+    #   1. Explicit --llm-type-completion-pinned-dir
+    #   2. Auto-detect at <roots>/../cache_snapshots/<project>/ (i.e.,
+    #      verusage/cache_snapshots/<project>/ for the canonical layout).
+    #      Disabled by --no-llm-type-completion-pinned-autodetect.
+    #   3. None (live-only operation, preserving pre-pin behavior).
+    llm_type_pinned_dir = None
+    if args.llm_type_completion:
+        if args.llm_type_completion_pinned_dir is not None:
+            cand = args.llm_type_completion_pinned_dir.expanduser().resolve()
+            if cand.is_dir():
+                llm_type_pinned_dir = cand
+            else:
+                log.warning("Tier 1.5: --llm-type-completion-pinned-dir %s "
+                            "does not exist; running live-only.", cand)
+        elif args.llm_type_completion_pinned_autodetect:
+            cand = (roots.parent / "cache_snapshots" / args.project).resolve()
+            if cand.is_dir():
+                llm_type_pinned_dir = cand
+                log.info("Tier 1.5: auto-detected pinned cache at %s", cand)
+        if llm_type_pinned_dir:
+            log.info("Tier 1.5: pinned cache = %s (read-only)",
+                     llm_type_pinned_dir)
+
     results: list[dict] = []
     t0 = time.monotonic()
     for i, (file_path, fn, key) in enumerate(targets, 1):
@@ -307,6 +344,7 @@ def main() -> int:
                 artifact_key=key,
                 use_llm_type_completion=args.llm_type_completion,
                 llm_type_completion_cache_dir=args.llm_type_completion_cache_dir,
+                llm_type_completion_pinned_dir=llm_type_pinned_dir,
                 llm_type_completion_timeout=args.llm_type_completion_timeout,
                 llm_type_completion_project_root=proj_root,
             )

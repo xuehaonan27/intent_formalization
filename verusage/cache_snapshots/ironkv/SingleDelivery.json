@@ -1,0 +1,30 @@
+{
+  "patch": {
+    "name": "SingleDelivery",
+    "kind": "struct",
+    "type_params": [
+      "MT"
+    ],
+    "fields": [
+      {
+        "name": "receive_state",
+        "type_str": "TombstoneTable"
+      },
+      {
+        "name": "send_state",
+        "type_str": "SendState<MT>"
+      }
+    ],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__host_model_next_delegate.rs",
+      "line": 1313,
+      "snippet": "pub struct SingleDelivery<MT> {"
+    }
+  },
+  "cached_at_ms": 1779097035762,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

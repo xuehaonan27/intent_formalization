@@ -1,0 +1,30 @@
+{
+  "patch": {
+    "name": "KeyRange",
+    "kind": "struct",
+    "type_params": [
+      "K"
+    ],
+    "fields": [
+      {
+        "name": "lo",
+        "type_str": "KeyIterator<K>"
+      },
+      {
+        "name": "hi",
+        "type_str": "KeyIterator<K>"
+      }
+    ],
+    "variants": [],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "line": 706,
+      "snippet": "pub struct KeyRange<K: KeyTrait + VerusClone> {"
+    }
+  },
+  "cached_at_ms": 1779096664371,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}

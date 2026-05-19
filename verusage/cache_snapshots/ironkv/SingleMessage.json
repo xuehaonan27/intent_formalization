@@ -1,0 +1,40 @@
+{
+  "patch": {
+    "name": "SingleMessage",
+    "kind": "enum",
+    "type_params": [
+      "MT"
+    ],
+    "fields": [],
+    "variants": [
+      {
+        "name": "Message",
+        "inner_types_str": [
+          "seqno: nat",
+          "dst: AbstractEndPoint",
+          "m: MT"
+        ]
+      },
+      {
+        "name": "Ack",
+        "inner_types_str": [
+          "ack_seqno: nat"
+        ]
+      },
+      {
+        "name": "InvalidMessage",
+        "inner_types_str": []
+      }
+    ],
+    "spec_view": null,
+    "source_evidence": {
+      "rel_path": "verified/host_impl_v/host_impl_v__impl2__deliver_packet_seq.rs",
+      "line": 755,
+      "snippet": "pub enum SingleMessage<MT> {"
+    }
+  },
+  "cached_at_ms": 1779096586052,
+  "llm_round_count": 1,
+  "validator_verdict": "accepted",
+  "reject_reason": ""
+}
