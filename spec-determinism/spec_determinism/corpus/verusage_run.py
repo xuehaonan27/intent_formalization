@@ -385,9 +385,22 @@ def main() -> int:
                     if r.get("status") == "ok"
                     and classify_ok(r) == BUCKET_INCOMPLETE
                     and r.get("permitted"))
-    incomplete_note = f"  (R0=sat, spec admits multiple posts"
+    permitted_or = sum(1 for r in results
+                       if r.get("status") == "ok"
+                       and classify_ok(r) == BUCKET_INCOMPLETE
+                       and r.get("permitted_reason") == "permissive_or")
+    permitted_manual = sum(1 for r in results
+                           if r.get("status") == "ok"
+                           and classify_ok(r) == BUCKET_INCOMPLETE
+                           and r.get("permitted_reason") == "spec_underconstrained_manual")
+    incomplete_note = f"  (R0=sat or permitted=True"
     if permitted:
-        incomplete_note += f"; {permitted} permitted by `|||`"
+        bd = []
+        if permitted_or:
+            bd.append(f"{permitted_or} via `|||`")
+        if permitted_manual:
+            bd.append(f"{permitted_manual} via REAL_SAT allowlist")
+        incomplete_note += f"; permitted={permitted} ({', '.join(bd)})"
     incomplete_note += ")"
     print(f"  {BUCKET_INCOMPLETE:18s}: {ok_buckets[BUCKET_INCOMPLETE]:4d}{incomplete_note}")
     print(f"  {BUCKET_INCONCLUSIVE:18s}: {ok_buckets[BUCKET_INCONCLUSIVE]:4d}  (R0=unknown / legacy, z3 undecided)")

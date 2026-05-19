@@ -41,7 +41,10 @@ from spec_determinism.codegen.gen_det import build_det_check_spec
 from spec_determinism.schema_search import enumerate_schemas, render_guarded_template
 from spec_determinism.schema_search.search import build_schema_ctx, run_schema_search
 from spec_determinism.extract.types import DetCheckSpec
-from spec_determinism.classify import ensures_uses_permissive_or
+from spec_determinism.classify import (
+    ensures_uses_permissive_or,
+    is_real_sat_manual_function,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -299,16 +302,30 @@ def run_single_file(
         result["status"] = "no_ensures"
         return result
 
-    # Permitted-incompleteness flag: spec uses ``|||`` (directly or via a
-    # referenced closed spec fn) to permit multiple post-states. Set
-    # unconditionally so renderers / aggregators can show the annotation
-    # regardless of the eventual R0 verdict.
+    # Permitted-incompleteness flag: spec is known to admit multiple
+    # post-states. Two detectors:
+    #   - structural ``ensures_uses_permissive_or``: ensures uses ``|||``
+    #     directly or via a transitively-referenced spec fn body.
+    #   - manual allowlist ``is_real_sat_manual_function``: curated set
+    #     of ironkv spec fns whose ensures permit multiple posts by
+    #     leaving return components unconstrained (no ``|||`` to detect).
+    # The flag is set unconditionally so renderers / aggregators can show
+    # the annotation regardless of the eventual R0 verdict.
     try:
-        result["permitted"] = ensures_uses_permissive_or(
+        permitted_or = ensures_uses_permissive_or(
             spec.ensures, source=source
         )
     except Exception as e:
         result["permitted_error"] = f"{type(e).__name__}: {e}"
+        permitted_or = False
+    permitted_manual = is_real_sat_manual_function(fn_name, str(file_path))
+    if permitted_or:
+        result["permitted"] = True
+        result["permitted_reason"] = "permissive_or"
+    elif permitted_manual:
+        result["permitted"] = True
+        result["permitted_reason"] = "spec_underconstrained_manual"
+    else:
         result["permitted"] = False
 
     if use_llm_type_completion:

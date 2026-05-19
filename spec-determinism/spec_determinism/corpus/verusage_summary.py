@@ -119,10 +119,32 @@ def render(per_project: dict[str, list[dict]]) -> str:
         and r.get("permitted")
     )
     if permitted_total:
+        permitted_or = sum(
+            1 for results in per_project.values()
+            for r in results
+            if r.get("status") == "ok"
+            and classify_ok(r) == BUCKET_INCOMPLETE
+            and r.get("permitted")
+            and r.get("permitted_reason") == "permissive_or"
+        )
+        permitted_manual = sum(
+            1 for results in per_project.values()
+            for r in results
+            if r.get("status") == "ok"
+            and classify_ok(r) == BUCKET_INCOMPLETE
+            and r.get("permitted")
+            and r.get("permitted_reason") == "spec_underconstrained_manual"
+        )
+        bd_parts = []
+        if permitted_or:
+            bd_parts.append(f"{permitted_or} via spec ``|||``")
+        if permitted_manual:
+            bd_parts.append(f"{permitted_manual} via REAL_SAT allowlist")
+        breakdown = f" ({', '.join(bd_parts)})" if bd_parts else ""
         lines.append("")
         lines.append(
             f"_Of the {witness_total} `incomplete` results, {permitted_total} "
-            f"are **permitted by spec ``|||``** (intentional non-determinism)._"
+            f"are **permitted by the spec** (intentional non-determinism){breakdown}._"
         )
     lines.append("")
 
@@ -142,7 +164,14 @@ def render(per_project: dict[str, list[dict]]) -> str:
             key = r.get("artifact_key", r.get("file", "?"))
             rounds = r.get("n_rounds", "?")
             assumes = r.get("assumes", [])
-            permitted = " *(permitted by spec `|||`)*" if r.get("permitted") else ""
+            if r.get("permitted"):
+                reason = r.get("permitted_reason", "")
+                if reason == "spec_underconstrained_manual":
+                    permitted = " *(permitted: REAL_SAT allowlist, see `docs/ironkv-real-sat-cases-2026-05-19.en.md`)*"
+                else:
+                    permitted = " *(permitted by spec `|||`)*"
+            else:
+                permitted = ""
             lines.append(f"- `{key}`  (rounds={rounds}){permitted}")
             for a in assumes:
                 al = a if len(a) < 180 else a[:180] + "…"

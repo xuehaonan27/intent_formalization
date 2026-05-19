@@ -46,16 +46,26 @@ This module returns one of:
 
 Permitted-incompleteness detection
 ----------------------------------
-Some Verus ensures intentionally use ``|||`` to declare an OR over
-post-states (e.g., IronKV's ``next_delegate_postconditions`` allows the
-"normal" branch OR the "ignoring unparseable" branch). The function
-:func:`ensures_uses_permissive_or` recognises this both at the
-top-level ensures *and* transitively through ``closed spec fn``
-predicates referenced from the ensures. Pipeline drivers set
-``result["permitted"] = True`` when this detector fires; the result
-still classifies as ``incomplete`` but renderers add a "permitted
-by spec ``|||``" annotation so paper claims can distinguish
-spec-design-intended SAT from accidental spec gaps.
+Some Verus ensures intentionally permit multiple post-states. Two
+detectors classify these so paper claims can distinguish spec-design-
+intended non-determinism from accidental spec gaps:
+
+  1. :func:`ensures_uses_permissive_or` — structural: ensures uses
+     ``|||`` directly *or* via a transitively-referenced ``closed
+     spec fn`` body (e.g., IronKV's ``next_delegate_postconditions``).
+  2. :data:`REAL_SAT_MANUAL_FNS` + :func:`is_real_sat_manual_function`
+     — curated allowlist of spec fns whose ensures permit multiple
+     posts by leaving return components unconstrained (no ``|||``
+     to detect structurally). Source:
+     ``docs/ironkv-real-sat-cases-2026-05-19.en.md``.
+
+Pipeline drivers set ``result["permitted"] = True`` if either detector
+fires and ``result["permitted_reason"] in
+{"permissive_or", "spec_underconstrained_manual"}``. ``classify_ok``
+then promotes ``permitted + r0_z3=="unknown"`` to ``incomplete``
+(rationale: spec analysis already established that the spec admits
+multiple posts; z3 failing to produce a witness is not counter-
+evidence).
 
 Renamed 2026-05-19: old ``ok_proved``/``ok_proved_llm``/``ok_witness``
 are now ``complete``/``complete_llm``/``incomplete`` respectively.
@@ -92,6 +102,14 @@ def classify_ok(result: dict) -> str:
     """Classify an ``ok`` result by its R0 z3 verdict.
 
     Caller is expected to first check ``result.get("status") == "ok"``.
+
+    Permitted-incompleteness promotion: when ``result["permitted"]`` is
+    True (set by the pipeline based on ``ensures_uses_permissive_or`` or
+    the curated manual REAL_SAT allowlist), an ``r0_z3 == "unknown"``
+    verdict is promoted to ``incomplete`` instead of staying in
+    ``ok_inconclusive``. Rationale: the spec analysis has already
+    confirmed the spec admits multiple post-states — z3 failing to
+    produce a witness is not evidence against that conclusion.
     """
     r0 = result.get("r0_z3", "")
     if r0 == "unsat":
@@ -101,6 +119,8 @@ def classify_ok(result: dict) -> str:
     if r0 == "sat":
         return BUCKET_INCOMPLETE
     if r0 == "unknown":
+        if result.get("permitted"):
+            return BUCKET_INCOMPLETE
         return BUCKET_INCONCLUSIVE
     if r0 == "":
         # Legacy run — assumes-bearing maps to inconclusive (empirical),
@@ -125,6 +145,55 @@ _PERMISSIVE_OR_RE = re.compile(r"\|\|\|")
 # Match an unqualified Rust identifier in call position: ``foo(``.
 # We use this to harvest candidate spec-fn names from an ensures text.
 _CALLEE_RE = re.compile(r"\b([A-Za-z_][A-Za-z_0-9]*)\s*\(")
+
+
+# Manual REAL_SAT allowlist: spec fns whose ensures permit multiple
+# post-states by leaving return components unconstrained (rather than
+# by using ``|||``). These are not detectable by the structural
+# ``ensures_uses_permissive_or`` heuristic.
+#
+# Source: ``docs/ironkv-real-sat-cases-2026-05-19.en.md`` — 5 spec
+# functions / 9 instances on the ironkv May-12 viewreg dataset.
+# Convention: spec_underconstrained = the spec itself admits the
+# nondeterminism (not a pipeline bug).
+REAL_SAT_MANUAL_FNS: frozenset[str] = frozenset({
+    # delegation_map_v: `ret.1` unconstrained when `ret.0 == true`
+    "keys_in_index_range_agree",
+    "values_agree",
+    # single_delivery_model_v: spec uses set-equality; Vec order free
+    "retransmit_un_acked_packets",
+    "retransmit_un_acked_packets_for_dst",
+    # net_sht_v: `InvalidMessage` branch entirely unconstrained
+    "sht_demarshall_data_method",
+})
+
+# Project-path substrings used to scope the manual allowlist. Function
+# names like ``values_agree`` are common; we only trust the allowlist
+# when the source file lives under one of these projects.
+_REAL_SAT_PROJECT_HINTS: tuple[str, ...] = ("ironkv",)
+
+
+def is_real_sat_manual_function(
+    function_name: str,
+    file_path: str = "",
+) -> bool:
+    """True iff ``(function_name, file_path)`` is on the manual REAL_SAT
+    allowlist.
+
+    Both arguments must agree: the function name must be in
+    ``REAL_SAT_MANUAL_FNS`` *and* the file path must contain one of the
+    project hints in ``_REAL_SAT_PROJECT_HINTS``. The path scope avoids
+    accidentally tagging same-named functions in unrelated projects.
+
+    Pass ``file_path=""`` to opt out of the project-scope check (used
+    only by self-tests).
+    """
+    if function_name not in REAL_SAT_MANUAL_FNS:
+        return False
+    if not file_path:
+        return True
+    fp = file_path.lower()
+    return any(hint in fp for hint in _REAL_SAT_PROJECT_HINTS)
 
 # Match a spec-fn header like ``pub closed spec fn foo(...) ...``.
 # Capture group 1 is the name. We then brace-match to extract the body.
@@ -531,6 +600,10 @@ def _selftest_classify() -> None:
         ({"status": "ok", "r0_z3": "unsat", "llm_assisted": True}, BUCKET_COMPLETE_LLM),
         ({"status": "ok", "r0_z3": "sat"}, BUCKET_INCOMPLETE),
         ({"status": "ok", "r0_z3": "unknown"}, BUCKET_INCONCLUSIVE),
+        # permitted promotes unknown → incomplete
+        ({"status": "ok", "r0_z3": "unknown", "permitted": True}, BUCKET_INCOMPLETE),
+        # permitted does NOT affect unsat (still complete)
+        ({"status": "ok", "r0_z3": "unsat", "permitted": True}, BUCKET_COMPLETE),
         ({"status": "ok", "r0_z3": "", "assumes": ["x"]}, BUCKET_INCONCLUSIVE),
         ({"status": "ok", "r0_z3": ""}, BUCKET_COMPLETE),
         ({"status": "ok", "r0_z3": "bogus"}, BUCKET_UNKNOWN_KIND),
@@ -538,6 +611,27 @@ def _selftest_classify() -> None:
     for r, want in cases:
         got = classify_ok(r)
         assert got == want, f"classify({r}) -> {got}, want {want}"
+
+
+def _selftest_real_sat_manual() -> None:
+    # On the allowlist + ironkv path → True.
+    assert is_real_sat_manual_function(
+        "values_agree",
+        "/abs/verusage/source-projects/ironkv/verified/x.rs",
+    ) is True
+    # On the allowlist but unrelated project → False (project guard).
+    assert is_real_sat_manual_function(
+        "values_agree",
+        "/abs/verusage/source-projects/atmosphere/verified/x.rs",
+    ) is False
+    # Not on the allowlist → False regardless of path.
+    assert is_real_sat_manual_function(
+        "some_other_fn",
+        "/abs/ironkv/x.rs",
+    ) is False
+    # Empty path opts out of project guard (self-tests only).
+    assert is_real_sat_manual_function("keys_in_index_range_agree", "") is True
+    assert is_real_sat_manual_function("nonsense", "") is False
 
 
 def _selftest_permitted_or() -> None:
@@ -680,6 +774,7 @@ def _selftest_reachable_and_rewrite() -> None:
 
 def _selftest() -> None:
     _selftest_classify()
+    _selftest_real_sat_manual()
     _selftest_permitted_or()
     _selftest_reachable_and_rewrite()
     print("classify self-tests PASS")
