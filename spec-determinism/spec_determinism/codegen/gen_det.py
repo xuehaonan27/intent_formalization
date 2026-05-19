@@ -75,6 +75,17 @@ def _typeinfo_to_typeexpr(ty: "TypeInfo"):
     # Struct / Enum / Unknown — use whatever name we have
     head = ty.name or "?"
     args = [_typeinfo_to_typeexpr(a) for a in (ty.type_args or [])]
+    # Extractor sometimes stores the *raw* spelling in ``ty.name``
+    # (e.g. ``"StrictlyOrderedMap<K>"``) — sometimes with a populated
+    # ``type_args=[K]`` (LLM-completed types), sometimes with empty
+    # ``type_args`` (path-resolver fallback in extractor.py). The
+    # ``ViewRegistry`` indexes types by their *short* name, so the raw
+    # spelling causes a miss and the resolver silently falls through
+    # to field-by-field structural equality, defeating the view layer.
+    # Strip the generic suffix unconditionally so the short-name lookup
+    # matches in both cases.
+    if "<" in head:
+        head = head.split("<", 1)[0].strip()
     return TypeExpr(kind="generic" if args else "leaf",
                     head=head, args=args, raw=ty.name or "")
 
@@ -1133,7 +1144,8 @@ def _build_equal_fn(
         for (lhs, rhs, ty) in arg_pairs:
             clauses.append(build_equal_expr(ty, lhs, rhs, policy,
                                             view_registry=view_registry,
-                                            prelude_collector=prelude_decls))
+                                            prelude_collector=prelude_decls,
+                                            caller_generics=generics_decl))
 
         if not clauses:
             body = "true"
@@ -1238,6 +1250,91 @@ def _container_needs_elementwise(ty: TypeInfo, policy: EqualPolicy) -> bool:
     return _contains_result(ty)
 
 
+def _parse_generic_bounds(generics_decl: str) -> dict[str, set[str]]:
+    """Parse a generic declaration like ``<K: KeyTrait + VerusClone, V>``
+    into a map ``{"K": {"KeyTrait", "VerusClone"}, "V": set()}``.
+
+    Robust against missing leading/trailing angle brackets and trims
+    whitespace. Bounds with ``::`` (path traits) are kept as-is.
+    """
+    import re
+    if not generics_decl:
+        return {}
+    m = re.search(r'<([^<>]*(?:<[^<>]*>[^<>]*)*)>', generics_decl)
+    inside = m.group(1) if m else generics_decl
+    out: dict[str, set[str]] = {}
+    depth = 0
+    chunks: list[str] = []
+    cur = []
+    for ch in inside:
+        if ch == '<':
+            depth += 1
+            cur.append(ch)
+        elif ch == '>':
+            depth -= 1
+            cur.append(ch)
+        elif ch == ',' and depth == 0:
+            chunks.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    if cur:
+        chunks.append("".join(cur))
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if ':' in chunk:
+            tp, bounds = chunk.split(':', 1)
+            tp = tp.strip()
+            traits = {b.strip() for b in bounds.split('+') if b.strip()}
+        else:
+            tp = chunk.strip()
+            traits = set()
+        out[tp] = traits
+    return out
+
+
+def _shim_bounds_satisfied(prelude_decl: str, caller_generics: str) -> bool:
+    """Check whether the trait bounds required by a registered View shim
+    (e.g. ``impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K>``)
+    are all satisfied by the equal-fn's own generic decl.
+
+    Returns True when the shim's bounds are a subset of caller bounds
+    (so emitting ``(x).view()`` will compile). Returns False when any
+    extra bound is required that the caller doesn't provide — the
+    caller should then fall back to a non-view comparison rather than
+    emit a ``.view()`` projection that won't typecheck.
+
+    When ``caller_generics`` is empty (no generic context to check
+    against) we assume the call site is monomorphic and skip the
+    check (return True) — this matches the legacy behaviour for
+    non-generic structs whose shim doesn't introduce new bounds.
+    """
+    if not prelude_decl:
+        return True
+    import re
+    m = re.search(r'impl\s*<([^<>]*(?:<[^<>]*>[^<>]*)*)>', prelude_decl)
+    if not m:
+        return True
+    shim_decl = "<" + m.group(1) + ">"
+    shim_bounds = _parse_generic_bounds(shim_decl)
+    caller_bounds = _parse_generic_bounds(caller_generics)
+    builtin = {"Sized", "?Sized"}
+    for tp, required in shim_bounds.items():
+        # If the shim binds a type-param that the caller doesn't expose
+        # (it's monomorphic at the call site), the shim's extra bounds
+        # don't constrain us — verus will instantiate ``K`` to a
+        # concrete type and check separately.
+        if tp not in caller_bounds:
+            continue
+        available = caller_bounds[tp]
+        missing = required - available - builtin
+        if missing:
+            return False
+    return True
+
+
 def build_equal_expr(
     ty: TypeInfo,
     lhs: str,
@@ -1245,6 +1342,7 @@ def build_equal_expr(
     policy: EqualPolicy | None = None,
     view_registry: Optional["ViewRegistry"] = None,
     prelude_collector: Optional[list[str]] = None,
+    caller_generics: str = "",
 ) -> str:
     """Recursively emit a Verus boolean expression that structurally compares
     two values of the given type. The output is always inside `spec` mode.
@@ -1318,12 +1416,13 @@ def build_equal_expr(
                 ty.spec_view, f"({lhs})@", f"({rhs})@", policy,
                 view_registry=view_registry,
                 prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
             )
         elem_ty = ty.type_args[0] if ty.type_args else None
         if elem_ty is not None and _container_needs_elementwise(elem_ty, policy):
             elem_eq = build_equal_expr(elem_ty, f"{lhs}[i]", f"{rhs}[i]", policy,
                                        view_registry=view_registry,
-                                       prelude_collector=prelude_collector)
+                                       prelude_collector=prelude_collector, caller_generics=caller_generics)
             return (
                 f"({lhs}.len() == {rhs}.len()"
                 f" && forall|i: int| 0 <= i < {lhs}.len() ==> ({elem_eq}))"
@@ -1342,12 +1441,13 @@ def build_equal_expr(
                 ty.spec_view, f"({lhs})@", f"({rhs})@", policy,
                 view_registry=view_registry,
                 prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
             )
         v_ty = ty.type_args[1] if len(ty.type_args) > 1 else None
         if v_ty is not None and _container_needs_elementwise(v_ty, policy):
             val_eq = build_equal_expr(v_ty, f"{lhs}[k]", f"{rhs}[k]", policy,
                                       view_registry=view_registry,
-                                      prelude_collector=prelude_collector)
+                                      prelude_collector=prelude_collector, caller_generics=caller_generics)
             k_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.INT, "int")
             k_name = k_ty.name or "int"
             return (
@@ -1366,7 +1466,7 @@ def build_equal_expr(
         else:
             ok_eq = build_equal_expr(ok_ty, f"{lhs}->Ok_0", f"{rhs}->Ok_0", policy,
                                      view_registry=view_registry,
-                                     prelude_collector=prelude_collector)
+                                     prelude_collector=prelude_collector, caller_generics=caller_generics)
             ok_clause = f"(({lhs} is Ok) ==> ({ok_eq}))"
         # Err side — collapse all Errs or recurse
         if policy.errs_equivalent:
@@ -1377,7 +1477,7 @@ def build_equal_expr(
             )
         err_eq = build_equal_expr(err_ty, f"{lhs}->Err_0", f"{rhs}->Err_0", policy,
                                   view_registry=view_registry,
-                                  prelude_collector=prelude_collector)
+                                  prelude_collector=prelude_collector, caller_generics=caller_generics)
         return (
             f"(({lhs} is Ok) == ({rhs} is Ok))"
             f" && {ok_clause}"
@@ -1388,7 +1488,7 @@ def build_equal_expr(
         inner_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.UNKNOWN, "unknown")
         some_eq = build_equal_expr(inner_ty, f"{lhs}->Some_0", f"{rhs}->Some_0", policy,
                                    view_registry=view_registry,
-                                   prelude_collector=prelude_collector)
+                                   prelude_collector=prelude_collector, caller_generics=caller_generics)
         return (
             f"(({lhs} is Some) == ({rhs} is Some))"
             f" && (({lhs} is Some) ==> ({some_eq}))"
@@ -1405,6 +1505,7 @@ def build_equal_expr(
                 inner_ty, f"({lhs})@", f"({rhs})@", policy,
                 view_registry=view_registry,
                 prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
             )
             return inner_eq
         # No inner info — compare wrappers via `@` raw.
@@ -1424,6 +1525,7 @@ def build_equal_expr(
                 v_ty, f"({lhs}).value()", f"({rhs}).value()", policy,
                 view_registry=view_registry,
                 prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
             )
             parts.append(
                 f"(({lhs}).is_init() ==> ({v_eq}))"
@@ -1436,7 +1538,8 @@ def build_equal_expr(
             # macro-generated enums (e.g. `state_machine!`) can still get
             # a view-aware equal.
             vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
-                                               prelude_collector)
+                                               prelude_collector,
+                                               caller_generics=caller_generics)
             if vreg_eq is not None:
                 return vreg_eq
             return f"{lhs} == {rhs}"
@@ -1485,6 +1588,7 @@ def build_equal_expr(
                                 policy,
                                 view_registry=view_registry,
                                 prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
                             ))
                         inner_eq = " && ".join(f"({c})" for c in field_clauses) \
                             if field_clauses else "true"
@@ -1495,6 +1599,7 @@ def build_equal_expr(
                         policy,
                         view_registry=view_registry,
                         prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
                     )
                 parts.append(f"(({lhs} is {v.name}) ==> ({inner_eq}))")
         return " && ".join(parts)
@@ -1523,7 +1628,7 @@ def build_equal_expr(
         if view is not None and not ty.fields and not ty.variants:
             return build_equal_expr(view, lhs, rhs, policy,
                                     view_registry=view_registry,
-                                    prelude_collector=prelude_collector)
+                                    prelude_collector=prelude_collector, caller_generics=caller_generics)
         if view is not None and view.fields and lhs_is_viewed and rhs_is_viewed:
             clauses = []
             for fld in view.fields:
@@ -1533,6 +1638,7 @@ def build_equal_expr(
                     fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
                     view_registry=view_registry,
                     prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
                 ))
             if not clauses:
                 return "true"
@@ -1551,7 +1657,8 @@ def build_equal_expr(
         # appearing as struct types, explicit `impl View for X`, and
         # cached LLM-synthesised `impl View` declarations.
         vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
-                                           prelude_collector)
+                                           prelude_collector,
+                                           caller_generics=caller_generics)
         if vreg_eq is not None:
             return vreg_eq
         if ty.fields:
@@ -1563,6 +1670,7 @@ def build_equal_expr(
                     fld.type, f"{lhs}.{fld.name}", f"{rhs}.{fld.name}", policy,
                     view_registry=view_registry,
                     prelude_collector=prelude_collector,
+                caller_generics=caller_generics,
                 ))
             if not clauses:
                 return "true"
@@ -1572,7 +1680,8 @@ def build_equal_expr(
 
     # UNKNOWN: try the view registry before falling back to raw `==`.
     vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
-                                       prelude_collector)
+                                       prelude_collector,
+                                       caller_generics=caller_generics)
     if vreg_eq is not None:
         return vreg_eq
     return f"{lhs} == {rhs}"
@@ -1584,6 +1693,7 @@ def _try_view_registry_equal(
     lhs: str,
     rhs: str,
     prelude_collector: Optional[list[str]] = None,
+    caller_generics: str = "",
 ) -> Optional[str]:
     """Phase 2 hook: ask the resolver for a view-aware equality
     expression. Returns ``None`` when the registry isn't supplied or
@@ -1596,6 +1706,14 @@ def _try_view_registry_equal(
     ``prelude_collector`` (deduplicated by the caller). The caller
     must prepend the collector to the synthesized equal-fn so the
     ``.view()`` projection actually resolves at compile time.
+
+    ``caller_generics`` is the synthesized equal-fn's own generic
+    declaration. If supplied, the resolver's prelude shim is rejected
+    when it introduces trait bounds beyond what the caller already
+    has — emitting ``(x).view()`` against an inapplicable shim would
+    fail to typecheck (E0277 ``the trait bound ... is not satisfied``).
+    The caller falls back to field-by-field structural comparison in
+    that case.
     """
     if view_registry is None or not ty.name:
         return None
@@ -1603,6 +1721,9 @@ def _try_view_registry_equal(
         type_expr = _typeinfo_to_typeexpr(ty)
         res = view_registry.resolve(type_expr)
         if not res.is_resolved:
+            return None
+        if res.prelude_decl and not _shim_bounds_satisfied(
+                res.prelude_decl, caller_generics):
             return None
         if res.prelude_decl and prelude_collector is not None:
             prelude_collector.append(res.prelude_decl)
@@ -2086,6 +2207,86 @@ def _run_self_tests() -> int:
         failures.append(
             "Self in type-position must keep angle-bracket form; "
             f"got {got!r}"
+        )
+
+    # Regression — _typeinfo_to_typeexpr must collapse a raw generic
+    # ``ty.name="Foo<T>"`` to short head ``Foo`` whether ``type_args``
+    # is populated (LLM-completed types) or empty (path-resolver
+    # fallback in extractor). Without this the registry's short-name
+    # index misses and we silently fall through to field-by-field
+    # structural equality even when a View is registered (root cause
+    # of the ~40 "equal_fn over-strict" ironkv unknowns).
+    ti_generic = TypeInfo(
+        kind=TypeKind.STRUCT, name="StrictlyOrderedMap<K>",
+        type_args=[TypeInfo(kind=TypeKind.STRUCT, name="K")],
+    )
+    te_g = _typeinfo_to_typeexpr(ti_generic)
+    if te_g.head != "StrictlyOrderedMap":
+        failures.append(
+            "_typeinfo_to_typeexpr must strip generic suffix from head; "
+            f"got head={te_g.head!r}"
+        )
+    # Same when type_args is empty (extractor's raw-name fallback).
+    ti_generic_noargs = TypeInfo(
+        kind=TypeKind.STRUCT, name="StrictlyOrderedMap<K>", type_args=[]
+    )
+    te_g2 = _typeinfo_to_typeexpr(ti_generic_noargs)
+    if te_g2.head != "StrictlyOrderedMap":
+        failures.append(
+            "_typeinfo_to_typeexpr must strip generic suffix even when "
+            f"type_args=[]; got head={te_g2.head!r}"
+        )
+    # Non-generic name stays unchanged.
+    ti_plain = TypeInfo(kind=TypeKind.STRUCT, name="Foo")
+    te_p = _typeinfo_to_typeexpr(ti_plain)
+    if te_p.head != "Foo":
+        failures.append(
+            f"_typeinfo_to_typeexpr plain name: expected head='Foo', got {te_p.head!r}"
+        )
+
+    # Regression — _shim_bounds_satisfied must reject a View shim that
+    # introduces a trait bound the caller's generics doesn't satisfy.
+    # Root cause of the rerun6 KeyIterator regression: the L4 shim
+    # ``impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K>``
+    # requires ``K: View``, but the synthesized ``spec fn det_end_equal
+    # <K: KeyTrait + VerusClone>`` doesn't carry that bound, so the
+    # emitted ``(r1).view()`` failed to typecheck (E0277).
+    key_iter_shim = (
+        "impl<K: KeyTrait + VerusClone + View> View for KeyIterator<K> {\n"
+        "    type V = Option<<K as View>::V>;\n"
+        "    closed spec fn view(&self) -> Self::V { self.k@ }\n"
+        "}"
+    )
+    caller_gens_strict = "<K: KeyTrait + VerusClone>"
+    if _shim_bounds_satisfied(key_iter_shim, caller_gens_strict):
+        failures.append(
+            "_shim_bounds_satisfied must reject KeyIterator shim against "
+            "caller lacking `K: View`"
+        )
+    # When caller carries the View bound, the shim is accepted.
+    caller_gens_with_view = "<K: KeyTrait + VerusClone + View>"
+    if not _shim_bounds_satisfied(key_iter_shim, caller_gens_with_view):
+        failures.append(
+            "_shim_bounds_satisfied must accept KeyIterator shim when caller "
+            "has `K: View`"
+        )
+    # Shim with bounds that match caller exactly — accept.
+    som_shim = (
+        "impl<K: KeyTrait + VerusClone> View for StrictlyOrderedMap<K> {\n"
+        "    type V = Map<K, ID>;\n"
+        "    closed spec fn view(&self) -> Self::V { self.m@ }\n"
+        "}"
+    )
+    if not _shim_bounds_satisfied(som_shim, caller_gens_strict):
+        failures.append(
+            "_shim_bounds_satisfied must accept StrictlyOrderedMap shim "
+            "against matching caller bounds"
+        )
+    # Empty caller-generics ⇒ shim is monomorphic at call site; accept.
+    if not _shim_bounds_satisfied(key_iter_shim, ""):
+        failures.append(
+            "_shim_bounds_satisfied must accept any shim when caller has "
+            "no generics (monomorphic)"
         )
 
     if failures:
