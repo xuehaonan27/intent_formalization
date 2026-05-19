@@ -259,6 +259,13 @@ class FunctionSpec:
     generics_decl: str = ""
     where_decl: str = ""
     self_type: Optional[str] = None
+    # When the source fn lives inside a `pub trait Foo { ... }` declaration
+    # (rather than an `impl ... for ...` block), ``self_type`` is None but
+    # the synthesized standalone det fn must still typecheck. We record the
+    # enclosing trait's bare name so gen_det can emit
+    # ``<__DetSelf: <trait_name>>`` as the type-parameter bound; without
+    # it, any reference to ``Self::method`` in the ensures triggers E0599.
+    trait_name: Optional[str] = None
 
     def input_vars(self) -> list[Param]:
         return list(self.params)

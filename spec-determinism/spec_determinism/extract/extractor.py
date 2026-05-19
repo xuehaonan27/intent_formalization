@@ -210,6 +210,7 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
             ))
         elif child.type == "parameter":
             name_node = _child_by_type(child, "identifier")
+            param_name: Optional[str] = _text(name_node) if name_node else None
             # Type is the child after ":"
             type_node = None
             after_colon = False
@@ -218,11 +219,29 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
                     after_colon = True
                 elif after_colon and c.type not in (",",):
                     type_node = c
+            # Verus exec fns often use destructure patterns to unwrap ghost
+            # carriers, e.g. ``Tracked(perm): Tracked<PagePerm>`` or
+            # ``Ghost(g): Ghost<Seq<T>>``. The AST emits a
+            # ``tuple_struct_pattern`` in lieu of a top-level identifier;
+            # dig out the inner binding name so the synthesized det fn
+            # gets a real parameter name (and not ``?``).
+            if param_name is None:
+                tup = _child_by_type(child, "tuple_struct_pattern")
+                if tup is not None:
+                    # First identifier *after* the opening ``(`` is the
+                    # binding; the identifier before ``(`` is the type ctor.
+                    seen_open = False
+                    for c in tup.children:
+                        if c.type == "(":
+                            seen_open = True
+                        elif seen_open and c.type == "identifier":
+                            param_name = _text(c)
+                            break
             # Detect &mut on the type: reference_type with mutable_specifier
             is_ref = type_node is not None and type_node.type == "reference_type"
             is_mut = is_ref and _child_by_type(type_node, "mutable_specifier") is not None
             result.append(Param(
-                name=_text(name_node) if name_node else "?",
+                name=param_name if param_name else "?",
                 type=_parse_type_node(type_node) if type_node else TypeInfo(kind=TypeKind.UNKNOWN, name="?"),
                 is_mut_ref=is_mut,
                 is_ref=is_ref,
@@ -895,6 +914,35 @@ class _ImplContext:
     where_decl: str = ""                    # e.g. "where K: Ord"
 
 
+def _find_enclosing_trait(fn_node: ts.Node, tree: ts.Tree) -> Optional[str]:
+    """When the fn lives inside a ``trait Foo { ... }`` declaration (no
+    enclosing impl), return the bare trait name. Returns None for fns
+    inside impl blocks or at module scope.
+
+    Tree-sitter-verus encodes trait declarations as ``trait_item``; the
+    trait's identifier is the first ``type_identifier`` child.
+    """
+    node = fn_node.parent
+    while node is not None:
+        if node.type == "impl_item":
+            return None
+        if node.type == "trait_item":
+            ti = _child_by_type(node, "type_identifier")
+            return _text(ti) if ti else None
+        node = node.parent
+
+    fn_start, fn_end = fn_node.start_byte, fn_node.end_byte
+    best = None
+    for trait_node in _find_all_nodes(tree.root_node, "trait_item"):
+        if trait_node.start_byte <= fn_start and trait_node.end_byte >= fn_end:
+            if best is None or (trait_node.end_byte - trait_node.start_byte) < (best.end_byte - best.start_byte):
+                best = trait_node
+    if best is None:
+        return None
+    ti = _child_by_type(best, "type_identifier")
+    return _text(ti) if ti else None
+
+
 def _find_impl_node(fn_node: ts.Node, tree: ts.Tree) -> Optional[ts.Node]:
     """Locate the enclosing ``impl_item`` AST node for ``fn_node``.
 
@@ -1084,6 +1132,10 @@ def extract_spec(
         # Also resolve Self in return type
         _resolve_self_in_type(return_type, impl_ctx.self_type)
 
+    trait_name = None
+    if impl_ctx.self_type is None:
+        trait_name = _find_enclosing_trait(fn_node, full_tree)
+
     # Resolve type definitions from all sources
     all_sources = [source] + (type_sources or [])
     type_defs, return_type = _resolve_types(params, return_type, all_sources, active_features)
@@ -1099,6 +1151,7 @@ def extract_spec(
         generics_decl=generics_decl,
         where_decl=where_decl,
         self_type=impl_ctx.self_type,
+        trait_name=trait_name,
     )
 
 
@@ -1369,6 +1422,68 @@ def _run_self_tests() -> int:
         failures.append(
             "C-patch: EndPoint.spec_view should be AbstractEndPoint; "
             f"got {ep.spec_view.name!r}"
+        )
+
+    if failures:
+        print(f"\n{len(failures)} failure(s):")
+        for f in failures:
+            print(f"  - {f}")
+        return 1
+    # A1 regression — destructure patterns in exec-fn params (Tracked / Ghost
+    # carriers) must surface the *inner* binding as Param.name, not "?".
+    # Without this, gen_det renders `?: Tracked<...>` in the synthesized
+    # proof fn signature, which fails to parse (see verus_error fix plan
+    # entry A1, 42 atmosphere targets pre-fix).
+    src_destructure = (
+        "verus! {\n"
+        "fn free_page_4k(&mut self, target_ptr: u64, "
+        "Tracked(target_perm): Tracked<u32>, Ghost(g): Ghost<u32>)\n"
+        "    ensures self == old(self)\n"
+        "{}\n"
+        "}\n"
+    )
+    spec = extract_spec(src_destructure, "free_page_4k", type_sources=[])
+    names = [p.name for p in spec.params]
+    if "?" in names:
+        failures.append(
+            "A1: destructure-pattern params must yield a bound name, "
+            f"not '?'; got names={names}"
+        )
+    if "target_perm" not in names:
+        failures.append(
+            "A1: Tracked(target_perm) must surface inner identifier "
+            f"'target_perm' as Param.name; got names={names}"
+        )
+    if "g" not in names:
+        failures.append(
+            "A1: Ghost(g) must surface inner identifier 'g' as "
+            f"Param.name; got names={names}"
+        )
+
+    # A3 regression — fn declared inside `pub trait T { ... }` (no enclosing
+    # impl block) must surface ``trait_name`` so gen_det can emit a
+    # ``<__DetSelf: T>`` bound on the synthesized proof fn. Without this,
+    # standalone references to ``Self::method`` fall back to E0411 / E0599.
+    src_trait_fn = (
+        "verus! {\n"
+        "pub trait KeyTrait: Sized {\n"
+        "    spec fn zero_spec() -> Self;\n"
+        "    fn zero() -> (z: Self)\n"
+        "        ensures z == Self::zero_spec()\n"
+        "    { Self::zero_spec() }\n"
+        "}\n"
+        "}\n"
+    )
+    spec = extract_spec(src_trait_fn, "zero", type_sources=[])
+    if spec.self_type is not None:
+        failures.append(
+            "A3: trait-declared fn must have self_type=None, "
+            f"got {spec.self_type!r}"
+        )
+    if spec.trait_name != "KeyTrait":
+        failures.append(
+            "A3: trait-declared fn must capture enclosing trait name "
+            f"'KeyTrait'; got trait_name={spec.trait_name!r}"
         )
 
     if failures:

@@ -93,8 +93,19 @@ def run_verus_file(
     verus_path: str,
     log_dir: Path,
     timeout: int = 120,
+    *,
+    verify_function: Optional[str] = None,
+    rlimit: Optional[float] = None,
 ) -> dict:
     """Invoke ``verus <file>`` with logging enabled.
+
+    ``verify_function``: when given, restrict verification to this single
+    function at the crate root. This both avoids re-verifying heavy source
+    fns (which can rlimit-out and mask the det-check result, see fix plan
+    entry A5) and accelerates the pipeline overall.
+
+    ``rlimit``: when given, pass ``--rlimit <value>`` to verus. The default
+    is verus's own default (currently 10s).
 
     Returns dict with ``returncode, stdout, stderr, duration_ms``.
     """
@@ -107,6 +118,14 @@ def run_verus_file(
         str(verus_bin), str(file_path),
         "--log-all", "--log-dir", str(log_dir),
     ]
+    if verify_function is not None:
+        # `--verify-function` requires either `--verify-root` or
+        # `--verify-module` to disambiguate the module. The injected det
+        # fn always lives at the crate root, so `--verify-root` is
+        # correct here.
+        cmd += ["--verify-root", "--verify-function", verify_function]
+    if rlimit is not None:
+        cmd += ["--rlimit", str(rlimit)]
     t0 = time.monotonic()
     try:
         p = subprocess.run(
@@ -136,15 +155,38 @@ _INJECT_END = "// === END INJECTED ===\n"
 
 
 def _inject_into_source(source: str, code: str) -> str:
-    """Insert det-check code just before the last `}` (end of ``verus!{}``)."""
+    """Insert det-check code just before the last `}` (end of ``verus!{}``).
+
+    Also inserts a small "deprecation shim" for vstd lemma names that the
+    corpus still references but that current vstd no longer exposes as
+    callable functions (e.g. ``lemma_seq_properties::<V>()`` was replaced
+    by the ``group_seq_properties`` broadcast group). We synthesize a
+    real proof fn with the legacy name that delegates to the new
+    broadcast group, so the corpus-side call sites resolve.
+    """
     idx = source.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
+    shim = ""
+    if re.search(r"\blemma_seq_properties\s*::\s*<", source):
+        shim = _LEMMA_SEQ_PROPERTIES_SHIM
     return (
         source[:idx]
-        + "\n" + _INJECT_BEGIN + code + "\n" + _INJECT_END + "\n"
+        + "\n" + _INJECT_BEGIN + shim + code + "\n" + _INJECT_END + "\n"
         + source[idx:]
     )
+
+
+_LEMMA_SEQ_PROPERTIES_SHIM = (
+    "// Compat shim for corpus source that calls the deprecated\n"
+    "// `lemma_seq_properties` (renamed to broadcast group\n"
+    "// `group_seq_properties` in current vstd).\n"
+    "pub proof fn lemma_seq_properties<V>()\n"
+    "    ensures true,\n"
+    "{\n"
+    "    broadcast use vstd::seq_lib::group_seq_properties;\n"
+    "}\n\n"
+)
 
 
 def run_single_file(
@@ -271,7 +313,11 @@ def run_single_file(
         result["n_params"] = sum(1 + len(s.k_params) for s in schemas)
 
         t_v = time.monotonic()
-        raw = run_verus_file(injected_path, verus_path, log_dir, timeout=timeout)
+        raw = run_verus_file(
+            injected_path, verus_path, log_dir, timeout=timeout,
+            verify_function=fn_det_name,
+            rlimit=60,
+        )
         result["verus_ms"] = int((time.monotonic() - t_v) * 1000)
 
         if raw["returncode"] != 0:

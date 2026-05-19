@@ -503,6 +503,41 @@ def _build_template(
         sig_for_prune = re.sub(r'\bSelf\b', spec.self_type, sig_for_prune)
     pruned_generics, pruned_where = _prune_generics(
         spec.generics_decl, spec.where_decl, sig_for_prune)
+
+    # Trait-fn fallback: when the source fn lives inside a `trait { ... }`
+    # block (no `impl` ancestor), `spec.self_type` is None but `Self`
+    # still appears in params / return / ensures. Renderering it verbatim
+    # at module scope triggers E0411 ("Self not allowed in a function").
+    # Substitute it with a synthetic generic and inject the generic into
+    # the proof-fn's type-parameter list so the synthesized fn typechecks
+    # in isolation.
+    needs_self_subst = (not spec.self_type) and (
+        re.search(r'\bSelf\b', params_str) is not None
+        or re.search(r'\bSelf\b', run1) is not None
+        or re.search(r'\bSelf\b', run2) is not None
+        or re.search(r'\bSelf\b', requires_str) is not None
+        or re.search(r'\bSelf\b', conclusion) is not None
+    )
+    if needs_self_subst:
+        placeholder = "__DetSelf"
+        params_str = re.sub(r'\bSelf\b', placeholder, params_str)
+        run1 = re.sub(r'\bSelf\b', placeholder, run1)
+        run2 = re.sub(r'\bSelf\b', placeholder, run2)
+        requires_str = re.sub(r'\bSelf\b', placeholder, requires_str)
+        conclusion = re.sub(r'\bSelf\b', placeholder, conclusion)
+        # If the source fn lives inside a `trait Foo { ... }` declaration,
+        # bound `__DetSelf` by the trait so `Self::method` calls (e.g.
+        # `Self::zero_spec()`) resolve. Otherwise leave it unbounded.
+        placeholder_decl = (
+            f"{placeholder}: {spec.trait_name}" if spec.trait_name else placeholder
+        )
+        # Splice `__DetSelf` into the generics list (creating one if absent).
+        if pruned_generics.strip():
+            inner = pruned_generics.strip().lstrip('<').rstrip('>').strip()
+            pruned_generics = f"<{inner}, {placeholder_decl}>"
+        else:
+            pruned_generics = f"<{placeholder_decl}>"
+
     where_block = f"\n    {pruned_where}" if pruned_where else ""
     code = f"""proof fn {fn_name}{pruned_generics}({params_str}){where_block}{requires_str}
     ensures
@@ -520,11 +555,24 @@ def _build_template(
         code = re.sub(r'\bSelf\b', spec.self_type, code)
 
     # Build the default equal spec fn body uses bare names (no `@`).
+    equal_fn_self_type = spec.self_type
+    equal_fn_generics = spec.generics_decl
+    if needs_self_subst:
+        equal_fn_self_type = "__DetSelf"
+        placeholder_decl = (
+            f"__DetSelf: {spec.trait_name}" if spec.trait_name else "__DetSelf"
+        )
+        # Add the placeholder to the equal-fn's generics decl as well.
+        if equal_fn_generics.strip():
+            inner = equal_fn_generics.strip().lstrip('<').rstrip('>').strip()
+            equal_fn_generics = f"<{inner}, {placeholder_decl}>"
+        else:
+            equal_fn_generics = f"<{placeholder_decl}>"
     equal_fn_def = _build_equal_fn(
         equal_fn_name, equal_params, equal_body_args, policy,
-        generics_decl=spec.generics_decl,
+        generics_decl=equal_fn_generics,
         where_decl=spec.where_decl,
-        self_type=spec.self_type,
+        self_type=equal_fn_self_type,
         view_registry=view_registry,
     )
 
@@ -621,6 +669,39 @@ def render_template(
 # Substitution helpers (unchanged)
 # ---------------------------------------------------------------------------
 
+def _strip_unary_deref(text: str, name: str, replacement: str) -> str:
+    """Replace ``*name`` (unary dereference) with ``replacement``, but
+    preserve ``EXPR * name`` (binary multiplication).
+
+    The injection pipeline rewrites ``&mut`` / ``&`` parameters from
+    reference types to bare values, which means any ``*p`` in the source
+    must drop the leading ``*``. A naive ``re.sub(r'\\*\\s*p\\b', …)``
+    also matches multiplication contexts like ``4 * p.len`` and silently
+    eats the operator, breaking the synthesized Verus output (see fix
+    plan entry A2, 11 atmosphere targets pre-fix).
+
+    Heuristic: look at the first non-whitespace character before the
+    ``*``. If it is alphanumeric / ``_`` / ``)`` / ``]`` it is the tail
+    of an expression, so the ``*`` is a binary operator — leave alone.
+    Otherwise it is a unary prefix and we strip it.
+    """
+    pat = re.compile(rf'\*\s*{re.escape(name)}\b')
+    out_chunks: list[str] = []
+    pos = 0
+    for m in pat.finditer(text):
+        out_chunks.append(text[pos:m.start()])
+        i = m.start() - 1
+        while i >= 0 and text[i] in ' \t':
+            i -= 1
+        if i >= 0 and (text[i].isalnum() or text[i] == '_' or text[i] in ')]'):
+            out_chunks.append(m.group(0))
+        else:
+            out_chunks.append(replacement)
+        pos = m.end()
+    out_chunks.append(text[pos:])
+    return "".join(out_chunks)
+
+
 def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
     result = requires_raw
     for p in spec.params:
@@ -647,12 +728,12 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
             )
             # A bare `p` in requires (rarely seen, since requires
             # typically talk about the pre-state) also maps to pre_.
-            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', f'pre_{vn}', result)
+            result = _strip_unary_deref(result, p.name, f'pre_{vn}')
             result = re.sub(rf'\b{re.escape(p.name)}\b', f'pre_{vn}', result)
         elif p.is_ref and not p.is_mut_ref:
             # Shared reference param passed by value in det-check fn:
             # strip `*p` dereferences.
-            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
+            result = _strip_unary_deref(result, p.name, p.name)
     return result
 
 
@@ -748,7 +829,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             vn = _var_name(p)
             result = re.sub(rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
-            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', f'post{run_id}_{vn}', result)
+            result = _strip_unary_deref(result, p.name, f'post{run_id}_{vn}')
             name_map[p.name] = f'post{run_id}_{vn}'
         elif p.is_self:
             vn = _var_name(p)
@@ -757,7 +838,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
         elif p.is_ref:
             # Shared reference: spec body may write `*p`; strip deref since the
             # det-check fn takes the param by value.
-            result = re.sub(rf'\*\s*{re.escape(p.name)}\b', p.name, result)
+            result = _strip_unary_deref(result, p.name, p.name)
 
     # Honour the function's actual return-value binding (from `(name: T)`
     # in the signature or `#[verus_spec(name => ...)]`).
@@ -1817,6 +1898,68 @@ def _run_self_tests() -> int:
           expr_msg,
           ["lhs->a == rhs->a", "lhs->b == rhs->b"],
           forbidden_substrs=["(lhs is A) ==> (lhs == rhs)"])
+
+    # A2 regression — _strip_unary_deref must preserve binary `*` (multiplication)
+    # while still rewriting genuine `*p` derefs. Pre-fix, gen_det stripped `*`
+    # from `4 * va_range.len`, producing the unparseable `4 va_range.len`.
+    got = _strip_unary_deref("4 * va_range.len", "va_range", "va_range")
+    if got != "4 * va_range.len":
+        failures.append(
+            f"A2: _strip_unary_deref must preserve binary `*` in '4 * va_range.len'; "
+            f"got {got!r}"
+        )
+    got = _strip_unary_deref("(*va_range).len", "va_range", "va_range")
+    if got != "(va_range).len":
+        failures.append(
+            f"A2: _strip_unary_deref must strip unary `*` at expression start "
+            f"in '(*va_range).len'; got {got!r}"
+        )
+    got = _strip_unary_deref("foo(*va_range)", "va_range", "va_range")
+    if got != "foo(va_range)":
+        failures.append(
+            f"A2: _strip_unary_deref must strip unary `*` after `(`; "
+            f"got {got!r}"
+        )
+    got = _strip_unary_deref("x + *va_range", "va_range", "va_range")
+    if got != "x + va_range":
+        failures.append(
+            f"A2: _strip_unary_deref must strip unary `*` after binary `+`; "
+            f"got {got!r}"
+        )
+    got = _strip_unary_deref("len * 4 + va_range", "va_range", "va_range")
+    if got != "len * 4 + va_range":
+        failures.append(
+            f"A2: _strip_unary_deref must not corrupt unrelated `*` operators; "
+            f"got {got!r}"
+        )
+
+    # A3 regression — `Self` in a trait-fn ensures must be replaced by the
+    # synthetic `__DetSelf` generic, and `__DetSelf` must be bounded by the
+    # trait name (so `Self::method` calls resolve under verus).
+    src_trait = (
+        "verus! {\n"
+        "pub trait KeyTrait: Sized {\n"
+        "    spec fn zero_spec() -> Self;\n"
+        "    fn zero() -> (z: Self)\n"
+        "        ensures z == Self::zero_spec()\n"
+        "    { Self::zero_spec() }\n"
+        "}\n"
+        "}\n"
+    )
+    from spec_determinism.extract.extractor import extract_spec
+    spec_trait = extract_spec(src_trait, "zero", type_sources=[])
+    ds_trait = build_det_check_spec(spec_trait)
+    tpl = ds_trait.det_check_template
+    if re.search(r'\bSelf\b', tpl):
+        failures.append(
+            f"A3: rendered template must not contain bare 'Self' after substitution; "
+            f"template head:\n{tpl[:400]}"
+        )
+    if "__DetSelf: KeyTrait" not in tpl:
+        failures.append(
+            f"A3: synthesized fn must bound __DetSelf by trait name 'KeyTrait'; "
+            f"template head:\n{tpl[:400]}"
+        )
 
     if failures:
         print(f"\n{len(failures)} failure(s):")
