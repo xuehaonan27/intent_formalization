@@ -1595,6 +1595,28 @@ def build_equal_expr(
         # when some variants are cfg-gated out of the active build.
         if ty.is_c_like_enum():
             return f"({lhs} as int) == ({rhs} as int)"
+        # View-prefer: if the enum has an inline `spec fn view` (so
+        # ``TypeInfo.spec_view`` is populated, e.g. ``CSingleMessage ->
+        # SingleMessage<Message>``), compare via the view rather than
+        # enumerating every variant. The spec ensures typically pin the
+        # post-state via ``ret@ == ...`` / ``self@ == ...``, so the
+        # view-form lines up with the proof obligation; the per-variant
+        # form forces z3 to disprove a much bigger structural conjunction
+        # and is the dominant root cause of ``clone_up_to_view`` unknowns
+        # in IronKV. Mirrors the struct branch (line ~1691).
+        view = ty.spec_view
+        lhs_is_viewed = lhs.endswith("@")
+        rhs_is_viewed = rhs.endswith("@")
+        if view is not None and not (lhs_is_viewed and rhs_is_viewed):
+            return f"({lhs})@ == ({rhs})@"
+        # Also consult the L1+L2+L3+L4 resolver before falling back to
+        # the per-variant structural comparison.
+        if view is None and not (lhs_is_viewed and rhs_is_viewed):
+            vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
+                                               prelude_collector,
+                                               caller_generics=caller_generics)
+            if vreg_eq is not None:
+                return vreg_eq
         # Pre-compute the set of struct-form field names that appear in
         # more than one variant. Verus only auto-generates an ``arrow_f``
         # accessor when ``f`` is unique across all variants of the enum;
