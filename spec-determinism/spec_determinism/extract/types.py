@@ -51,6 +51,13 @@ class TypeInfo:
     variants: list["VariantInfo"] = field(default_factory=list)  # for enum
     type_args: list["TypeInfo"] = field(default_factory=list)    # for generics
     spec_view: Optional["TypeInfo"] = None  # the type returned by @/@view
+    # ``#[verifier(external_body)]`` / ``#[verifier::external_body]`` struct.
+    # Verus treats the type's body as abstract: field expressions are disallowed
+    # in spec contexts ("disallowed: field expression for an opaque datatype"),
+    # but ``==`` on the whole value is still permitted (and chains via
+    # transitivity through any ensures clause that pins both runs' results
+    # to the same spec function call, e.g. ``r1 == spec_from_vec(v)``).
+    is_opaque: bool = False
 
     def to_dict(self) -> dict:
         d = {"kind": self.kind.value, "name": self.name}
@@ -62,6 +69,8 @@ class TypeInfo:
             d["type_args"] = [t.to_dict() for t in self.type_args]
         if self.spec_view:
             d["spec_view"] = self.spec_view.to_dict()
+        if self.is_opaque:
+            d["is_opaque"] = True
         return d
 
     @staticmethod
@@ -73,6 +82,7 @@ class TypeInfo:
             variants=[VariantInfo.from_dict(v) for v in d.get("variants", [])],
             type_args=[TypeInfo.from_dict(t) for t in d.get("type_args", [])],
             spec_view=TypeInfo.from_dict(d["spec_view"]) if d.get("spec_view") else None,
+            is_opaque=bool(d.get("is_opaque", False)),
         )
 
     def is_c_like_enum(self) -> bool:
@@ -230,6 +240,15 @@ class Param:
     is_mut_ref: bool = False
     is_ref: bool = False
     is_self: bool = False
+    # Source param uses a ghost-carrier destructure pattern like
+    # ``Ghost(name): Ghost<T>`` or ``Tracked(name): Tracked<T>``. In the
+    # original function body, ``name`` has type ``T`` (the inner type), but
+    # the param's outer type is still ``Ghost<T>`` / ``Tracked<T>``. The
+    # extractor stores the inner identifier under ``name`` and the outer
+    # wrapper type under ``type``; gen_det reads this flag to re-emit the
+    # destructure pattern in the synthesized fn signature so the body
+    # (substituted requires/ensures) sees ``name: T`` as in the source.
+    destructure_ctor: Optional[str] = None  # "Ghost" | "Tracked" | None
 
 
 @dataclass

@@ -183,12 +183,20 @@ def _emit(
 
     # --- Str ---
     if ty.kind == TypeKind.STR:
+        # Verus types: `String` (exec), `StrSlice` / `&str` (spec). String
+        # literals like `""` have type `StrSlice` in Verus mode. Direct
+        # `String == "literal"` is rejected (incompatible types); the
+        # cross-form comparison must go through ``.view()``, which is
+        # defined on all three (`String::view() -> Seq<char>`,
+        # `StrSlice::view() -> Seq<char>`). Always emit the viewed form so
+        # the assume body type-checks regardless of whether ``var`` is
+        # String or StrSlice (and works in both exec/spec contexts).
         for s in _STR_LITERALS:
             lit_tag = "empty" if s == "" else _sanitize(s)
             sid = _uniq(f"{tag_base}_eq_{lit_tag}")
             out.append(SchemaBinding(
                 id=sid, kind=SchemaKind.STR_EQ, rust_var=var,
-                rust_expr_tmpl=f'{var} == "{s}"',
+                rust_expr_tmpl=f'{var}@ == "{s}"@',
                 guard_name=f"g_{sid}", str_value=s,
                 parent_chain=list(parent_chain),
             ))

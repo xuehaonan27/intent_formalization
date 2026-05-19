@@ -225,27 +225,47 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
             # ``tuple_struct_pattern`` in lieu of a top-level identifier;
             # dig out the inner binding name so the synthesized det fn
             # gets a real parameter name (and not ``?``).
+            destructure_ctor: Optional[str] = None
             if param_name is None:
                 tup = _child_by_type(child, "tuple_struct_pattern")
                 if tup is not None:
-                    # First identifier *after* the opening ``(`` is the
-                    # binding; the identifier before ``(`` is the type ctor.
+                    # The identifier preceding ``(`` is the ctor; the first
+                    # identifier *inside* ``(`` is the inner binding name.
                     seen_open = False
+                    ctor_name: Optional[str] = None
                     for c in tup.children:
                         if c.type == "(":
                             seen_open = True
+                        elif not seen_open and c.type == "identifier":
+                            ctor_name = _text(c)
                         elif seen_open and c.type == "identifier":
                             param_name = _text(c)
                             break
+                    if ctor_name in ("Ghost", "Tracked"):
+                        destructure_ctor = ctor_name
             # Detect &mut on the type: reference_type with mutable_specifier
             is_ref = type_node is not None and type_node.type == "reference_type"
             is_mut = is_ref and _child_by_type(type_node, "mutable_specifier") is not None
+            param_type = _parse_type_node(type_node) if type_node else TypeInfo(kind=TypeKind.UNKNOWN, name="?")
+            # Verus ``Ghost(name): Ghost<T>`` / ``Tracked(name): Tracked<T>``
+            # destructure: inside the function body, ``name`` has type ``T``
+            # (not the wrapper). Requires/ensures clauses + probe enumeration
+            # all reference ``name`` as if it has type ``T``; record the inner
+            # type so downstream consumers see the unwrapped form. ``destructure_ctor``
+            # is preserved on the param for telemetry, but gen_det no longer
+            # needs to re-wrap the synth fn signature — using the inner type
+            # directly type-checks because the synth fn is never called from
+            # source code.
+            if destructure_ctor in ("Ghost", "Tracked") and param_type.type_args:
+                inner = param_type.type_args[0]
+                param_type = inner
             result.append(Param(
                 name=param_name if param_name else "?",
-                type=_parse_type_node(type_node) if type_node else TypeInfo(kind=TypeKind.UNKNOWN, name="?"),
+                type=param_type,
                 is_mut_ref=is_mut,
                 is_ref=is_ref,
                 is_self=False,
+                destructure_ctor=destructure_ctor,
             ))
     return result
 
@@ -639,13 +659,32 @@ def _find_all_nodes(node: ts.Node, target_type: str) -> list[ts.Node]:
 # Struct / enum extraction
 # ---------------------------------------------------------------------------
 
+def _has_external_body_attr(parent_node: ts.Node, struct_node: ts.Node) -> bool:
+    """Check if struct_node is annotated ``#[verifier(external_body)]`` or
+    ``#[verifier::external_body]``. tree-sitter-verus wraps annotated items in
+    a ``declaration_with_attrs`` node containing ``attribute_item`` siblings
+    preceding the actual ``struct_item``; this helper inspects those siblings.
+    """
+    if parent_node.type != "declaration_with_attrs":
+        return False
+    for c in parent_node.children:
+        if c is struct_node:
+            break
+        if c.type != "attribute_item":
+            continue
+        text = _text(c)
+        if "external_body" in text and "verifier" in text:
+            return True
+    return False
+
+
 def _find_struct(
     tree: ts.Tree,
     name: str,
     active_features: Optional[set[str]] = None,
 ) -> Optional[TypeInfo]:
     """Find a struct definition by name and extract its fields."""
-    def walk(node: ts.Node) -> Optional[TypeInfo]:
+    def walk(node: ts.Node, parent: Optional[ts.Node] = None) -> Optional[TypeInfo]:
         if node.type == "struct_item":
             name_node = _child_by_type(node, "type_identifier")
             if name_node and _text(name_node) == name:
@@ -682,9 +721,12 @@ def _find_struct(
                                 type=_parse_type_node(ftype_node),
                             ))
                 is_ghost = _child_by_type(node, "data_mode") is not None
-                return TypeInfo(kind=TypeKind.STRUCT, name=name, fields=fields)
+                is_opaque = (parent is not None
+                             and _has_external_body_attr(parent, node))
+                return TypeInfo(kind=TypeKind.STRUCT, name=name,
+                                fields=fields, is_opaque=is_opaque)
         for child in node.children:
-            result = walk(child)
+            result = walk(child, node)
             if result:
                 return result
         return None
@@ -1459,6 +1501,27 @@ def _run_self_tests() -> int:
             "A1: Ghost(g) must surface inner identifier 'g' as "
             f"Param.name; got names={names}"
         )
+
+    # Ghost/Tracked destructure: the param's type must be unwrapped to the
+    # inner type (e.g. ``Ghost(g): Ghost<u32>`` → ``g: u32``) because the
+    # original function body uses ``g`` as the inner type. Probe enumeration
+    # and requires/ensures substitution all read Param.type; carrying the
+    # wrapper type would emit spurious ``g@`` over a non-View concrete type.
+    for p in spec.params:
+        if p.name == "target_perm":
+            if p.type.name != "u32" or p.destructure_ctor != "Tracked":
+                failures.append(
+                    "A1: Tracked(target_perm): Tracked<u32> must unwrap to "
+                    f"type=u32 + destructure_ctor='Tracked'; got type={p.type.name} "
+                    f"ctor={p.destructure_ctor}"
+                )
+        if p.name == "g":
+            if p.type.name != "u32" or p.destructure_ctor != "Ghost":
+                failures.append(
+                    "A1: Ghost(g): Ghost<u32> must unwrap to type=u32 + "
+                    f"destructure_ctor='Ghost'; got type={p.type.name} "
+                    f"ctor={p.destructure_ctor}"
+                )
 
     # A3 regression — fn declared inside `pub trait T { ... }` (no enclosing
     # impl block) must surface ``trait_name`` so gen_det can emit a

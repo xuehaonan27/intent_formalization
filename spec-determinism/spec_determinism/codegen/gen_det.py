@@ -552,7 +552,7 @@ def _build_template(
     # generated proof fn — which lives at module scope — typechecks even
     # when ensures/requires referenced `Self` directly.
     if spec.self_type:
-        code = re.sub(r'\bSelf\b', spec.self_type, code)
+        code = _substitute_self_type(code, spec.self_type)
 
     # Build the default equal spec fn body uses bare names (no `@`).
     equal_fn_self_type = spec.self_type
@@ -724,6 +724,28 @@ def _strip_unary_deref(text: str, name: str, replacement: str) -> str:
         pos = m.end()
     out_chunks.append(text[pos:])
     return "".join(out_chunks)
+
+
+def _substitute_self_type(text: str, self_type: str) -> str:
+    """
+    Replace ``Self`` with ``self_type`` in two contexts:
+    - Path expression: ``Self::method`` → ``Base::<Args>::method`` (turbofish form
+      required by Rust when the type has generic args; ``HashMap<V>::method`` is
+      a parse error in expression context).
+    - Type position: ``Self`` (not followed by ``::``) → ``self_type`` verbatim.
+
+    When ``self_type`` has no generics, both forms collapse to a single substitution.
+    """
+    m = re.match(r'^([A-Za-z_][A-Za-z_0-9]*)\s*<(.*)>\s*$', self_type)
+    if m is None:
+        # No generic args — simple word-boundary substitution suffices.
+        return re.sub(r'\bSelf\b', self_type, text)
+    base, args = m.group(1), m.group(2)
+    # Path-expression context: ``Self::`` → ``Base::<Args>::``
+    text = re.sub(r'\bSelf::', f'{base}::<{args}>::', text)
+    # Type-context: remaining ``Self`` → full ``Base<Args>`` form.
+    text = re.sub(r'\bSelf\b', self_type, text)
+    return text
 
 
 def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
@@ -1481,6 +1503,15 @@ def build_equal_expr(
         view = ty.spec_view
         lhs_is_viewed = lhs.endswith("@")
         rhs_is_viewed = rhs.endswith("@")
+        # Opaque (``#[verifier(external_body)]``) struct: Verus disallows
+        # field expressions, but ``==`` on the whole value is still permitted
+        # and chains through any ensures clause that pins both runs' values
+        # to a deterministic spec call (e.g. ``r1 == spec_from_vec(v) &&
+        # r2 == spec_from_vec(v) ==> r1 == r2``). Fall straight through to
+        # ``lhs == rhs`` — descending into ``ty.fields`` would emit
+        # ``r1.m == r2.m``, which Verus rejects.
+        if ty.is_opaque:
+            return f"{lhs} == {rhs}"
         # Transparent alias: an LLM type-completion patch with empty
         # `fields` + a `spec_view` is the canonical encoding of a
         # ``pub type Alias<...> = SomeView<...>;`` alias. At the Rust
@@ -2030,6 +2061,31 @@ def _run_self_tests() -> int:
     if got.strip() != "foo(pre_self_)":
         failures.append(
             f"requires-self-deref: expected `foo(pre_self_)`, got {got!r}"
+        )
+
+    # Regression — _substitute_self_type must produce turbofish form for
+    # ``Self::method(...)`` calls when self_type has generic args. Without
+    # this, ``HashMap<V>::get_spec(...)`` is emitted in expression position,
+    # which Rust rejects with E0423 (`HashMap` parsed as a value, not a path).
+    got = _substitute_self_type("r == Self::get_spec(self_@, key)", "HashMap<V>")
+    if got != "r == HashMap::<V>::get_spec(self_@, key)":
+        failures.append(
+            "Self::method turbofish: expected `HashMap::<V>::get_spec(...)`, "
+            f"got {got!r}"
+        )
+    # Plain (no-generic) self_type still works.
+    got = _substitute_self_type("r == Self::zero_spec()", "SHTKey")
+    if got != "r == SHTKey::zero_spec()":
+        failures.append(
+            "Self::method (no generics): expected `SHTKey::zero_spec()`, "
+            f"got {got!r}"
+        )
+    # Type-position Self in the same string still uses full form.
+    got = _substitute_self_type("r1: Self, r2: Self", "HashMap<V>")
+    if got != "r1: HashMap<V>, r2: HashMap<V>":
+        failures.append(
+            "Self in type-position must keep angle-bracket form; "
+            f"got {got!r}"
         )
 
     if failures:

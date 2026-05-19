@@ -163,7 +163,17 @@ def _inject_into_source(source: str, code: str) -> str:
     by the ``group_seq_properties`` broadcast group). We synthesize a
     real proof fn with the legacy name that delegates to the new
     broadcast group, so the corpus-side call sites resolve.
+
+    Additionally applies a source-level rewrite for ISSUES.md#B-5: bare
+    ``self == old(self)`` (and the symmetric form) in loop invariants /
+    ensures of mut-self methods is rejected by current Verus with
+    "Dereference this mutable reference to compare the value via Verus
+    spec equality." The legacy corpora predate this strictness; rewriting
+    to the dereferenced form lets these files compile. The rewrite is
+    purely textual on top-level identifiers — it does not modify
+    qualified paths or field accesses.
     """
+    source = _rewrite_self_eq_old_self(source)
     idx = source.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
@@ -175,6 +185,25 @@ def _inject_into_source(source: str, code: str) -> str:
         + "\n" + _INJECT_BEGIN + shim + code + "\n" + _INJECT_END + "\n"
         + source[idx:]
     )
+
+
+# ISSUES.md#B-5: bare ``self == old(self)`` in invariants / ensures of
+# ``&mut self`` methods triggers the Verus "Dereference this mutable reference"
+# error under current strictness. Rewrite to the dereferenced form. We match
+# both orderings symmetrically; the lookbehind/ahead guard ensures we do not
+# rewrite ``foo.self == ...`` or already-prefixed forms.
+_SELF_EQ_OLD_SELF_RE = re.compile(
+    r"(?<![\w*.])self\s*==\s*old\s*\(\s*self\s*\)(?![\w*.])"
+)
+_OLD_SELF_EQ_SELF_RE = re.compile(
+    r"(?<![\w*.])old\s*\(\s*self\s*\)\s*==\s*self(?![\w*.])"
+)
+
+
+def _rewrite_self_eq_old_self(source: str) -> str:
+    source = _SELF_EQ_OLD_SELF_RE.sub("*self == *old(self)", source)
+    source = _OLD_SELF_EQ_SELF_RE.sub("*old(self) == *self", source)
+    return source
 
 
 _LEMMA_SEQ_PROPERTIES_SHIM = (
