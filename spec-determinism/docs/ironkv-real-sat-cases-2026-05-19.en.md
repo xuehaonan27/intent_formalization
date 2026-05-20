@@ -602,3 +602,91 @@ proof fn det_sht_demarshall_data_method(
 ```
 
 The first ensures clause is vacuous for `r1` (since `r1 is InvalidMessage`), so `r1` is free; `r2` is forced to match `sht_demarshal_data(buffer@)@` because `!(r2 is InvalidMessage)`. Structural equality `r1 == r2` fails because the variants differ.
+
+---
+
+## Appendix: spec-permitted branching (`|||` / `exists` in `ensures`)
+
+The five cases above all involve spec clauses that *accidentally* leave a field unconstrained or pick the wrong abstraction. ironkv also contains a separate family of functions where the spec **deliberately** writes a disjunction in `ensures` — an implementation is allowed to satisfy *any one* of the disjuncts. These are not bugs; they are the IronFleet-style "the host may either process this packet or treat it as unparseable / nonsensical" escape hatches, plus a handful of `exists`-quantified post-states. They show up in our pipeline as `permitted=True` (when the `|||` is visible) or as silent `unknown` (when the non-determinism is hidden behind `exists`).
+
+The `rerun8` detector (which greps `|||` in revealed `ensures`) flagged 8 instances across 6 unique functions. One of them (`erase` in `delegation_map_v__impl4`) is a false positive — the `|||` sits inside `forall x,y. gap(x,y) <==> ||| … |||`, so it defines `gap` uniquely (the RHS of an iff) rather than admitting multiple outcomes. Several more legitimate cases are missed because they use `exists` instead of `|||` (`host_model_next_shard`, `host_model_next_get_request`, `host_model_next_set_request`, all of which delegate to `next_*_wrapper`/`next_*` spec fns that quantify existentially over the post-state).
+
+### Representative example: `host_model_next_receive_message`
+
+- **Source**: `verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs:759`
+- **rerun8 status**: `permitted=True`, `r0_z3=unknown`
+- **Why this is permitted non-determinism (not incompleteness)**: the spec lets the implementation choose between *processing* a received packet via `process_message` or *dropping* it as unparseable via `host_ignoring_unparseable`. Both branches are legal terminal states for the same input.
+
+#### Top-level ensures (lines 781–795)
+
+```rust
+ensures
+    match old(self).received_packet {
+        Some(cpacket) => {
+            &&& cpacket_seq_is_abstractable(sent_packets@)
+            &&& self.host_state_common_postconditions(*old(self),
+                  (*old(self)).received_packet.unwrap(), sent_packets@)
+            &&& {
+                ||| process_message(old(self)@, self@,
+                      abstractify_seq_of_cpackets_to_set_of_sht_packets(sent_packets@))
+                ||| Self::host_ignoring_unparseable(old(self)@, self@,
+                      abstractify_seq_of_cpackets_to_set_of_sht_packets(sent_packets@))
+              }
+        },
+        None => false,
+    },
+```
+
+The outer `|||` is a 2-way disjunction at the level of the post-state itself.
+
+#### Nested branching inside `process_message` (`process_received_packet_next.rs:1523`)
+
+```rust
+pub open spec(checked) fn process_message(pre: AbstractHostState, post: AbstractHostState, out: Set<Packet>) -> bool {
+    if should_process_received_message(pre) {
+        let packet = pre.received_packet.arrow_Some_0();
+        &&& {
+            ||| next_get_request(pre, post, packet, out)
+            ||| next_set_request(pre, post, packet, out)
+            ||| next_delegate(pre, post, packet, out)
+            ||| next_shard_wrapper(pre, post, packet, out)
+            ||| next_reply(pre, post, packet, out)
+            ||| next_redirect(pre, post, packet, out)
+        }
+        &&& post.received_packet is None
+    } else { … }
+}
+```
+
+So `host_model_next_receive_message` admits **2 × 6 = 12** legal `(post, out)` shapes for the same `old(self)`. In addition, `next_set_request` / `next_get_request` / `next_shard_wrapper` themselves quantify existentially over auxiliary witnesses (`exists |sm, m, b| …`), so the actual non-determinism is even richer than the literal `|||` count suggests.
+
+#### Hand-constructed witness (full assumes)
+
+Picking a `(cpacket, m)` for which `next_get_request` is the "natural" branch and using the `host_ignoring_unparseable` escape hatch to construct the second post-state:
+
+```
+  old(self).received_packet is Some
+  cpacket == old(self).received_packet.unwrap()
+  cpacket.msg matches CSingleMessage::Message{m: CMessage::GetRequest{..}, ..}
+  sent_packets_1@ == seq![]
+  sent_packets_2@ == seq![]
+  abstractify_seq_of_cpackets_to_set_of_sht_packets(sent_packets_1@) == Set::<Packet>::empty()
+  abstractify_seq_of_cpackets_to_set_of_sht_packets(sent_packets_2@) == Set::<Packet>::empty()
+  process_message(old(self)@, post_self_1@, Set::<Packet>::empty())   // first impl picks this branch
+  !process_message(old(self)@, post_self_2@, Set::<Packet>::empty())
+  Self::host_ignoring_unparseable(old(self)@, post_self_2@, Set::<Packet>::empty())  // second impl picks this branch
+  post_self_1 != post_self_2
+  !det_host_model_next_receive_message_equal(post_self_1, sent_packets_1, post_self_2, sent_packets_2)
+```
+
+The witness fixes the input (a Get-request packet) and exhibits two distinct legal post-states: implementation A advances state per `next_get_request`, implementation B leaves a state satisfying `host_ignoring_unparseable` (which only requires the abstract host state to "ignore" the packet — typically `post == pre` for the relevant fields and an empty outbound set). Both satisfy the disjunctive ensures, so structural `det_*_equal` fails.
+
+### Tier summary
+
+| Tier | Functions (ironkv) | Status |
+|------|---------------------|--------|
+| 1. True permitted, caught by detector | `parse_command_line_configuration`, `host_model_next_delegate`, `host_model_next_receive_message`, `process_received_packet_next_impl` (×2) | rerun8 `permitted=True` |
+| 2. True permitted, missed by detector (`exists`-based) | `host_model_next_shard`, `host_model_next_get_request`, `host_model_next_set_request`, and their transitive callers (`host_noreceive_noclock_next`, `real_next_impl`, `receive_packet_next`, `host_model_receive_packet`) | rerun8 `permitted=False`, `r0_z3=unknown` |
+| 3. False positive | `erase` (DelegationMap impl4) — `|||` inside `<==>` defines `gap` uniquely | rerun8 `permitted=True` but spec is deterministic |
+
+**Detector improvements suggested**: (a) extend the `|||` scan to follow transitively through open spec fn bodies after reveal; (b) treat `exists |x| P(x, post)` in `ensures` (where the binder leaks into post-state fields) as permitted non-determinism; (c) skip `|||` occurrences that are syntactically the RHS of `<==>` / `==` (predicate definitions, not disjunctive outcomes).
