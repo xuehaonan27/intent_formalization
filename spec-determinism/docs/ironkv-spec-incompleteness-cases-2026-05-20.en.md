@@ -1,14 +1,8 @@
 # ironkv spec-incompleteness case set
 
-> 4 cases / 6 unique spec functions / 10 underlying instances.
-> In each case below, two compliant implementations can produce different post-states on the same input — i.e. the spec is incomplete with respect to determinism.
-> Source dataset: `spec-determinism/results-verusage-viewreg/ironkv/full_run.json` (May 12 viewreg full run).
->
 > **Status (2026-05-20)**: cases are partitioned into two groups.
 > - **Part 1 — Pending review** (2 cases): we believe the spec genuinely admits more behaviours than intended (or our equality check is stricter than what the spec calls for), but we want a second pair of eyes before committing to a fix direction.
 > - **Part 2 — Confirmed incompleteness** (2 cases): the cause has been triaged and a fix direction is agreed.
->
-> **Note**: the case `keys` (previously listed here) was relocated to `ironkv-equal-fn-too-strict-cases-2026-05-19.md` — its spec is in fact deterministic at the `set` abstraction it picks; the apparent non-determinism comes from the codegen's overly strict `equal_fn`, not from the spec.
 
 ## Overview
 
