@@ -205,6 +205,12 @@ def _substitute(ti: TypeInfo, type_defs: dict[str, TypeInfo]) -> TypeInfo:
             return resolved
         # Shallow-copy and rename so other references to the same bare
         # name with different type args don't trample each other.
+        # IMPORTANT: propagate ``is_opaque`` and ``is_ext_equal`` from
+        # the resolved def — those flags drive codegen decisions in
+        # ``build_equal_expr`` and dropping them on generic instantiations
+        # silently nullifies the STRUCT/ENUM short-circuit (the symptom is
+        # ``=~=`` failing to fire on e.g. ``AckState<Message>`` even though
+        # ``type_defs["AckState"].is_ext_equal == True``).
         copy = TypeInfo(
             kind=resolved.kind,
             name=ti.name,
@@ -212,6 +218,8 @@ def _substitute(ti: TypeInfo, type_defs: dict[str, TypeInfo]) -> TypeInfo:
             variants=list(resolved.variants),
             type_args=list(ti.type_args),
             spec_view=resolved.spec_view,
+            is_opaque=resolved.is_opaque,
+            is_ext_equal=resolved.is_ext_equal,
         )
         return copy
 

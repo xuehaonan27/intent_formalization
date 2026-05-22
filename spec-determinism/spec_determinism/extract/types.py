@@ -58,6 +58,16 @@ class TypeInfo:
     # transitivity through any ensures clause that pins both runs' results
     # to the same spec function call, e.g. ``r1 == spec_from_vec(v)``).
     is_opaque: bool = False
+    # ``#[verifier::ext_equal]`` / ``#[verifier(ext_equal)]`` struct or enum.
+    # Per the Verus extensional_equality guide, this opts the type into
+    # ``=~=`` extensional equality: ``a =~= b`` drills recursively through
+    # Seq / Set / Map / spec_fn fields and any nested ext_equal-annotated
+    # types, while still collapsing to ``==`` on plain primitive / struct
+    # fields. When codegen sees this flag, the STRUCT/ENUM branches in
+    # ``build_equal_expr`` can short-circuit to ``lhs =~= rhs`` instead of
+    # recursively expanding every field, dramatically shrinking the
+    # generated equal_fn body without weakening its semantics.
+    is_ext_equal: bool = False
 
     def to_dict(self) -> dict:
         d = {"kind": self.kind.value, "name": self.name}
@@ -71,6 +81,8 @@ class TypeInfo:
             d["spec_view"] = self.spec_view.to_dict()
         if self.is_opaque:
             d["is_opaque"] = True
+        if self.is_ext_equal:
+            d["is_ext_equal"] = True
         return d
 
     @staticmethod
@@ -83,6 +95,7 @@ class TypeInfo:
             type_args=[TypeInfo.from_dict(t) for t in d.get("type_args", [])],
             spec_view=TypeInfo.from_dict(d["spec_view"]) if d.get("spec_view") else None,
             is_opaque=bool(d.get("is_opaque", False)),
+            is_ext_equal=bool(d.get("is_ext_equal", False)),
         )
 
     def is_c_like_enum(self) -> bool:

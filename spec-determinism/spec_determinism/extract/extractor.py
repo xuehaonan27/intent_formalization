@@ -678,6 +678,85 @@ def _has_external_body_attr(parent_node: ts.Node, struct_node: ts.Node) -> bool:
     return False
 
 
+def _has_ext_equal_attr(parent_node: ts.Node, item_node: ts.Node) -> bool:
+    """Check if ``item_node`` (a ``struct_item`` or ``enum_item``) is annotated
+    ``#[verifier::ext_equal]`` or ``#[verifier(ext_equal)]``.
+
+    Per the Verus extensional_equality guide, this attribute opts the type
+    into ``=~=`` extensional equality: comparing two values with ``=~=``
+    drills recursively through Seq / Set / Map / spec_fn fields, and
+    through any nested ext_equal-annotated types, while still collapsing
+    to ``==`` on plain primitive / struct fields. We must NOT confuse
+    this with ``#[verifier::auto_ext_equal(...)]``, which is a different
+    attribute that controls auto-promotion of ``==`` to ``=~=`` inside
+    ``assert`` / ``ensures`` / ``invariant`` positions; codegen has no
+    use for the auto variant.
+    """
+    if parent_node.type != "declaration_with_attrs":
+        return False
+    for c in parent_node.children:
+        if c is item_node:
+            break
+        if c.type != "attribute_item":
+            continue
+        text = _text(c)
+        if "verifier" not in text or "ext_equal" not in text:
+            continue
+        # Reject the unrelated ``auto_ext_equal(...)`` attribute, which
+        # doesn't apply to spec fn bodies.
+        if "auto_ext_equal" in text:
+            continue
+        return True
+    return False
+
+
+def _collect_ext_equal_names_from_tree(tree: ts.Tree) -> set[str]:
+    """Walk ``tree`` and return the set of struct / enum names whose
+    declaration is wrapped in a ``declaration_with_attrs`` carrying
+    ``#[verifier::ext_equal]`` (or ``#[verifier(ext_equal)]``).
+
+    Used by :func:`find_ext_equal_type_names` to tag :class:`TypeInfo`
+    entries regardless of whether they were discovered by the tree
+    walker or supplied by the Tier 1.5 LLM type-completion cache.
+    """
+    out: set[str] = set()
+
+    def walk(node: ts.Node, parent: Optional[ts.Node] = None) -> None:
+        if node.type in ("struct_item", "enum_item"):
+            name_node = _child_by_type(node, "type_identifier")
+            if (name_node is not None and parent is not None
+                    and _has_ext_equal_attr(parent, node)):
+                out.add(_text(name_node))
+        for child in node.children:
+            walk(child, node)
+
+    walk(tree.root_node)
+    return out
+
+
+def find_ext_equal_type_names(sources: list[str]) -> set[str]:
+    """Public helper: parse each ``source`` string with the verus tree-sitter
+    grammar and return the union of bare type names annotated with
+    ``#[verifier::ext_equal]`` / ``#[verifier(ext_equal)]``.
+
+    Callers downstream of :func:`extract_spec` (notably the Tier 1.5
+    runner, which fills ``spec.type_defs`` from a LLM-synthesised cache
+    that doesn't preserve attribute information) use the returned set
+    to flip ``TypeInfo.is_ext_equal`` on matching entries — that lets
+    :func:`spec_determinism.codegen.gen_det.build_equal_expr` short-circuit
+    field-by-field structural expansion to a single ``lhs =~= rhs`` token.
+    """
+    out: set[str] = set()
+    for src in sources:
+        # tree-sitter-rust trips on inner attributes; strip them so the
+        # outer ``struct_item`` / ``enum_item`` is reachable. Mirrors the
+        # cleanup ``_resolve_types`` does for the same reason.
+        cleaned = re.sub(r'#!\[[^\]]*\]', '', src)
+        tree = _parser.parse(cleaned.encode())
+        out |= _collect_ext_equal_names_from_tree(tree)
+    return out
+
+
 def _find_struct(
     tree: ts.Tree,
     name: str,
@@ -723,8 +802,11 @@ def _find_struct(
                 is_ghost = _child_by_type(node, "data_mode") is not None
                 is_opaque = (parent is not None
                              and _has_external_body_attr(parent, node))
+                is_ext_equal = (parent is not None
+                                and _has_ext_equal_attr(parent, node))
                 return TypeInfo(kind=TypeKind.STRUCT, name=name,
-                                fields=fields, is_opaque=is_opaque)
+                                fields=fields, is_opaque=is_opaque,
+                                is_ext_equal=is_ext_equal)
         for child in node.children:
             result = walk(child, node)
             if result:
@@ -803,7 +885,7 @@ def _find_enum(
     active_features: Optional[set[str]] = None,
 ) -> Optional[TypeInfo]:
     """Find an enum definition by name and extract its variants."""
-    def walk(node: ts.Node) -> Optional[TypeInfo]:
+    def walk(node: ts.Node, parent: Optional[ts.Node] = None) -> Optional[TypeInfo]:
         if node.type == "enum_item":
             name_node = _child_by_type(node, "type_identifier")
             if name_node and _text(name_node) == name:
@@ -896,9 +978,11 @@ def _find_enum(
                                 discriminant=discriminant,
                                 struct_form=struct_form,
                             ))
-                return TypeInfo(kind=TypeKind.ENUM, name=name, variants=variants)
+                return TypeInfo(kind=TypeKind.ENUM, name=name, variants=variants,
+                                is_ext_equal=(parent is not None
+                                              and _has_ext_equal_attr(parent, node)))
         for child in node.children:
-            result = walk(child)
+            result = walk(child, node)
             if result:
                 return result
         return None
@@ -1367,6 +1451,40 @@ def _resolve_types(
         _substitute(td)
         if td.spec_view:
             _substitute(td.spec_view)
+
+    # Tag every TypeInfo whose declaration carries ``#[verifier::ext_equal]``
+    # / ``#[verifier(ext_equal)]``. This lets gen_det's STRUCT/ENUM branches
+    # short-circuit to ``lhs =~= rhs`` instead of an exponential field-by-field
+    # expansion. ``_find_struct`` / ``_find_enum`` already detect the attribute
+    # on the items they discover, but tree-walking can miss generic types
+    # whose source-text name doesn't round-trip cleanly through ``_lookup``
+    # (e.g. ``AckState<MT>`` declared inline inside a macro-expanded block).
+    # A direct AST-level scan over every parse tree picks those up regardless.
+    # Also propagates the flag onto any shallow-copied / generic-instantiated
+    # TypeInfo reachable from params, return type, or other type_defs.
+    ext_eq_names: set[str] = set()
+    for t in trees:
+        ext_eq_names |= _collect_ext_equal_names_from_tree(t)
+
+    def _walk_tag(ti: TypeInfo) -> None:
+        bare = ti.name.split("<", 1)[0] if "<" in ti.name else ti.name
+        if bare in ext_eq_names and not ti.is_ext_equal:
+            ti.is_ext_equal = True
+        for ta in ti.type_args:
+            _walk_tag(ta)
+        for f in ti.fields:
+            _walk_tag(f.type)
+        for v in ti.variants:
+            if v.inner is not None:
+                _walk_tag(v.inner)
+        if ti.spec_view is not None:
+            _walk_tag(ti.spec_view)
+
+    for td in type_defs.values():
+        _walk_tag(td)
+    for p in params:
+        _walk_tag(p.type)
+    _walk_tag(return_type)
 
     return type_defs, return_type
 

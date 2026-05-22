@@ -1625,6 +1625,19 @@ def build_equal_expr(
                                                caller_generics=caller_generics)
             if vreg_eq is not None:
                 return vreg_eq
+        # ``#[verifier::ext_equal]`` enum: per the Verus extensional_equality
+        # guide, ``=~=`` on this type drills recursively through any
+        # Seq / Set / Map / spec_fn fields (and through nested
+        # ext_equal-annotated types) while still collapsing to ``==`` on
+        # plain struct/primitive fields. Short-circuit to ``lhs =~= rhs``
+        # so the generated equal_fn body stays a single token instead of
+        # an exponential per-variant structural drill. The substitution
+        # is semantically monotonic: for non-ext_equal types ``=~=`` is
+        # equivalent to ``==``, and for ext_equal types it is at least as
+        # strong as the field-wise comparison would have been. Skip when
+        # the policy needs field-level granularity (``ignore_fields``).
+        if ty.is_ext_equal and not policy.ignore_fields:
+            return f"({lhs}) =~= ({rhs})"
         # Pre-compute the set of struct-form field names that appear in
         # more than one variant. Verus only auto-generates an ``arrow_f``
         # accessor when ``f`` is unique across all variants of the enum;
@@ -1725,6 +1738,24 @@ def build_equal_expr(
             # a raw `@ == @` comparison — if the caller needs that, they
             # should supply a custom_body for this function.
             return f"({lhs})@ == ({rhs})@"
+        # ``#[verifier::ext_equal]`` struct: per the Verus extensional_equality
+        # guide, ``=~=`` on this type drills recursively through any
+        # Seq / Set / Map / spec_fn fields (and through nested
+        # ext_equal-annotated types) while still collapsing to ``==`` on
+        # plain primitive / struct fields. Short-circuit to
+        # ``lhs =~= rhs`` so the generated equal_fn body stays a single
+        # token instead of an exponential per-field structural drill.
+        # The substitution is semantically monotonic: for non-ext_equal
+        # types ``=~=`` is equivalent to ``==``, and for ext_equal types
+        # it is at least as strong as the field-wise comparison would
+        # have been. Skip when the policy needs field-level granularity
+        # (``ignore_fields``); also skip when the value is already
+        # view-projected (``lhs@``) because the view target may have its
+        # own equality semantics that don't match the source struct's
+        # ext_equal annotation.
+        if (ty.is_ext_equal and not policy.ignore_fields
+                and not lhs_is_viewed and not rhs_is_viewed):
+            return f"({lhs}) =~= ({rhs})"
         # Phase-2 hook: no inline `TypeInfo.spec_view` was discovered.
         # Consult the L1+L2+L3+L4 resolver before falling back to a recursive
         # field-by-field structural comparison. The resolver's hit covers
@@ -1960,17 +1991,21 @@ def _run_self_tests() -> int:
            "s1[i]", "s2[i]", "is Ok"],
           forbidden_substrs=["s1[i]->Err_0", "s2[i]->Err_0"])
 
-    # Same Seq under strict policy — element-wise raw `==` is fine since
-    # errs_equivalent=False means we don't want to collapse anything.
+    # Same Seq under strict policy — element-wise structural equality is
+    # fine since errs_equivalent=False means we don't want to collapse
+    # anything. The fallback path emits `s1 =~= s2` (extensional equality),
+    # which is sound + matches how Verus auto-promotes `==` to `=~=` for
+    # Seq inside ensures positions.
     expr_seq_strict = build_equal_expr(
         seq_of_result, "s1", "s2", EqualPolicy(errs_equivalent=False))
-    check("Seq<Result<…>> strict policy keeps raw ==",
-          expr_seq_strict, ["s1 == s2"])
+    check("Seq<Result<…>> strict policy uses =~=",
+          expr_seq_strict, ["s1 =~= s2"])
 
-    # Seq<u32> — should still be raw == under any policy.
+    # Seq<u32> — fallback path uses `=~=` (semantically equivalent to
+    # `==` for Seq, matches Verus's ensures-position auto-promotion).
     seq_u32 = TypeInfo(TypeKind.SEQ, "Seq<u32>", type_args=[u32_ty])
     expr_seq_u32 = build_equal_expr(seq_u32, "s1", "s2", default_policy())
-    check("Seq<u32> stays raw ==", expr_seq_u32, ["s1 == s2"],
+    check("Seq<u32> fallback uses =~=", expr_seq_u32, ["s1 =~= s2"],
           forbidden_substrs=["forall"])
 
     # PR-N: Vec<u8> wrapper (kind=SEQ, spec_view=Seq<u8>) — Vec is
@@ -1980,7 +2015,7 @@ def _run_self_tests() -> int:
                       spec_view=vec_u8_view)
     expr_vec_u8 = build_equal_expr(vec_u8, "v1", "v2", default_policy())
     check("Vec<u8> (SEQ + spec_view) compares via @",
-          expr_vec_u8, ["(v1)@ == (v2)@"],
+          expr_vec_u8, ["(v1)@ =~= (v2)@"],
           forbidden_substrs=["v1 == v2"])
 
     # PR-N: Struct{ id: Vec<u8> } — STRUCT recurses into the Vec field,
@@ -1992,7 +2027,7 @@ def _run_self_tests() -> int:
     )
     expr_end_point = build_equal_expr(end_point, "r1", "r2", default_policy())
     check("Struct{id: Vec<u8>} drops to view-eq on the Vec field",
-          expr_end_point, ["(r1.id)@ == (r2.id)@"],
+          expr_end_point, ["(r1.id)@ =~= (r2.id)@"],
           forbidden_substrs=["r1.id == r2.id"])
 
     # PR-N: HashMap<K,V> wrapper (kind=MAP, spec_view=Map<K,V>) — symmetric
@@ -2003,24 +2038,25 @@ def _run_self_tests() -> int:
                        type_args=[int_ty, u32_ty], spec_view=map_view)
     expr_hashmap = build_equal_expr(hashmap, "h1", "h2", default_policy())
     check("HashMap<K,V> (MAP + spec_view) compares via @",
-          expr_hashmap, ["(h1)@ == (h2)@"],
+          expr_hashmap, ["(h1)@ =~= (h2)@"],
           forbidden_substrs=["h1 == h2"])
 
-    # Map<int, Result<u32, MyErr>> — was buggy pre-PR-G.
+    # Map<int, Result<u32, MyErr>> — was buggy pre-PR-G. dom comparison
+    # uses =~= (extensional set equality).
     map_of_result = TypeInfo(TypeKind.MAP, "Map<int, Result<u32, MyErr>>",
                              type_args=[int_ty, result_u32_err])
     expr_map = build_equal_expr(map_of_result, "m1", "m2", default_policy())
     check("Map<_, Result<…>> with errs_equivalent uses dom+forall",
           expr_map,
-          ["m1.dom() == m2.dom()", "forall|k: int|",
+          ["m1.dom() =~= m2.dom()", "forall|k: int|",
            "m1.dom().contains(k)", "m1[k]", "m2[k]"],
           forbidden_substrs=["m1[k]->Err_0", "m2[k]->Err_0"])
 
-    # Map<int, u32> — should stay raw ==.
+    # Map<int, u32> — fallback uses `=~=` (extensional map equality).
     map_int_u32 = TypeInfo(TypeKind.MAP, "Map<int, u32>",
                            type_args=[int_ty, u32_ty])
     expr_map_iu = build_equal_expr(map_int_u32, "m1", "m2", default_policy())
-    check("Map<int, u32> stays raw ==", expr_map_iu, ["m1 == m2"],
+    check("Map<int, u32> fallback uses =~=", expr_map_iu, ["m1 =~= m2"],
           forbidden_substrs=["forall"])
 
     # Result<Seq<Result<u32, MyErr>>, MyErr> — outer Err collapsed AND
@@ -2052,6 +2088,56 @@ def _run_self_tests() -> int:
           expr_struct,
           ["h1.payload", "h2.payload", "is Ok"],
           forbidden_substrs=["h1.payload->Err_0"])
+
+    # ext_equal short-circuit (struct): an ext_equal-annotated struct
+    # collapses to ``lhs =~= rhs`` instead of recursive field expansion.
+    # Per the Verus extensional_equality guide, this drills through any
+    # Seq / Set / Map / spec_fn / nested ext_equal fields automatically.
+    ext_struct = TypeInfo(
+        TypeKind.STRUCT, "SingleDelivery",
+        fields=[FieldInfo("send_state", map_int_u32),
+                FieldInfo("receive_state", u32_ty)],
+        is_ext_equal=True,
+    )
+    expr_ext_struct = build_equal_expr(ext_struct, "p1", "p2", default_policy())
+    check("ext_equal struct short-circuits to =~=",
+          expr_ext_struct, ["p1) =~= (p2"],
+          forbidden_substrs=["p1.send_state", "p1.receive_state"])
+
+    # ext_equal short-circuit (enum): same behaviour on enums; per-variant
+    # expansion is skipped.
+    ext_enum = TypeInfo(
+        TypeKind.ENUM, "CSingleMessage",
+        variants=[VariantInfo("Ack", u32_ty),
+                  VariantInfo("InvalidMessage", None)],
+        is_ext_equal=True,
+    )
+    expr_ext_enum = build_equal_expr(ext_enum, "m1", "m2", default_policy())
+    check("ext_equal enum short-circuits to =~=",
+          expr_ext_enum, ["m1) =~= (m2"],
+          forbidden_substrs=["is Ack", "m1->Ack_0"])
+
+    # ext_equal opacity guard: opaque (external_body) struct must NOT be
+    # short-circuited to =~= because field access is forbidden and the
+    # extensional drill would try to descend.
+    ext_opaque = TypeInfo(
+        TypeKind.STRUCT, "OpaqueExt",
+        fields=[FieldInfo("data", u32_ty)],
+        is_opaque=True,
+        is_ext_equal=True,  # weird combo, but defend against it
+    )
+    expr_ext_opaque = build_equal_expr(ext_opaque, "o1", "o2", default_policy())
+    check("ext_equal + opaque uses raw ==",
+          expr_ext_opaque, ["o1 == o2"],
+          forbidden_substrs=["=~="])
+
+    # ext_equal + ignore_fields policy: short-circuit MUST be skipped because
+    # the extensional comparator can't honour per-field ignores.
+    policy_ignore = EqualPolicy(ignore_fields={"send_state"})
+    expr_ext_ignore = build_equal_expr(ext_struct, "p1", "p2", policy_ignore)
+    check("ext_equal + ignore_fields skips short-circuit",
+          expr_ext_ignore, ["p1.receive_state"],
+          forbidden_substrs=["=~=", "p1.send_state"])
 
     # _contains_result helper sanity
     assert _contains_result(result_u32_err) is True, "Result detected"
