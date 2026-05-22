@@ -1438,14 +1438,20 @@ def build_equal_expr(
         TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
         TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
         TypeKind.BOOL, TypeKind.UNIT, TypeKind.STR,
-        TypeKind.SET,
     ):
-        # NOTE: TypeKind.SET stays here — Set has no positional indexing so
-        # we can't lift `errs_equivalent` element-wise without redefining
-        # set equality. If `policy.errs_equivalent` and the element type
-        # contains Result, raw `==` over-compares. Tracked as a known
-        # limitation (PR-G follow-up); see _container_needs_elementwise.
         return f"{lhs} == {rhs}"
+
+    # `Set<E>` — extensional equality. Z3's structural `==` on Set is the
+    # constructor-term identity (history of `.insert` / `.remove`); `=~=`
+    # is "for all e, lhs.contains(e) == rhs.contains(e)" which is the
+    # equality the spec actually wants and what every downstream lemma /
+    # ensures clause already relies on. Inside spec-fn bodies `==` is NOT
+    # auto-promoted to `=~=` (only in `assert` / `ensures` / `invariant`
+    # — see https://verus-lang.github.io/verus/guide/extensional_equality.html),
+    # so we must emit `=~=` explicitly here.
+    if k == TypeKind.SET:
+        return f"{lhs} =~= {rhs}"
+
 
     # PR-G: Seq<E> where E transitively contains Result needs elementwise
     # comparison so `errs_equivalent` reaches the nested Err. Raw `==` on
@@ -1472,7 +1478,8 @@ def build_equal_expr(
                 f"({lhs}.len() == {rhs}.len()"
                 f" && forall|i: int| 0 <= i < {lhs}.len() ==> ({elem_eq}))"
             )
-        return f"{lhs} == {rhs}"
+        # Extensional equality (see Set branch comment above).
+        return f"{lhs} =~= {rhs}"
 
     # PR-G: Map<K, V> where V transitively contains Result also needs
     # value-wise comparison. Domain must match, then each value is
@@ -1496,11 +1503,12 @@ def build_equal_expr(
             k_ty = ty.type_args[0] if ty.type_args else TypeInfo(TypeKind.INT, "int")
             k_name = k_ty.name or "int"
             return (
-                f"({lhs}.dom() == {rhs}.dom()"
+                f"({lhs}.dom() =~= {rhs}.dom()"
                 f" && forall|k: {k_name}| {lhs}.dom().contains(k)"
                 f" ==> ({val_eq}))"
             )
-        return f"{lhs} == {rhs}"
+        # Extensional equality (see Set branch comment above).
+        return f"{lhs} =~= {rhs}"
 
     if k == TypeKind.RESULT:
         ok_ty = ty.type_args[0] if len(ty.type_args) > 0 else TypeInfo(TypeKind.UNIT, "()")
