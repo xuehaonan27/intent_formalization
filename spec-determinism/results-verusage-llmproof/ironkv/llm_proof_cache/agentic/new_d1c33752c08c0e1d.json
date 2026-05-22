@@ -1,0 +1,13 @@
+{
+  "cache_key": "d1c33752c08c0e1d2393f4f93a5010a47f1c09db4b5d4554f893991313470ebb",
+  "function": "new",
+  "file": "delegation_map_v__impl3__new",
+  "status": "verus_fail",
+  "proof_block": "if r1@ == Seq::<K>::empty() && r1.valid() && r2@ == Seq::<K>::empty() && r2.valid() {\n        assert(r1.v@ =~= r2.v@);\n        assert(r1.v@ == r2.v@);\n    }",
+  "rationale": "Postcondition requires r1 == r2 for StrictlyOrderedVec<K>, whose only field is v: Vec<K>. Antecedent gives only r1@ == r2@ == Seq::empty() and validity. Verified via isolated tests that vstd has no Vec view-injectivity axiom: neither v1 == v2 nor v1 =~= v2 nor v1 =~~= v2 is derivable from v1@ == v2@, even with broadcast use of group_vec_axioms. Closing the struct equality would require an assume/admit/external_body axiom, which is forbidden by the task constraints. Inserted view-level equalities (the strongest derivable conclusion) into the proof block as a best-effort artifact.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T13:38:42Z",
+  "verus_ms": 417,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nerror: postcondition not satisfied\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new/llm_proof/verify/delegation_map_v__impl3__new.rs:116:9\n    |\n116 | /         ({\n117 | |             &&& (r1@ == Seq::<K>::empty())\n118 | |             &&& (r1.valid())\n119 | |             &&& (r2@ == Seq::<K>::empty())\n120 | |             &&& (r2.valid())\n121 | |         }) ==> det_new_equal(r1, r2),\n    | |____________________________________^ failed this postcondition\n...\n125 | / if r1@ == Seq::<K>::empty() && r1.valid() && r2@ == Seq::<K>::empty() && r2.valid() {\n126 | |         assert(r1.v@ =~= r2.v@);\n127 | |         assert(r1.v@ == r2.v@);\n128 | |     }\n    | |_____- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

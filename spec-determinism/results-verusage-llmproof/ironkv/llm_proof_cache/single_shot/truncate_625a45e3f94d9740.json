@@ -1,0 +1,13 @@
+{
+  "cache_key": "625a45e3f94d974010cb8f06e7b3a7fcda46cbc40668992150afe5d85ed94e96",
+  "function": "truncate",
+  "file": "single_delivery_state_v__impl0__truncate",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 1,
+  "saved_at": "2026-05-20T05:17:45Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun10_42_par/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__truncate__truncate/llm_proof/attempt_01/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun10_42_par/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl0__truncate__truncate/llm_proof/attempt_01/llm.",
+  "cache_schema": 1
+}

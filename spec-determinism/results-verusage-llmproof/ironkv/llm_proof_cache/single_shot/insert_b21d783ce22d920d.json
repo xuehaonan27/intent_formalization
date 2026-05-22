@@ -1,0 +1,13 @@
+{
+  "cache_key": "b21d783ce22d920dfd58ebd8bf506ed7c1d58a1c2dc5c88e3738e516b3a517a7",
+  "function": "insert",
+  "file": "delegation_map_v__impl1_insert",
+  "status": "verus_pass",
+  "proof_block": "reveal(StrictlyOrderedVec::valid);\nK::cmp_properties();\nif post1_self_.valid()\n    && post2_self_.valid()\n    && post1_self_@.len() == pre_self_@.len() + 1\n    && post2_self_@.len() == pre_self_@.len() + 1\n    && (r1 as int) < post1_self_@.len()\n    && (r2 as int) < post2_self_@.len()\n    && post1_self_@ == pre_self_@.insert(r1 as int, k)\n    && post2_self_@ == pre_self_@.insert(r2 as int, k)\n    && post1_self_@.to_set() == pre_self_@.to_set().insert(k)\n    && post2_self_@.to_set() == pre_self_@.to_set().insert(k)\n{\n    let pre_s: Seq<K> = pre_self_@;\n    let p1: Seq<K> = post1_self_@;\n    let p2: Seq<K> = post2_self_@;\n    let i1: int = r1 as int;\n    let i2: int = r2 as int;\n\n    assert(p1 == pre_s.insert(i1, k));\n    assert(p2 == pre_s.insert(i2, k));\n    assert(p1.len() == pre_s.len() + 1);\n    assert(p2.len() == pre_s.len() + 1);\n\n    if i1 < i2 {\n        assert(i1 + 1 < p1.len());\n        assert(p1[i1] == k);\n        assert(p1[i1 + 1] == pre_s[i1]);\n        assert(p1[i1].cmp_spec(p1[i1 + 1]).lt());\n        assert(k.cmp_spec(pre_s[i1]).lt());\n\n        assert(p2[i1] == pre_s[i1]);\n        assert(p2[i2] == k);\n        assert(p2[i1].cmp_spec(p2[i2]).lt());\n        assert(pre_s[i1].cmp_spec(k).lt());\n\n        assert(pre_s[i1].cmp_spec(k).gt());\n        assert(false);\n    } else if i2 < i1 {\n        assert(i2 + 1 < p2.len());\n        assert(p2[i2] == k);\n        assert(p2[i2 + 1] == pre_s[i2]);\n        assert(p2[i2].cmp_spec(p2[i2 + 1]).lt());\n        assert(k.cmp_spec(pre_s[i2]).lt());\n\n        assert(p1[i2] == pre_s[i2]);\n        assert(p1[i1] == k);\n        assert(p1[i2].cmp_spec(p1[i1]).lt());\n        assert(pre_s[i2].cmp_spec(k).lt());\n\n        assert(pre_s[i2].cmp_spec(k).gt());\n        assert(false);\n    }\n\n    assert(i1 == i2);\n    assert(r1 == r2);\n    assert(post1_self_@ =~= post2_self_@);\n    assert(post1_self_@ == post2_self_@);\n}",
+  "rationale": "Wrap the proof in an `if` matching the ensures antecedent (so both runs' postconditions are in scope), then show `r1 == r2` by case-splitting on the order of the two insert positions: in each WLOG branch, sortedness of one post-state forces `k < pre[smaller]` while sortedness of the other forces `pre[smaller] < k`, contradicting `cmp_properties`'s asymmetry; finally Seq extensionality lifts `i1 == i2` to `post1_self_@ == post2_self_@`.",
+  "attempts": 1,
+  "saved_at": "2026-05-21T06:11:06Z",
+  "verus_ms": 658,
+  "verus_stderr_tail": "",
+  "cache_schema": 1
+}

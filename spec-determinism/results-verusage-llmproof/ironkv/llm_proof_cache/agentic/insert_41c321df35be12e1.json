@@ -1,0 +1,13 @@
+{
+  "cache_key": "41c321df35be12e192079dff38aa1f9136204290cd1de26a5c2b8785d1312c99",
+  "function": "insert",
+  "file": "single_delivery_state_v__impl3__un_acked_messages_extend",
+  "status": "verus_fail",
+  "proof_block": "if (post1_self_@ == pre_self_@.insert(key@, value))\n        && (post2_self_@ == pre_self_@.insert(key@, value))\n    {\n        assert(post1_self_@ == post2_self_@);\n        assert(post1_self_ == post2_self_);\n    }\n    // You may use assert / assert ... by { ... } / lemma calls.\n    // FORBIDDEN: assume(), admit(), assume_specification, external_body.\n    // The line markers above and below MUST be preserved verbatim.",
+  "rationale": "Obligation requires proving post1_self_ == post2_self_ for HashMap<V>, which is #[verifier(external_body)] with uninterp view(). View-equality (post1_self_@ == post2_self_@) is provable but does NOT imply value-equality without an external axiom. Tried ==, =~=, broadcast use vstd::map::group_map_axioms, and view-equality first then ==; all fail. This is fundamentally unprovable in Verus for opaque external_body types without assume(), which is forbidden.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T21:34:39Z",
+  "verus_ms": 865,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__insert/llm_proof/verify/single_delivery_state_v__impl3__un_acked_messages_extend.rs:941:16\n    |\n941 |         assert(post1_self_ == post2_self_);\n    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

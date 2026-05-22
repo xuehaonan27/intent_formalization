@@ -1,0 +1,13 @@
+{
+  "cache_key": "36d3c7f4458098266847566f8441a42b9a14708533ba80e3a76d638c21adc291",
+  "function": "insert",
+  "file": "single_delivery_state_v__impl1__insert",
+  "status": "verus_fail",
+  "proof_block": "assert(({\n        &&& (post1_self_@ == pre_self_@.insert(key@, value))\n        &&& (post2_self_@ == pre_self_@.insert(key@, value))\n    }) ==> det_insert_equal(r1, r2, post1_self_, post2_self_)) by {\n        if (post1_self_@ == pre_self_@.insert(key@, value))\n            && (post2_self_@ == pre_self_@.insert(key@, value)) {\n            assert(r1 == r2);\n            assert(post1_self_@ =~= post2_self_@);\n            assert(post1_self_ =~= post2_self_);\n        }\n    };",
+  "rationale": "Fundamentally unprovable. HashMap<V>.insert ensures only `self@ == old(self)@.insert(key@, value)` (constrains the abstract view); HashMap<V> is `#[verifier(external_body)]` so concrete `==` is SMT-uninterpreted. Antecedent gives post1_self_@ == post2_self_@ (via Map extensionality), but cannot bridge to post1_self_ == post2_self_. Tried structural `==` and extensional `=~=` between the wrapper values; both assert fail. r1==r2 is trivial (unit). Without forbidden axioms (assume/external_body/etc.), the determinism check is not closable. Same pattern as other ironkv HashMap-insert determinism artifacts in this batch.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T21:29:45Z",
+  "verus_ms": 435,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl1__insert__insert/llm_proof/verify/single_delivery_state_v__impl1__insert.rs:128:20\n    |\n128 |             assert(post1_self_ =~= post2_self_);\n    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

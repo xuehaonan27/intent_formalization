@@ -1,0 +1,13 @@
+{
+  "cache_key": "7c0afae827464d538f046eec8163750b4b4096b517a948d9d71ca192037781e8",
+  "function": "clone_up_to_view",
+  "file": "net_sht_v__receive_with_demarshal",
+  "status": "verus_fail",
+  "proof_block": "// Goal: (r1@ == self_@ && r2@ == self_@) ==> r1.id == r2.id\n    //\n    // The premises only give r1.id@ == self_.id@ and r2.id@ == self_.id@\n    // (Seq<u8> equality, via the open spec view of EndPoint), which\n    // chain transitively to r1.id@ == r2.id@. However, Verus models\n    // Vec<u8> as an external_body type with no axiom relating view\n    // equality to Vec spec-equality, so r1.id@ == r2.id@ does NOT\n    // imply r1.id == r2.id. clone_up_to_view itself is external_body\n    // with only an `ensures res@ == self@` clause, so no additional\n    // structural information is available about r1.id and r2.id.\n    // Hence the postcondition is not derivable under the current\n    // axiom set.\n    assert((r1@ == self_@ && r2@ == self_@) ==> r1.id@ == r2.id@);",
+  "rationale": "Postcondition is (r1@==self_@ && r2@==self_@) ==> r1.id == r2.id, where r1.id/r2.id are Vec<u8>. The premises only give Seq-level view equality r1.id@ == r2.id@. Verus models Vec<T> via #[verifier::external_type_specification]/external_body with no axiom relating view equality to Vec spec-equality (no obeys_view_eq for raw ==; that only relates eq_spec). I confirmed this with a minimal test: assert((r1@==self_@ && r2@==self_@) ==> r1.id == r2.id) fails even when r1.id@==r2.id@ is established. clone_up_to_view is itself external_body and ensures only res@ == self@, so no further structural info about Vec id is available. The postcondition is therefore not derivable under the current Verus axiom set, matching prior attempt_01's failure. Submitting give_up.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T18:12:28Z",
+  "verus_ms": 814,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nerror: postcondition not satisfied\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__net_sht_v__net_sht_v__receive_with_demarshal__clone_up_to_view/llm_proof/verify/net_sht_v__receive_with_demarshal.rs:878:9\n    |\n876 |   proof fn det_clone_up_to_view(g_sel... self_: EndPoint, r1: EndPoint, r2: EndPoint)\n    |         -----------------------------...--------------------------------------------- at the end of the function body\n877 |       ensures\n878 | /         ({\n879 | |             &&& (r1@ == self_@)\n880 | |             &&& (r2@ == self_@)\n881 | |         }) ==> det_clone_up_to_view_equal(r1, r2),\n    | |_________________________________________________^ failed this postcondition\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

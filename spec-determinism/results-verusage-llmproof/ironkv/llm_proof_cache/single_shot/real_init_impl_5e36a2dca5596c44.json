@@ -1,0 +1,13 @@
+{
+  "cache_key": "5e36a2dca5596c44118f8955d6a1f412993ec19920549317f49a39828f4364f5",
+  "function": "real_init_impl",
+  "file": "host_impl_v__impl2__real_init_impl",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-19T20:22:25Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun9_llm/artifacts/host_impl_v__host_impl_v__impl2__real_init_impl__real_init_impl/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun9_llm/artifacts/host_impl_v__host_impl_v__impl2__real_init_impl__real_init_impl/llm_proof/attempt_02/llm.",
+  "cache_schema": 1
+}
