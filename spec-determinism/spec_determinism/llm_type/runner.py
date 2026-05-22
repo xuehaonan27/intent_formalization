@@ -222,35 +222,28 @@ def complete_types(
         )
 
     # Cached / freshly-LLM-synthesised TypePatch objects don't carry
-    # ``#[verifier::ext_equal]`` provenance. Scan the project source
-    # once and propagate the flag onto any matching ``spec.type_defs``
-    # entry — AND onto every reachable TypeInfo in params/return/fields
+    # attribute provenance (``#[verifier::external_body]``,
+    # ``#[verifier::ext_equal]``, ...). Scan the project source once and
+    # propagate those flags onto any matching ``spec.type_defs`` entry —
+    # AND onto every reachable TypeInfo in params/return/fields
     # (shallow-copies from generic instantiation, e.g. ``AckState<Message>``).
     # gen_det's STRUCT/ENUM branches read the flag off the param's TypeInfo
     # directly, so tagging only ``spec.type_defs`` would miss the copies.
+    # The attribute table builder + propagator both live in
+    # :mod:`spec_determinism.extract.attrs` so the extractor's resolve-types
+    # post-pass and this Tier 1.5 post-pass use the exact same logic.
     try:
-        from spec_determinism.extract.extractor import find_ext_equal_type_names
-        ext_eq_names = find_ext_equal_type_names([source])
-
-        def _walk_tag(ti):
-            bare = ti.name.split("<", 1)[0] if "<" in ti.name else ti.name
-            if bare in ext_eq_names and not ti.is_ext_equal:
-                ti.is_ext_equal = True
-            for ta in ti.type_args:
-                _walk_tag(ta)
-            for f in ti.fields:
-                _walk_tag(f.type)
-            for v in ti.variants:
-                if v.inner is not None:
-                    _walk_tag(v.inner)
-            if ti.spec_view is not None:
-                _walk_tag(ti.spec_view)
-
-        for td in spec.type_defs.values():
-            _walk_tag(td)
-        for p in spec.params:
-            _walk_tag(p.type)
-        _walk_tag(spec.return_type)
+        from spec_determinism.extract.attrs import (
+            propagate_attrs_to_type_defs,
+            scan_source_for_item_attrs,
+        )
+        attrs_table = scan_source_for_item_attrs(source)
+        propagate_attrs_to_type_defs(
+            attrs_table,
+            type_defs=spec.type_defs,
+            params=spec.params,
+            return_type=spec.return_type,
+        )
     except Exception:
         # Defensive: a parse failure here should never abort the run.
         pass

@@ -194,7 +194,28 @@ def _patch_to_typeinfo(p: TypePatch) -> TypeInfo:
 def _substitute(ti: TypeInfo, type_defs: dict[str, TypeInfo]) -> TypeInfo:
     """Mirror of extractor._substitute: replace UNKNOWN-kind references whose
     bare-name is now in ``type_defs`` with the resolved TypeInfo. Mutates
-    nested slots in-place; returns top-level replacement when applicable."""
+    nested slots in-place; returns top-level replacement when applicable.
+
+    Historical bug — fixed twice
+    ----------------------------
+    The shallow-copy branch below has been the source of two distinct
+    silent flag-loss bugs:
+
+    * ``is_opaque`` was dropped (codegen emitted field accesses on opaque
+      structs → Verus rejected the build);
+    * ``is_ext_equal`` was dropped (codegen recursed field-by-field
+      instead of short-circuiting to ``=~=`` → ~50 % regression on the
+      ironkv 42-strict-unknown smoke run).
+
+    Both bugs followed the same pattern: a new flag was added to
+    :class:`TypeInfo`, the extractor was updated, but this manual
+    ``TypeInfo(kind=..., name=..., ...)`` constructor wasn't. To prevent
+    the third recurrence we use :func:`dataclasses.replace` which copies
+    **every** field by default and lets us override only the two slots
+    that genuinely have to differ between the resolved def and the
+    instantiated copy (``name`` with type-arg suffix, ``type_args``).
+    Adding a new flag to TypeInfo no longer requires editing this site.
+    """
     bare = ti.name.split("<", 1)[0] if "<" in ti.name else ti.name
     if ti.kind == TypeKind.UNKNOWN and bare in type_defs:
         # Replace with the resolved def. Note: we keep the original name
@@ -203,23 +224,19 @@ def _substitute(ti: TypeInfo, type_defs: dict[str, TypeInfo]) -> TypeInfo:
         resolved = type_defs[bare]
         if resolved.name == ti.name:
             return resolved
-        # Shallow-copy and rename so other references to the same bare
-        # name with different type args don't trample each other.
-        # IMPORTANT: propagate ``is_opaque`` and ``is_ext_equal`` from
-        # the resolved def — those flags drive codegen decisions in
-        # ``build_equal_expr`` and dropping them on generic instantiations
-        # silently nullifies the STRUCT/ENUM short-circuit (the symptom is
-        # ``=~=`` failing to fire on e.g. ``AckState<Message>`` even though
-        # ``type_defs["AckState"].is_ext_equal == True``).
-        copy = TypeInfo(
-            kind=resolved.kind,
+        # ``dataclasses.replace`` copies every field on ``resolved`` (kind,
+        # fields, variants, spec_view, is_opaque, is_ext_equal, and any
+        # future flag we add to TypeInfo) and only overrides ``name`` +
+        # ``type_args`` for the instantiated form. We deep-copy the list
+        # bodies (``fields`` / ``variants``) defensively so later mutation
+        # of the instantiation doesn't bleed back into the canonical def.
+        import dataclasses  # noqa: PLC0415
+        copy = dataclasses.replace(
+            resolved,
             name=ti.name,
+            type_args=list(ti.type_args),
             fields=list(resolved.fields),
             variants=list(resolved.variants),
-            type_args=list(ti.type_args),
-            spec_view=resolved.spec_view,
-            is_opaque=resolved.is_opaque,
-            is_ext_equal=resolved.is_ext_equal,
         )
         return copy
 
