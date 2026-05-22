@@ -1703,7 +1703,17 @@ def build_equal_expr(
         # r2 == spec_from_vec(v) ==> r1 == r2``). Fall straight through to
         # ``lhs == rhs`` — descending into ``ty.fields`` would emit
         # ``r1.m == r2.m``, which Verus rejects.
-        if ty.is_opaque:
+        #
+        # Exception: when the opaque type ALSO has a ``spec_view`` (e.g.
+        # ``HashMap<V>`` which is external_body but exposes
+        # ``spec fn view(self) -> Map<K,V>``), defer the opaque-vs-view
+        # decision to the view branch below. The view-projected
+        # comparison ``(r1)@ == (r2)@`` is what the surrounding ensures
+        # clauses actually pin (since exec/spec interop relies on the
+        # view, not the opaque value), so the bare ``r1 == r2`` would be
+        # provably weaker than the specs can drive — leading to unknown
+        # on otherwise-deterministic constructors like ``HashMap::new``.
+        if ty.is_opaque and view is None:
             return f"{lhs} == {rhs}"
         # Transparent alias: an LLM type-completion patch with empty
         # `fields` + a `spec_view` is the canonical encoding of a
@@ -2117,9 +2127,10 @@ def _run_self_tests() -> int:
           expr_ext_enum, ["m1) =~= (m2"],
           forbidden_substrs=["is Ack", "m1->Ack_0"])
 
-    # ext_equal opacity guard: opaque (external_body) struct must NOT be
-    # short-circuited to =~= because field access is forbidden and the
-    # extensional drill would try to descend.
+    # ext_equal opacity guard: opaque (external_body) struct WITHOUT
+    # ``spec_view`` must short-circuit to raw ``==``; the extensional
+    # drill would try to descend into field expressions that Verus
+    # rejects.
     ext_opaque = TypeInfo(
         TypeKind.STRUCT, "OpaqueExt",
         fields=[FieldInfo("data", u32_ty)],
@@ -2130,6 +2141,32 @@ def _run_self_tests() -> int:
     check("ext_equal + opaque uses raw ==",
           expr_ext_opaque, ["o1 == o2"],
           forbidden_substrs=["=~="])
+
+    # Opacity + spec_view interaction: when an external_body struct ALSO
+    # exposes ``spec fn view(self) -> ...`` (canonical example is the
+    # ironkv ``HashMap<V>`` wrapper: STRUCT with one private exec field
+    # ``m`` plus ``is_opaque=True`` and ``spec_view=Map<K,V>``), the
+    # equal_fn must NOT short-circuit to ``r1 == r2`` — that abstract
+    # equality is too strong for the surrounding ensures clauses (which
+    # pin ``r@``, not ``r``) to discharge, leading to R0=unknown on
+    # otherwise-deterministic constructors. Compare via the view's @
+    # projection instead. Note: ``fields`` is non-empty (matches the
+    # real Tier 1.5 patch shape), so the line 1716 transparent-alias
+    # path does NOT fire here — execution flows to the view branch at
+    # line 1734.
+    opaque_with_view = TypeInfo(
+        TypeKind.STRUCT, "HashMap<V>",
+        fields=[FieldInfo("m", TypeInfo(TypeKind.UNKNOWN,
+                                        "collections::HashMap<K, V>"))],
+        is_opaque=True,
+        spec_view=TypeInfo(TypeKind.MAP, "Map<K, V>",
+                           type_args=[int_ty, u32_ty]),
+    )
+    expr_opaque_view = build_equal_expr(opaque_with_view, "r1", "r2",
+                                        default_policy())
+    check("opaque struct with spec_view compares via @ (not bare ==)",
+          expr_opaque_view, ["(r1)@ == (r2)@"],
+          forbidden_substrs=["r1 == r2"])
 
     # ext_equal + ignore_fields policy: short-circuit MUST be skipped because
     # the extensional comparator can't honour per-field ignores.
