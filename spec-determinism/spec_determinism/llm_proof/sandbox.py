@@ -203,6 +203,95 @@ def scan_proof_block(block: str) -> List[SandboxViolation]:
     return violations
 
 
+# ---------------------------------------------------------------------------
+# Pattern A: helper-lemma block scanner.
+# ---------------------------------------------------------------------------
+# The helper block is allowed to declare ``proof fn lemma_<name>(...)``
+# at module scope, which the inline proof-block scanner above forbids
+# by construction. Everything else stays forbidden — including:
+#   * exec / spec fn declarations (Pattern A is about proofs only)
+#   * struct / enum / trait / impl / type items
+#   * assume / admit / external_body / assume_specification / unimplemented /
+#     unreachable
+#   * proof fn declarations whose name does NOT start with ``lemma_`` (an
+#     anti-aliasing guard so the LLM can't smuggle in an arbitrary helper)
+#
+# The result: a permissive island for explicitly-named lemmas, with the
+# same axiom-side guards as the main block.
+
+# Helper-only allowlist: strip the "no proof fn" line from the main table.
+_FORBIDDEN_HELPER_BASE: List[tuple[re.Pattern[str], str]] = [
+    (pat, reason) for (pat, reason) in _FORBIDDEN
+    if pat.pattern not in (
+        # Allow `fn` only if it's a `proof fn lemma_*` (checked separately
+        # below). Same for the spec/proof/exec catchall.
+        r"\bfn\s+[A-Za-z_]",
+        r"\b(?:spec|proof|exec|open\s+spec|closed\s+spec)\s+fn\b",
+    )
+]
+
+# Anti-smuggling: any `fn` form that is NOT `proof fn lemma_*` is forbidden.
+_HELPER_FN_OK_RE = re.compile(r"\bproof\s+fn\s+lemma_[A-Za-z0-9_]+\b")
+# Catches every other introduction of a new fn/spec/exec.
+_HELPER_FN_BAN_RE = re.compile(
+    r"\b(?:open\s+|closed\s+)?(?:spec|exec)\s+fn\b"
+    r"|\bfn\s+(?!lemma_[A-Za-z0-9_]+\b)[A-Za-z_]"
+)
+
+
+def scan_helper_lemmas(block: str) -> List[SandboxViolation]:
+    """Return allowlist violations for the helper-lemma block (Pattern A).
+
+    Allowed:
+      * any number of ``proof fn lemma_<name>(...) ...`` declarations
+      * standard proof-mode bodies inside those lemmas (assert / forall /
+        reveal / broadcast use / lemma calls)
+    Forbidden (same as :func:`scan_proof_block`):
+      * assume / admit / external_body / assume_specification / unimplemented /
+        unreachable
+      * struct / enum / trait / impl / type items
+      * exec or spec fn declarations
+      * proof fn declarations whose name doesn't start with ``lemma_``
+    """
+    masked = _mask(block)
+    violations: list[SandboxViolation] = []
+    for pat, reason in _FORBIDDEN_HELPER_BASE:
+        for m in pat.finditer(masked):
+            line, col = _line_col(block, m.start())
+            violations.append(
+                SandboxViolation(
+                    pattern=pat.pattern,
+                    reason=reason,
+                    line=line,
+                    col=col,
+                    snippet=_snippet(block, m.start()),
+                )
+            )
+    # Now scan for any disallowed fn introduction — but allow proof fn lemma_*.
+    # We do this by looking for "ban" hits and excluding overlaps with "ok" hits.
+    ok_spans: list[tuple[int, int]] = [
+        (m.start(), m.end()) for m in _HELPER_FN_OK_RE.finditer(masked)
+    ]
+    for m in _HELPER_FN_BAN_RE.finditer(masked):
+        # If this hit is right after `proof ` (i.e. it's actually a `proof fn`
+        # form that the "ok" rule already accepted), skip.
+        if any(a <= m.start() < b for (a, b) in ok_spans):
+            continue
+        line, col = _line_col(block, m.start())
+        violations.append(SandboxViolation(
+            pattern=_HELPER_FN_BAN_RE.pattern,
+            reason=(
+                "only `proof fn lemma_<name>(...)` declarations are allowed in "
+                "the helper-lemmas block; exec / spec fn (and proof fn whose "
+                "name does not start with `lemma_`) are out of scope."
+            ),
+            line=line,
+            col=col,
+            snippet=_snippet(block, m.start()),
+        ))
+    return violations
+
+
 def format_violations(vs: Iterable[SandboxViolation]) -> str:
     """Render violations as a multi-line string for LLM feedback / logs."""
     out: list[str] = []
@@ -261,6 +350,62 @@ def _self_test() -> None:
     bad_spec_fn = "spec fn aux(x: int) -> int { x + 1 }\n"
     vs = scan_proof_block(bad_spec_fn)
     assert any("fn" in v.pattern for v in vs), vs
+
+    # ----- helper-lemma scanner (Pattern A) -----
+    ok_helpers = """
+    proof fn lemma_sorted_unique(a: Seq<int>, i: int, j: int)
+        requires sorted(a), 0 <= i < a.len(), 0 <= j < a.len(), a[i] == a[j]
+        ensures i == j
+    {
+        // proof body
+        assert(a[i] == a[j]);
+    }
+
+    proof fn lemma_seq_index_eq<T>(s: Seq<T>, t: Seq<T>)
+        requires s =~= t
+        ensures forall|k: int| 0 <= k < s.len() ==> s[k] == t[k]
+    {}
+    """
+    vs = scan_helper_lemmas(ok_helpers)
+    assert vs == [], f"safe helpers flagged: {vs}"
+
+    # assume / admit still forbidden in helpers
+    bad_h_assume = "proof fn lemma_x() { assume(false); }\n"
+    vs = scan_helper_lemmas(bad_h_assume)
+    assert any("assume" in v.reason for v in vs), vs
+
+    # spec fn / exec fn forbidden in helpers
+    bad_h_spec = "spec fn aux() -> int { 0 }\n"
+    vs = scan_helper_lemmas(bad_h_spec)
+    assert vs, "spec fn slipped past helper sandbox"
+
+    bad_h_exec = "exec fn evil() { }\n"
+    vs = scan_helper_lemmas(bad_h_exec)
+    assert vs, "exec fn slipped past helper sandbox"
+
+    # bare `fn` (non-proof) forbidden
+    bad_h_bare = "fn helper() -> int { 0 }\n"
+    vs = scan_helper_lemmas(bad_h_bare)
+    assert vs, "bare fn slipped past helper sandbox"
+
+    # proof fn must be named lemma_*
+    bad_h_name = "proof fn helper_aux() {}\n"
+    vs = scan_helper_lemmas(bad_h_name)
+    assert vs, "non-lemma_* proof fn slipped past helper sandbox"
+
+    # Multiple lemma_* helpers all good.
+    multi = """
+    proof fn lemma_a() {}
+    proof fn lemma_b() {}
+    proof fn lemma_c_with_args<T>(x: T) requires true ensures true {}
+    """
+    vs = scan_helper_lemmas(multi)
+    assert vs == [], f"multi-lemma block flagged: {vs}"
+
+    # struct / impl still forbidden in helpers
+    bad_h_struct = "struct S {}\n"
+    vs = scan_helper_lemmas(bad_h_struct)
+    assert vs, "struct slipped past helper sandbox"
 
     print("sandbox self-test: PASS")
 
