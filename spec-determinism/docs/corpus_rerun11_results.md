@@ -16,9 +16,9 @@ ironkv was run separately as a targeted rerun on its 41 strict unknowns
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
 | nrkernel         |     8 |        6 |    0 |          0 |            0 |     0 |         2 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
-| storage          |    43 |        0 |    0 |          0 |            0 |     0 |        43 |
+| storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1647** | **1239** | **25** |  **45**   |     **179**  |  **65** |    **94** |
+| **TOTAL**        | **1647** | **1260** | **25** |  **49**   |     **190**  |  **65** |    **58** |
 
 Notes:
 - `complete` = baseline z3 proved R0=unsat without LLM
@@ -236,6 +236,61 @@ The 47 newly-clean atmosphere cases break down to **23 `r0_z3=unsat`**
 (block-commented `va_{2m,1g}_valid` are no longer scraped as targets).
 
 Full rerun of the 49 baseline-failing entries: `/tmp/atmosphere_rerun_2026-05-26.json`. Methodology: same baseline driver, `--timeout 180s`.
+
+### Update 2026-05-26 — storage verus_error 43 → 7
+
+After four pipeline patches landed (this session), **storage drops from
+43 baseline `verus_error` to 7** (36 newly compile-and-classify
+cleanly). All four patches are in working tree; details in commit
+message.
+
+| pre-fix bucket | count | root cause | post-fix outcome |
+|----------------|------:|------------|------------------|
+| `error[E0432]: unresolved import deps_hack::...` | 43 | sibling proc-macro crate (`deps_hack`) unresolvable in single-file mode | 36 `ok` via new `_rewrite_deps_hack` shim; 7 still fail on residual issues (next row) |
+| `parse error: keyword fn` (10 of the 43) | — | misplaced helper injection: `rfind("}")` targeted the last `unsafe impl ConstPmSized for [T;N]` block instead of `verus! { ... }` | fixed by new brace-aware `_find_verus_block_close` scanner |
+| `S not in scope` / `T::spec_from_bytes` not found | — | (a) `_prune_generics` only inspected param-list, dropped `<S>` when `S` was used only in ensures; (b) `closed spec fn` decls inside blanket impls (`impl<T: Bound> Trait for T`) emitted `T::spec_from_bytes` reveals at call sites where `T` is not in scope | (a) `sig_for_prune` extended to include `run1 + run2 + requires`; (b) `closed_spec_fn_qualified_names` tracks `skipped_impl_spans` and drops blanket-impl decls from the qual-map entirely |
+| **TOTAL** | **43** | — | **36 `ok` / 7 residual `verus_error`** |
+
+The 7 residual `verus_error` cases are inherent source / vstd-version
+incompatibilities, not synthesizer bugs:
+- **4× `Box<S>: SpecEq<S>` not implemented** — original source body
+  `out == true_val` where `out: Box<S>` and `true_val: S`; current
+  Verus refuses the implicit `Box`/`S` comparison and demands `*out
+  == true_val`. Pre-dates this work.
+- **3× `iter.end` on `VerusForLoopWrapper`** — original source uses
+  `iter.end` referring to a named for-loop iterator; current vstd
+  restructured to `iter.iter.end` / `iter.snapshot.end`.
+
+Both buckets are source-text incompats that would need either a
+guarded textual rewrite (risky — false positives on unrelated `.end` /
+`Box`-comparison sites) or upstream source updates. Marked as
+inherent infra failures.
+
+Net effect on `incompleteness_summary` Section 1 stats:
+
+| project | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
+|---------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
+| storage (pre-fix)  | 43 | 0 | 0 | 0 |  0 | 0 | 43 |
+| storage (post-fix) | 43 | 21 | 0 | 4 | 11 | 0 |  7 |
+
+(21 baseline `complete` / 4 `incomplete` permitted / 11 `ok_inconclusive` /
+7 `verus_err` — full breakdown via the [`session-state`
+checkpoints](../../.copilot/session-state/) for this session.)
+
+Pipeline patches (working tree; about to commit):
+- `verus/single_file.py` — `_find_verus_block_close` (brace-aware
+  `verus! { ... }` finder, replaces `rfind("}")`), `_rewrite_deps_hack`
+  (strip imports / derives / `pmsized_primitive!`, emit stub trait
+  impls + stub structs), `_synthesize_view_trait_impls` header cleanup
+  (drop backtick-delimited type clause that leaks past `//` on
+  multi-line type clauses).
+- `llm_proof/prover.py` — same `_find_verus_block_close` for the LLM
+  proof inject path.
+- `codegen/gen_det.py` — `sig_for_prune` includes ensures/requires.
+- `classify.py` — `closed_spec_fn_qualified_names` tracks blanket-impl
+  skip spans; `_impl_generic_param_names` helper.
+
+Full rerun of the 43 baseline-failing entries: `/tmp/storage_full_2026-05-26/full_run.json`. Methodology: same baseline driver, `--timeout 60s`.
 
 ## Methodology footnotes
 

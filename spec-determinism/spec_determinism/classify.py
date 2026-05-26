@@ -382,11 +382,33 @@ def closed_spec_fns_in(source: str, names: Iterable[str]) -> set[str]:
 # in Python to locate Self vs trait.
 _IMPL_HEADER_RE = re.compile(
     r"\bimpl\b"                                # impl keyword
-    r"(?:\s*<[^>]*>)?"                         # optional generics
+    r"(?:\s*<(?P<generics>[^>]*)>)?"           # optional generics
     r"\s+"
     r"(?P<rest>[^{]+?)"                        # everything up to the brace
     r"\s*\{"
 )
+
+
+def _impl_generic_param_names(generics_text: str) -> set[str]:
+    """Extract the BARE generic-parameter names from an ``impl<...>`` clause.
+
+    ``<T, const N: usize, U: Foo>`` -> ``{"T", "N", "U"}``. Lifetimes
+    are skipped. Only the identifier preceding ``:`` / ``=`` / ``,`` is
+    captured.
+    """
+    if not generics_text:
+        return set()
+    out: set[str] = set()
+    for part in generics_text.split(","):
+        s = part.strip()
+        if not s or s.startswith("'"):
+            continue
+        if s.startswith("const "):
+            s = s[len("const "):]
+        m = re.match(r"([A-Za-z_][A-Za-z_0-9]*)", s)
+        if m:
+            out.add(m.group(1))
+    return out
 
 
 def _impl_self_type(rest: str) -> Optional[str]:
@@ -482,6 +504,11 @@ def closed_spec_fn_qualified_names(
 
     # Pre-compute impl-block ranges: (open_brace_idx, close_brace_idx, self_type)
     impl_blocks: list[tuple[int, int, str]] = []
+    # Spans of "skipped" impl blocks (blanket impls where the Self type
+    # IS a generic parameter): we drop any closed spec fn declared in
+    # one of these spans entirely, since ``T::name`` is not legal at
+    # module scope and a bare ``name`` would also resolve incorrectly.
+    skipped_impl_spans: list[tuple[int, int]] = []
     for m in _IMPL_HEADER_RE.finditer(source):
         self_ty = _impl_self_type(m.group("rest"))
         if self_ty is None:
@@ -498,8 +525,21 @@ def closed_spec_fn_qualified_names(
                 if depth == 0:
                     close_idx = j
                     break
-        if close_idx > 0:
-            impl_blocks.append((open_idx, close_idx, self_ty))
+        if close_idx <= 0:
+            continue
+        # Blanket impl ``impl<T: Foo> Bar for T``: the Self type IS a
+        # generic parameter. We cannot emit ``T::name`` in a reveal
+        # because ``T`` is not in scope at the det-check call site,
+        # and the bare ``name`` would resolve incorrectly (or not at
+        # all). Record the block's span so we can drop decls inside.
+        impl_generics = _impl_generic_param_names(m.group("generics") or "")
+        if self_ty in impl_generics:
+            skipped_impl_spans.append((open_idx, close_idx))
+            continue
+        impl_blocks.append((open_idx, close_idx, self_ty))
+
+    def _is_in_skipped_impl(pos: int) -> bool:
+        return any(o < pos < c for (o, c) in skipped_impl_spans)
 
     def _enclosing_impl_type(pos: int) -> Optional[str]:
         candidates = [
@@ -516,6 +556,11 @@ def closed_spec_fn_qualified_names(
     for m in _CLOSED_SPEC_FN_RE.finditer(source):
         name = m.group("name")
         if name not in names or name in out:
+            continue
+        # Skip declarations inside blanket impls (``impl<T: Foo> Bar for T``):
+        # neither ``T::name`` nor bare ``name`` resolve correctly at the
+        # det-check call site.
+        if _is_in_skipped_impl(m.start("name")):
             continue
         # Skip if marked external_body — has no real Verus-visible body.
         if _has_external_body_attr_before(source, m.start()):

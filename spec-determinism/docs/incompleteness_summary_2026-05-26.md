@@ -15,17 +15,26 @@
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
 | nrkernel         |     8 |        6 |    0 |          0 |            0 |     0 |         2 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
-| storage          |    43 |        0 |    0 |          0 |            0 |     0 |        43 |
+| storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1645** | **1262** | **25** |  **45** | **203** |  **65** |    **45** |
+| **TOTAL**        | **1645** | **1283** | **25** |  **49** | **214** |  **65** |    **9** |
 
-> **2026-05-26 update** — atmosphere baseline `verus_err` cleared from 49 → 0 by three fixes
+> **2026-05-26 update (atmosphere)** — atmosphere baseline `verus_err` cleared from 49 → 0 by three fixes
 > committed today (extractor: preserve `&mut` on `Tracked(p): Tracked<&mut T>` destructures
 > + skip fns inside `/* ... */` block comments; gen_det: auto-`&`-prefix method-call args
 > for renamed `&mut`-param idents). 47 of the 49 previously-failing entries now compile cleanly
 > (23 promoted to `complete`, 24 to `inconclusive`); 2 are dropped from the total
 > (they were extracted from block-commented source). See
 > `corpus_rerun11_results.md §"Update 2026-05-26"` for the full bucket-by-bucket breakdown.
+>
+> **2026-05-26 update (storage)** — storage baseline `verus_err` cleared from 43 → 7 by four
+> pipeline patches in working tree (single_file: `_find_verus_block_close` brace-aware
+> injection + `_rewrite_deps_hack` shim + multi-line View-header cleanup; gen_det:
+> `sig_for_prune` extended with ensures/requires; classify: blanket-impl `closed spec fn`
+> reveal-target suppression). 36 newly-compiling cases break down as 21 `complete` /
+> 4 `incomplete` permitted / 11 `inconclusive`. The 7 residual `verus_err` are inherent
+> source / vstd-version incompatibilities (4× `Box<S>: SpecEq<S>`, 3× `iter.end` on
+> `VerusForLoopWrapper`). See `corpus_rerun11_results.md §"Update 2026-05-26 — storage"`.
 
 Legend:
 - `complete` / `+LLM` — baseline z3 (resp. LLM-authored proof) proved R0=unsat

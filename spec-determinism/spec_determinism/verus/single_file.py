@@ -158,13 +158,81 @@ _INJECT_BEGIN = "// === INJECTED DET CHECK ===\n"
 _INJECT_END = "// === END INJECTED ===\n"
 
 
+def _find_verus_block_close(source: str) -> int:
+    """Return index of the closing ``}`` of the outermost ``verus! { ... }``.
+
+    Returns ``-1`` if no ``verus! { ... }`` block is found. The scanner is
+    aware of line/block comments and string/char/raw-string literals so
+    braces inside those constructs do not perturb the balance count.
+    """
+    m = re.search(r"\bverus\s*!\s*\{", source)
+    if not m:
+        return -1
+    i = m.end()
+    depth = 1
+    n = len(source)
+    while i < n and depth > 0:
+        c = source[i]
+        nxt = source[i + 1] if i + 1 < n else ""
+        if c == "/" and nxt == "/":
+            nl = source.find("\n", i + 2)
+            i = n if nl == -1 else nl + 1
+            continue
+        if c == "/" and nxt == "*":
+            end = source.find("*/", i + 2)
+            i = n if end == -1 else end + 2
+            continue
+        if c == "r" and (nxt == '"' or nxt == "#"):
+            j = i + 1
+            hashes = 0
+            while j < n and source[j] == "#":
+                hashes += 1
+                j += 1
+            if j < n and source[j] == '"':
+                close = '"' + ("#" * hashes)
+                end = source.find(close, j + 1)
+                i = n if end == -1 else end + len(close)
+                continue
+        if c == '"':
+            j = i + 1
+            while j < n:
+                if source[j] == "\\":
+                    j += 2
+                    continue
+                if source[j] == '"':
+                    j += 1
+                    break
+                j += 1
+            i = j
+            continue
+        if c == "'":
+            j = i + 1
+            if j < n and source[j] == "\\":
+                j += 2
+            else:
+                j += 1
+            if j < n and source[j] == "'":
+                i = j + 1
+                continue
+            i += 1
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
 def _inject_into_source(
     source: str,
     code: str,
     *,
     open_closed_specs: Optional[Iterable[str]] = None,
 ) -> str:
-    """Insert det-check code just before the last `}` (end of ``verus!{}``).
+    """Insert det-check code just before the closing ``}`` of ``verus!{}``.
 
     Also inserts a small "deprecation shim" for vstd lemma names that the
     corpus still references but that current vstd no longer exposes as
@@ -191,10 +259,13 @@ def _inject_into_source(
     source = _rewrite_ref_eq_ref(source)
     source = _rewrite_mut_self_in_ensures(source)
     source = _synthesize_view_trait_impls(source)
+    source = _rewrite_deps_hack(source)
     if open_closed_specs:
         from spec_determinism.classify import rewrite_closed_to_opaque
         source = rewrite_closed_to_opaque(source, open_closed_specs)
-    idx = source.rfind("}")
+    idx = _find_verus_block_close(source)
+    if idx == -1:
+        idx = source.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
     shim = ""
@@ -224,6 +295,163 @@ def _rewrite_self_eq_old_self(source: str) -> str:
     source = _SELF_EQ_OLD_SELF_RE.sub("*self == *old(self)", source)
     source = _OLD_SELF_EQ_SELF_RE.sub("*old(self) == *self", source)
     return source
+
+
+# ---------------------------------------------------------------------------
+# deps_hack cross-crate shim (storage corpus)
+#
+# The storage project imports a sibling proc-macro crate ``deps_hack`` via
+# ``use deps_hack::{PmSized, pmsized_primitive};``. In single-file mode that
+# crate is unresolvable (E0432), and both ``#[derive(PmSized)]`` and the
+# ``pmsized_primitive!`` macro likewise cannot be expanded.
+#
+# We rewrite the file to be self-contained:
+#   1. Remove the ``use deps_hack::{...};`` line.
+#   2. Strip ``PmSized`` from any ``#[derive(...)]`` annotation, capturing
+#      the struct name that previously got the derive.
+#   3. Drop ``pmsized_primitive!(T);`` macro invocations, capturing the
+#      primitive type.
+#   4. Append stub trait impls (PmSized / SpecPmSized / UnsafeSpecPmSized
+#      where applicable) at module scope. The stubs return 0 for sizes /
+#      aligns - safe for the det check because both runs use the same
+#      trait impl, so determinism is preserved.
+#
+# Trait declarations are defined locally in storage source files, so once
+# the import is gone the file is self-contained.
+# ---------------------------------------------------------------------------
+
+_DEPS_HACK_USE_RE = re.compile(
+    r"^[ \t]*use\s+deps_hack\s*::\s*(?P<rhs>\{[^}]*\}|[^;\n]+?)\s*;\s*\n",
+    re.MULTILINE,
+)
+
+
+def _parse_deps_hack_imports(rhs: str) -> list[str]:
+    """Split the right-hand-side of ``use deps_hack::<rhs>;`` into items.
+
+    Examples:
+        ``pmsized_primitive`` -> ``["pmsized_primitive"]``
+        ``{PmSized, pmsized_primitive}`` -> ``["PmSized", "pmsized_primitive"]``
+        ``{crc64fast::Digest, pmsized_primitive}``
+            -> ``["crc64fast::Digest", "pmsized_primitive"]``
+    """
+    rhs = rhs.strip()
+    if rhs.startswith("{") and rhs.endswith("}"):
+        rhs = rhs[1:-1]
+    return [p.strip() for p in rhs.split(",") if p.strip()]
+
+
+def _deps_hack_type_imports(items: list[str]) -> list[str]:
+    """Filter to items that look like type imports (have a ``::`` path
+    component, OR start with an uppercase letter excluding the known
+    trait+derive names that we handle separately).
+
+    ``PmSized`` is intentionally excluded; it is handled by the derive
+    stripper which emits stub impls of the locally-defined trait.
+    """
+    out: list[str] = []
+    for it in items:
+        last = it.split("::")[-1]
+        if not last or not last[0].isupper():
+            continue
+        if last == "PmSized":
+            continue
+        out.append(last)
+    return out
+_DERIVE_RE = re.compile(r"#\[derive\s*\(\s*(?P<inner>[^)]*)\)\s*\]")
+_PMSIZED_PRIM_RE = re.compile(
+    r"^[ \t]*pmsized_primitive\s*!\s*\(\s*(?P<ty>[A-Za-z_][A-Za-z0-9_]*)\s*\)\s*;\s*\n",
+    re.MULTILINE,
+)
+_STRUCT_AFTER_DERIVE_RE = re.compile(
+    r"(?:#\[[^\]]*\]\s*)*"  # any leading attrs (repr(C) etc.)
+    r"pub\s+struct\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)",
+)
+
+
+def _rewrite_deps_hack(source: str) -> str:
+    """Strip ``deps_hack`` references and append stub trait impls.
+
+    No-op if the source doesn't import ``deps_hack``.
+    """
+    if "use deps_hack" not in source:
+        return source
+
+    # 1. Capture all imported items from deps_hack and drop the lines.
+    type_imports: list[str] = []
+    for m in _DEPS_HACK_USE_RE.finditer(source):
+        type_imports.extend(_deps_hack_type_imports(
+            _parse_deps_hack_imports(m.group("rhs"))
+        ))
+    source = _DEPS_HACK_USE_RE.sub("", source)
+
+    # 2. Strip `PmSized` from #[derive(...)] lists, capturing struct names.
+    derived_structs: list[str] = []
+
+    def _scrub_derive(m: re.Match) -> str:
+        inner = m.group("inner")
+        parts = [p.strip() for p in inner.split(",")]
+        if "PmSized" not in parts:
+            return m.group(0)
+        parts = [p for p in parts if p != "PmSized"]
+        # Look ahead in the source from this match to find the struct
+        # name. We pass a flag back via the captured list using a sentinel.
+        end = m.end()
+        tail = source[end:end + 1000]
+        sm = _STRUCT_AFTER_DERIVE_RE.match(tail.lstrip())
+        if sm:
+            derived_structs.append(sm.group("name"))
+        if not parts:
+            return ""
+        return "#[derive(" + ", ".join(parts) + ")]"
+
+    source = _DERIVE_RE.sub(_scrub_derive, source)
+
+    # 3. Drop pmsized_primitive!(T); macro calls, capture types.
+    primitive_types: list[str] = []
+    for m in _PMSIZED_PRIM_RE.finditer(source):
+        primitive_types.append(m.group("ty"))
+    source = _PMSIZED_PRIM_RE.sub("", source)
+
+    # 4. Append stub trait impls at module scope (end of file). We
+    # synthesize: SpecPmSized (with spec_size_of/spec_align_of returning 0),
+    # UnsafeSpecPmSized (marker), PmSized (with size_of/align_of returning
+    # 0). The bodies are inside ``verus! { ... }`` so they are fully
+    # verified. ConstPmSized is added for primitives only (outside
+    # verus! since the trait is itself outside).
+    # Type-name imports from deps_hack (e.g., ``crc64fast::Digest``) are
+    # also stubbed via empty structs so any source references to them
+    # (typically as fields of ``#[verifier::external_body]`` structs)
+    # resolve.
+    if not derived_structs and not primitive_types and not type_imports:
+        return source
+
+    stubs: list[str] = ["\n// === DEPS_HACK STUBS (single-file shim) ===\n"]
+    for name in type_imports:
+        stubs.append(f"pub struct {name} {{}}\n")
+    stubs.append("verus! {\n")
+    for name in derived_structs + primitive_types:
+        stubs.append(
+            f"impl SpecPmSized for {name} {{\n"
+            f"    open spec fn spec_size_of() -> nat {{ 0 }}\n"
+            f"    open spec fn spec_align_of() -> nat {{ 0 }}\n"
+            f"}}\n"
+            f"unsafe impl UnsafeSpecPmSized for {name} {{}}\n"
+            f"unsafe impl PmSized for {name} {{\n"
+            f"    fn size_of() -> usize {{ 0 }}\n"
+            f"    fn align_of() -> usize {{ 0 }}\n"
+            f"}}\n"
+        )
+    stubs.append("} // verus!\n")
+    for name in primitive_types:
+        stubs.append(
+            f"unsafe impl ConstPmSized for {name} {{\n"
+            f"    const SIZE: usize = 0;\n"
+            f"    const ALIGN: usize = 0;\n"
+            f"}}\n"
+        )
+    stubs.append("// === END DEPS_HACK STUBS ===\n")
+    return source + "".join(stubs)
 
 
 # ---------------------------------------------------------------------------
@@ -1017,7 +1245,7 @@ def _synthesize_view_trait_impls(source: str) -> str:
         attrs = v.get("attrs", "")
         attr_block = (attrs + "\n    ") if attrs else ""
         synth = (
-            f"\n\n// === SYNTHESIZED View trait impl for `{tc}` ===\n"
+            f"\n\n// === SYNTHESIZED View trait impl ===\n"
             f"impl{gen + ' ' if gen else ' '}View for {tc} {{\n"
             f"    type V = {v['ret_type']};\n"
             f"    {attr_block}{v['spec_kind']} spec fn view(&self) -> Self::V {{ "

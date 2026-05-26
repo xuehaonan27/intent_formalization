@@ -508,9 +508,12 @@ def _build_template(
     # go into the body as `assume(...)` statements, which is cleaner and keeps
     # the postcondition stable across search rounds.
     # Lift impl/fn generics onto the proof fn signature, but only the subset
-    # actually referenced by params/return — phantom generics trigger
-    # E0284/E0283 type-annotations-needed at the call site of the equal-fn.
-    sig_for_prune = params_str
+    # actually referenced by params/return/ensures/requires — phantom generics
+    # trigger E0284/E0283 type-annotations-needed at the call site of the
+    # equal-fn. We include ensures (run1/run2) and requires so that generics
+    # used ONLY in spec bodies (e.g. `S::spec_align_of()` for a wrapper fn
+    # `fn align_of<S: PmSized>()`) are also kept.
+    sig_for_prune = params_str + " " + run1 + " " + run2 + " " + requires_str
     if spec.self_type:
         sig_for_prune = re.sub(r'\bSelf\b', spec.self_type, sig_for_prune)
     pruned_generics, pruned_where = _prune_generics(

@@ -144,10 +144,85 @@ def _strip_injected(source: str) -> str:
     return pat.sub("\n", source)
 
 
+def _find_verus_block_close(source: str) -> int:
+    """Return index of the closing ``}`` of the outermost ``verus! { ... }``.
+
+    Returns ``-1`` if no ``verus! { ... }`` block is found. The scanner is
+    aware of line comments, block comments, string literals, char literals
+    and raw strings so braces inside those constructs do not perturb the
+    balance count.
+    """
+    m = re.search(r"\bverus\s*!\s*\{", source)
+    if not m:
+        return -1
+    i = m.end()
+    depth = 1
+    n = len(source)
+    while i < n and depth > 0:
+        c = source[i]
+        nxt = source[i + 1] if i + 1 < n else ""
+        if c == "/" and nxt == "/":
+            nl = source.find("\n", i + 2)
+            i = n if nl == -1 else nl + 1
+            continue
+        if c == "/" and nxt == "*":
+            end = source.find("*/", i + 2)
+            i = n if end == -1 else end + 2
+            continue
+        if c == "r" and (nxt == '"' or nxt == "#"):
+            j = i + 1
+            hashes = 0
+            while j < n and source[j] == "#":
+                hashes += 1
+                j += 1
+            if j < n and source[j] == '"':
+                close = '"' + ("#" * hashes)
+                end = source.find(close, j + 1)
+                i = n if end == -1 else end + len(close)
+                continue
+        if c == '"':
+            j = i + 1
+            while j < n:
+                if source[j] == "\\":
+                    j += 2
+                    continue
+                if source[j] == '"':
+                    j += 1
+                    break
+                j += 1
+            i = j
+            continue
+        if c == "'":
+            j = i + 1
+            if j < n and source[j] == "\\":
+                j += 2
+            else:
+                j += 1
+            if j < n and source[j] == "'":
+                i = j + 1
+                continue
+            i += 1
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
 def _inject_into_source(source: str, code: str) -> str:
-    """Insert det-check code just before the last `}` (end of ``verus!{}``)."""
+    """Insert det-check code just before the closing ``}`` of ``verus!{}``.
+
+    Falls back to the last ``}`` in the source if no ``verus! { ... }``
+    block is found (some files put everything at module scope).
+    """
     cleaned = _strip_injected(source)
-    idx = cleaned.rfind("}")
+    idx = _find_verus_block_close(cleaned)
+    if idx == -1:
+        idx = cleaned.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
     return (
@@ -198,9 +273,11 @@ def _inject_helper_lemmas(source: str, lemmas: str) -> str:
         return cleaned
     # Splice before the closing `}` of `verus!{ ... }`. The det-check
     # marker (if already present) lives later in the file; we land
-    # before it. Find the last `}` and back up over any prior
+    # before it. Find the verus! block close and back up over any prior
     # INJECTED DET CHECK block so helpers come first.
-    idx = cleaned.rfind("}")
+    idx = _find_verus_block_close(cleaned)
+    if idx == -1:
+        idx = cleaned.rfind("}")
     if idx == -1:
         raise ValueError("No closing `}` found in source")
     inj_marker = cleaned.rfind(_INJECT_BEGIN)
