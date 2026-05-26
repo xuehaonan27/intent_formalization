@@ -933,12 +933,16 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             result = result.replace('__RESULT__', f'r{run_id}')
             result = re.sub(r'\*\s*old\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', f'pre_{vn}', result)
+            result = re.sub(r'\*\s*final\s*\(\s*self\s*,?\s*\)', f'post{run_id}_{vn}', result)
+            result = re.sub(r'\bfinal\s*\(\s*self\s*,?\s*\)', f'post{run_id}_{vn}', result)
             result = re.sub(r'\*\s*self\b', f'post{run_id}_{vn}', result)
             name_map['self'] = f'post{run_id}_{vn}'
         elif p.is_mut_ref:
             vn = _var_name(p)
             result = re.sub(rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
             result = re.sub(rf'\bold\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
+            result = re.sub(rf'\*\s*final\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'post{run_id}_{vn}', result)
+            result = re.sub(rf'\bfinal\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'post{run_id}_{vn}', result)
             result = _strip_unary_deref(result, p.name, f'post{run_id}_{vn}')
             name_map[p.name] = f'post{run_id}_{vn}'
         elif p.is_self:
