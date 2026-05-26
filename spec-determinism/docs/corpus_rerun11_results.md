@@ -126,12 +126,10 @@ timeout** before Verus could complete. Distinct from the inner Verus
 `--timeout 120 s` (which surfaces as `r0_z3=unknown`, not `crash`):
 crash means the entire det-check generation + Verus + z3 pipeline
 took longer than 5 minutes wall-clock. All 65 crashes are in
-atmosphere; the dominant cause is **schema-search runaway in the
-det-check synthesiser** — the `gen_det` template builder, when given
-ensures with deeply nested closed spec fn references, occasionally
-explores an exponential schema space before producing the final det
-fn. Other projects don't trigger this because they don't have the
-same depth of `page_is_mapped`-style closed-spec-fn chains.
+atmosphere; the dominant cause is **z3 quantifier-instantiation
+explosion** on the synthesised det-check (see `pagetable_map_4k_page`
+deep-dive below). Other projects don't trigger this because they
+don't have atmosphere's depth of `wf()`-rooted closed-spec-fn chains.
 
 **Example crash record** (raw `/tmp/corpus_baseline/atmosphere/full_run.json` entry):
 
@@ -155,6 +153,74 @@ live in atmosphere `kernel__*` files (notably `mem_util__impl0__*`
 `syscall_new_*__impl0__*` ×3 each) — the same files that host the
 deeply-nested `mapped_pages_4k().contains(...)` chains called out in
 §"atmosphere incomplete breakdown".
+
+#### Deep-dive: `pagetable_map_4k_page`
+
+Probed with `--keep-tmp` to capture the on-disk artefacts. Measured
+load on the SMT stage:
+
+| where | value |
+|---|---:|
+| source ensures (lines 1741–1816) | **76 lines** |
+| closed spec fns called from ensures | 8 (`wf`, `get_pagetable_by_pcid`, `get_pagetable_mapping_by_pcid`, `page_closure`, `mapping_4k/2m/1g`, `kernel_entries`) |
+| synthesised det fn parameters | **340** |
+| synthesised det fn signature size | 56 544 chars |
+| synthesised det fn `assume(...)` count | **566** |
+| synthesised det fn `forall` count | 12 |
+| `reveal(...)` injected | **0** |
+| Verus → z3 query (`root.smt2`) | **29.5 MB / 85 292 lines** |
+| ↳ `(declare-fun ...)` | 851 |
+| ↳ `(assert ...)` | **2 501** |
+| ↳ `(forall ...)` instances | **1 481** |
+| ↳ `(check-sat)` | 3 |
+
+A typical Verus query is in the tens-of-kB range with a few hundred
+quantifier instances. This one is **30 MB / 1 481 forall** — z3 falls
+into a matching loop on the shared `get_pagetable_by_pcid(_).mapping_4k()`
+trigger heads and never returns from one of the three `(check-sat)`
+queries before the 300 s outer wall fires.
+
+The Python driver (`verusage_run`) has **no child subprocess** during
+synthesis — gen_det's schema enumeration runs in-process and completes
+quickly; it's the spawned `verus` → `z3` invocation that overruns the
+wall. The 30 MB `root.smt2` is fully written to disk before z3 hangs.
+
+##### Why atmosphere upstream "verifies" this function
+
+The source declares:
+
+```rust
+#[verifier::external_body]
+pub fn pagetable_map_4k_page(&mut self, …) -> …
+    requires …
+    ensures …   // 76 lines
+{
+    unimplemented!()
+}
+```
+
+**Upstream atmosphere never proves this function.** `#[verifier::
+external_body]` instructs Verus to accept the body as trusted and
+expose only the ensures as an axiom to callers; the body is literally
+`unimplemented!()`. The 76-line ensures was authored as a *spec
+axiom*, not as something the atmosphere authors expected Verus to
+discharge.
+
+Our determinism pipeline strips `external_body` (it has to — we
+want to validate the *spec*, not skip it) and asks z3: "given these
+ensures, is the output uniquely determined?" That requires unfolding
+the full `wf()`-rooted closed-spec-fn cone — which is exactly the work
+atmosphere chose to externalise to avoid in the first place. So the
+crash isn't us hitting a regression; it's us discovering that the spec
+is too heavy for z3 to discharge directly.
+
+Auditing the 40 unique crash functions against the source: **17/40
+(43 %) of unique fns** and **37/65 (57 %) of crash instances** carry
+`#[verifier::external_body]` upstream — i.e. the majority of the
+crash *workload* comes from functions atmosphere itself never asked
+z3 to verify. The remaining 23 unique fns (28 instances) have real
+bodies, but they all sit on the same `wf()`-axiom cone, so the
+quantifier-instantiation pressure is the same.
 
 `verus_err` — Verus's frontend rejected the source file before any
 z3 query ran. Pure infrastructure failure — not a determinism
