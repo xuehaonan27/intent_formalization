@@ -25,9 +25,9 @@ baseline totals were 1239 / 25 / 45 / 179 / 65 / 94 (see commit
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
 | nrkernel         |     8 |        7 |    0 |          0 |            1 |     0 |         0 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
-| storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
+| storage          |    43 |       23 |    0 |          2 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1645** | **1284** | **25** |  **49**   |     **215**  |  **65** |    **7** |
+| **TOTAL**        | **1645** | **1286** | **25** |  **47**   |     **215**  |  **65** |    **7** |
 
 > The above table reflects the **post-closeout** state after the
 > 2026-05-26 atmosphere / storage / nrkernel pipeline patches
@@ -414,9 +414,9 @@ edits to address.
 | project    | baseline `verus_err` | post-closeout `verus_err` | newly `complete` | newly `incomplete` | newly `unknown` | dropped |
 |------------|---------------------:|--------------------------:|-----------------:|-------------------:|---------------------:|--------:|
 | atmosphere |                   49 |                         0 |               23 |                  0 |                   24 |       2 |
-| storage    |                   43 |                         7 |               21 |                  4 |                   11 |       0 |
+| storage    |                   43 |                         7 |               23 |                  2 |                   11 |       0 |
 | nrkernel   |                    2 |                         0 |                1 |                  0 |                    1 |       0 |
-| **TOTAL**  |               **94** |                     **7** |           **45** |              **4** |               **36** |   **2** |
+| **TOTAL**  |               **94** |                     **7** |           **47** |              **2** |               **36** |   **2** |
 
 (The 2 atmosphere "dropped" entries are extractor false-positives:
 extractor used to scrape fns living inside `/* ... */` block comments;
@@ -458,10 +458,16 @@ Four pipeline patches across `single_file.py`, `gen_det.py`,
 | `S not in scope` on synthesized det fn | — | `_prune_generics` in `gen_det` only inspected the param list; generics referenced *only* in `ensures` (e.g. `<S>` in `ensures out as nat == S::spec_align_of()`) got dropped | `sig_for_prune` extended to include `run1 + run2 + requires_str` |
 | `T::spec_from_bytes` not in scope at det call site | — | `closed spec fn` decls inside blanket impls (`impl<T: Bound> Trait for T` where Self IS a generic of the impl) emitted `T::spec_from_bytes` qualified-name reveals at module scope, where `T` is not bound | `classify.closed_spec_fn_qualified_names` tracks `skipped_impl_spans` for blanket impls and drops their decls from the qual map entirely; new `_impl_generic_param_names` helper. Closed spec fn stays closed (no opacity rewrite, no reveal). |
 
-Outcome: 36 of 43 compile cleanly (21 → `complete`, 4 → `incomplete`
+Outcome: 36 of 43 compile cleanly (23 → `complete`, 2 → `incomplete`
 permitted, 11 → `unknown`). Full rerun:
 `/tmp/storage_full_2026-05-26/full_run.json`, methodology
-`--timeout 60s`.
+`--timeout 60s`. The two real incomplete cases are documented in
+`storage-incompleteness-cases-2026-05-26.en.md`
+(`write_setup_metadata` byte-layout under-specified;
+`read_log_variables` `Result<_, E>` error path under-specified). The
+other two pre-closeout `permissive_or` hits (`serialize_and_write`
+×2) were classifier false positives — z3 proved them unsat, so the
+permissive marker is overridden and they land in `complete`.
 
 The **7 residual `verus_error`** are inherent source / vstd-version
 incompatibilities — not synthesizer bugs:

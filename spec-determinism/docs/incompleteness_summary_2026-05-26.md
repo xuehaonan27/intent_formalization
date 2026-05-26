@@ -15,9 +15,9 @@
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
 | nrkernel         |     8 |        7 |    0 |          0 |            1 |     0 |         0 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
-| storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
+| storage          |    43 |       23 |    0 |          2 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1645** | **1284** | **25** |  **49** | **215** |  **65** |    **7** |
+| **TOTAL**        | **1645** | **1286** | **25** |  **47** | **215** |  **65** |    **7** |
 
 > **2026-05-26 update (atmosphere)** — atmosphere baseline `verus_err` cleared from 49 → 0 by three fixes
 > committed today (extractor: preserve `&mut` on `Tracked(p): Tracked<&mut T>` destructures
@@ -31,8 +31,8 @@
 > pipeline patches in working tree (single_file: `_find_verus_block_close` brace-aware
 > injection + `_rewrite_deps_hack` shim + multi-line View-header cleanup; gen_det:
 > `sig_for_prune` extended with ensures/requires; classify: blanket-impl `closed spec fn`
-> reveal-target suppression). 36 newly-compiling cases break down as 21 `complete` /
-> 4 `incomplete` permitted / 11 `unknown`. The 7 residual `verus_err` are inherent
+> reveal-target suppression). 36 newly-compiling cases break down as 23 `complete` /
+> 2 `incomplete` permitted / 11 `unknown`. The 7 residual `verus_err` are inherent
 > source / vstd-version incompatibilities (4× `Box<S>: SpecEq<S>`, 3× `iter.end` on
 > `VerusForLoopWrapper`). See `corpus_rerun11_results.md §"Update 2026-05-26 — storage"`.
 >
