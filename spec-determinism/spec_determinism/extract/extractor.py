@@ -252,6 +252,25 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
             # Detect &mut on the type: reference_type with mutable_specifier
             is_ref = type_node is not None and type_node.type == "reference_type"
             is_mut = is_ref and _child_by_type(type_node, "mutable_specifier") is not None
+            # For ``Tracked(p): Tracked<&mut T>`` / ``Ghost(p): Ghost<&mut T>``
+            # destructure patterns, the outer ``type_node`` is ``generic_type``,
+            # so the above checks return False even though the binding ``p`` is
+            # in fact a ``&mut T``. Peek inside the ``type_arguments`` for a
+            # ``reference_type`` with ``mutable_specifier`` so downstream
+            # ``is_mut_ref`` consumers (gen_det, _substitute_input,
+            # _substitute_run) see the binding as a mut-ref.
+            if (destructure_ctor in ("Ghost", "Tracked")
+                    and type_node is not None
+                    and type_node.type == "generic_type"
+                    and not is_mut):
+                ta_node = _child_by_type(type_node, "type_arguments")
+                if ta_node is not None:
+                    for tac in ta_node.children:
+                        if tac.type == "reference_type":
+                            is_ref = True
+                            if _child_by_type(tac, "mutable_specifier") is not None:
+                                is_mut = True
+                            break
             param_type = _parse_type_node(type_node) if type_node else TypeInfo(kind=TypeKind.UNKNOWN, name="?")
             # Verus ``Ghost(name): Ghost<T>`` / ``Tracked(name): Tracked<T>``
             # destructure: inside the function body, ``name`` has type ``T``
@@ -360,6 +379,38 @@ def _clause_expressions(clause_node: ts.Node) -> list[str]:
 # Find function + spec in parsed tree
 # ---------------------------------------------------------------------------
 
+def _is_inside_block_comment(source: str, pos: int) -> bool:
+    """Return True iff ``pos`` falls inside a ``/* ... */`` block comment.
+
+    Naive scan from the start of ``source`` tracking ``/*`` / ``*/``
+    pairs. Treats line comments (``// ...``) and string / char literals
+    as comment-transparent (they CAN'T contain ``/*`` markers in
+    well-formed Rust because ``//`` consumes to end-of-line and Verus's
+    grammar disallows ``/*`` mid-string in normal positions; this is
+    sufficient for the corpus we operate on).
+    """
+    i = 0
+    depth = 0
+    n = len(source)
+    while i < pos and i < n - 1:
+        if source[i] == '/' and source[i + 1] == '*':
+            depth += 1
+            i += 2
+            continue
+        if source[i] == '*' and source[i + 1] == '/' and depth > 0:
+            depth -= 1
+            i += 2
+            continue
+        # Skip over line comments to avoid `/*` substrings inside them
+        # accidentally opening a block comment in our scan.
+        if depth == 0 and source[i] == '/' and source[i + 1] == '/':
+            nl = source.find('\n', i + 2)
+            i = nl + 1 if nl >= 0 else n
+            continue
+        i += 1
+    return depth > 0
+
+
 def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]]:
     """
     Extract a source chunk containing #[verus_spec(...)] + fn definition,
@@ -372,7 +423,17 @@ def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]
     fn_pattern = re.compile(
         rf'(?:pub(?:\s*\([^)]*\))?\s+)?(?:const\s+|async\s+|unsafe\s+|extern(?:\s+"[^"]*")?\s+)*fn\s+{re.escape(fn_name)}\s*(?:<[^>]*>)?\s*\(',
     )
-    m = fn_pattern.search(source)
+    # Iterate through matches; skip any that fall inside a `/* ... */`
+    # block comment. Without this guard, fns commented out via block
+    # comments (atmosphere's ``va_2m_valid`` / ``va_1g_valid``) are
+    # extracted as live targets, then gen_det synthesises calls to
+    # ``spec_va_2m_valid`` / ``spec_va_1g_valid`` that don't exist in
+    # the current source.
+    m = None
+    for candidate in fn_pattern.finditer(source):
+        if not _is_inside_block_comment(source, candidate.start()):
+            m = candidate
+            break
     if not m:
         return "", None
 

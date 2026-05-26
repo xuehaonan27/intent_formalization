@@ -303,6 +303,27 @@ def _parse_fn_params(params_text: str) -> dict[str, str]:
             p,
         )
         if not m:
+            # Verus destructure pattern: ``Tracked(name): Tracked<...>`` /
+            # ``Ghost(name): Ghost<...>``. Pull the inner binding name and
+            # treat the param as having the inner generic type. If the
+            # inner type is ``&mut T`` the binding is a mut-ref and any
+            # ``old(name)`` / bare ``name`` references in ensures must
+            # be rewritten via ``final(name)`` like a normal mut-ref.
+            md = re.match(
+                r"^(?P<ctor>Ghost|Tracked)\s*\(\s*(?:mut\s+)?(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\)\s*:\s*"
+                r"(?P=ctor)\s*<\s*(?P<inner>.+?)\s*>\s*$",
+                p,
+            )
+            if not md:
+                continue
+            name = md.group("name")
+            inner = md.group("inner").strip()
+            if re.match(r"^&\s*mut\b", inner):
+                out[name] = "mut_ref"
+            elif inner.startswith("&"):
+                out[name] = "shared_ref"
+            else:
+                out[name] = "value"
             continue
         name = m.group("name")
         ty = m.group("ty").strip()

@@ -847,7 +847,7 @@ def _substitute_input(requires_raw: str, spec: FunctionSpec) -> str:
     return result
 
 
-def _rename_idents_in_expr(text: str, name_map: dict) -> str:
+def _rename_idents_in_expr(text: str, name_map: dict, ref_renames: Optional[set] = None) -> str:
     """AST-aware identifier rename in a Verus expression.
 
     Wraps ``text`` in a probe ``proof fn __probe() ensures EXPR, {}`` and
@@ -859,11 +859,23 @@ def _rename_idents_in_expr(text: str, name_map: dict) -> str:
       - identifier children of ``scoped_identifier`` (path components like
         ``Foo::next`` — neither side is a local variable)
 
+    ``ref_renames``: optional set of source-side identifier names that
+    represent ``&mut`` parameters. When an ident in this set appears as
+    a function-call ARGUMENT (not the method receiver, not a field of a
+    larger expression), the replacement is prefixed with ``&`` so the
+    callee — which expects ``&T`` — type-checks against the synth fn's
+    by-value ``post{n}_<name>: T`` binding. Without this, atmosphere's
+    ``old(self).spec_subtract_new_quota(self, new)`` rewrites to
+    ``pre_self_.spec_subtract_new_quota(post1_self_, new)`` where
+    ``post1_self_: Quota`` mismatches the ``self_new: &Self`` param.
+
     Falls back to a conservative regex with ``(?<![.:])`` lookbehind on
     parse failure (e.g. malformed ensures fragments).
     """
     if not name_map or not text.strip():
         return text
+
+    ref_renames = ref_renames or set()
 
     wrapped_prefix = "verus!{ proof fn __probe() ensures "
     wrapped = f"{wrapped_prefix}{text}, {{}} }}"
@@ -890,6 +902,27 @@ def _rename_idents_in_expr(text: str, name_map: dict) -> str:
     expr_end = expr_start + len(text)
     wrapped_bytes = wrapped.encode()
 
+    def _is_function_call_argument(node):
+        """Return True iff ``node`` sits as a direct argument of a
+        ``call_expression`` / method call ``arguments`` list, AND is not
+        the receiver of that call.
+
+        Tree-sitter-verus emits ``arguments`` for both free-fn calls
+        (``foo(a, b)``) and method calls (``x.bar(a, b)``). The receiver
+        ``x`` is NOT a child of ``arguments`` — it's a sibling of the
+        ``arguments`` node via ``field_expression`` / ``method_call``.
+        So checking that the direct parent is ``arguments`` correctly
+        distinguishes the cases.
+        """
+        parent = node.parent
+        if parent is None:
+            return False
+        # The ident may be wrapped in `field_expression`s (`self.foo`)
+        # for chained access — in that case ``node`` is buried, not a
+        # direct child of arguments. We only auto-ref when the
+        # IDENTIFIER ITSELF is the whole argument expression.
+        return parent.type == 'arguments'
+
     def visit(node):
         if node.type == 'scoped_identifier':
             return  # path components are namespace-resolved, skip subtree
@@ -900,7 +933,10 @@ def _rename_idents_in_expr(text: str, name_map: dict) -> str:
             if name in name_map:
                 s = node.start_byte - expr_start
                 e = node.end_byte - expr_start
-                edits.append((s, e, name_map[name]))
+                replacement = name_map[name]
+                if name in ref_renames and _is_function_call_argument(node):
+                    replacement = f"&{replacement}"
+                edits.append((s, e, replacement))
             return
         for c in node.children:
             visit(c)
@@ -925,6 +961,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
     # AST-aware pass at the end so e.g. ``self.arr.next`` is not corrupted
     # when the result binding happens to be ``next``.
     name_map: dict[str, str] = {}
+    ref_renames: set[str] = set()
     for p in spec.params:
         if p.is_mut_ref and p.is_self:
             vn = _var_name(p)
@@ -937,6 +974,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             result = re.sub(r'\bfinal\s*\(\s*self\s*,?\s*\)', f'post{run_id}_{vn}', result)
             result = re.sub(r'\*\s*self\b', f'post{run_id}_{vn}', result)
             name_map['self'] = f'post{run_id}_{vn}'
+            ref_renames.add('self')
         elif p.is_mut_ref:
             vn = _var_name(p)
             result = re.sub(rf'\*\s*old\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'pre_{vn}', result)
@@ -945,6 +983,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
             result = re.sub(rf'\bfinal\s*\(\s*{re.escape(p.name)}\s*,?\s*\)', f'post{run_id}_{vn}', result)
             result = _strip_unary_deref(result, p.name, f'post{run_id}_{vn}')
             name_map[p.name] = f'post{run_id}_{vn}'
+            ref_renames.add(p.name)
         elif p.is_self:
             vn = _var_name(p)
             result = re.sub(r'\bold\s*\(\s*self\s*,?\s*\)', vn, result)
@@ -961,7 +1000,7 @@ def _substitute_run(ensures_raw: str, spec: FunctionSpec, run_id: int) -> str:
         name_map[spec.result_binding] = f'r{run_id}'
 
     if name_map:
-        result = _rename_idents_in_expr(result, name_map)
+        result = _rename_idents_in_expr(result, name_map, ref_renames=ref_renames)
 
     result = result.replace('__RESULT__', f'r{run_id}')
 
