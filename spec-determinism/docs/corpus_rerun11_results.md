@@ -42,6 +42,103 @@ Notes:
 - `crash` = 300s hard-wall subprocess timeout (schema search runaway, atmosphere only)
 - `verus_err` = baseline Verus compilation failed (not a determinism question; see Section "verus_error infrastructure failures")
 
+### Column reference
+
+The columns above (`total`, `complete`, `+LLM`, `incomplete`,
+`inconclusive`, `crash`, `verus_err`) are exclusive buckets — every
+extracted target lands in exactly one of them, and the per-project
+totals sum to `total`. Mapped to the `classify_ok` enum
+(`spec_determinism/classify.py`):
+
+| column         | classify_ok bucket   | underlying signal                                       |
+|----------------|----------------------|---------------------------------------------------------|
+| `total`        | (sum of below)       | count of det-check targets extracted for this project   |
+| `complete`     | `complete`           | `status=ok` ∧ `r0_z3=unsat` ∧ no LLM assist             |
+| `+LLM`         | `complete_llm`       | `status=ok` ∧ `r0_z3=unsat` ∧ `llm_assisted=True`       |
+| `incomplete`   | `incomplete`         | `status=ok` ∧ (`r0_z3=sat` OR (`r0_z3=unknown` ∧ `permitted=True`)) |
+| `inconclusive` | `ok_inconclusive`    | `status=ok` ∧ `r0_z3=unknown` ∧ `permitted=False`       |
+| `crash`        | (status != `ok`)     | `status=runner_crash` — driver subprocess hit the outer wall |
+| `verus_err`    | (status != `ok`)     | `status=verus_error` — Verus refused to compile the file |
+
+`total` — one row per `(crate, function template)` pair the extractor
+discovered in the project source. For each row the pipeline synthesises
+a `det_<f>` proof fn (two parallel runs with arbitrary inputs + an R0
+equality check on the post-state) and hands the file to Verus +
+z3. The bucket then classifies how Verus / z3 answered.
+
+`complete` — Verus compiled, z3 returned **R0=unsat** on the
+synthesised det check, and the file did NOT go through an LLM-authored
+proof block to get there. Semantic meaning: the spec's `ensures`
+clauses uniquely pin the post-state — two arbitrary runs cannot
+disagree.
+
+`+LLM` — same z3 verdict (R0=unsat) but the unsat was unlocked by an
+LLM-authored proof block. Concretely: the baseline det check came back
+`r0_z3=unknown`; the LLM-proof loop (`spec_determinism.llm_proof`)
+synthesised a Verus proof block (Pattern A helper lemma / Pattern E
+shape-fallback / Pattern C relational lemma hint), the re-run with
+that block produced R0=unsat, and the classifier rewrote the result
+to `llm_assisted=True`. Broken out as its own column so paper claims
+can distinguish "z3 alone" from "z3 + LLM-guided proof". `+LLM`
+counts are a strict subset of "complete" in the colloquial sense; the
+existing legend phrase "subset of complete in classifier
+terminology" really means: same observable post-state determinism,
+different path to the proof.
+
+`incomplete` — Verus compiled but the spec admits multiple post-states.
+Two ways to land here:
+
+  1. **R0=sat (concrete witness)** — z3 produced an explicit model
+     where two runs of the same fn on the same inputs reach
+     distinguishable post-states. This is a hard "the spec really is
+     non-deterministic" verdict (e.g. atmosphere Pattern A:
+     `alloc_page_4k` returns any element from `free_pages_4k`).
+  2. **R0=unknown + `permitted=True`** — z3 surrendered, but the spec
+     EXPLICITLY uses one of the permissive patterns:
+     - `permissive_or` — `ensures` uses `|||` (Verus spec OR), either
+       directly at top level or transitively via a referenced spec fn
+       body. Detected by `ensures_uses_permissive_or` (structural scan).
+     - `spec_underconstrained_manual` — the function name appears in
+       a curated allowlist `REAL_SAT_MANUAL_FNS` (e.g. ironkv's
+       `host_noreceive_noclock_next` which uses `|||` to choose
+       between "deliver" vs "drop" post-states).
+
+     The classifier promotes these `unknown` cases to `incomplete`
+     rather than leaving them in `inconclusive`, on the grounds that
+     the spec author already declared the spec to be non-deterministic
+     — z3 failing to produce a witness is not evidence against that.
+
+`inconclusive` — z3 returned **R0=unknown** AND no permissive marker
+fired. Verus compiled, the det-check ran, but the SMT search exceeded
+its rlimit / hit quantifier-instantiation limits without producing
+either an unsat proof or a sat witness. This is the "we don't know"
+bucket. Semantically these COULD be either complete (with a stronger
+proof) or incomplete (with a tighter SMT search) — neither verdict
+is supported by current evidence. Roughly half of these cases are
+resolvable by LLM-authored proof (which is what `+LLM` captures); the
+remainder either time out or fall through every LLM pattern attempt.
+
+`crash` — the per-target subprocess (driven by
+`/tmp/run_corpus_baseline_parallel.py`) hit its **300 s outer wall
+timeout** before Verus could complete. Distinct from the inner Verus
+`--timeout 120 s` (which surfaces as `r0_z3=unknown`, not `crash`):
+crash means the entire det-check generation + Verus + z3 pipeline
+took longer than 5 minutes wall-clock. All 65 crashes are in
+atmosphere; the dominant cause is **schema-search runaway in the
+det-check synthesiser** — the `gen_det` template builder, when given
+ensures with deeply nested closed spec fn references, occasionally
+explores an exponential schema space before producing the final det
+fn. Other projects don't trigger this because they don't have the
+same depth of `page_is_mapped`-style closed-spec-fn chains.
+
+`verus_err` — Verus's frontend rejected the source file before any
+z3 query ran. Pure infrastructure failure — not a determinism
+statement about the spec. Baseline counts were 94 across storage /
+atmosphere / nrkernel; the 2026-05-26 closeout (see below) reduced
+this to 7 (all inherent storage source/vstd-version incompats — see
+§"2026-05-26 verus_error closeout" for the bucket-by-bucket diff
+and the per-project root-cause tables).
+
 ## Pattern E (shape-fallback cache) impact
 
 23 atmosphere LLM-PASSes break down as:
