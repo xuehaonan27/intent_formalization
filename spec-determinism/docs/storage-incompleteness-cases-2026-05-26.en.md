@@ -6,14 +6,14 @@
 >
 > The 2 cases fall into two patterns:
 > - **Part 1 — On-disk byte layout under-specified** (1 case): spec pins the *abstract recovered state* but leaves multiple concrete byte regions free.
-> - **Part 2 — `Result<T, E>` error path under-specified** (1 case): spec admits multiple `Err(...)` variants on the same input.
+> - **Part 2 — Error path under-specified** (1 case): even legitimate inputs are allowed to return `Err(...)`; on invalid inputs multiple `Err(...)` variants coexist and the `Ok` arm is vacuously satisfied.
 
 ## Overview
 
 | # | Case | Pattern | Notes |
 |---|------|---------|-------|
 | 1 | `write_setup_metadata` | Byte layout under-specified | mkfs / format: spec pins abstract `recover_state == Some(initialize(log_capacity))`, leaves CDB-side choice, `_padding`, inactive metadata, gap, and log_area bytes all free. |
-| 2 | `read_log_variables` | Result Err under-specified | Multiple `Err(LogErr::...)` variants admit the same input; `Ok` arm is vacuous when `state.is_None()`. |
+| 2 | `read_log_variables` | Error path under-specified | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
 
 ## Witness format
 
@@ -231,7 +231,7 @@ Once these five are added, the post-state byte sequence is uniquely determined a
 
 ---
 
-## Part 2 — `Result<T, E>` error path under-specified
+## Part 2 — Error path under-specified
 
 ### #2 `read_log_variables` (×1 instance)
 
@@ -249,11 +249,13 @@ Note the precondition `metadata_types_set(committed)` already rules out byte-lev
 
 #### Why this is incomplete
 
-Two compounding issues:
+The error path is the gap. Three compounding issues — the most important is the first one, which means **the spec does not even force `Ok` on legitimate input**:
 
-1. **`Ok(info)` arm uses `==>` not `<==>`.** When `recover_given_cdb(committed, log_id, cdb).is_None()` (e.g. wrong `program_guid`, wrong `log_id`, oversized `log_length`), the implication `state.is_Some() ==> { consistency... }` has a false antecedent — the whole clause becomes **vacuously true**, so `Ok(arbitrary LogInfo)` is admissible.
+1. **`Err(CRCMismatch)` is admissible even on a legitimate input.** The arm requires only `state.is_Some() ==> !pm_region.constants().impervious_to_corruption`. When `impervious_to_corruption == false` (a real and common hardware configuration), the consequent is true, so `Err(CRCMismatch)` is permitted on **any** `state.is_Some()` input — including inputs where the precondition `metadata_types_set(committed)` guarantees every CRC actually matches. In other words: on a fully valid header, the spec lets the impl claim "CRC mismatch" and abort even though no CRC actually mismatches. There is no `state.is_Some() ==> result.is_Ok()` clause anywhere.
 
-2. **Multiple `Err(...)` variants are simultaneously legal on the same input.** When `state.is_None()`, all five Err variants admit it:
+2. **`Ok(info)` arm uses `==>` not `<==>`.** When `recover_given_cdb(committed, log_id, cdb).is_None()` (e.g. wrong `program_guid`, wrong `log_id`, oversized `log_length`), the implication `state.is_Some() ==> { consistency... }` has a false antecedent — the whole clause becomes **vacuously true**, so `Ok(arbitrary LogInfo)` is admissible on a clearly-invalid input.
+
+3. **Multiple `Err(...)` variants are simultaneously legal on the same `state.is_None()` input.** When `state.is_None()`, all five Err variants admit it:
 
    | Err variant | Condition | Free fields |
    |---|---|---|
@@ -265,7 +267,7 @@ Two compounding issues:
 
    On a single input where `state.is_None()` (e.g. on-disk `region_metadata.log_id ≠ caller log_id`), the spec permits Ok-with-arbitrary-info *and* any of 5 Err variants — six families of return values for one input.
 
-The classifier promotes via the `|||` at L121-123 (`InvalidMemoryContents` arm), and the `permissive_or` finding is *real* here: that OR is the literal source of "two ways to legitimately return `InvalidMemoryContents`". But the deeper non-determinism is the vacuous-Ok plus Err-variant degeneracy.
+The classifier promotes via the `|||` at L121-123 (`InvalidMemoryContents` arm), and the `permissive_or` finding is *real* here: that OR is the literal source of "two ways to legitimately return `InvalidMemoryContents`". But the deeper non-determinism is issues (1) and (2): the error path is admissible on inputs that should force `Ok`, and the `Ok` arm is vacuous on inputs that should force a specific `Err`.
 
 A subtle artefact of the codegen: the generated `equal_fn` for `Result<LogInfo, LogErr>` only descends into the `Ok` payload (see below). So differences *between* `Err` variants are invisible to the determinism check — the materialisable witness has to use the **Ok-vs-Err split**, not the Err-vs-Err split. The Err-vs-Err split is also a real incompleteness, but the current tool only catches the Ok-vs-Err one.
 
