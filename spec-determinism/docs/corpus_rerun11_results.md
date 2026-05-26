@@ -1,11 +1,20 @@
 # Corpus Rerun11 Final Results — Patterns A + E + C on full verusage corpus
 
-Run completed 2026-05-24. Two-phase pipeline:
+Original run completed 2026-05-24. Two-phase pipeline:
 1. Baseline (no LLM, 300s hard wall per target, 6-worker parallel)
 2. LLM-proof on strict unknowns (Patterns A+E+C, 6-worker parallel, single-shot)
 
 ironkv was run separately as a targeted rerun on its 41 strict unknowns
 (`/tmp/ironkv_rerun11/`); other 8 corpus projects were chained from baseline.
+
+A subsequent **2026-05-26 verus_error closeout** (commits `68a2ac1e`,
+`64b1d5fe`, `38bd6d8e`) cleared 87 of 94 baseline Verus-compile failures
+across atmosphere, storage, and nrkernel via pipeline-level source
+rewriters. Only 7 inherent storage source/vstd incompats remain. The
+Section 1 table below is the **post-closeout** state; pre-closeout
+baseline totals were 1239 / 25 / 45 / 179 / 65 / 94 (see commit
+`68a2ac1e^` for the snapshot, or the per-project diff tables in
+§"2026-05-26 verus_error closeout").
 
 ## Final corpus-wide distribution (using `classify_ok`)
 
@@ -20,10 +29,10 @@ ironkv was run separately as a targeted rerun on its 41 strict unknowns
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
 | **TOTAL**        | **1645** | **1284** | **25** |  **49**   |     **215**  |  **65** |    **7** |
 
-> The above table reflects the **post-fix** state after the 2026-05-26
-> atmosphere / storage / nrkernel pipeline updates documented below.
-> Original rerun11 baseline totals (pre any 2026-05-26 fix) were
-> 1239 / 25 / 45 / 179 / 65 / 94 — see git history for the snapshot.
+> The above table reflects the **post-closeout** state after the
+> 2026-05-26 atmosphere / storage / nrkernel pipeline patches
+> (`68a2ac1e`, `64b1d5fe`, `38bd6d8e`). See §"2026-05-26 verus_error
+> closeout" for the bucket-by-bucket diff.
 
 Notes:
 - `complete` = baseline z3 proved R0=unsat without LLM
@@ -202,125 +211,107 @@ For paper/claim purposes:
 The current pipeline gets the right answer for the wrong reason; sharpening
 the rationale is mostly a paper-claim hygiene issue, not a correctness one.
 
-## verus_error infrastructure failures (94 total)
+## 2026-05-26 verus_error closeout
 
-These are baseline Verus compile failures, not determinism semantics:
+The initial rerun11 baseline had **94 `verus_error` entries** across
+three projects (storage 43, atmosphere 49, nrkernel 2) — all infra
+failures, not determinism semantics. Three commits land in this window
+that clear 87 of the 94 via pipeline-level source rewrites; the
+remaining 7 are inherent source / vstd-version incompatibilities in
+storage that would require risky textual rewrites or upstream source
+edits to address.
 
-| project    | count | dominant cause |
-|------------|------:|----------------|
-| storage    |    43 | `use deps_hack::...` — cross-crate import, killed by single-file inject |
-| atmosphere |    49 | `String::View` trait impl scattered across crate; generic `A` not inferrable in `old::<A>(...)` without workspace context |
-| nrkernel   |     2 | `#[repr(transparent)]` over `Ghost<nat>` blocked by new rustc deny lint `repr_transparent_non_zst_fields` |
+### Summary
 
-Suggested action: report these in a separate `infra_failure` bucket so they
-don't pollute the determinism numerator/denominator.
+| project    | baseline `verus_err` | post-closeout `verus_err` | newly `complete` | newly `incomplete` | newly `inconclusive` | dropped |
+|------------|---------------------:|--------------------------:|-----------------:|-------------------:|---------------------:|--------:|
+| atmosphere |                   49 |                         0 |               23 |                  0 |                   24 |       2 |
+| storage    |                   43 |                         7 |               21 |                  4 |                   11 |       0 |
+| nrkernel   |                    2 |                         0 |                1 |                  0 |                    1 |       0 |
+| **TOTAL**  |               **94** |                     **7** |           **45** |              **4** |               **36** |   **2** |
 
-### Update 2026-05-26 — atmosphere verus_error cleared
+(The 2 atmosphere "dropped" entries are extractor false-positives:
+extractor used to scrape fns living inside `/* ... */` block comments;
+the fix now skips those, so the entries vanish from the total entirely.)
 
-After the source-rewriter overhaul (`7ec0f2d7`) and two follow-up patches
-landed today, **all 49 atmosphere verus_error cases now compile cleanly**:
+Commits: `68a2ac1e` (atmosphere), `64b1d5fe` (storage), `38bd6d8e`
+(nrkernel). Section 1 of this doc and the matching Section 1 of
+`incompleteness_summary_2026-05-26.md` both already reflect this
+post-closeout state.
 
-| pre-fix bucket | count | post-fix outcome |
-|----------------|------:|------------------|
-| `View` trait impl missing (`String::View` etc.) | 20 | 20 `ok` (View trait synth from inherent `spec fn view`) |
-| `Dereference this mutable reference` (postcondition) | 16 | 16 `ok` (source-level `final(p)` / `*final(p)` rewrite) |
-| E0308 `Tracked(p): Tracked<&mut T>` destructure loses `&mut` | 11 | 11 `ok` (extractor preserves inner `&mut`; gen_det auto-`&`-prefixes method-call args) |
-| E0425 `spec_va_2m_valid` / `spec_va_1g_valid` not in scope | 2 | 2 `extract_error` (extractor now skips block-commented fns) |
-| **TOTAL** | **49** | **47 ok + 2 extract_error / 0 verus_error** |
+### Per-project root cause / fix / outcome
 
-Net effect on `incompleteness_summary` Section 1 stats:
+#### atmosphere (49 → 0)
 
-| project    | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
-|------------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
-| atmosphere (pre-fix)  | 1363 |     1059 |   23 |         29 |          138 |    65 |        49 |
-| atmosphere (post-fix) | 1361 |     1082 |   23 |         29 |          162 |    65 |          0 |
+Four root causes; commit `68a2ac1e` is the closeout, building on the
+source-rewriter overhaul `7ec0f2d7` and two follow-up patches:
 
-The 47 newly-clean atmosphere cases break down to **23 `r0_z3=unsat`**
-(promoted to `complete`) + **24 `r0_z3=unknown`** (promoted to
-`inconclusive`). The 2 `extract_error` cases drop from the total
-(block-commented `va_{2m,1g}_valid` are no longer scraped as targets).
+| bucket | count | root cause | fix |
+|--------|------:|------------|-----|
+| `View` trait impl missing (`String::View` etc.) | 20 | per-crate `impl View for String` lives in a sibling crate, not visible in single-file mode | new `_synthesize_view_trait_impls` derives a stub `View` trait impl from each type's inherent `spec fn view` |
+| `Dereference this mutable reference` | 16 | Verus now refuses bare `&mut` comparisons in spec context (`self == old(self)`, `*p == old(*p)`) | source-level rewriter `_rewrite_self_eq_old_self` + `_rewrite_ref_eq_ref` + `_rewrite_mut_self_in_ensures` produce `*self == *old(self)` / `final(p)` forms |
+| E0308 `Tracked(p): Tracked<&mut T>` destructure loses `&mut` | 11 | extractor reset the inner-type `&mut` annotation when normalizing the destructure pattern | extractor preserves the inner `&mut`; gen_det auto-`&`-prefixes method-call args for renamed `&mut`-param idents |
+| E0425 `spec_va_2m_valid` / `spec_va_1g_valid` not in scope | 2 | extractor scraped fns from inside `/* ... */` block comments | extractor skip-list for block-commented regions |
 
-Full rerun of the 49 baseline-failing entries: `/tmp/atmosphere_rerun_2026-05-26.json`. Methodology: same baseline driver, `--timeout 180s`.
+Outcome: 47 of 49 compile cleanly (23 → `complete`, 24 →
+`inconclusive`); 2 drop from the total (block-commented fns are no
+longer scraped). Full rerun: `/tmp/atmosphere_rerun_2026-05-26.json`,
+methodology `--timeout 180s`.
 
-### Update 2026-05-26 — storage verus_error 43 → 7
+#### storage (43 → 7)
 
-After four pipeline patches landed (this session), **storage drops from
-43 baseline `verus_error` to 7** (36 newly compile-and-classify
-cleanly). All four patches are in working tree; details in commit
-message.
+Four pipeline patches across `single_file.py`, `gen_det.py`,
+`classify.py`, and `prover.py`; commit `64b1d5fe`.
 
-| pre-fix bucket | count | root cause | post-fix outcome |
-|----------------|------:|------------|------------------|
-| `error[E0432]: unresolved import deps_hack::...` | 43 | sibling proc-macro crate (`deps_hack`) unresolvable in single-file mode | 36 `ok` via new `_rewrite_deps_hack` shim; 7 still fail on residual issues (next row) |
-| `parse error: keyword fn` (10 of the 43) | — | misplaced helper injection: `rfind("}")` targeted the last `unsafe impl ConstPmSized for [T;N]` block instead of `verus! { ... }` | fixed by new brace-aware `_find_verus_block_close` scanner |
-| `S not in scope` / `T::spec_from_bytes` not found | — | (a) `_prune_generics` only inspected param-list, dropped `<S>` when `S` was used only in ensures; (b) `closed spec fn` decls inside blanket impls (`impl<T: Bound> Trait for T`) emitted `T::spec_from_bytes` reveals at call sites where `T` is not in scope | (a) `sig_for_prune` extended to include `run1 + run2 + requires`; (b) `closed_spec_fn_qualified_names` tracks `skipped_impl_spans` and drops blanket-impl decls from the qual-map entirely |
-| **TOTAL** | **43** | — | **36 `ok` / 7 residual `verus_error`** |
+| bucket | count | root cause | fix |
+|--------|------:|------------|-----|
+| `error[E0432]: unresolved import deps_hack::...` | 43 | sibling proc-macro crate `deps_hack` (provides `PmSized` derive, `pmsized_primitive!` macro, types like `crc64fast::Digest`) is unresolvable in single-file mode | new `_rewrite_deps_hack` shim: strip the `use` line (braced + bare), strip `PmSized` from `#[derive(...)]`, drop `pmsized_primitive!(T);` calls, emit stub trait impls (`SpecPmSized` / `UnsafeSpecPmSized` / `PmSized` returning 0) inside an appended `verus! { ... }` block, plus `unsafe impl ConstPmSized for T` for primitives and `pub struct {Name} {}` stubs for cross-crate type-name imports. Stub size/align bodies are sound for determinism checks because r1/r2 resolve to the same impl. |
+| `parse error: keyword fn` (10 of the 43) | — | helper injection used `rfind("}")` and landed inside the LAST `unsafe impl ConstPmSized for [T;N]` block instead of `verus! { ... }` | new brace-aware `_find_verus_block_close` scanner (handles `//`, `/* */`, `"..."`, `'.'`, `r#"..."#`) replaces `rfind("}")` in both `single_file.py` and `llm_proof/prover.py` |
+| `S not in scope` on synthesized det fn | — | `_prune_generics` in `gen_det` only inspected the param list; generics referenced *only* in `ensures` (e.g. `<S>` in `ensures out as nat == S::spec_align_of()`) got dropped | `sig_for_prune` extended to include `run1 + run2 + requires_str` |
+| `T::spec_from_bytes` not in scope at det call site | — | `closed spec fn` decls inside blanket impls (`impl<T: Bound> Trait for T` where Self IS a generic of the impl) emitted `T::spec_from_bytes` qualified-name reveals at module scope, where `T` is not bound | `classify.closed_spec_fn_qualified_names` tracks `skipped_impl_spans` for blanket impls and drops their decls from the qual map entirely; new `_impl_generic_param_names` helper. Closed spec fn stays closed (no opacity rewrite, no reveal). |
 
-The 7 residual `verus_error` cases are inherent source / vstd-version
-incompatibilities, not synthesizer bugs:
-- **4× `Box<S>: SpecEq<S>` not implemented** — original source body
-  `out == true_val` where `out: Box<S>` and `true_val: S`; current
-  Verus refuses the implicit `Box`/`S` comparison and demands `*out
-  == true_val`. Pre-dates this work.
-- **3× `iter.end` on `VerusForLoopWrapper`** — original source uses
-  `iter.end` referring to a named for-loop iterator; current vstd
-  restructured to `iter.iter.end` / `iter.snapshot.end`.
+Outcome: 36 of 43 compile cleanly (21 → `complete`, 4 → `incomplete`
+permitted, 11 → `inconclusive`). Full rerun:
+`/tmp/storage_full_2026-05-26/full_run.json`, methodology
+`--timeout 60s`.
 
-Both buckets are source-text incompats that would need either a
-guarded textual rewrite (risky — false positives on unrelated `.end` /
-`Box`-comparison sites) or upstream source updates. Marked as
-inherent infra failures.
+The **7 residual `verus_error`** are inherent source / vstd-version
+incompatibilities — not synthesizer bugs:
 
-Net effect on `incompleteness_summary` Section 1 stats:
+| residual bucket | count | description |
+|-----------------|------:|-------------|
+| `Box<S>: SpecEq<S>` not implemented | 4 | original source body `out == true_val` where `out: Box<S>` and `true_val: S`; current Verus refuses the implicit `Box`/`S` comparison and demands `*out == true_val`. |
+| `iter.end` on `VerusForLoopWrapper` | 3 | original source uses `iter.end` referring to a named for-loop iterator; current vstd restructured to `iter.iter.end` / `iter.snapshot.end`. |
 
-| project | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
-|---------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
-| storage (pre-fix)  | 43 | 0 | 0 | 0 |  0 | 0 | 43 |
-| storage (post-fix) | 43 | 21 | 0 | 4 | 11 | 0 |  7 |
+Both buckets would need either a guarded textual rewrite (risky —
+false positives on unrelated `.end` / `Box`-comparison sites) or
+upstream source updates. Tagged as inherent infra failures and
+excluded from determinism numerator/denominator.
 
-(21 baseline `complete` / 4 `incomplete` permitted / 11 `ok_inconclusive` /
-7 `verus_err` — full breakdown via the [`session-state`
-checkpoints](../../.copilot/session-state/) for this session.)
+#### nrkernel (2 → 0)
 
-Pipeline patches (working tree; about to commit):
-- `verus/single_file.py` — `_find_verus_block_close` (brace-aware
-  `verus! { ... }` finder, replaces `rfind("}")`), `_rewrite_deps_hack`
-  (strip imports / derives / `pmsized_primitive!`, emit stub trait
-  impls + stub structs), `_synthesize_view_trait_impls` header cleanup
-  (drop backtick-delimited type clause that leaks past `//` on
-  multi-line type clauses).
-- `llm_proof/prover.py` — same `_find_verus_block_close` for the LLM
-  proof inject path.
-- `codegen/gen_det.py` — `sig_for_prune` includes ensures/requires.
-- `classify.py` — `closed_spec_fn_qualified_names` tracks blanket-impl
-  skip spans; `_impl_generic_param_names` helper.
+Both cases share a single root cause; commit `38bd6d8e`.
 
-Full rerun of the 43 baseline-failing entries: `/tmp/storage_full_2026-05-26/full_run.json`. Methodology: same baseline driver, `--timeout 60s`.
+| bucket | count | root cause | fix |
+|--------|------:|------------|-----|
+| `repr(transparent)` + `Ghost<T>` rejected | 2 | newer rustc promotes `repr_transparent_non_zst_fields` to hard error; Verus's `Ghost<T>` is a ZST field of an external type with private fields, blocked on structs like `#[repr(transparent)] struct PDE { entry: usize, layer: Ghost<nat> }` | new `_allow_repr_transparent_lint` rewriter: when source contains `#[repr(transparent)]`, auto-insert a crate-level `#![allow(repr_transparent_non_zst_fields)]` at the top of the file (after BOM/shebang/inner attrs/leading comments). Layout semantics preserved — only the lint is silenced. |
 
-### Update 2026-05-26 — nrkernel verus_error 2 → 0
+Outcome: both compile cleanly (1 → `complete`, 1 → `inconclusive`).
+Full rerun: `/tmp/nrkernel_rerun/full_run.json`, methodology
+`--timeout 60s`.
 
-Both nrkernel baseline `verus_error` cases share a single root cause:
-the source defines `#[repr(transparent)] pub struct PDE { entry: usize,
-layer: Ghost<nat> }`. Newer rustc (2024+) promotes the
-`repr_transparent_non_zst_fields` lint to a hard error for any
-`repr(transparent)` struct containing a ZST field of an external type
-with private fields — and Verus's `Ghost<T>` matches that pattern.
+### Pipeline-level files touched
 
-Fix: `verus/single_file._allow_repr_transparent_lint` — a new
-source-rewriter that, whenever the file contains `#[repr(transparent)]`,
-auto-inserts a crate-level `#![allow(repr_transparent_non_zst_fields)]`
-at the top of the file (after shebang / existing inner attrs). Layout
-semantics are preserved — only the lint is silenced. No-op if the
-allow is already present.
+| file | additions in closeout window |
+|------|------------------------------|
+| `spec_determinism/verus/single_file.py` | `_find_verus_block_close`, `_rewrite_deps_hack` (+ `_parse_deps_hack_imports`, `_deps_hack_type_imports`, `_DEPS_HACK_USE_RE`, `_DERIVE_RE`, `_PMSIZED_PRIM_RE`, `_STRUCT_AFTER_DERIVE_RE`), `_allow_repr_transparent_lint`, `_synthesize_view_trait_impls` (header cleanup) |
+| `spec_determinism/llm_proof/prover.py` | `_find_verus_block_close` (mirror of single_file) |
+| `spec_determinism/codegen/gen_det.py` | `_build_template` — `sig_for_prune` includes `run1 + run2 + requires_str` |
+| `spec_determinism/classify.py` | `_IMPL_HEADER_RE` named-capture, `_impl_generic_param_names`, `closed_spec_fn_qualified_names` tracks `skipped_impl_spans` for blanket impls |
+| `spec_determinism/extract/extractor.py` | preserve inner `&mut` on `Tracked(...): Tracked<&mut T>` destructure; skip block-commented fns (atmosphere closeout) |
 
-Net effect:
-
-| project | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
-|---------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
-| nrkernel (pre-fix)  | 8 | 6 | 0 | 0 | 0 | 0 | 2 |
-| nrkernel (post-fix) | 8 | 7 | 0 | 0 | 1 | 0 | 0 |
-
-Full rerun: `/tmp/nrkernel_rerun/full_run.json`.
+All 3 self-test suites (`extractor`, `gen_det`, `classify`) pass on
+the final tree.
 
 ## Methodology footnotes
 
