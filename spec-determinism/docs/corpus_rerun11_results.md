@@ -18,7 +18,7 @@ baseline totals were 1239 / 25 / 45 / 179 / 65 / 94 (see commit
 
 ## Final corpus-wide distribution (using `classify_ok`)
 
-| project          | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
+| project          | total | complete | +LLM | incomplete | unknown | crash | verus_err |
 |------------------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
 | ironkv           |   214 |      157 |    2 |         16 |           39 |     0 |         0 |
 | atmosphere       |  1361 |     1082 |   23 |         29 |          162 |    65 |         0 |
@@ -38,14 +38,14 @@ Notes:
 - `complete` = baseline z3 proved R0=unsat without LLM
 - `+LLM` = LLM-authored proof block re-verified to unsat (subset of "complete" in classifier terminology, broken out here)
 - `incomplete` = `permitted=True` with `r0_z3` in `{sat, unknown}`: classifier promotes these via the `permissive_or` / `spec_underconstrained_manual` detectors
-- `inconclusive` = `r0_z3=unknown` without `permitted` (z3 surrendered, no spec-design pardon)
+- `unknown` = `r0_z3=unknown` without `permitted` (z3 surrendered, no spec-design pardon)
 - `crash` = 300s hard-wall subprocess timeout (schema search runaway, atmosphere only)
 - `verus_err` = baseline Verus compilation failed (not a determinism question; see Section "verus_error infrastructure failures")
 
 ### Column reference
 
 The columns above (`total`, `complete`, `+LLM`, `incomplete`,
-`inconclusive`, `crash`, `verus_err`) are exclusive buckets — every
+`unknown`, `crash`, `verus_err`) are exclusive buckets — every
 extracted target lands in exactly one of them, and the per-project
 totals sum to `total`. Mapped to the `classify_ok` enum
 (`spec_determinism/classify.py`):
@@ -56,7 +56,7 @@ totals sum to `total`. Mapped to the `classify_ok` enum
 | `complete`     | `complete`           | `status=ok` ∧ `r0_z3=unsat` ∧ no LLM assist             |
 | `+LLM`         | `complete_llm`       | `status=ok` ∧ `r0_z3=unsat` ∧ `llm_assisted=True`       |
 | `incomplete`   | `incomplete`         | `status=ok` ∧ (`r0_z3=sat` OR (`r0_z3=unknown` ∧ `permitted=True`)) |
-| `inconclusive` | `ok_inconclusive`    | `status=ok` ∧ `r0_z3=unknown` ∧ `permitted=False`       |
+| `unknown`      | `ok_inconclusive`    | `status=ok` ∧ `r0_z3=unknown` ∧ `permitted=False`       |
 | `crash`        | (status != `ok`)     | `status=runner_crash` — driver subprocess hit the outer wall |
 | `verus_err`    | (status != `ok`)     | `status=verus_error` — Verus refused to compile the file |
 
@@ -103,18 +103,20 @@ Two ways to land here:
        `host_noreceive_noclock_next` which uses `|||` to choose
        between "deliver" vs "drop" post-states).
 
-     The classifier promotes these `unknown` cases to `incomplete`
-     rather than leaving them in `inconclusive`, on the grounds that
-     the spec author already declared the spec to be non-deterministic
-     — z3 failing to produce a witness is not evidence against that.
+     The classifier promotes these R0=unknown cases to `incomplete`
+     rather than leaving them in the `unknown` bucket, on the grounds
+     that the spec author already declared the spec to be
+     non-deterministic — z3 failing to produce a witness is not
+     evidence against that.
 
-`inconclusive` — z3 returned **R0=unknown** AND no permissive marker
-fired. Verus compiled, the det-check ran, but the SMT search exceeded
-its rlimit / hit quantifier-instantiation limits without producing
-either an unsat proof or a sat witness. This is the "we don't know"
-bucket. Semantically these COULD be either complete (with a stronger
-proof) or incomplete (with a tighter SMT search) — neither verdict
-is supported by current evidence. Roughly half of these cases are
+`unknown` (column name) — z3 returned **R0=unknown** AND no permissive
+marker fired. Verus compiled, the det-check ran, but the SMT search
+exceeded its rlimit / hit quantifier-instantiation limits without
+producing either an unsat proof or a sat witness. This is the "we
+don't know" bucket (internal classify_ok name: `ok_inconclusive`).
+Semantically these COULD be either complete (with a stronger proof)
+or incomplete (with a tighter SMT search) — neither verdict is
+supported by current evidence. Roughly half of these cases are
 resolvable by LLM-authored proof (which is what `+LLM` captures); the
 remainder either time out or fall through every LLM pattern attempt.
 
@@ -130,6 +132,29 @@ ensures with deeply nested closed spec fn references, occasionally
 explores an exponential schema space before producing the final det
 fn. Other projects don't trigger this because they don't have the
 same depth of `page_is_mapped`-style closed-spec-fn chains.
+
+**Example crash record** (raw `/tmp/corpus_baseline/atmosphere/full_run.json` entry):
+
+```json
+{
+  "project":     "atmosphere",
+  "file":        ".../verified/kernel/kernel__create_and_map_pages__impl0__alloc_and_map.rs",
+  "function":    "pagetable_map_4k_page",
+  "artifact_key": "atmosphere__verified__kernel__kernel__create_and_map_pages__impl0__alloc_and_map__pagetable_map_4k_page",
+  "status":      "runner_crash",
+  "error":       "subprocess wall timeout 300s",
+  "wall_ms":     300035
+}
+```
+
+The 65 crashes hit 40 unique functions; the top-recurring ones are
+`range_create_and_share_mapping` (×6), `alloc_page_table` (×4),
+`range_alloc_and_map_io` (×3), `pagetable_map_4k_page` (×2), etc. All
+live in atmosphere `kernel__*` files (notably `mem_util__impl0__*`
+×4–4, `create_and_share_pages__impl0__*` ×3,
+`syscall_new_*__impl0__*` ×3 each) — the same files that host the
+deeply-nested `mapped_pages_4k().contains(...)` chains called out in
+§"atmosphere incomplete breakdown".
 
 `verus_err` — Verus's frontend rejected the source file before any
 z3 query ran. Pure infrastructure failure — not a determinism
@@ -320,7 +345,7 @@ edits to address.
 
 ### Summary
 
-| project    | baseline `verus_err` | post-closeout `verus_err` | newly `complete` | newly `incomplete` | newly `inconclusive` | dropped |
+| project    | baseline `verus_err` | post-closeout `verus_err` | newly `complete` | newly `incomplete` | newly `unknown` | dropped |
 |------------|---------------------:|--------------------------:|-----------------:|-------------------:|---------------------:|--------:|
 | atmosphere |                   49 |                         0 |               23 |                  0 |                   24 |       2 |
 | storage    |                   43 |                         7 |               21 |                  4 |                   11 |       0 |
@@ -351,7 +376,7 @@ source-rewriter overhaul `7ec0f2d7` and two follow-up patches:
 | E0425 `spec_va_2m_valid` / `spec_va_1g_valid` not in scope | 2 | extractor scraped fns from inside `/* ... */` block comments | extractor skip-list for block-commented regions |
 
 Outcome: 47 of 49 compile cleanly (23 → `complete`, 24 →
-`inconclusive`); 2 drop from the total (block-commented fns are no
+`unknown`); 2 drop from the total (block-commented fns are no
 longer scraped). Full rerun: `/tmp/atmosphere_rerun_2026-05-26.json`,
 methodology `--timeout 180s`.
 
@@ -368,7 +393,7 @@ Four pipeline patches across `single_file.py`, `gen_det.py`,
 | `T::spec_from_bytes` not in scope at det call site | — | `closed spec fn` decls inside blanket impls (`impl<T: Bound> Trait for T` where Self IS a generic of the impl) emitted `T::spec_from_bytes` qualified-name reveals at module scope, where `T` is not bound | `classify.closed_spec_fn_qualified_names` tracks `skipped_impl_spans` for blanket impls and drops their decls from the qual map entirely; new `_impl_generic_param_names` helper. Closed spec fn stays closed (no opacity rewrite, no reveal). |
 
 Outcome: 36 of 43 compile cleanly (21 → `complete`, 4 → `incomplete`
-permitted, 11 → `inconclusive`). Full rerun:
+permitted, 11 → `unknown`). Full rerun:
 `/tmp/storage_full_2026-05-26/full_run.json`, methodology
 `--timeout 60s`.
 
@@ -393,7 +418,7 @@ Both cases share a single root cause; commit `38bd6d8e`.
 |--------|------:|------------|-----|
 | `repr(transparent)` + `Ghost<T>` rejected | 2 | newer rustc promotes `repr_transparent_non_zst_fields` to hard error; Verus's `Ghost<T>` is a ZST field of an external type with private fields, blocked on structs like `#[repr(transparent)] struct PDE { entry: usize, layer: Ghost<nat> }` | new `_allow_repr_transparent_lint` rewriter: when source contains `#[repr(transparent)]`, auto-insert a crate-level `#![allow(repr_transparent_non_zst_fields)]` at the top of the file (after BOM/shebang/inner attrs/leading comments). Layout semantics preserved — only the lint is silenced. |
 
-Outcome: both compile cleanly (1 → `complete`, 1 → `inconclusive`).
+Outcome: both compile cleanly (1 → `complete`, 1 → `unknown`).
 Full rerun: `/tmp/nrkernel_rerun/full_run.json`, methodology
 `--timeout 60s`.
 

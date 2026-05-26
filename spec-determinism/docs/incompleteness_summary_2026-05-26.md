@@ -8,7 +8,7 @@
 
 `classify_ok` buckets from the rerun11 baseline+LLM pipeline (counts are det-check entries, not fn templates):
 
-| project          | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
+| project          | total | complete | +LLM | incomplete | unknown | crash | verus_err |
 |------------------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
 | ironkv           |   214 |      157 |    2 |         16 |           39 |     0 |         0 |
 | atmosphere       |  1361 |     1082 |   23 |         29 |          162 |    65 |         0 |
@@ -23,7 +23,7 @@
 > committed today (extractor: preserve `&mut` on `Tracked(p): Tracked<&mut T>` destructures
 > + skip fns inside `/* ... */` block comments; gen_det: auto-`&`-prefix method-call args
 > for renamed `&mut`-param idents). 47 of the 49 previously-failing entries now compile cleanly
-> (23 promoted to `complete`, 24 to `inconclusive`); 2 are dropped from the total
+> (23 promoted to `complete`, 24 to `unknown`); 2 are dropped from the total
 > (they were extracted from block-commented source). See
 > `corpus_rerun11_results.md §"Update 2026-05-26"` for the full bucket-by-bucket breakdown.
 >
@@ -32,7 +32,7 @@
 > injection + `_rewrite_deps_hack` shim + multi-line View-header cleanup; gen_det:
 > `sig_for_prune` extended with ensures/requires; classify: blanket-impl `closed spec fn`
 > reveal-target suppression). 36 newly-compiling cases break down as 21 `complete` /
-> 4 `incomplete` permitted / 11 `inconclusive`. The 7 residual `verus_err` are inherent
+> 4 `incomplete` permitted / 11 `unknown`. The 7 residual `verus_err` are inherent
 > source / vstd-version incompatibilities (4× `Box<S>: SpecEq<S>`, 3× `iter.end` on
 > `VerusForLoopWrapper`). See `corpus_rerun11_results.md §"Update 2026-05-26 — storage"`.
 >
@@ -42,12 +42,12 @@
 > `repr(transparent)` structs containing Verus's `Ghost<T>` (ZST field of an external type
 > with private fields); both nrkernel cases hit this on `pub struct PDE { entry: usize,
 > layer: Ghost<nat> }`. The allow silences the lint without altering layout. Both cases
-> now compile + verify (1 promoted to `complete`, 1 to `inconclusive`).
+> now compile + verify (1 promoted to `complete`, 1 to `unknown`).
 
 Legend:
 - `complete` / `+LLM` — baseline z3 (resp. LLM-authored proof) proved R0=unsat
 - `incomplete` — `permitted=True` and `r0_z3 ∈ {sat, unknown}`: classifier promoted via `permissive_or` / `spec_underconstrained_manual` detectors
-- `inconclusive` — `r0_z3=unknown` without `permitted` flag (z3 surrendered, no detector pardon)
+- `unknown` — `r0_z3=unknown` without `permitted` flag (z3 surrendered, no detector pardon)
 - `crash` — 300 s subprocess wall (atmosphere only — schema-search runaway)
 - `verus_err` — baseline Verus compile failure (infra, not determinism); see corpus_rerun11 §"verus_error"
 
