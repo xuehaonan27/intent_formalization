@@ -260,6 +260,7 @@ def _inject_into_source(
     source = _rewrite_mut_self_in_ensures(source)
     source = _synthesize_view_trait_impls(source)
     source = _rewrite_deps_hack(source)
+    source = _allow_repr_transparent_lint(source)
     if open_closed_specs:
         from spec_determinism.classify import rewrite_closed_to_opaque
         source = rewrite_closed_to_opaque(source, open_closed_specs)
@@ -471,6 +472,59 @@ _FN_DECL_RE = re.compile(
     r"\b(?:pub(?:\([^)]*\))?\s+)?(?:unsafe\s+)?fn\s+"
     r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^>(]*>)?\s*\("
 )
+
+
+_REPR_TRANSPARENT_RE = re.compile(r"#\[\s*repr\s*\(\s*transparent\s*\)\s*\]")
+
+
+def _allow_repr_transparent_lint(source: str) -> str:
+    """Suppress the ``repr_transparent_non_zst_fields`` lint at crate level.
+
+    Newer rustc (2024+) hard-errors on ``#[repr(transparent)]`` structs that
+    contain a ZST field of an external type with private fields — e.g.
+    Verus's ``Ghost<T>`` / ``Tracked<T>``. The nrkernel corpus has structs
+    like ``struct PDE { entry: usize, layer: Ghost<nat> }`` that hit this.
+    Emitting a crate-level ``#![allow(repr_transparent_non_zst_fields)]``
+    is the minimal-impact fix: layout semantics are preserved, only the
+    lint is silenced. No-op if the source has no ``#[repr(transparent)]``
+    or already declares the allow.
+    """
+    if not _REPR_TRANSPARENT_RE.search(source):
+        return source
+    if "repr_transparent_non_zst_fields" in source:
+        return source
+    attr = "#![allow(repr_transparent_non_zst_fields)]\n"
+    # Crate-level inner attrs must precede any item but may follow other
+    # inner attrs / shebangs / BOM. Skip leading shebang and inner attrs.
+    i = 0
+    n = len(source)
+    if source.startswith("\ufeff"):
+        i = 1
+    if source[i:i+2] == "#!" and source[i:i+3] != "#![":
+        # shebang line
+        nl = source.find("\n", i)
+        i = nl + 1 if nl != -1 else n
+    # Skip existing inner attrs `#![...]`
+    while i < n:
+        # skip whitespace / comments
+        while i < n and source[i] in " \t\r\n":
+            i += 1
+        if source[i:i+3] == "#![":
+            end = _find_balanced(source, i + 2, "[", "]")
+            if end == -1:
+                break
+            i = end
+            continue
+        if source[i:i+2] == "//":
+            nl = source.find("\n", i)
+            i = nl + 1 if nl != -1 else n
+            continue
+        if source[i:i+2] == "/*":
+            end = source.find("*/", i + 2)
+            i = end + 2 if end != -1 else n
+            continue
+        break
+    return source[:i] + attr + source[i:]
 
 
 def _find_balanced(source: str, start: int, open_ch: str, close_ch: str) -> int:

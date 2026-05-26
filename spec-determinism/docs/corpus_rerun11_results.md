@@ -12,13 +12,18 @@ ironkv was run separately as a targeted rerun on its 41 strict unknowns
 | project          | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
 |------------------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
 | ironkv           |   214 |      157 |    2 |         16 |           39 |     0 |         0 |
-| atmosphere       | 1363  |     1059 |   23 |         29 |          138 |    65 |        49 |
+| atmosphere       |  1361 |     1082 |   23 |         29 |          162 |    65 |         0 |
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
-| nrkernel         |     8 |        6 |    0 |          0 |            0 |     0 |         2 |
+| nrkernel         |     8 |        7 |    0 |          0 |            1 |     0 |         0 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
 | storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1647** | **1260** | **25** |  **49**   |     **190**  |  **65** |    **58** |
+| **TOTAL**        | **1645** | **1284** | **25** |  **49**   |     **215**  |  **65** |    **7** |
+
+> The above table reflects the **post-fix** state after the 2026-05-26
+> atmosphere / storage / nrkernel pipeline updates documented below.
+> Original rerun11 baseline totals (pre any 2026-05-26 fix) were
+> 1239 / 25 / 45 / 179 / 65 / 94 — see git history for the snapshot.
 
 Notes:
 - `complete` = baseline z3 proved R0=unsat without LLM
@@ -291,6 +296,31 @@ Pipeline patches (working tree; about to commit):
   skip spans; `_impl_generic_param_names` helper.
 
 Full rerun of the 43 baseline-failing entries: `/tmp/storage_full_2026-05-26/full_run.json`. Methodology: same baseline driver, `--timeout 60s`.
+
+### Update 2026-05-26 — nrkernel verus_error 2 → 0
+
+Both nrkernel baseline `verus_error` cases share a single root cause:
+the source defines `#[repr(transparent)] pub struct PDE { entry: usize,
+layer: Ghost<nat> }`. Newer rustc (2024+) promotes the
+`repr_transparent_non_zst_fields` lint to a hard error for any
+`repr(transparent)` struct containing a ZST field of an external type
+with private fields — and Verus's `Ghost<T>` matches that pattern.
+
+Fix: `verus/single_file._allow_repr_transparent_lint` — a new
+source-rewriter that, whenever the file contains `#[repr(transparent)]`,
+auto-inserts a crate-level `#![allow(repr_transparent_non_zst_fields)]`
+at the top of the file (after shebang / existing inner attrs). Layout
+semantics are preserved — only the lint is silenced. No-op if the
+allow is already present.
+
+Net effect:
+
+| project | total | complete | +LLM | incomplete | inconclusive | crash | verus_err |
+|---------|------:|---------:|-----:|-----------:|-------------:|------:|----------:|
+| nrkernel (pre-fix)  | 8 | 6 | 0 | 0 | 0 | 0 | 2 |
+| nrkernel (post-fix) | 8 | 7 | 0 | 0 | 1 | 0 | 0 |
+
+Full rerun: `/tmp/nrkernel_rerun/full_run.json`.
 
 ## Methodology footnotes
 

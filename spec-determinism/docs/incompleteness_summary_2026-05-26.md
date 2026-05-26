@@ -13,11 +13,11 @@
 | ironkv           |   214 |      157 |    2 |         16 |           39 |     0 |         0 |
 | atmosphere       |  1361 |     1082 |   23 |         29 |          162 |    65 |         0 |
 | memory-allocator |    16 |       15 |    0 |          0 |            1 |     0 |         0 |
-| nrkernel         |     8 |        6 |    0 |          0 |            0 |     0 |         2 |
+| nrkernel         |     8 |        7 |    0 |          0 |            1 |     0 |         0 |
 | anvil-library    |     1 |        0 |    0 |          0 |            1 |     0 |         0 |
 | storage          |    43 |       21 |    0 |          4 |           11 |     0 |         7 |
 | vest             |     2 |        2 |    0 |          0 |            0 |     0 |         0 |
-| **TOTAL**        | **1645** | **1283** | **25** |  **49** | **214** |  **65** |    **9** |
+| **TOTAL**        | **1645** | **1284** | **25** |  **49** | **215** |  **65** |    **7** |
 
 > **2026-05-26 update (atmosphere)** — atmosphere baseline `verus_err` cleared from 49 → 0 by three fixes
 > committed today (extractor: preserve `&mut` on `Tracked(p): Tracked<&mut T>` destructures
@@ -35,6 +35,14 @@
 > 4 `incomplete` permitted / 11 `inconclusive`. The 7 residual `verus_err` are inherent
 > source / vstd-version incompatibilities (4× `Box<S>: SpecEq<S>`, 3× `iter.end` on
 > `VerusForLoopWrapper`). See `corpus_rerun11_results.md §"Update 2026-05-26 — storage"`.
+>
+> **2026-05-26 update (nrkernel)** — nrkernel baseline `verus_err` cleared from 2 → 0 by
+> a one-line crate-level allow: `#![allow(repr_transparent_non_zst_fields)]` is auto-inserted
+> when the source contains `#[repr(transparent)]`. Newer rustc hard-errors on
+> `repr(transparent)` structs containing Verus's `Ghost<T>` (ZST field of an external type
+> with private fields); both nrkernel cases hit this on `pub struct PDE { entry: usize,
+> layer: Ghost<nat> }`. The allow silences the lint without altering layout. Both cases
+> now compile + verify (1 promoted to `complete`, 1 to `inconclusive`).
 
 Legend:
 - `complete` / `+LLM` — baseline z3 (resp. LLM-authored proof) proved R0=unsat
