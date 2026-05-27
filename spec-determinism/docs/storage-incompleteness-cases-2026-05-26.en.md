@@ -795,25 +795,38 @@ pm@.flush().committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as
 
 ### Shared shape
 
-CapybaraKV's CRC machinery uses a "ghost view + opaque backend" pattern:
+CapybaraKV's CRC machinery uses a "ghost view + opaque backend" pattern. The relevant declarations (`pmemutil_calculate_crc.rs:100-142`, `pmemutil_calculate_crc_bytes.rs:100-142` is byte-for-byte identical):
 
 ```rust
 #[verifier::external_body]
-struct ExternalDigest {           // wraps a real CRC32/CRC64 accumulator from a sibling crate
+struct ExternalDigest {           // wraps a real CRC accumulator from a sibling crate
     digest: Digest,
 }
 
 pub struct CrcDigest {
     digest: ExternalDigest,                 // opaque, #[verifier::external_body]
-    bytes_in_digest: Ghost<Seq<Seq<u8>>>,   // ghost log of all pushed byte sequences
+    bytes_in_digest: Ghost<Seq<Seq<u8>>>,   // ghost field
+}
+
+impl CrcDigest {
+    pub closed spec fn bytes_in_digest(self) -> Seq<Seq<u8>>;  // ← NO body
+    pub fn new() -> (output: Self) ensures output.bytes_in_digest() == Seq::empty();
+    pub fn write<S>(&mut self, val: &S) where S: PmCopy
+        ensures self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes());
+    pub fn sum64(&self) -> (output: u64)
+        requires self.bytes_in_digest().len() != 0,
+        ensures output == spec_crc_u64(self.bytes_in_digest().flatten()), ...;
 }
 ```
 
-The exec API exposes `new()`, `write(&S)` / `write_bytes(&[u8])`, and `sum64()`. The intended semantics are: "only `sum64()` is observable; `digest` is a private accumulator." The spec implements this idea by ensuring `bytes_in_digest()` after `new` is empty, `write` appends to it, and `sum64()`'s output equals `spec_crc_u64(flatten(bytes_in_digest()))`.
+What the spec actually tells z3:
+- `ExternalDigest` is `#[verifier::external_body]` — z3 has no axioms about it; `==` is uninterpreted (only reflexivity).
+- `bytes_in_digest(self)` is `pub closed spec fn ... ;` with **no body** — it is an abstract / uninterpreted function symbol whose codomain is `Seq<Seq<u8>>`. z3 only knows the equations the ensures provide.
+- `spec_crc_u64` is similarly `closed` and bodyless (line 231).
 
-**But the spec does not pin the `digest` field** — neither at `new` (initial state is free) nor at `write` (post-state is free). Two different implementations of `new` (e.g. one initialising the CRC32 register to `0xFFFFFFFF`, another to `0`) both satisfy `output.bytes_in_digest() == Seq::empty()` and yet produce structurally-different `CrcDigest` values.
+The CRC interpretation ("`digest` is an incremental CRC32 accumulator") is **not** in the spec — it comes from the file names, type names, and the external library wired into `Digest`. Verus sees an unspecified byte-accumulator type whose only observable contract is "after `new` the abstract `bytes_in_digest()` is empty; `write(v)` appends `v.spec_to_bytes()` to it; `sum64` returns `spec_crc_u64(flatten(...))`".
 
-The codegen produces a structural equal_fn for `CrcDigest` that includes the opaque field:
+The codegen produces a structural equal_fn for `CrcDigest` that includes both fields:
 
 ```rust
 spec fn det_new_equal(r1: CrcDigest, r2: CrcDigest) -> bool {
@@ -821,23 +834,30 @@ spec fn det_new_equal(r1: CrcDigest, r2: CrcDigest) -> bool {
 }
 ```
 
-The `r1.digest == r2.digest` clause asks Verus to compare two `ExternalDigest` values structurally. Since `ExternalDigest` is `#[verifier::external_body]`, z3 sees `==` as an uninterpreted predicate with no axioms forcing it true; it cannot prove the equality from the (empty) ensures constraint on `digest`, and therefore cannot conclude determinism.
+(Note `r1.bytes_in_digest` is the **field** access — the `Ghost<...>` field — not the `bytes_in_digest()` method call.) z3 needs to discharge both conjuncts.
 
 ### Why this is incomplete (with respect to the equal_fn)
 
-Two compliant impls trivially diverge on the opaque field:
+The ensures clauses do not constrain either of the two fields that the equal_fn checks:
 
-| witness pair | both legal? | equal_fn |
+1. **`digest: ExternalDigest` field.** No ensures clause on `new` / `write` mentions it. Even if one did, `ExternalDigest` is `#[verifier::external_body]` so z3 has no axioms beyond `==` reflexivity; arbitrary two values are not provably equal.
+2. **`bytes_in_digest: Ghost<...>` field.** Ensures only mentions the **method** `bytes_in_digest(...)`, whose body is closed and missing. The method-to-field relationship is invisible to z3, so even though both `new()` returns satisfy `output.bytes_in_digest() == empty()`, z3 cannot conclude both have `output.bytes_in_digest@ == empty()`, hence cannot discharge `(r1.bytes_in_digest)@ =~= (r2.bytes_in_digest)@` either.
+
+Strictly structural witness (no implementation semantics needed):
+
+| witness pair | both legal w.r.t. ensures? | equal_fn |
 |---|---|---|
-| `Impl A: new() → CrcDigest { digest: ExternalDigest(state=0xFFFFFFFF), ghost: empty }` | ✓ (`bytes_in_digest()==empty` ✓) | |
-| `Impl B: new() → CrcDigest { digest: ExternalDigest(state=0x00000000), ghost: empty }` | ✓ (`bytes_in_digest()==empty` ✓) | `A.digest == B.digest` is uninterpreted → cannot conclude true → equal_fn fails |
+| `r1 = CrcDigest { digest: D1, bytes_in_digest: Ghost(L1) }` | ✓ if `bytes_in_digest()` happens to satisfy the ensures-equation at this state | |
+| `r2 = CrcDigest { digest: D2, bytes_in_digest: Ghost(L2) }` with `D1 ≠ D2` or `L1 ≠ L2` | ✓ similarly | structural inequality on either field → returns false |
 
-Whether this is a *real* defect or a *fine* design choice is a judgement call:
+z3 cannot rule this witness out because (a) ensures says nothing about `digest`, (b) the bodyless `bytes_in_digest()` decouples the method from the field. No assumption about CRC32 / CRC64 / Castagnoli / etc. is needed; the defect is purely "spec under-constrains the fields the equal_fn checks".
+
+The judgement call about whether this is a "real" defect or a "fine" design choice still applies:
 
 - **"Fine"**: `digest` is implementation-private state; observably, the only operation that exposes it is `sum64()`, which depends only on `bytes_in_digest()`. The spec's intent is "behaviour through the public API is deterministic", which is achieved.
 - **"Defect"**: the type `CrcDigest` is `pub` and uses Verus's default structural equality. If any caller stores or compares `CrcDigest` values (e.g. inside another struct that derives equality), the non-determinism leaks.
 
-Either reading, **the tool's structural-equality check flags it as incomplete**, and the spec as written does not constrain `digest` to be implementation-uniform.
+Either reading, **the tool's structural-equality check flags it as incomplete**, and the spec as written does not constrain either field to be implementation-uniform.
 
 ### Per-case spec snippets
 
@@ -855,6 +875,8 @@ pub fn new() -> (output: Self)
 { unimplemented!() }
 ```
 
+Witness: any pair `r1, r2` with `r1.digest ≠ r2.digest` (any two abstract `ExternalDigest` values; z3 has no axiom to refute the difference). Even if both `bytes_in_digest@` fields happen to equal `empty()`, the opaque-field disagreement defeats `det_new_equal`.
+
 #### #12 `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field after update
 
 - **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc.rs:122`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs#L122)
@@ -869,7 +891,7 @@ pub fn write<S>(&mut self, val: &S) where S: PmCopy
 { unimplemented!() }
 ```
 
-The post-state `self.digest` is unconstrained — Impl A may use an incremental CRC32 update, Impl B may store the bytes and recompute on `sum64`. Both legal.
+Witness: identical `pre_self`, identical `val`, two posts whose `digest: ExternalDigest` fields differ. ensures says nothing about the post-`digest` field — any two values pass.
 
 #### #13 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
 
@@ -894,6 +916,7 @@ pub fn write_bytes(&mut self, val: &[u8])
 Same opaque-field defect as #12; `&[u8]` parameter instead of `&S: PmCopy`.
 
 ### Suggested fix (shared)
+
 
 Two ways to close the hole — pick one:
 
