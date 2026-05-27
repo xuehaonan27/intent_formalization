@@ -918,10 +918,19 @@ pub fn new() -> (output: Self)
 
 ## Audit footnote — cases reviewed but NOT counted as incomplete
 
-The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 5 cases above (#10-#14) are real incompleteness; one case was excluded as a z3-weakness rather than a spec defect:
+The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases **and** the 4 historically-`permitted=True` cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 5 cases above (#10-#14) are real incompleteness; **three cases — one in the unknown bucket and two in the historical-incomplete bucket — were excluded as the same z3-weakness rather than spec defects**:
 
-- **`serialize_and_write` (`verified/log_setup/setup_write_setup_metadata_to_region.rs:281`, trait method on `PersistentMemoryRegion`)**.
+All three are instances of the same shape — a `serialize_and_write` exec fn on a trait-bound generic where the spec pins `self@` uniquely but the equal_fn does structural `==` on the trait-bound `Self`:
+
   - Ensures: `self@ == old(self)@.write(addr as int, to_write.spec_to_bytes())`, `self.constants() == old(self).constants()`, plus a `subrange()` agreement clause. The post-`self@` is uniquely pinned by `old@.write(...)`.
-  - Equal_fn: `(post1_self_ == post2_self_)` — structural equality on a trait-bound generic `__DetSelf: PersistentMemoryRegion`.
-  - Why unknown: z3 has no model for what `==` means on a generic trait-bound type. The trait declares `spec fn view(&self) -> PersistentMemoryRegionView` and `spec fn constants(...) -> PersistentMemoryConstants` but not how those relate to `Self`'s structural equality. So even though both runs derive the same `@` and the same `constants()`, z3 cannot conclude `post1_self_ == post2_self_`.
+  - Equal_fn: `(post1_self_ == post2_self_)` — structural equality on a trait-bound generic.
+  - Why unknown / why the tool calls it incomplete: z3 has no model for what `==` means on a generic trait-bound type. The trait declares `spec fn view(&self) -> PersistentMemoryRegionView` and `spec fn constants(...) -> PersistentMemoryConstants` but not how those relate to `Self`'s structural equality. So even though both runs derive the same `@` and the same `constants()`, z3 cannot conclude `post1_self_ == post2_self_`.
   - Verdict: **z3-weakness, not spec incompleteness.** A pipeline-side fix would replace structural `==` with `(post1@, post1.constants()) == (post2@, post2.constants())` for trait-bound `&mut self` exec fns. Out of scope for this document.
+
+The three instances:
+
+- **Trait declaration — `serialize_and_write` (`verified/log_setup/setup_write_setup_metadata_to_region.rs:281`, trait method on `PersistentMemoryRegion`).** Lands in the `unknown` bucket (`r0_z3=unknown, permitted=False`).
+- **Subregion impl — `subregion_serialize_and_write_absolute3.rs:225`** (impl of the same trait method on the absolute-addressing subregion wrapper).
+- **Subregion impl — `subregion_serialize_and_write_relative3.rs:247`** (impl on the relative-addressing wrapper).
+
+The two subregion impls are the tool's "previously reported 4 incomplete cases, last 2 of which do not count" — they have identical ensures shape (line-for-line copy of the trait spec), and were reclassified from `incomplete` → `complete` in [3dcccb58](https://github.com/q5438722/intent_formalization/commit/3dcccb58) on the basis that subsequent z3 runs gave `r0_z3=unsat` on the same artifacts. On this rerun they regressed back to `r0_z3=unknown, permitted=True`. The verdict is z3-jitter on top of a generic z3-weakness; treating them as complete (as the corpus_rerun11 / progress-2026-05-26 numbers do) is the right call.
