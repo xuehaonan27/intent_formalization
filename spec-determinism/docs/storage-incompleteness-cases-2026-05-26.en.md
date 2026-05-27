@@ -1,19 +1,20 @@
 # storage spec-incompleteness case set
 
-> 9 incomplete cases on the rerun11 storage corpus (2 originally flagged by the `permissive_or` detector + 7 detector-missed instances of the `impervious_to_corruption` pattern family).
+> 14 incomplete cases on the rerun11 storage corpus (2 originally flagged by the `permissive_or` detector + 12 detector-missed, found by a manual audit of the remaining `unknown` bucket).
 > Each case shows two implementations whose post-states differ on the same input even though both satisfy the spec — i.e. the spec is incomplete with respect to determinism.
 > Source dataset: `spec-determinism/results-verusage-viewreg/storage/full_run.json`.
 >
-> The 9 cases fall into three patterns:
-> - **Part 1 — On-disk byte layout under-specified** (1 case): spec pins the *abstract recovered state* but leaves multiple concrete byte regions free.
+> The 14 cases fall into four patterns:
+> - **Part 1 — On-disk byte layout under-specified** (2 cases): spec pins the *abstract recovered state* but leaves multiple concrete byte regions free.
 > - **Part 2 — Error path under-specified** (1 case): even legitimate inputs are allowed to return `Err(...)`; on invalid inputs multiple `Err(...)` variants coexist and the `Ok` arm is vacuously satisfied.
 > - **Part 3 — `impervious_to_corruption` pattern family** (7 cases): every `Err(...)` / `None` / `false` arm is guarded by `... ==> !impervious_to_corruption` (or just `!impervious_to_corruption`). Real hardware sets that constant to `false`, so the spec lets *any* implementation report a spurious corruption error on any valid input. Detector-missed because the current `permissive_or` test only fires on syntactic `|||`; these are implication-shaped (`==>`), so they currently land in the `unknown` (`r0_z3=unknown`) or `verus_error` (`Box<S>: SpecEq` residual) bucket.
+> - **Part 4 — Opaque internal state under-specified** (4 cases): a struct contains an `#[verifier::external_body]` opaque field (e.g. `ExternalDigest`) plus a `Ghost<...>` view; the ensures pins only the ghost view, leaving the opaque field unconstrained. The generated equal_fn includes structural equality on the opaque field, so two impls with different opaque-field values both satisfy the spec yet are unequal.
 
 ## Overview
 
 | # | Case | Pattern | Notes |
 |---|------|---------|-------|
-| 1 | `write_setup_metadata` | Byte layout under-specified | mkfs / format: spec pins abstract `recover_state == Some(initialize(log_capacity))`, leaves CDB-side choice, `_padding`, inactive metadata, gap, and log_area bytes all free. |
+| 1 | `write_setup_metadata` (`log_logimpl/logimpl_setup.rs`) | Byte layout under-specified | mkfs / format: spec pins abstract `recover_state == Some(initialize(log_capacity))`, leaves CDB-side choice, `_padding`, inactive metadata, gap, and log_area bytes all free. |
 | 2 | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | Error path under-specified | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
 | 3 | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `impervious_to_corruption` | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption`. No `state.is_Some()` guard — spurious CRC error admissible *unconditionally* when not impervious. Currently `unknown`. |
 | 4 | `read_cdb` (`log_start/start_read_cdb.rs`) | `impervious_to_corruption` | Same spec as #3 (sibling copy in `log_start/`). Currently `unknown`. |
@@ -22,6 +23,11 @@
 | 7 | `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) | `impervious_to_corruption` | `true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> if b { ... } else { !impervious_to_corruption }` — even on matching-CRC input, `b=false` is admissible. Currently `unknown`. |
 | 8 | `check_crc` (`log_start/start_read_log_variables.rs`) | `impervious_to_corruption` | Same spec as #7 (sibling copy embedded in the `start_read_log_variables.rs` file). Currently `verus_error` (`Box<S>: SpecEq` residual — same semantic issue as #7). |
 | 9 | `read_log_variables` (`log_start/start_read_log_variables.rs`) | Error path under-specified + `impervious_to_corruption` | Same spec as #2 (sibling copy in `log_start/`). Currently `verus_error` (`Box<S>: SpecEq` residual). |
+| 10 | `write_setup_metadata_to_region` (`log_setup/setup_write_setup_metadata_to_region.rs`) | Byte layout under-specified | Lower-level twin of #1: spec pins `memory_correctly_set_up_on_region(pm@.flush().committed(), region_size, log_id)` (which fixes CDB to `Some(false)`), still leaves `_padding`, inactive `LogMetadata`+`LogCRC`, gap `[168,256)`, and `log_area` bytes free. Slightly tighter than #1 (CDB pinned) but same defect family. Currently `unknown`. |
+| 11 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Opaque internal state under-specified | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view). The `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is not constrained. Generated `det_new_equal` compares `r1.digest == r2.digest` AND the ghost view; two impls with different initial digest state both satisfy ensures yet are structurally unequal. Currently `unknown`. |
+| 12 | `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Opaque internal state under-specified | Spec pins `self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes())`. The `digest` field update is unconstrained — two impls (e.g. incremental CRC32 vs. recompute-on-`sum64`) produce different opaque post-states. Currently `unknown`. |
+| 13 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Opaque internal state under-specified | Same spec as #11 (sibling file). Currently `unknown`. |
+| 14 | `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Opaque internal state under-specified | Same defect as #12; `&[u8]` instead of `&S` argument. Currently `unknown`. |
 
 ## Witness format
 
@@ -712,3 +718,210 @@ The pattern also appears verbatim on impl-method specs that the extractor does *
 - `UntrustedLogImpl::start` (`verified/log_logimpl/logimpl_start.rs:1194`) — `Err(LogErr::CRCMismatch) => !wrpm_region.constants().impervious_to_corruption`. Same incompleteness; not counted in the 7 because the case never enters the `total` for this corpus.
 
 If the developer's intuition is "virtually every CapybaraKV function" — including these impl methods — the count of structurally-identical incomplete cases grows further once impl methods are added to the corpus.
+
+---
+
+## Part 1 (continued) — `write_setup_metadata_to_region` (#10)
+
+The same mkfs work is performed at two levels of the storage stack. Part 1 #1 (`write_setup_metadata` in `log_logimpl/logimpl_setup.rs`) is the **higher-level** entry point whose ensures speaks about the abstract `recover_state`. The **lower-level twin** lives in `log_setup/setup_write_setup_metadata_to_region.rs` and pins a more concrete (but still partial) on-disk predicate `memory_correctly_set_up_on_region`. Both leave the same byte regions free.
+
+### #10 `write_setup_metadata_to_region` (×1 instance)
+
+- **Source**: [`verified/log_setup/setup_write_setup_metadata_to_region.rs:599`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_setup/setup_write_setup_metadata_to_region.rs#L599)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_setup__setup_write_setup_metadata_to_region__write_setup_metadata_to_region/`
+- **Status**: `unknown` (R0 = unknown, no permissive `|||` in ensures).
+
+```rust
+fn write_setup_metadata_to_region<PMRegion: PersistentMemoryRegion>(
+    pm_region: &mut PMRegion,
+    region_size: u64,
+    log_id: u128,
+)
+    requires
+        old(pm_region).inv(),
+        old(pm_region)@.no_outstanding_writes(),
+        old(pm_region)@.len() == region_size,
+        region_size >= ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE,
+    ensures
+        pm_region.inv(),
+        pm_region.constants() == old(pm_region).constants(),
+        memory_correctly_set_up_on_region(pm_region@.flush().committed(), region_size, log_id),
+        metadata_types_set(pm_region@.flush().committed()),
+{ ... }
+```
+
+`memory_correctly_set_up_on_region` is the concrete on-disk predicate:
+
+```rust
+spec fn memory_correctly_set_up_on_region(mem: Seq<u8>, region_size: u64, log_id: u128) -> bool {
+    let global_metadata    = deserialize_global_metadata(mem);
+    let region_metadata    = deserialize_region_metadata(mem);
+    let log_cdb            = deserialize_and_check_log_cdb(mem);
+    let log_metadata       = deserialize_log_metadata(mem, false);
+    // ... CRCs, GUID/version checks ...
+    &&& region_metadata.region_size == region_size
+    &&& region_metadata.log_id == log_id
+    &&& region_metadata.log_area_len == region_size - ABSOLUTE_POS_OF_LOG_AREA
+    &&& log_cdb == Some(false)             // CDB pinned to false (tighter than #1)
+    &&& log_metadata.head == 0
+    &&& log_metadata.log_length == 0
+}
+```
+
+Vs Part 1 #1's ensures: this predicate pins `log_cdb == Some(false)` explicitly (instead of allowing either via `recover_cdb`). Everything else is still free:
+
+1. **`_padding` field of active `LogMetadata`** — 8 bytes free (active LogCRC follows the chosen value).
+2. **Inactive `LogMetadata` + `LogCRC`** (40 bytes free) — `metadata_types_set` only checks the active slot.
+3. **Gap bytes `[168, 256)`** (88 bytes free).
+4. **`LogArea` bytes `[256, region_size)`** — log_length=0 ⇒ unread.
+
+Witness: identical structure to #1's witness, with the CDB byte fixed to `CDB_FALSE` in both runs and one of the four remaining regions differing between runs. The det fn equal_fn (`(post1_pm_region == post2_pm_region)`) compares full byte sequences, so two impls choosing different `_padding` (or any of the four free regions) are unequal.
+
+**Suggested fix**: same as #1 with item (1) dropped — pin items (2)-(5):
+
+```rust
+extract_log_metadata(pm@.flush().committed(), false) =~=
+    LogMetadata { log_length: 0, _padding: 0, head: 0 }.spec_to_bytes(),
+extract_log_metadata(pm@.flush().committed(), true ) =~= Seq::new(32, |_| 0u8),
+extract_log_crc     (pm@.flush().committed(), true ) =~= Seq::new( 8, |_| 0u8),
+pm@.flush().committed().subrange(168, ABSOLUTE_POS_OF_LOG_AREA as int) =~= Seq::new(88, |_| 0u8),
+pm@.flush().committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as int)
+    =~= Seq::new((region_size - ABSOLUTE_POS_OF_LOG_AREA) as nat, |_| 0u8),
+```
+
+---
+
+## Part 4 — Opaque internal state under-specified
+
+### Shared shape
+
+CapybaraKV's CRC machinery uses a "ghost view + opaque backend" pattern:
+
+```rust
+#[verifier::external_body]
+struct ExternalDigest {           // wraps a real CRC32/CRC64 accumulator from a sibling crate
+    digest: Digest,
+}
+
+pub struct CrcDigest {
+    digest: ExternalDigest,                 // opaque, #[verifier::external_body]
+    bytes_in_digest: Ghost<Seq<Seq<u8>>>,   // ghost log of all pushed byte sequences
+}
+```
+
+The exec API exposes `new()`, `write(&S)` / `write_bytes(&[u8])`, and `sum64()`. The intended semantics are: "only `sum64()` is observable; `digest` is a private accumulator." The spec implements this idea by ensuring `bytes_in_digest()` after `new` is empty, `write` appends to it, and `sum64()`'s output equals `spec_crc_u64(flatten(bytes_in_digest()))`.
+
+**But the spec does not pin the `digest` field** — neither at `new` (initial state is free) nor at `write` (post-state is free). Two different implementations of `new` (e.g. one initialising the CRC32 register to `0xFFFFFFFF`, another to `0`) both satisfy `output.bytes_in_digest() == Seq::empty()` and yet produce structurally-different `CrcDigest` values.
+
+The codegen produces a structural equal_fn for `CrcDigest` that includes the opaque field:
+
+```rust
+spec fn det_new_equal(r1: CrcDigest, r2: CrcDigest) -> bool {
+    (r1.digest == r2.digest) && ((r1.bytes_in_digest)@ =~= (r2.bytes_in_digest)@)
+}
+```
+
+The `r1.digest == r2.digest` clause asks Verus to compare two `ExternalDigest` values structurally. Since `ExternalDigest` is `#[verifier::external_body]`, z3 sees `==` as an uninterpreted predicate with no axioms forcing it true; it cannot prove the equality from the (empty) ensures constraint on `digest`, and therefore cannot conclude determinism.
+
+### Why this is incomplete (with respect to the equal_fn)
+
+Two compliant impls trivially diverge on the opaque field:
+
+| witness pair | both legal? | equal_fn |
+|---|---|---|
+| `Impl A: new() → CrcDigest { digest: ExternalDigest(state=0xFFFFFFFF), ghost: empty }` | ✓ (`bytes_in_digest()==empty` ✓) | |
+| `Impl B: new() → CrcDigest { digest: ExternalDigest(state=0x00000000), ghost: empty }` | ✓ (`bytes_in_digest()==empty` ✓) | `A.digest == B.digest` is uninterpreted → cannot conclude true → equal_fn fails |
+
+Whether this is a *real* defect or a *fine* design choice is a judgement call:
+
+- **"Fine"**: `digest` is implementation-private state; observably, the only operation that exposes it is `sum64()`, which depends only on `bytes_in_digest()`. The spec's intent is "behaviour through the public API is deterministic", which is achieved.
+- **"Defect"**: the type `CrcDigest` is `pub` and uses Verus's default structural equality. If any caller stores or compares `CrcDigest` values (e.g. inside another struct that derives equality), the non-determinism leaks.
+
+Either reading, **the tool's structural-equality check flags it as incomplete**, and the spec as written does not constrain `digest` to be implementation-uniform.
+
+### Per-case spec snippets
+
+#### #11 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field at construction
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc.rs:114`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs#L114)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_calculate_crc__new/`
+- **Status**: `unknown`.
+
+```rust
+#[verifier::external_body]
+pub fn new() -> (output: Self)
+    ensures
+        output.bytes_in_digest() == Seq::<Seq<u8>>::empty(),
+{ unimplemented!() }
+```
+
+#### #12 `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field after update
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc.rs:122`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs#L122)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_calculate_crc__write/`
+- **Status**: `unknown`.
+
+```rust
+#[verifier::external_body]
+pub fn write<S>(&mut self, val: &S) where S: PmCopy
+    ensures
+        self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes()),
+{ unimplemented!() }
+```
+
+The post-state `self.digest` is unconstrained — Impl A may use an incremental CRC32 update, Impl B may store the bytes and recompute on `sum64`. Both legal.
+
+#### #13 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs:114`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs#L114)
+- **Status**: `unknown`.
+
+Byte-for-byte the same spec as #11 (sibling file targeting `&[u8]` instead of `&S` in the `write*` companion).
+
+#### #14 `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs:122`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs#L122)
+- **Status**: `unknown`.
+
+```rust
+#[verifier::external_body]
+pub fn write_bytes(&mut self, val: &[u8])
+    ensures
+        self.bytes_in_digest() == old(self).bytes_in_digest().push(val@),
+{ unimplemented!() }
+```
+
+Same opaque-field defect as #12; `&[u8]` parameter instead of `&S: PmCopy`.
+
+### Suggested fix (shared)
+
+Two ways to close the hole — pick one:
+
+**(A) Pin the opaque field through a spec view.** Add a closed-spec accessor `spec fn digest_state(self) -> Seq<u8>` (or similar) and an ensures clause tying it to `bytes_in_digest()`:
+
+```rust
+pub closed spec fn digest_state(self) -> Seq<u8>;
+
+#[verifier::external_body]
+pub fn new() -> (output: Self)
+    ensures
+        output.bytes_in_digest() == Seq::<Seq<u8>>::empty(),
+        output.digest_state() == seq_canonical_initial_crc_state(),    // pin the opaque field
+{ unimplemented!() }
+```
+
+**(B) Make `digest` ghost-only.** If the opaque accumulator is never observed externally, replace `digest: ExternalDigest` with a `Ghost<...>` field or move it into the body of the external_body function (not in the struct). The struct then has only the ghost log, which the ensures already pins.
+
+**(C) Pipeline-side: equal_fn ignores `#[verifier::external_body]` fields.** A tool-side workaround — when generating the structural equal_fn for a struct, skip fields whose type is `#[verifier::external_body]`. This treats opaque state as "outside the determinism contract". Subjective; some projects might prefer pinning explicitly via (A) or (B).
+
+---
+
+## Audit footnote — cases reviewed but NOT counted as incomplete
+
+The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 5 cases above (#10-#14) are real incompleteness; one case was excluded as a z3-weakness rather than a spec defect:
+
+- **`serialize_and_write` (`verified/log_setup/setup_write_setup_metadata_to_region.rs:281`, trait method on `PersistentMemoryRegion`)**.
+  - Ensures: `self@ == old(self)@.write(addr as int, to_write.spec_to_bytes())`, `self.constants() == old(self).constants()`, plus a `subrange()` agreement clause. The post-`self@` is uniquely pinned by `old@.write(...)`.
+  - Equal_fn: `(post1_self_ == post2_self_)` — structural equality on a trait-bound generic `__DetSelf: PersistentMemoryRegion`.
+  - Why unknown: z3 has no model for what `==` means on a generic trait-bound type. The trait declares `spec fn view(&self) -> PersistentMemoryRegionView` and `spec fn constants(...) -> PersistentMemoryConstants` but not how those relate to `Self`'s structural equality. So even though both runs derive the same `@` and the same `constants()`, z3 cannot conclude `post1_self_ == post2_self_`.
+  - Verdict: **z3-weakness, not spec incompleteness.** A pipeline-side fix would replace structural `==` with `(post1@, post1.constants()) == (post2@, post2.constants())` for trait-bound `&mut self` exec fns. Out of scope for this document.
