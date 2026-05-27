@@ -1,19 +1,27 @@
 # storage spec-incompleteness case set
 
-> 2 incomplete cases on the rerun11 storage corpus.
+> 9 incomplete cases on the rerun11 storage corpus (2 originally flagged by the `permissive_or` detector + 7 detector-missed instances of the `impervious_to_corruption` pattern family).
 > Each case shows two implementations whose post-states differ on the same input even though both satisfy the spec — i.e. the spec is incomplete with respect to determinism.
 > Source dataset: `spec-determinism/results-verusage-viewreg/storage/full_run.json`.
 >
-> The 2 cases fall into two patterns:
+> The 9 cases fall into three patterns:
 > - **Part 1 — On-disk byte layout under-specified** (1 case): spec pins the *abstract recovered state* but leaves multiple concrete byte regions free.
 > - **Part 2 — Error path under-specified** (1 case): even legitimate inputs are allowed to return `Err(...)`; on invalid inputs multiple `Err(...)` variants coexist and the `Ok` arm is vacuously satisfied.
+> - **Part 3 — `impervious_to_corruption` pattern family** (7 cases): every `Err(...)` / `None` / `false` arm is guarded by `... ==> !impervious_to_corruption` (or just `!impervious_to_corruption`). Real hardware sets that constant to `false`, so the spec lets *any* implementation report a spurious corruption error on any valid input. Detector-missed because the current `permissive_or` test only fires on syntactic `|||`; these are implication-shaped (`==>`), so they currently land in the `unknown` (`r0_z3=unknown`) or `verus_error` (`Box<S>: SpecEq` residual) bucket.
 
 ## Overview
 
 | # | Case | Pattern | Notes |
 |---|------|---------|-------|
 | 1 | `write_setup_metadata` | Byte layout under-specified | mkfs / format: spec pins abstract `recover_state == Some(initialize(log_capacity))`, leaves CDB-side choice, `_padding`, inactive metadata, gap, and log_area bytes all free. |
-| 2 | `read_log_variables` | Error path under-specified | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
+| 2 | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | Error path under-specified | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
+| 3 | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `impervious_to_corruption` | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption`. No `state.is_Some()` guard — spurious CRC error admissible *unconditionally* when not impervious. Currently `unknown`. |
+| 4 | `read_cdb` (`log_start/start_read_cdb.rs`) | `impervious_to_corruption` | Same spec as #3 (sibling copy in `log_start/`). Currently `unknown`. |
+| 5 | `check_cdb` (`log_start/start_read_cdb.rs`) | `impervious_to_corruption` | `None => !impervious_to_corruption` on an `Option<bool>` return — admissible whenever not impervious, even though the precondition pins `true_cdb ∈ {CDB_FALSE, CDB_TRUE}`. Currently `unknown`. |
+| 6 | `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) | `impervious_to_corruption` | Same spec as #5 (sibling copy in `pmem_pmemutil/`). Currently `unknown`. |
+| 7 | `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) | `impervious_to_corruption` | `true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> if b { ... } else { !impervious_to_corruption }` — even on matching-CRC input, `b=false` is admissible. Currently `unknown`. |
+| 8 | `check_crc` (`log_start/start_read_log_variables.rs`) | `impervious_to_corruption` | Same spec as #7 (sibling copy embedded in the `start_read_log_variables.rs` file). Currently `verus_error` (`Box<S>: SpecEq` residual — same semantic issue as #7). |
+| 9 | `read_log_variables` (`log_start/start_read_log_variables.rs`) | Error path under-specified + `impervious_to_corruption` | Same spec as #2 (sibling copy in `log_start/`). Currently `verus_error` (`Box<S>: SpecEq` residual). |
 
 ## Witness format
 
@@ -483,3 +491,224 @@ _ => false,
 ```
 
 After these changes the input uniquely determines which arm is taken, the Ok arm forbids junk info, and the equal_fn's blindness to Err-variant differences no longer matters — different impls are forced to return the same Err with the same fields.
+
+---
+
+## Part 3 — `impervious_to_corruption` pattern family
+
+### Shared shape
+
+CapybaraKV's persistent-memory abstraction models hardware corruption with a constant `pm_region.constants().impervious_to_corruption: bool`. The convention throughout the storage layer is that **every spurious-failure arm** of a read/check function is permitted *whenever the hardware is not impervious*. Concretely each function's ensures contains one of three syntactic forms:
+
+```rust
+// Form A — Result return, Err admissible unconditionally when not impervious.
+Err(LogErr::CRCMismatch) => !pm_region.constants().impervious_to_corruption,
+
+// Form B — Option return, None admissible whenever not impervious.
+None => !impervious_to_corruption,
+
+// Form C — bool return, false admissible whenever not impervious (under a precondition antecedent).
+true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
+    if b { ... } else { !impervious_to_corruption }
+}
+```
+
+`impervious_to_corruption` is a hardware-deployment property — on real persistent memory it is `false`. On every concrete deployment the spec therefore admits **two valid outcomes on the same input**: the *correct* `Ok(b)` / `Some(b)` / `b=true` *and* the spurious-corruption `Err(CRCMismatch)` / `None` / `b=false`. The equal_fn is sensitive to the Ok-vs-Err / Some-vs-None / true-vs-false discriminant, so this is real determinism non-determinism — two implementations may legitimately disagree.
+
+The 7 affected functions all sit on the log-startup read path and share the same idiom. Their precondition is strong enough to pin the *correct* answer (CDB ∈ {FALSE, TRUE}, CRC matches data); the only thing the spec doesn't force is "must return the correct answer when the hardware isn't claimed impervious".
+
+### Why the current detector misses these
+
+`spec_determinism.classify.ensures_uses_permissive_or` triggers on **syntactic disjunction in the ensures** (`|||` or `||`). The forms above are *implications* (`==>`), not disjunctions, so the detector lets them through. The functions then run through schema search; z3 cannot rule out the spurious arm (because it really is admissible under the spec), R0 comes back `unknown`, and the case lands in `ok_inconclusive` — what the public docs call **`unknown`**. The 2 sibling cases in `start_read_log_variables.rs` are additionally blocked by the residual `Box<S>: SpecEq<S>` source incompatibility and surface as `verus_error` rather than `unknown`, but the underlying spec defect is the same.
+
+A reasonable detector extension that would catch all 7 (and the originally-flagged `read_log_variables`): treat `Err(_) | None | (... = false)` arms as "permitted" whenever the arm body is **implied by** `!pm_region.constants().impervious_to_corruption` (or has that term as a top-level conjunct on the right of `==>`). This requires a tiny AST scan, not a model query.
+
+### Per-case spec snippets
+
+#### #3 `read_cdb` (`log_logimpl/logimpl_start.rs`) — Form A
+
+- **Source**: [`verified/log_logimpl/logimpl_start.rs:77`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_logimpl/logimpl_start.rs#L77)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_logimpl__logimpl_start__read_cdb/`
+- **Status**: `unknown` (R0 = unknown).
+
+Signature + ensures:
+
+```rust
+#[verifier::external_body]
+pub fn read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: &PMRegion) -> (result: Result<bool, LogErr>)
+    requires
+        pm_region.inv(),
+        recover_cdb(pm_region@.committed()).is_Some(),
+        pm_region@.no_outstanding_writes(),
+        metadata_types_set(pm_region@.committed()),
+    ensures
+        match result {
+            Ok(b) => Some(b) == recover_cdb(pm_region@.committed()),
+            Err(LogErr::CRCMismatch) => !pm_region.constants().impervious_to_corruption,
+            Err(e) => e == LogErr::PmemErr { err: PmemError::AccessOutOfRange },
+        },
+```
+
+`recover_cdb(committed).is_Some()` is in the requires, so `Ok(b)` is always derivable with the unique `b` returned by `recover_cdb`. `Err(CRCMismatch)` is admissible whenever `!impervious_to_corruption`. On any concrete deployment (real hardware sets `impervious_to_corruption = false`), the spec allows both `Ok(correct_b)` *and* `Err(CRCMismatch)`.
+
+#### #4 `read_cdb` (`log_start/start_read_cdb.rs`) — Form A
+
+- **Source**: [`verified/log_start/start_read_cdb.rs:621`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_start/start_read_cdb.rs#L621)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_start__start_read_cdb__read_cdb/`
+- **Status**: `unknown`.
+
+Byte-for-byte the same ensures as #3; the file lives in `log_start/` rather than `log_logimpl/` because the `verusage` benchmark splits some functions into two files for measurement purposes. Same incompleteness.
+
+#### #5 `check_cdb` (`log_start/start_read_cdb.rs`) — Form B
+
+- **Source**: [`verified/log_start/start_read_cdb.rs:328`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_start/start_read_cdb.rs#L328)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_start__start_read_cdb__check_cdb/`
+- **Status**: `unknown`.
+
+```rust
+pub fn check_cdb(
+    cdb_c: MaybeCorruptedBytes<u64>,
+    Ghost(mem): Ghost<Seq<u8>>,
+    Ghost(impervious_to_corruption): Ghost<bool>,
+    Ghost(cdb_addrs): Ghost<Seq<int>>,
+) -> (result: Option<bool>)
+    requires
+        // ... true_cdb ∈ {CDB_FALSE, CDB_TRUE} ...
+        if impervious_to_corruption {
+            cdb_c@ == true_cdb_bytes
+        } else {
+            maybe_corrupted(cdb_c@, true_cdb_bytes, cdb_addrs)
+        },
+    ensures
+        match result {
+            Some(b) => if b { true_cdb == CDB_TRUE } else { true_cdb == CDB_FALSE },
+            None    => !impervious_to_corruption,
+        },
+```
+
+The precondition pins the *true* CDB; the implementation, on impervious hardware, can read it back directly. On non-impervious hardware (the only deployment that matters), `None` is admissible regardless of what the bytes actually decode to. So `Some(correct_b)` *and* `None` are both legal on every realistic input.
+
+#### #6 `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) — Form B
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_check_cdb.rs:254`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_check_cdb.rs#L254)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_check_cdb__check_cdb/`
+- **Status**: `unknown`.
+
+Byte-for-byte the same as #5; the file lives under `pmem_pmemutil/` (the lower-layer copy of the spec).
+
+#### #7 `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) — Form C
+
+- **Source**: [`verified/pmem_pmemutil/pmemutil_check_crc.rs:238`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_check_crc.rs#L238)
+- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_check_crc__check_crc/`
+- **Status**: `unknown`.
+
+```rust
+pub fn check_crc(
+    data_c: &[u8], crc_c: &[u8],
+    Ghost(mem): Ghost<Seq<u8>>,
+    Ghost(impervious_to_corruption): Ghost<bool>,
+    Ghost(data_addrs): Ghost<Seq<int>>,
+    Ghost(crc_addrs):  Ghost<Seq<int>>,
+) -> (b: bool)
+    requires
+        // ... if impervious_to_corruption { data_c == true_data && crc_c == true_crc } else { maybe_corrupted(...) } ...
+    ensures
+        true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
+            if b {
+                &&& data_c@ == true_data_bytes
+                &&& crc_c@  == true_crc_bytes
+            } else {
+                !impervious_to_corruption
+            }
+        },
+```
+
+When the antecedent `true_crc_bytes == spec_crc_bytes(true_data_bytes)` holds (i.e. the on-disk CRC really is the CRC of the on-disk data — the only case the function is meaningfully called on), the impl may return either `true` (when the read-back bytes match) **or** `false` (claiming corruption — admissible because `!impervious_to_corruption`). Different impls on the same input may legitimately return opposite booleans.
+
+#### #8 `check_crc` (`log_start/start_read_log_variables.rs`) — Form C
+
+- **Source**: same `check_crc` spec, embedded in `verified/log_start/start_read_log_variables.rs` alongside `read_log_variables`.
+- **Status**: `verus_error` (residual `Box<S>: SpecEq<S>` source incompatibility — currently the pipeline can't even compile this case after closeout).
+
+Byte-for-byte the same spec as #7; would be `unknown` under the current detector once the `Box<S>` residual is resolved.
+
+#### #9 `read_log_variables` (`log_start/start_read_log_variables.rs`) — Form A + Part 2 issues
+
+- **Source**: same spec as Part 2 case #2, lives in `verified/log_start/start_read_log_variables.rs:464`.
+- **Status**: `verus_error` (residual `Box<S>: SpecEq<S>`).
+
+This is the `log_start/`-copy of #2. The `Err(CRCMismatch) => state.is_Some() ==> !impervious_to_corruption` arm is the impervious-pattern half; the Err-vs-Err / Ok-vacuity issues from Part 2 also apply. Two layers of incompleteness stacked.
+
+### Shared witness pattern
+
+All seven follow the same template — for any input that satisfies the (strong) precondition, the spec admits two outcomes:
+
+| function | r1 (correct) | r2 (spurious, admissible iff `!impervious_to_corruption`) | discriminator |
+|---|---|---|---|
+| `read_cdb` ×2 | `Ok(true)` (or `Ok(false)`, matching `recover_cdb(committed)`) | `Err(LogErr::CRCMismatch)` | Ok vs Err |
+| `check_cdb` ×2 | `Some(true)` (or `Some(false)`, matching `true_cdb`) | `None` | Some vs None |
+| `check_crc` ×2 | `true` (when read-back bytes match the on-disk truth — they do, since the precondition allows the impervious branch) | `false` (claiming a mismatch the impl never actually observed) | true vs false |
+| `read_log_variables` (`log_start/`) | `Ok(LogInfo { ... })` | `Err(LogErr::CRCMismatch)` | Ok vs Err |
+
+A concrete `read_cdb` witness (for #3 and #4 — identical):
+
+```
+  pre_pm_region.inv()
+  pre_pm_region@.no_outstanding_writes()
+  metadata_types_set(pre_pm_region@.committed())
+  pre_pm_region.constants().impervious_to_corruption == false      // real hardware
+
+  // CDB bytes at offset 80..88 decode to CDB_FALSE, so recover_cdb returns Some(false).
+  recover_cdb(pre_pm_region@.committed()) == Some(false)
+
+  // ---- Run 1 — Impl A: honest, returns the correct CDB ----
+  r1 == Ok(false)
+       // ensures arm Ok(b): Some(false) == recover_cdb(committed) ✓
+
+  // ---- Run 2 — Impl B: returns CRCMismatch despite no CRC actually mismatching ----
+  r2 == Err(LogErr::CRCMismatch)
+       // ensures arm Err(CRCMismatch): !impervious_to_corruption ✓ (= true)
+
+  (r1 is Ok) == true
+  (r2 is Ok) == false
+  ((r1 is Ok) == (r2 is Ok)) == false
+  !det_read_cdb_equal(r1, r2)
+```
+
+Equivalent witnesses for #5/#6 swap `Ok(false)` → `Some(false)` and `Err(CRCMismatch)` → `None`; for #7/#8 swap to `true` / `false`.
+
+### Suggested fix (shared)
+
+Tighten each arm into an `iff` that ties the return value to the actual on-disk bytes (or to genuine corruption, defined as `read_back ≠ true_bytes`), and drop the unconditional impervious escape:
+
+```rust
+// Form A (Result):
+Ok(b) => Some(b) == recover_cdb(pm_region@.committed()),
+Err(LogErr::CRCMismatch) =>
+    !pm_region.constants().impervious_to_corruption
+    && exists |i: int| 0 <= i < cdb_addrs.len()
+       && pm_region@.committed()[cdb_addrs[i]] != true_cdb_bytes[i],     // actually witnessed corruption
+Err(e) => e == LogErr::PmemErr { err: PmemError::AccessOutOfRange },
+
+// Form B (Option):
+Some(b) => if b { true_cdb == CDB_TRUE } else { true_cdb == CDB_FALSE },
+None =>
+    !impervious_to_corruption
+    && exists |i: int| 0 <= i < cdb_addrs.len()
+       && cdb_c@[i] != true_cdb_bytes[i],
+
+// Form C (bool):
+true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
+    b <==> (data_c@ == true_data_bytes && crc_c@ == true_crc_bytes)
+}
+```
+
+The second conjunct ("there is an i where the read-back byte differs from the true byte") forces the impl to *witness* corruption before claiming it, eliminating the spurious-error degree of freedom. Two impls on the same uncorrupted input must now return the same value.
+
+### Footnote — non-corpus instances of the same pattern
+
+The pattern also appears verbatim on impl-method specs that the extractor does *not* target (the extractor only picks free-standing `pub fn`, not `impl` methods). The most prominent:
+
+- `UntrustedLogImpl::start` (`verified/log_logimpl/logimpl_start.rs:1194`) — `Err(LogErr::CRCMismatch) => !wrpm_region.constants().impervious_to_corruption`. Same incompleteness; not counted in the 7 because the case never enters the `total` for this corpus.
+
+If the developer's intuition is "virtually every CapybaraKV function" — including these impl methods — the count of structurally-identical incomplete cases grows further once impl methods are added to the corpus.
