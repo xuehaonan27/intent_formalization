@@ -793,6 +793,17 @@ pm@.flush().committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as
 
 ## Part 4 — Opaque internal state under-specified
 
+### Case-pairing summary
+
+The four cases pair up as line-exact sibling copies (verified by `diff`):
+
+| sibling pair | files | difference |
+|---|---|---|
+| **#11 ≡ #13** (`new`) | `pmem_pmemutil/pmemutil_calculate_crc.rs:114-119` vs `..._calculate_crc_bytes.rs:114-119` | none — identical |
+| **#12 ↔ #14** (`write` companion) | `..._calculate_crc.rs:122-127` (`write<S>(&S)`, `val.spec_to_bytes()`) vs `..._calculate_crc_bytes.rs:122-127` (`write_bytes(&[u8])`, `val@`) | input shape (typed value vs raw byte slice); spec shape identical |
+
+So Part 4 is really 2 logically-distinct defects (`new`-shape + `write`-shape), each duplicated across the two sibling files. The "Shared shape" section below applies uniformly.
+
 ### Shared shape
 
 CapybaraKV's CRC machinery uses a "ghost view + opaque backend" pattern. The relevant declarations (`pmemutil_calculate_crc.rs:100-142`, `pmemutil_calculate_crc_bytes.rs:100-142` is byte-for-byte identical):
