@@ -12,7 +12,7 @@ For each function below, the public `ensures` admits two implementations whose p
 |---|---|---|---|
 | **Part 1 — Spec gaps**          | 5 | Missing constraints; spec under-promises | Per-case ensures additions (each is 1–6 lines) |
 | **Part 2 — Set vs Seq anchor**  | 2 | Public `=~=` (Set) hides the underlying `StaticLinkedList` `Seq` order | Bulk fix in **Appendix A**: tighten `=~=` → `==` on `free_pages_*` in the affected public APIs |
-| **Discussion only** (#8, #9)    | 2 | Knowingly accepted in the project (Array fresh-alloc, slinkedlist::push slot choice) | No action requested; included for visibility |
+| **Discussion only** (#8, #9)    | 2 | Knowingly accepted in the project (Array fresh-alloc, slinkedlist::push slot choice) | Discussion required with spec authors before acting (latent intent / API shape decisions) |
 
 The 5 Part-1 cases are independent and each can be merged in isolation.
 The 2 Part-2 cases collapse into the single setter-mirror change described in Appendix A.
