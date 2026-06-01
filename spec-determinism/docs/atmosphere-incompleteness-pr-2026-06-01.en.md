@@ -251,7 +251,10 @@ These two entries are technically incomplete with respect to determinism but are
 
 **Why not filed for action.** The only call site in the corpus is `ArraySet::new`, which runs `for i in 0..N { ret.data.set(i, false); }` immediately after `Array::new()`, with a loop invariant `forall|j: int| 0 <= j < i ==> ret.data@[j] == false`. The under-specified initial `seq@` is overwritten before any client can observe it.
 
-Worth a sentence in the doc-comment of `Array::new` clarifying the design intent ("uninitialised ghost contents; caller must overwrite before observing").
+**Note on unstated intent.** That the sole caller bothers to run a full coverage loop is itself evidence of a *latent* design intent — the freshly constructed array is supposed to be predictable / safe to read — but this intent is currently enforced ad-hoc at the call site, not expressed anywhere in the spec. If a future caller forgets the overwrite loop, Verus will silently accept reads of undefined ghost contents. Two ways to make the intent first-class:
+
+- add a default-value clause to `Array::new`'s ensures (`forall|i: int| 0 <= i < N ==> ret.seq@[i] == A::default()`), or
+- split into `new_uninit` (current semantics, explicitly named as a low-level escape hatch) + `new_default` (deterministic, the one safe callers should use).
 
 ### #9 `StaticLinkedList::push` — slot choice exposed but project-tolerated
 
@@ -261,12 +264,12 @@ Worth a sentence in the doc-comment of `Array::new` clarifying the design intent
 
 **Why not filed for action.** All callers (`free_page_4k`, `merged_4k_to_2m`, `remove_mapping_4k_helper2`, and the SLL self-test) are tagged `permitted=True` in the project's determinism corpus — the slot-choice nondeterminism is knowingly accepted at the public API surface.
 
-If the project later wishes to make `push` deterministic, the minimal change is:
+**Recommended spec tightening (low cost).** Every real implementation already maintains `free_list_head` as part of `wf()` and pops it as the natural / canonical choice (popping any other slot would require either a linear scan or extra bookkeeping). So pinning `ret` to `free_list_head` is strictly stronger than the current spec without forcing any impl change:
 
 ```rust
 ensures
-    post.value_list@ == pre.value_list@.push(pre.free_list_head),  // always take head
     ret == pre.free_list_head,
+    post.value_list@ == pre.value_list@.push(pre.free_list_head),
 ```
 
-Alternative: expose a `spec fn next_free_slot() -> SLLIndex` accessor and require `ret == old(self).next_free_slot()`.
+Adopting this would let all four caller sites drop their `permitted=True` annotation, and would surface any future regression that secretly randomises the slot choice. The alternative — exposing a `spec fn next_free_slot() -> SLLIndex` accessor and requiring `ret == old(self).next_free_slot()` — gives the same guarantee with one extra layer of indirection.
