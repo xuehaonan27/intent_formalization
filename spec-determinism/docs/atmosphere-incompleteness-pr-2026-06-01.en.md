@@ -259,8 +259,6 @@ These two entries are technically incomplete with respect to determinism but are
 
 `push` returns `ret: SLLIndex` = the free-list slot it popped to host the new element. The return is pinned only via `post.get_node_ref(*new_value) == ret`, which by the closed body of `get_node_ref` resolves to `post.value_list@[…]` — the **internal** allocation slot. When `pre.free_list@.len() ≥ 2`, two impls may pop different free-list elements; both pass ensures (`post@ = pre@.push(*new_value)`, existing slot indices preserved, `post.wf()`), but return different `SLLIndex` values.
 
-**Why not filed for action.** All callers (`free_page_4k`, `merged_4k_to_2m`, `remove_mapping_4k_helper2`, and the SLL self-test) are tagged `permitted=True` in the project's determinism corpus — the slot-choice nondeterminism is knowingly accepted at the public API surface.
-
 **Recommended spec tightening (low cost).** Every real implementation already maintains `free_list_head` as part of `wf()` and pops it as the natural / canonical choice (popping any other slot would require either a linear scan or extra bookkeeping). So pinning `ret` to `free_list_head` is strictly stronger than the current spec without forcing any impl change:
 
 ```rust
