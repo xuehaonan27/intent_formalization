@@ -12,7 +12,7 @@ For each function below, the public `ensures` admits two implementations whose p
 |---|---|---|---|
 | **Part 1 — Spec gaps**          | 5 | Missing constraints; spec under-promises | Per-case ensures additions (each is 1–6 lines) |
 | **Part 2 — Set vs Seq anchor**  | 2 | Public `=~=` (Set) hides the underlying `StaticLinkedList` `Seq` order | Bulk fix in **Appendix A**: tighten `=~=` → `==` on `free_pages_*` in the affected public APIs |
-| **Discussion only** (#11, #12)  | 2 | Knowingly accepted in the project (Array fresh-alloc, slinkedlist::push slot choice) | No action requested; included for visibility |
+| **Discussion only** (#8, #9)    | 2 | Knowingly accepted in the project (Array fresh-alloc, slinkedlist::push slot choice) | No action requested; included for visibility |
 
 The 5 Part-1 cases are independent and each can be merged in isolation.
 The 2 Part-2 cases collapse into the single setter-mirror change described in Appendix A.
@@ -28,8 +28,8 @@ The 2 Part-2 cases collapse into the single setter-mirror change described in Ap
 | 5 | `remove_mapping_4k_helper3`     | —                              | Spec gap         | Cleanest "Free pool no anchor" instance |
 | 6 | `add_io_mapping_4k`             | `add_mapping_4k`               | Set vs Seq       | `free_pages_*` permutation legal under `=~=` |
 | 7 | `free_page_4k`                  | —                              | Set vs Seq       | Insertion position of `target_ptr` in the free list unspecified |
-| 11 | `Array::new`                   | —                              | Discussion       | `ensures ret.wf()` (= `len==N`) only; sole caller overwrites |
-| 12 | `StaticLinkedList::push`       | —                              | Discussion       | Returned `SLLIndex` reveals which free slot was popped; all callers `permitted=True` |
+| 8 | `Array::new`                    | —                              | Discussion       | `ensures ret.wf()` (= `len==N`) only; sole caller overwrites |
+| 9 | `StaticLinkedList::push`        | —                              | Discussion       | Returned `SLLIndex` reveals which free slot was popped; all callers `permitted=True` |
 
 ---
 
@@ -194,6 +194,8 @@ self.free_pages_1g == old(self).free_pages_1g,
 
 ## Appendix A — Setter vs public-API ensures inconsistency
 
+> **Applies to:** primarily **#6** and **#7** (Part 2 — Set vs Seq anchor) — tightening the public ensures as described below closes both wholesale. The same pattern also strengthens the free-pool / perm-map anchors in **#3** and **#5** (Part 1) and matches what the per-case fix snippets for those entries already propose.
+
 Every `impl2__*.rs` file in `verified/allocator/` contains two layers:
 
 1. **Low-level setters** (marked `#[verifier(external_body)]`, e.g. `set_state`, `set_io_mapping`, `set_mapping`, `set_ref_count`, `set_owning_container`, `set_rev_pointer`): ensures use **field-level `==`** on every untouched field — including `self.free_pages_4k == old(self).free_pages_4k` (Seq-level), plus all 12+ ghost / tracked maps.
@@ -241,7 +243,7 @@ Tightening `=~=` → `==` would not, however, close Part 1 (#1, #2, #4) — thos
 
 These two entries are technically incomplete with respect to determinism but are **not** filed as PR-actionable bugs in this audit — either the project explicitly marks the callers `permitted=True`, or the under-specification is provably unobservable in this codebase. They are included so spec authors can see the full audit result.
 
-### #11 `Array::new` — sole caller already overwrites
+### #8 `Array::new` — sole caller already overwrites
 
 - **Source**: [`verified/array/array_set__impl0__new.rs:17`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/array/array_set__impl0__new.rs#L17)
 
@@ -251,7 +253,7 @@ These two entries are technically incomplete with respect to determinism but are
 
 Worth a sentence in the doc-comment of `Array::new` clarifying the design intent ("uninitialised ghost contents; caller must overwrite before observing").
 
-### #12 `StaticLinkedList::push` — slot choice exposed but project-tolerated
+### #9 `StaticLinkedList::push` — slot choice exposed but project-tolerated
 
 - **Source**: [`verified/slinkedlist/slinkedlist__spec_impl_u__impl2__push.rs:232`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/slinkedlist/slinkedlist__spec_impl_u__impl2__push.rs#L232)
 
