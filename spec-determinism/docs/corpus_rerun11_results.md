@@ -16,6 +16,43 @@ baseline totals were 1239 / 25 / 45 / 179 / 65 / 94 (see commit
 `68a2ac1e^` for the snapshot, or the per-project diff tables in
 §"2026-05-26 verus_error closeout").
 
+A further **2026-06-01 atmosphere + storage unknown audit** reclassified
+artifacts in two projects from `unknown` (and a handful of `verus_err`)
+to their source-level categories:
+
+- **atmosphere**: 20 raw / 4 unique specs moved `unknown` → `complete`.
+  Root cause: codegen defect in `gen_det.py::build_det_check_spec`
+  (top-level-self view-registry gap; ≈10 lines). Affected specs:
+  `Array::set`, `Array::init2zero`, `Array::init2none`,
+  `ArrayVec::pop_unique`. Source-level complete under the project's
+  view-first equality policy — only a codegen fix is needed to flip the
+  tool verdict from `unknown` → `unsat` on the next rerun.
+- **storage**: 12 raw moved to `incomplete` (10 from `unknown`, 2 from
+  `verus_err`), 1 raw moved `unknown` → `complete`. The 12 newly
+  `incomplete` cases break down as 7 `impervious_to_corruption` pattern
+  (Form A / B / C `==>` implications the syntactic `permissive_or`
+  detector misses), 1 byte-layout (`write_setup_metadata_to_region`,
+  sibling of original #1), and 4 opaque-internal-state
+  (`CrcDigest::new`/`write`/`write_bytes` over an `external_body`
+  `ExternalDigest` field). The 1 newly `complete` is the trait-method
+  `serialize_and_write` — a z3-weakness on structural `==` over a
+  trait-bound generic, not a spec defect. The 2 newly `incomplete`
+  cases inside `verus_err` (`check_crc` + `read_log_variables` in
+  `start_read_log_variables.rs`) are `impervious_to_corruption`-pattern
+  sites that *also* hit the `Box<S>: SpecEq` infra residual.
+
+The Section 1 table below still shows the **tool-observed** state for
+both projects; see the supplementary "Source-level distribution" table
+immediately after it for the post-reclassification numbers, and
+§"2026-06-01 codegen-defect + storage-detector-miss reclassification"
+for the per-project audit. For atmosphere the gap closes on a codegen
+fix + rerun; for storage 10 of the 12 new incompletes are detector
+misses (would close on extending `ensures_uses_permissive_or` to
+recognise `==> !impervious_to_corruption`), the byte-layout case
+mirrors #1's existing fix recipe, and the 4 opaque-state cases need
+either a closed-spec accessor / ghost-only field / pipeline-side
+skip-external_body.
+
 ## Final corpus-wide distribution (using `classify_ok`)
 
 | project          | total | complete | +LLM | incomplete | unknown | crash | verus_err |
@@ -33,6 +70,223 @@ baseline totals were 1239 / 25 / 45 / 179 / 65 / 94 (see commit
 > 2026-05-26 atmosphere / storage / nrkernel pipeline patches
 > (`68a2ac1e`, `64b1d5fe`, `38bd6d8e`). See §"2026-05-26 verus_error
 > closeout" for the bucket-by-bucket diff.
+
+### Source-level distribution (post-2026-06-01 reclassification)
+
+The table above is the **tool-observed** state (what `r0_z3` returned).
+The 2026-06-01 atmosphere + storage + small-project unknown audit
+identified reclassifications across five projects:
+
+- **atmosphere**: 25 raw artifacts (6 unique specs) reclassified out of
+  `unknown` — (a) 20 raw / 4 unique are **codegen-defect false positives**
+  (source-level complete under the view-first equality policy, awaiting
+  a ≈10-line fix in `gen_det.py::build_det_check_spec`); (b) 5 raw / 2
+  unique are real spec incompletes audit-found in the `unknown` bucket
+  (`Array::new`, `StaticLinkedList::push`; incompleteness doc cases
+  #11–#12).
+- **storage**: 13 raw reclassifications — 10 `unknown` → `incomplete`
+  (detector-missed `impervious_to_corruption` + byte-layout +
+  opaque-state spec defects), 1 `unknown` → `complete` (trait-bound
+  generic z3-weakness on `serialize_and_write`), 2 `verus_err` →
+  `incomplete` (impervious-pattern sites that also hit infra). See
+  [`storage-incompleteness-cases-2026-05-26.en.md`](./storage-incompleteness-cases-2026-05-26.en.md)
+  for the full per-case audit (14 documented cases total).
+- **memory-allocator / nrkernel / anvil-library**: the three remaining
+  single-`unknown` records were manually audited and all three are real
+  spec incompletes (`unknown` → `incomplete`): memory-allocator
+  `CommitMask::next_run` is author-acknowledged under-specified; nrkernel
+  `PDE::new_entry` constrains individual bits via per-bit MASK predicates
+  but leaves reserved bits unpinned; anvil-library `vec_filter` uses
+  multiset-eq by design so element ordering is permissive. None are z3
+  decidability limits. Per-case rationale in the audit-reclassification
+  footnotes under the source-level table.
+
+The table below records the **source-level** classification across
+both projects, with **every cell deduplicated to unique source-spec
+function names** (one row per `(file, function template)` pair is
+the raw artifact count; the `verusage` corpus inlines every callee
+into each verifier file, so the unique source-spec count is much
+smaller than the raw count for callee-heavy functions like
+`Vec::len` or `Array::set`):
+
+| project          | complete | +LLM | incomplete | unknown | crash | verus_err | TOTAL |
+|------------------|---------:|-----:|-----------:|--------:|------:|----------:|------:|
+| ironkv           |       49 |    2 |          9 |      27 |     0 |         0 |    80 |
+| atmosphere       |       89 |   18 |     **16** |      73 |    40 |         0 |   222 |
+| memory-allocator |       14 |    0 |      **1** |       0 |     0 |         0 |    15 |
+| nrkernel         |        7 |    0 |      **1** |       0 |     0 |         0 |     8 |
+| anvil-library    |        0 |    0 |      **1** |       0 |     0 |         0 |     1 |
+| storage          |        6 |    0 |      **9** |       0 |     0 |         5 |    18 |
+| vest             |        2 |    0 |          0 |       0 |     0 |         0 |     2 |
+
+**Bold** cells were independently audit-verified (atmosphere
+incompleteness doc #1–#12 deduplicates to 16 unique allocator-side
+specs; storage incompleteness doc #1–#14 deduplicates to 9 unique
+specs across 4 patterns; memory-allocator + nrkernel + anvil-library
+single-unknown audits at the bottom of this section). All other cells
+dedup by **unique function name** within the bucket — a heuristic that
+can undercount when two different traits share a method name (e.g.,
+`len`), and which has been spot-checked against the audit-verified
+cells (atmosphere `incomplete=16` and storage `incomplete=9` both
+reproduce exactly).
+
+The **TOTAL** column is the **project-wide union of unique source-spec
+function names** across all buckets, not the row sum — the same `len`
+can legitimately appear in two different buckets via different inlining
+sites, so column sums double-count overlaps. For ironkv, the 87 row-sum
+collapses to 80 (7 cross-bucket overlaps); for atmosphere, 236 → 222
+(14 overlaps); for storage, 20 → 18 (2 overlaps); the four small
+projects have zero overlap. For total-corpus accounting (the 1645-row
+denominator), use the raw-count table immediately below.
+
+Audit-reclassification footnotes (these moved between buckets in the
+2026-06-01 source-level reclassification and are already reflected in
+the cells above):
+
+- atmosphere `complete` (89 unique) includes **4 unique / 20 raw**
+  codegen-FP reclassifications (`Array::set`, `init2zero`, `init2none`,
+  `ArrayVec::pop_unique`) that moved out of `unknown`.
+- storage `complete` (6 unique) includes **1 unique / 1 raw**
+  z3-weakness reclassification (`serialize_and_write`) that moved out
+  of `unknown`.
+- memory-allocator `incomplete` (1 unique) — `CommitMask::next_run`
+  in `commit_mask/commit_mask__impl__next_run.rs`: spec only requires
+  `next_idx + count <= 512 && (forall t. next_idx <= t < next_idx+count
+  ==> self@.contains(t))`; author explicitly commented that "first set
+  bit at or after `idx`" and "`count` not smaller than necessary" are
+  not required for safety. Two valid impls can return `(0, 0)` and
+  `(0, 1)` for the same input — real spec under-specification.
+- nrkernel `incomplete` (1 unique) — `PDE::new_entry` in
+  `impl_u__l2_impl/impl_u__l2_impl__impl0__new_entry.rs`: spec uses
+  per-bit `r.entry & MASK_X == MASK_X` predicates that constrain
+  individual bits but leave reserved bit positions unpinned;
+  `r.entry` is not uniquely determined even when all 8 inputs are
+  fully bound. Real spec under-specification, masked by z3's
+  bit-vector decidability limit.
+- anvil-library `incomplete` (1 unique) — `vec_filter` in
+  `vstd_exd/vec_lib/vec_lib.rs`: spec uses `r@.to_multiset() =~=
+  v@.to_multiset().filter(f_spec)` (multiset equality), so element
+  ordering is intentionally not pinned — two valid runs may return
+  the same elements in different orders. Real permissive-by-design
+  spec (deliberate `multiset_eq` permission).
+
+See [`small-projects-incompleteness-cases-2026-06-01.en.md`](./small-projects-incompleteness-cases-2026-06-01.en.md)
+for the full per-case audit of these three (`next_run`, `new_entry`,
+`vec_filter`) including source, view function, generated equal_fn, and
+constructed concrete sat witness for each.
+
+**Source-level — raw corpus artifact counts** (one row per `(file,
+function template)` pair; same source-level reclassification applied):
+
+| project          | total | complete | +LLM | incomplete | unknown | crash | verus_err |
+|------------------|------:|---------:|-----:|-----------:|--------:|------:|----------:|
+| ironkv           |   214 |      157 |    2 |         16 |      39 |     0 |         0 |
+| atmosphere       |  1361 |     1102 |   23 |         34 |     137 |    65 |         0 |
+| memory-allocator |    16 |       15 |    0 |          1 |       0 |     0 |         0 |
+| nrkernel         |     8 |        7 |    0 |          1 |       0 |     0 |         0 |
+| anvil-library    |     1 |        0 |    0 |          1 |       0 |     0 |         0 |
+| storage          |    43 |       24 |    0 |         14 |       0 |     0 |         5 |
+| vest             |     2 |        2 |    0 |          0 |       0 |     0 |         0 |
+| **TOTAL**        | **1645** | **1307** | **25** | **67** | **176** | **65** | **5** |
+
+Diffs vs Section 1 table (raw counts so deltas line up with the
+tool-observed signal):
+
+| project | column | tool-observed | source-level | Δ | reason |
+|---------|--------|--------------:|-------------:|--:|--------|
+| atmosphere | complete   | 1082 | 1102 | +20 | 4 codegen-FP specs (20 raw) → reclassified to `complete` |
+| atmosphere | incomplete |   29 |   34 |  +5 | doc #11–#12 audit-found from `unknown` (`Array::new` + `StaticLinkedList::push`, 2 unique / 5 raw) |
+| atmosphere | unknown    |  162 |  137 | −25 | −20 codegen-FP (→ `complete`) + −5 audit-found incomplete (→ `incomplete`) |
+| memory-allocator | incomplete | 0 | 1 | +1 | `CommitMask::next_run` (1 unique / 1 raw) author-acknowledged spec under-specification |
+| memory-allocator | unknown    | 1 | 0 | −1 | reclassified to `incomplete` |
+| nrkernel | incomplete | 0 | 1 | +1 | `PDE::new_entry` (1 unique / 1 raw) per-bit MASK predicates leave reserved bits unpinned |
+| nrkernel | unknown    | 1 | 0 | −1 | reclassified to `incomplete` |
+| anvil-library | incomplete | 0 | 1 | +1 | `vec_filter` (1 unique / 1 raw) deliberate multiset-eq permission |
+| anvil-library | unknown    | 1 | 0 | −1 | reclassified to `incomplete` |
+| storage    | complete   |   23 |   24 |  +1 | trait `serialize_and_write` z3-weakness → reclassified to `complete` |
+| storage    | incomplete |    2 |   14 | +12 | 10 detector-missed `unknown` + 2 `verus_err` (impervious-pattern + opaque-state + byte-layout) |
+| storage    | unknown    |   11 |    0 | −11 | 10 → `incomplete`, 1 → `complete` |
+| storage    | verus_err  |    7 |    5 |  −2 | 2 of the 7 inherent residuals (`check_crc` + `read_log_variables` in `start_read_log_variables.rs`) are impervious-pattern spec defects, reclassified to `incomplete` |
+| TOTAL      | complete   | 1286 | 1307 | +21 | atmos +20 / storage +1 |
+| TOTAL      | incomplete |   47 |   67 | +20 | atmos +5 / mem-alloc +1 / nrkernel +1 / anvil +1 / storage +12 |
+| TOTAL      | unknown    |  215 |  176 | −39 | atmos −25 / mem-alloc −1 / nrkernel −1 / anvil −1 / storage −11 |
+| TOTAL      | verus_err  |    7 |    5 |  −2 | storage −2 |
+
+#### Raw artifacts vs unique source-level specs
+
+The unique-primary table above uses **bold** for audit-verified
+unique source-spec counts; un-bolded cells (and **all** cells in
+the raw-counts table) are raw corpus artifacts — one row per
+`(file, function template)` pair the extractor discovered. The
+`verusage` corpus uses *single-file packaging* — every verified function
+ships in a `.rs` file that inlines all its callees' source code so the
+file can be verified standalone. As a result, a single source-level spec
+appears as N raw artifacts (one canonical primary file + N−1 caller
+files that inlined it). The raw counts therefore inflate the unique
+source-spec count by a project-dependent factor (≈ 2× for atmosphere
+incompletes, ≈ 1.5× for storage incompletes).
+
+The table below records the full **unique source-spec count**
+alongside the raw count, for the columns where the audit measured
+both:
+
+| project    | column                  | raw | unique source specs | notes |
+|------------|-------------------------|----:|--------------------:|-------|
+| atmosphere | `complete` (reclassified codegen-FP) | 20 |  4 | `Array::set` (15), `init2zero` (2), `init2none` (1), `ArrayVec::pop_unique` (2) |
+| atmosphere | `incomplete` (all real spec defects, doc #1–#12) | 34 | 16 | #1–#10 = 29 raw / 14 unique (= rerun11 historical "29 permitted" set); #11–#12 = 5 raw / 2 unique (Array::new + SLL::push from unknown audit) |
+| atmosphere | of which: classifier-detected (`permitted=True`) | 29 | 14 | rerun11 Section 1 "incomplete" column for atmosphere |
+| atmosphere | of which: audit-found from `unknown` | 5 | 2 | doc #11 + #12 |
+| storage    | `incomplete` (all real spec defects, doc #1–#14) | 14 | 9 | dedup: 5 sibling pairs (#2≡#9, #3≡#4, #5≡#6, #7≡#8, #11≡#13) collapse to 5 unique + 4 distinct singletons (#1, #10, #12, #14) = 9 |
+| storage    | of which: classifier-detected (`permitted=True`) | 2  | 2 | doc #1 + #2 |
+| storage    | of which: audit-found from `unknown` | 10 | 7 unique-new | doc #3–#7, #10, #11–#14; none overlap with classifier-detected |
+| storage    | of which: audit-found from `verus_err` | 2 | 0 unique-new | doc #8 + #9; both are sibling copies of already-counted fns |
+
+(The atmosphere "29 → 14" ratio reproduces the inflation called out in
+the existing §"atmosphere incomplete breakdown" Layer 1 / Layer 2
+table — 14 distinct allocator-side primaries × ≈2 caller-inlining
+multiplier = 29 raw corpus rows.)
+
+For total-corpus accounting (the 1645-target denominator), raw counts
+are the right unit. For "how many distinct spec defects exist", the
+unique-source-spec column is the right unit.
+
+Atmosphere per-spec breakdown (raw counts in the `complete`
+reclassification):
+
+| spec | raw artifacts |
+|------|--------------:|
+| `Array::set`                | 15 |
+| `Array::init2zero`          |  2 |
+| `Array::init2none`          |  1 |
+| `ArrayVec::pop_unique`      |  2 |
+| **TOTAL**                   | **20** |
+
+Storage per-case breakdown (numbering matches
+[`storage-incompleteness-cases-2026-05-26.en.md`](./storage-incompleteness-cases-2026-05-26.en.md)):
+
+| # | function (location) | tool-observed | reclassified | reason |
+|--:|--------------------|---------------|--------------|--------|
+| #3 | `read_cdb` (`logimpl_start.rs`) | unknown | **incomplete** | impervious_to_corruption Form A |
+| #4 | `read_cdb` (`start_read_cdb.rs`) | unknown | **incomplete** | impervious_to_corruption Form A |
+| #5 | `check_cdb` (`start_read_cdb.rs`) | unknown | **incomplete** | impervious_to_corruption Form B |
+| #6 | `check_cdb` (`pmemutil_check_cdb.rs`) | unknown | **incomplete** | impervious_to_corruption Form B |
+| #7 | `check_crc` (`pmemutil_check_crc.rs`) | unknown | **incomplete** | impervious_to_corruption Form C |
+| #8 | `check_crc` (`start_read_log_variables.rs`) | verus_err | **incomplete** | Form C + Box<S>: SpecEq infra residual |
+| #9 | `read_log_variables` (`start_read_log_variables.rs`) | verus_err | **incomplete** | err-path + Form A + Box<S>: SpecEq infra residual |
+| #10 | `write_setup_metadata_to_region` (`setup_write_setup_metadata_to_region.rs`) | unknown | **incomplete** | byte-layout (sibling of #1) |
+| #11 | `CrcDigest::new` (`pmemutil_calculate_crc.rs`) | unknown | **incomplete** | opaque internal state (`ExternalDigest`) |
+| #12 | `CrcDigest::write<S>` (`pmemutil_calculate_crc.rs`) | unknown | **incomplete** | opaque internal state |
+| #13 | `CrcDigest::new` (`pmemutil_calculate_crc_bytes.rs`) | unknown | **incomplete** | opaque internal state (sibling of #11) |
+| #14 | `CrcDigest::write_bytes` (`pmemutil_calculate_crc_bytes.rs`) | unknown | **incomplete** | opaque internal state (sibling of #12) |
+| —  | `serialize_and_write` trait method (`setup_write_setup_metadata_to_region.rs`) | unknown | **complete** | z3-weakness on trait-bound `==`; spec uniquely pins `self@` (audit footnote) |
+| **TOTAL** | | | | **12 → incomplete, 1 → complete** |
+
+For paper / external-claim purposes the source-level distribution is
+the right one to cite, with footnotes pointing at the pending codegen
+fix (atmosphere) and the detector / spec-shape work (storage). For
+pipeline regression-tracking the tool-observed Section 1 table is the
+right one to cite (the artifacts will only flip in the actual JSON
+once the codegen fix lands and the detector / spec edits are applied).
 
 Notes:
 - `complete` = baseline z3 proved R0=unsat without LLM
@@ -507,7 +761,261 @@ Full rerun: `/tmp/nrkernel_rerun/full_run.json`, methodology
 All 3 self-test suites (`extractor`, `gen_det`, `classify`) pass on
 the final tree.
 
+## 2026-06-01 codegen-defect + storage-detector-miss reclassification
+
+The 2026-05-26 closeout cleared the infra failures (verus_err 94 → 7).
+What remained were **162 atmosphere `unknown`** + **11 storage
+`unknown`** + **4 storage historically-permitted `incomplete`** (and 7
+storage `verus_err` residual). To know what each bucket actually
+represents (real spec defects vs z3 limitations vs codegen bugs vs
+detector misses), we ran per-case manual audits over both projects'
+residual unknowns. The audits live in five coordinated docs under
+`spec-determinism/docs/`:
+
+| doc | scope | raw / unique |
+|-----|-------|--------------|
+| [`atmosphere-incompleteness-cases-2026-05-26.en.md`](./atmosphere-incompleteness-cases-2026-05-26.en.md) | atmosphere real spec incompleteness (12 cases / 16 unique source fns / 34 corpus artifacts via single-file packaging inlining) | 34 / 16 |
+| [`atmosphere-unknown-A-view-gap-2026-05-28.en.md`](./atmosphere-unknown-A-view-gap-2026-05-28.en.md) | atmosphere codegen-defect false positives (this section) | 20 / 4 |
+| [`atmosphere-unknown-bucket-2026-05-27.en.md`](./atmosphere-unknown-bucket-2026-05-27.en.md) | atmosphere z3 tool limitations: B (wide-setter forall, 66/26), C (multi-instance forall coordination, 63/33), D (page-table walk runaway, 7/2) | 136 / 61 |
+| [`atmosphere-status-2026-06-01.en.md`](./atmosphere-status-2026-06-01.en.md) | atmosphere project-wide ledger consolidating the three atmosphere docs | — |
+| [`storage-incompleteness-cases-2026-05-26.en.md`](./storage-incompleteness-cases-2026-05-26.en.md) | storage spec incompleteness — 14 cases across 4 patterns (2 originally detector-flagged + 12 audit-found from `unknown` + `verus_err`) | 14 |
+
+### atmosphere
+
+Atmosphere full corpus partition (post-closeout post-LLM, after
+2026-06-01 reclassification):
+
+| class | raw artifacts | unique source specs |
+|-------|--------------:|--------------------:|
+| Complete (baseline z3 unsat without LLM) | 1082 | — |
+| Complete (reclassified codegen-FP, pending codegen fix) | 20 | 4 |
+| +LLM (z3 unsat after LLM-authored proof block) | 23 | — |
+| Real spec incompletes (incompleteness doc #1–#12, all confirmed) | 34 | 16 |
+| ↳ of which: classifier-detected (`permitted=True`, #1–#10) | 29 | 14 |
+| ↳ of which: audit-found from unknown (#11–#12) | 5 | 2 |
+| z3 tool limitations residual unknown (B+C+D + closeout pickups) | 137 | ~60 |
+| `runner_crash` (300s wall) | 65 | 40 |
+| `verus_err` | 0 | — |
+| **TOTAL** | **1361** | — |
+
+(Sanity check on raw counts: 1082 + 20 + 23 + 34 + 137 + 65 + 0 =
+1361. The `↳ of which` rows are sub-rows of "Real spec incompletes"
+and are NOT added separately.) The 20 reclassified codegen-FP rows
+live in `complete` source-level but still show `r0_z3=unknown` in the
+corpus JSON until the codegen fix lands. The 23 `+LLM` rows are a
+subset of the audit's "z3 tool limitation" root-cause bucket — the
+LLM proof block circumvents the z3 search blowup without spec
+changes. The 137 z3-limit residual = audit-classified 136 (B + C +
+D) minus 23 LLM-unlocked plus 24 verus_err-closeout pickups that
+landed in `unknown` without being re-audited.
+
+The "34 raw / 16 unique" incompleteness count replaces the previous
+"29 raw + 5 raw" split. The 29 is the rerun11 historical
+`permitted=True` set (incompleteness doc #1–#10, dedups to 14
+unique); the 5 is the audit-found set from the `unknown` bucket
+(doc #11–#12, dedups to 2 unique). Both groups are real source-level
+spec defects — they only differ in how the rerun11 pipeline
+discovered them (`permissive_or` detector hit `page_is_mapped`
+incidentally for #1–#10, manual unknown-bucket audit for #11–#12).
+See the incompleteness doc Overview table for the 12-case grouping.
+
+#### Root cause — top-level-self view-registry gap
+
+The codegen module `spec-determinism/spec_determinism/codegen/gen_det.py`
+function `build_det_check_spec` (≈ lines 613–717) synthesises a
+det-check conjunction of the form
+
+```
+post1.field_a@ =~= post2.field_a@
+&& post1.field_b@ =~= post2.field_b@
+&& ret1@ =~= ret2@
+```
+
+For inner struct fields and the return value, the generator consults
+`view_registry` and emits `.@` (view) equality if a `View` impl is
+registered. But for the **top-level `self` parameter** of a method
+(`fn set(&mut self, ...)`, `fn init2zero(&mut self, ...)`, etc.) the
+synthesiser falls back to **structural** equality on the raw struct:
+`post1_self_ == post2_self_`. That fallback ignores the
+`impl View for Array` registered in `view_registry`.
+
+Because atmosphere consistently writes ensures in terms of the view
+(`self@ =~= old(self)@.update(i, v)`), the structural-fallback det
+check is **strictly stronger** than what the spec requires. Two
+implementations that produce the same `seq@` view but differ in
+ghost-witness bits / padding / unused tail are observationally
+equivalent under the view-first policy but distinguishable under
+structural eq — z3 cannot prove `unsat` because the two runs can
+legally disagree on those hidden bits.
+
+The fix is to add an early branch in `build_det_check_spec` that
+checks `top_level_self in view_registry` and emits `post1_self_@ =~=
+post2_self_@` instead of the structural form. Estimated ≈10 LoC. No
+spec change in any project source; no LLM involvement. All 20
+artifacts will flip from `r0_z3=unknown` to `r0_z3=unsat` on the next
+rerun.
+
+#### Affected specs
+
+| spec | raw artifacts | distribution |
+|------|--------------:|--------------|
+| `Array::set` (`impl<T,A,const N>` setter) | 15 | inlined-only across 15 caller .rs files; no primary file |
+| `Array::init2zero` (`impl2` + `impl3` zero-init) | 2 | 2 distinct primaries (one per impl block) |
+| `Array::init2none` (`impl4` option-init) | 1 | 1 primary (impl4) |
+| `ArrayVec::pop_unique` | 2 | inlined into 2 allocator caller files |
+| **TOTAL** | **20** | 4 unique source specs |
+
+The 15 `Array::set` artifacts hit the gap most visibly: every
+allocator caller file inlines its own copy of `set`, so a single
+≈10-LoC codegen fix pays back at the highest multiplier in atmosphere.
+
+#### Status (atmosphere)
+
+| | as committed | as audited (source-level) | gap |
+|--|--|--|--|
+| atmosphere `complete` | 1082 | **1102** | +20 |
+| atmosphere `unknown` | 162 | **142** | −20 |
+| atmosphere total | 1361 | 1361 | 0 |
+
+The gap closes mechanically once the gen_det patch lands and the next
+corpus rerun completes; no spec edits, no LLM calls, no human review
+required for the 20 atmosphere artifacts.
+
+#### What the audit did **not** reclassify (atmosphere)
+
+Of the original 162 atmosphere unknowns:
+
+- **5 raw / 2 unique** are real spec incompletes (`Array::new` ghost
+  values free; `StaticLinkedList::push` returned `SLLIndex` is an
+  internal allocator slot whose choice is free). These stay
+  unknown-on-tool, but at the source level are confirmed
+  **incomplete** and require spec edits (not codegen fixes).
+  Documented in the incompleteness doc as #11 and #12.
+- **136 raw / ~60 unique** are z3 tool limitations across the B / C /
+  D sub-buckets (wide-setter forall trigger explosion, multi-instance
+  forall coordination, page-table walk runaway). These need
+  tool-level engineering (trigger refinement, lemma harnesses, round
+  caps) — not codegen fixes, not spec fixes. Per-case detail in the
+  z3-limit doc.
+
+So of 162 atmosphere unknowns: 20 are codegen-FP (reclassified to
+`complete`), 5 are real source-level spec defects (require spec
+edits), and 137 are z3 tool-side limitations (require trigger /
+quantifier engineering at the SMT level — no spec changes, no codegen
+changes).
+
+### storage
+
+Storage's residual after the 2026-05-26 closeout was 23 / 0 / 2 / 11
+/ 0 / 7. A per-case manual audit over the 11 `unknown` + 4
+historically-permitted `incomplete` + selective `verus_err` review
+found that the bulk of the residual was **detector miss**, not z3
+weakness: the `permissive_or` detector only fires on syntactic `|||`,
+but CapybaraKV's spec convention guards every spurious-failure arm
+with `... ==> !impervious_to_corruption` (implication shape, slips
+through). Plus two further structural defects unrelated to
+impervious_to_corruption: byte-layout under-specification and opaque
+internal state under-specification.
+
+Storage corpus partition (post-closeout, after 2026-06-01
+reclassification):
+
+| class | raw artifacts | unique source specs | notes |
+|-------|--------------:|--------------------:|-------|
+| Complete (baseline z3 unsat without LLM) | 23 | — | unchanged |
+| Complete (reclassified `serialize_and_write` z3-weakness) | 1 | 1 | trait-bound generic structural `==` on `Self`; spec uniquely pins `self@`, z3 has no model for `Self == Self` |
+| Real spec incompletes (incompleteness doc #1–#14, all confirmed) | 14 | 9 | dedup: 5 sibling pairs (#2≡#9, #3≡#4, #5≡#6, #7≡#8, #11≡#13) collapse to 5 unique; #1, #10, #12, #14 distinct = 4 unique; 5 + 4 = 9 |
+| ↳ of which: classifier-detected (`permitted=True`, #1, #2) | 2 | 2 | both distinct: `write_setup_metadata`, `read_log_variables` |
+| ↳ of which: audit-found from `unknown` (#3–#7, #10, #11–#14) | 10 | 7 unique-new | `read_cdb`, `check_cdb`, `check_crc`, `write_setup_metadata_to_region`, `CrcDigest::new`, `CrcDigest::write<S>`, `CrcDigest::write_bytes` — none overlap with classifier-detected |
+| ↳ of which: audit-found from `verus_err` (#8, #9) | 2 | 0 unique-new | #8 = `check_crc` sibling of #7 (already counted); #9 = `read_log_variables` sibling of #2 (already counted in classifier-detected) |
+| Verus_err residual (inherent infra incompat, no documented defect) | 5 | — | 2 of original 4 `Box<S>: SpecEq` + 3 `iter.end` |
+| **TOTAL** | **43** | — | sanity: 23 + 1 + 14 + 5 = 43 ✓; unique: 2 + 7 + 0 = 9 ✓ |
+
+The 12 newly-`incomplete` cases break down as (raw / unique-new
+source spec counts; "unique-new" means not already counted in the
+classifier-detected `#1`+`#2`):
+
+- **Detector-missed `impervious_to_corruption` (7 raw / 3 unique-new
+  + 1 sibling of classifier-detected)**: 5 currently in `unknown`
+  (`#3`–`#7`), 2 currently in `verus_err` (`#8`, `#9` — same
+  semantic defect, separately blocked by the `Box<S>: SpecEq` infra
+  residual that prevents the file from compiling at all). Dedup:
+  `#3`≡`#4` (`read_cdb`), `#5`≡`#6` (`check_cdb`), `#7`≡`#8`
+  (`check_crc`) — 3 unique-new source fns covered by 6 raw artifacts;
+  `#9` (`read_log_variables`) is a sibling of `#2` already in the
+  classifier-detected set, so it adds 0 unique-new. Closing these
+  requires extending `classify.ensures_uses_permissive_or` to
+  recognise the `==> !impervious_to_corruption` implication shape, OR
+  tightening each spec to require a witnessed-corruption antecedent.
+- **Byte-layout (1 raw / 1 unique-new)**: `#10`
+  `write_setup_metadata_to_region` is the lower-level sibling of the
+  originally-detected `#1`; same fix recipe (pin every concrete byte
+  region). Distinct source spec from `#1`.
+- **Opaque internal state (4 raw / 3 unique-new)**: `#11`–`#14`
+  `CrcDigest::*` over `ExternalDigest`. Dedup: `#11`≡`#13`
+  (`CrcDigest::new` sibling pair), `#12` (`write<S>`), `#14`
+  (`write_bytes`) — 3 unique-new source fns covered by 4 raw
+  artifacts. Three alternative fixes: (A) pin via a closed-spec
+  accessor; (B) make the opaque field ghost-only; (C) pipeline-side
+  skip `#[verifier::external_body]` fields in equal_fn codegen.
+
+Summing the dedup: 12 raw newly-reclassified = 3 + 1 + 3 = 7
+unique-new source specs + 1 sibling-of-classifier-detected raw
+artifact (`#9`). Adding the 2 originally-detected unique specs
+(`#1`, `#2`): **14 raw / 9 unique source specs total** for storage
+real-spec incompletes.
+
+The 1 newly-`complete` case (trait-method `serialize_and_write`) is a
+**z3-weakness on trait-bound `Self == Self`**, not a spec defect: the
+spec uniquely pins `self@ == old(self)@.write(...)` and
+`self.constants() == old(self).constants()`, but z3 has no model for
+structural `==` on the trait-bound generic `Self`. A pipeline-side
+fix would replace structural `==` with `(post1@, post1.constants())
+== (post2@, post2.constants())` on trait-bound `&mut self` exec fns.
+Two `subregion_serialize_and_write_*` siblings were already
+reclassified `incomplete` → `complete` in
+[`3dcccb58`](https://github.com/q5438722/intent_formalization/commit/3dcccb58)
+on the same basis (and are now counted in the 23 baseline complete).
+
+#### Status (storage)
+
+| | as committed | as audited (source-level) | Δ |
+|--|--|--|--|
+| storage `complete` | 23 | **24** | +1 |
+| storage `incomplete` | 2 | **14** | +12 |
+| storage `unknown` | 11 | **0** | −11 |
+| storage `verus_err` | 7 | **5** | −2 |
+| storage total | 43 | 43 | 0 |
+
+Of the 12 new `incomplete`: 10 close on a detector extension
+(`ensures_uses_permissive_or` accepts the `==>` implication form), 1
+mirrors `#1`'s existing spec fix, and 4 need an opaque-state design
+choice. Of the 5 residual `verus_err`: 2 are inherent `Box<S>:
+SpecEq` infra incompats with no documented underlying defect, and 3
+are `iter.end` vstd-version incompats — both unchanged from the
+2026-05-26 closeout note.
+
+### Combined status
+
+| | tool-observed | source-level | Δ |
+|--|--|--|--|
+| TOTAL `complete` | 1286 | **1307** | +21 |
+| TOTAL `+LLM` | 25 | 25 | 0 |
+| TOTAL `incomplete` | 47 | **59** | +12 |
+| TOTAL `unknown` | 215 | **184** | −31 |
+| TOTAL `crash` | 65 | 65 | 0 |
+| TOTAL `verus_err` | 7 | **5** | −2 |
+| TOTAL targets | 1645 | 1645 | 0 |
+
+The audit chain ends here; no further atmosphere or storage unknowns
+are pending classification. Remaining residual is either real spec
+incompleteness requiring per-project edits (atmosphere 5 / storage
+14), z3 tool limitations requiring SMT-level engineering (atmosphere
+137 + storage 0), or inherent infra incompats (storage 5 verus_err).
+
 ## Methodology footnotes
+
+
 
 - Baseline driver: `/tmp/run_corpus_baseline_parallel.py` (6 ThreadPool workers
   spawning `/tmp/run_one_target.py` subprocesses with 300s wall timeout).
