@@ -1,0 +1,13 @@
+{
+  "cache_key": "6e8475a9beca800189ee1109f323eaabbcc1e5f0191f908979fbbced832e73f6",
+  "function": "host_model_next_shard",
+  "file": "host_impl_v__impl2__host_model_next_receive_message",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-19T15:44:47Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun9_llm/artifacts/host_impl_v__host_impl_v__impl2__host_model_next_receive_message__host_model_next_shard/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun9_llm/artifacts/host_impl_v__host_impl_v__impl2__host_model_next_receive_message__host_model_next_shard/llm_proof/attempt_02/llm.",
+  "cache_schema": 1
+}

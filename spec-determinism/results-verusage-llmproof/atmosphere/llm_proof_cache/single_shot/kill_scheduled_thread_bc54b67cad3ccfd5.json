@@ -1,0 +1,15 @@
+{
+  "cache_key": "bc54b67cad3ccfd5f3ea76d7cc67e4ab2190595b9b65e12dad7d17576fb52eb2",
+  "function": "kill_scheduled_thread",
+  "file": "process_manager__impl_kill_thread__impl0__kill_scheduled_thread",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T15:39:18Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__kill_scheduled_thread/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_kill_thread__impl0__kill_scheduled_thread__kill_scheduled_thread/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "de58d8573f7dd97e7b90ff46a7a5bd9714fac209dbde9c06f48560524e9186d3"
+}

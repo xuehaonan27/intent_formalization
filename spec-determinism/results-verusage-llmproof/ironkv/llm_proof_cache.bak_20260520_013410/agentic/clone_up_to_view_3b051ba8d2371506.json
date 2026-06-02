@@ -1,0 +1,13 @@
+{
+  "cache_key": "3b051ba8d23715068fbd84d0de37891ee59a4e5c40cd661a585258ab939ced8d",
+  "function": "clone_up_to_view",
+  "file": "single_delivery_model_impl2__maybe_ack_packet_impl",
+  "status": "verus_fail",
+  "proof_block": "if r1@ == self_@ && r2@ == self_@ {\n        assert(r1.id@ == self_.id@);\n        assert(r2.id@ == self_.id@);\n        assert(r1.id@ == r2.id@);\n    }\n    // FORBIDDEN: assume(), admit(), assume_specification, external_body.\n    // The line markers above and below MUST be preserved verbatim.",
+  "rationale": "Synthetic det_clone_up_to_view_equal demands r1.id == r2.id (i.e. SMT/structural equality on Vec<u8>). The only available hypothesis is r1@ == self_@ && r2@ == self_@, which (via EndPoint.view = AbstractEndPoint{id: self.id@}) yields only r1.id@ == r2.id@ (i.e. Seq<u8> equality of the views). Verus's vstd has no axiom equating Vec<u8> SMT equality to Seq view equality (confirmed by minimal repro: `requires a.id@ == b.id@ ensures a.id == b.id` fails to verify, even with `broadcast use vstd::std_specs::vec::group_vec_axioms`). The underlying clone_up_to_view's spec is only `res@ == self@`, so the synthetic check (policy errs_equivalent=True, opaque_ok=False) is strictly stronger than the spec and cannot be discharged without an assume/admit/external_body, all of which are forbidden. Left the best-effort proof block (cases on the premise and chains the view equalities r1.id@ == self_.id@ == r2.id@) so that the structural derivation up to the unprovable Vec-level step is documented.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T18:22:13Z",
+  "verus_ms": 987,
+  "verus_stderr_tail": "verification results:: 3 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__clone_up_to_view/llm_proof/verify/single_delivery_model_impl2__maybe_ack_packet_impl.rs:1023:9\n     |\n1023 | /         ({\n1024 | |             &&& (r1@ == self_@)\n1025 | |             &&& (r2@ == self_@)\n1026 | |         }) ==> det_clone_up_to_view_equal(r1, r2),\n     | |_________________________________________________^ failed this postcondition\n...\n1084 | / if r1@ == self_@ && r2@ == self_@ {\n1085 | |         assert(r1.id@ == self_.id@);\n1086 | |         assert(r2.id@ == self_.id@);\n1087 | |         assert(r1.id@ == r2.id@);\n1088 | |     }\n     | |_____- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

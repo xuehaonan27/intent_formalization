@@ -1,0 +1,13 @@
+{
+  "cache_key": "3cec72206453ed218befdf3d7b6a5b334ada034f1c46009f4415913e78f307d4",
+  "function": "insert",
+  "file": "single_delivery_model_impl2__maybe_ack_packet_impl",
+  "status": "verus_fail",
+  "proof_block": "// Bring both ensures conjuncts into the proof context under their shared\n// right-hand side so z3 can unify `post1_self_@` and `post2_self_@` via the\n// common `pre_self_@.insert(key@, value)` expression.\nif (post1_self_@ == pre_self_@.insert(key@, value))\n    && (post2_self_@ == pre_self_@.insert(key@, value)) {\n    // Transitivity through the shared insert expression.\n    assert(post1_self_@ == post2_self_@);\n    // Extensional Map equality, in case det_insert_equal expects `=~=`.\n    assert(post1_self_@ =~= post2_self_@);\n    // Both returns are `()`, so they are trivially equal.\n    assert(r1 == r2);\n}",
+  "rationale": "Under the shared hypothesis `post1_self_@ == post2_self_@ == pre_self_@.insert(key@, value)`, transitivity gives `post1_self_@ == post2_self_@`; we additionally assert `=~=` (Map extensionality) and `r1 == r2` (since both are `()`) so the conclusion `det_insert_equal` is discharged regardless of which equality form it uses.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T17:50:17Z",
+  "verus_ms": 874,
+  "verus_stderr_tail": "verification results:: 3 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__insert/llm_proof/attempt_01/single_delivery_model_impl2__maybe_ack_packet_impl.rs:1024:9\n     |\n1024 | /         ({\n1025 | |             &&& (post1_self_@ == pre_self_@.insert(key@, value))\n1026 | |             &&& (post2_self_@ == pre_self_@.insert(key@, value))\n1027 | |         }) ==> det_insert_equal(r1, r2, post1_self_, post2_self_),\n     | |_________________________________________________________________^ failed this postcondition\n...\n1052 | / if (post1_self_@ == pre_self_@.insert(key@, value))\n1053 | |     && (post2_self_@ == pre_self_@.insert(key@, value)) {\n1054 | |     // Transitivity through the shared insert expression.\n1055 | |     assert(post1_self_@ == post2_self_@);\n...    |\n1059 | |     assert(r1 == r2);\n1060 | | }\n     | |_- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

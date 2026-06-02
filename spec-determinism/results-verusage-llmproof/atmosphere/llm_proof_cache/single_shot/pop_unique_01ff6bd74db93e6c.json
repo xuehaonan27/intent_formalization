@@ -1,0 +1,15 @@
+{
+  "cache_key": "01ff6bd74db93e6c7adb656b546d8a7142a07fd50a161acf387fe95a558780b4",
+  "function": "pop_unique",
+  "file": "memory_manager__spec_impl__impl0__alloc_iommu_table",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T12:48:13Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__pop_unique/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__pop_unique/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "b00b2d4e820ac48aaeaf807e436680f8e57997ed6ecf4a230d9aa18cd87ee430"
+}

@@ -1,15 +1,22 @@
 # atmosphere spec-incompleteness case set
 
-> 10 cases / 14 unique spec functions / 29 underlying instances.
+> **12 source-level cases / 16 unique spec functions.**
 > Each witness shows two implementations whose post-states differ on the same input even though both satisfy the spec — i.e. the spec is incomplete with respect to determinism.
-> Source dataset: `spec-determinism/results-verusage-viewreg/atmosphere/full_run.json`.
+> Source dataset: `spec-determinism/results-verusage-viewreg/atmosphere/full_run.json` (cases 1–10) and `/tmp/corpus_baseline/atmosphere/full_run.json` (cases 11–12, from the 2026-05-28/29 view-policy audit of the `unknown` bucket).
 >
-> Cases are partitioned into three groups by the nature of the freedom the spec admits.
+> **Note on counts**: the `verusage` corpus uses *single-file packaging* — every verified function ships in a `.rs` file that inlines all its callees' source code so the file can be verified standalone. As a result, the same source-level spec text appears multiple times in the corpus (once in its canonical `__<fn>.rs` file plus once per caller file that inlines it). Headline counts in this doc are deduplicated to the source level:
+>
+> - **12 cases**: distinct defect patterns (some siblings collapsed; see Overview).
+> - **16 unique spec functions**: each separately-authored Rust function with the same defect pattern, counted once.
+> - **34 raw corpus artifacts**: the same 16 spec functions × per-caller-file inlining → 34 entries in the `unknown` bucket. See the per-case `corpus instances:` annotation in each section for the raw number; this number measures "how many of the 161 unknown artifacts this defect explains", not how many unique source-level bugs exist.
+>
+> Cases are partitioned into four groups by the nature of the freedom the spec admits.
 > - **Part 1 — Spec gaps** (5 cases): the spec is missing constraints; the witness shows two implementations that compute observably different end-states. These are genuine bugs in the spec.
-> - **Part 2 — `Seq` ordering free** (3 cases): the public ensures uses Set-level `=~=` on a field whose underlying view is `Seq<T>` (`StaticLinkedList`). Two impls may produce permutations of the same Set. Mechanical fix: tighten `=~=` to `==` to mirror the underlying setters (see appendix).
-> - **Part 3 — Symmetric allocation choice** (5 cases): the spec correctly constrains `ret ∈ old.free_pool` but leaves the choice among ≥2 free elements unspecified; the resulting post-states differ only by which fresh element was picked.
+> - **Part 2 — `Seq` ordering free** (2 cases): the public ensures uses Set-level `=~=` on a field whose underlying view is `Seq<T>` (`StaticLinkedList`). Two impls may produce permutations of the same Set. Mechanical fix: tighten `=~=` to `==` to mirror the underlying setters (see appendix).
+> - **Part 3 — Symmetric allocation choice** (4 cases): the spec correctly constrains `ret ∈ old.free_pool` but leaves the choice among ≥2 free elements unspecified; the resulting post-states differ only by which fresh element was picked.
+> - **Part 4 — Fresh allocation under-specified** (1 case): an `external_body` constructor whose ensures only pins a length / `wf()` and leaves all ghost element values free, so two impls return arrays with different `seq@` contents that both satisfy the spec.
 >
-> All 29 entries originally tripped a `permitted_reason=permissive_or` detector targeting the `|||` inside the closed spec fn `page_is_mapped`. That `|||` is plain boolean disjunction and is not itself a source of non-determinism — the real sources are the three patterns above.
+> The first 10 cases (specs #1–#10) were originally tripped by a `permitted_reason=permissive_or` detector targeting the `|||` inside the closed spec fn `page_is_mapped`. Cases #11 (`Array::new`) and #12 (`StaticLinkedList::push`) were found by manually auditing the `unknown` bucket against the project view-first equality policy.
 
 ## Overview
 
@@ -25,6 +32,8 @@
 | 8 | `alloc_page_4k` | `alloc_page_4k_for_new_container` | Symmetric choice | `ret` ∈ `old.free_pages_4k`, any choice legal |
 | 9 | `alloc_page_2m` | — | Symmetric choice | `ret` constrained via `Tracked<PagePerm2m>` linearity |
 | 10 | `alloc_and_map_4k` | `alloc_and_map_io_4k` | Symmetric choice | `ret` pinned by `LEN-1 + !old.page_is_mapped(ret) + !old.allocated_pages_4k().contains(ret)` |
+| 11 | `Array::new` | — | Fresh allocation under-specified | `ensures ret.wf()` (= `ret.seq@.len() == N`) only; ghost element values free. Sole caller (`ArraySet::new`) immediately overwrites every slot, so leak is contained but the spec admits multiple post-states. |
+| 12 | `StaticLinkedList::push` | — (×4 callers, all under `permitted=True`) | Symmetric choice | Return `SLLIndex` = which free slot was allocated. Free-list internal state (`value_list` / `free_list`) is unobserved by `view()`, so two impls picking different free slots both satisfy ensures while returning different indices. Callers store `ret` in `rev_pointer`; leak escapes to observable state but project marks all callers `permitted=True`. |
 
 ## Witness format
 
@@ -34,7 +43,7 @@ Each witness is written as a list of assumed facts about the inputs and the two 
 
 ## Part 1 — Spec gaps
 
-### #1 `alloc_and_map_2m` (×1 instance)
+### #1 `alloc_and_map_2m` (1 spec → 1 corpus artifact)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m.rs:590`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m.rs#L590)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_and_map_2m__alloc_and_map_2m/`
@@ -127,7 +136,7 @@ Add `old(self).free_pages_2m().contains(ret)`, mirroring `alloc_page_4k`'s line 
 
 ---
 
-### #2 `merged_4k_to_2m` (×1 instance)
+### #2 `merged_4k_to_2m` (1 spec → 1 corpus artifact)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m.rs:610`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m.rs#L610)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merged_4k_to_2m/`
@@ -235,7 +244,7 @@ forall|i:int| target_page_idx < i < target_page_idx + 512
 
 ---
 
-### #3 `remove_io_mapping_4k_helper1` (×1 instance; also `remove_mapping_4k_helper1`, ×1 instance)
+### #3 `remove_io_mapping_4k_helper1` (1 spec → 1 corpus artifact; sibling `remove_mapping_4k_helper1`, 1 spec → 1 corpus artifact)
 
 - **Source (io)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1.rs:552`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1.rs#L552)
 - **Source (sibling)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1.rs:551`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1.rs#L551)
@@ -348,7 +357,7 @@ self.page_array@[page_ptr2page_index(target_ptr) as int].state == PageState::Una
 
 ---
 
-### #4 `remove_mapping_4k_helper2` (×1 instance) — **P0**
+### #4 `remove_mapping_4k_helper2` (1 spec → 1 corpus artifact) — **P0**
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2.rs:598`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2.rs#L598)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__remove_mapping_4k_helper2/`
@@ -459,7 +468,7 @@ The two clauses marked `KEY diff vs helper1` are precisely what makes `helper1` 
 
 ---
 
-### #5 `remove_mapping_4k_helper3` (×1 instance)
+### #5 `remove_mapping_4k_helper3` (1 spec → 1 corpus artifact)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs:570`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3.rs#L570)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper3__remove_mapping_4k_helper3/`
@@ -544,7 +553,7 @@ Target's `state` / `ref_count` / `owning_container` are already locked by `conta
 
 These cases have full Set-level anchors but the underlying field is `StaticLinkedList<PagePtr, _>` whose `View=Seq<PagePtr>`. Two impls may compute the same `to_set()` image but different `Seq` orderings; structural `==` rejects this. See appendix for the cross-cutting setter-vs-public-API observation.
 
-### #6 `add_io_mapping_4k` (×1 instance; also `add_mapping_4k`, ×1 instance)
+### #6 `add_io_mapping_4k` (1 spec → 1 corpus artifact; sibling `add_mapping_4k`, 1 spec → 2 corpus artifacts via `kernel/share_mapping` inlining)
 
 - **Source (io)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs:566`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k.rs#L566)
 - **Source (sibling)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__add_mapping_4k.rs:570`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__add_mapping_4k.rs#L570)
@@ -642,7 +651,7 @@ The underlying setters (`set_state`, `set_io_mapping`, `set_ref_count`, …) alr
 
 ---
 
-### #7 `free_page_4k` (×5 instances)
+### #7 `free_page_4k` (1 spec → 5 corpus artifacts via per-caller inlining)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__free_page_4k.rs:613`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__free_page_4k.rs#L613)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__free_page_4k/`
@@ -725,7 +734,7 @@ Public ensures should pin Seq-level structure, e.g. `self.free_pages_4k@ == old(
 
 These cases have a fully anchored `ret`, but `ret` is only constrained to lie in a multi-element `old.free_pages_*` set. Two impls may pick different elements and produce structurally distinct (but symmetric) post-states.
 
-### #8 `alloc_page_4k` (×8 instances; also `alloc_page_4k_for_new_container`, ×2 instances)
+### #8 `alloc_page_4k` (1 spec → 8 corpus artifacts; sibling `alloc_page_4k_for_new_container`, 1 spec → 2 corpus artifacts)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_4k.rs:597`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_4k.rs#L597)
 - **Sibling**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container.rs:597`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_4k_for_new_container.rs#L597)
@@ -804,7 +813,7 @@ pub fn alloc_page_4k(&mut self) -> (ret: (PagePtr, Tracked<PagePerm4k>))
 
 ---
 
-### #9 `alloc_page_2m` (×1 instance)
+### #9 `alloc_page_2m` (1 spec → 1 corpus artifact)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_2m.rs:590`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_page_2m.rs#L590)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/atmosphere/artifacts/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__alloc_page_2m__alloc_page_2m/`
@@ -828,7 +837,7 @@ Same shape as `alloc_page_4k`, but the spec omits the explicit `old.free_pages_2
 
 ---
 
-### #10 `alloc_and_map_4k` (×2 instances; also `alloc_and_map_io_4k`, ×2 instances)
+### #10 `alloc_and_map_4k` (1 spec → 2 corpus artifacts; sibling `alloc_and_map_io_4k`, 1 spec → 2 corpus artifacts)
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k.rs:597`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_4k.rs#L597)
 - **Sibling**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k.rs:597`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__alloc_and_map_io_4k.rs#L597)
@@ -897,6 +906,269 @@ pub fn alloc_and_map_4k(&mut self, pcid: Pcid, va: VAddr, c_ptr: ContainerPtr) -
   post2_self_.container_map_4k@[c] == set![p2]
   !det_alloc_and_map_4k_equal(r1, r2, post1_self_, post2_self_)
 ```
+
+---
+
+### #12 `StaticLinkedList::push` (1 spec → 4 corpus artifacts via per-caller inlining)
+
+- **Source spec** (single canonical definition, copy-pasted into 4 source-files): [`verified/slinkedlist/slinkedlist__spec_impl_u__impl2__push.rs:232-249`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/slinkedlist/slinkedlist__spec_impl_u__impl2__push.rs#L232).
+- **Artifacts** (4 cases, all `r0_z3=unknown, permitted=False, n_schemas=1, n_rounds=2`):
+  - `atmosphere__verified__slinkedlist__slinkedlist__spec_impl_u__impl2__push__push`
+  - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__free_page_4k__push`
+  - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__push`
+  - `atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2__push`
+
+#### What the function is
+
+`StaticLinkedList<T, N>` is an array-backed doubly-linked list with an internal **free-list** of unused slots:
+
+```rust
+pub struct StaticLinkedList<T, const N: usize> {
+    pub spec_seq: Ghost<Seq<T>>,                // the logical Seq<T> (= view)
+    pub value_list: Ghost<Seq<SLLIndex>>,       // value-list → slot-index map
+    pub value_list_head: SLLIndex,
+    pub value_list_tail: SLLIndex,
+    pub free_list: Ghost<Seq<SLLIndex>>,        // free slot indices
+    pub free_list_head: SLLIndex,
+    pub free_list_tail: SLLIndex,
+    pub arr: ...                                 // backing array of nodes
+}
+
+pub open spec fn view(&self) -> Seq<T> { self.spec_seq@ }
+
+pub closed spec fn get_node_ref(&self, v: T) -> SLLIndex
+    recommends self.wf(), self@.contains(v),
+{
+    self.value_list@[self@.index_of(v)]          // ← reads internal slot table
+}
+
+pub fn push(&mut self, new_value: &T) -> (free_node_index: SLLIndex)
+    requires
+        pre.wf(), pre.len() < N, pre.unique(),
+        pre@.contains(*new_value) == false,
+        N > 2,
+    ensures
+        post.wf(),
+        post@ == pre@.push(*new_value),                    // view is pinned (extensional Seq eq)
+        post.len() == pre.len() + 1,
+        forall|v: T| pre@.contains(v) ==>
+            pre.get_node_ref(v) == post.get_node_ref(v),   // old slot indices preserved
+        post.get_node_ref(*new_value) == ret,              // ret = post.value_list@[len-1]
+        post.unique(),
+```
+
+#### Background — the free-list mechanism
+
+The container is "static" because the backing storage is a **fixed-size array** `ar: [Node<T>; N]` — chosen this way for kernel / no-heap environments where dynamic allocation is unavailable, but a linked-list interface (`push` / `pop` / `remove` / `insert`) is still required. Reconciling fixed storage with a dynamic-length list means every node of the logical linked list must occupy **one of the N slots** of `ar`. At any instant the N slots are partitioned into two disjoint chains, both threaded through the same `Node.next` / `Node.prev` fields:
+
+| chain | meaning | head/tail/len fields | ghost view |
+|---|---|---|---|
+| **value chain** | slots currently holding logical list elements | `value_list_head/tail/len` | `value_list: Ghost<Seq<SLLIndex>>` (i-th list element lives in slot `value_list@[i]`) |
+| **free chain**  | slots not in use, available for allocation | `free_list_head/tail/len` | `free_list: Ghost<Seq<SLLIndex>>` |
+
+Schematic snapshot for `N = 8`:
+
+```text
+ar slot indices:  [ 0 ][ 1 ][ 2 ][ 3 ][ 4 ][ 5 ][ 6 ][ 7 ]
+
+  value chain (e.g. logical seq [10, 99]):    slot 0 → slot 3
+  free  chain (everything else):              slot 1 → slot 2 → slot 4 → slot 5 → slot 6 → slot 7
+
+  spec_seq@   = [10, 99]                    ← public view
+  value_list@ = [0, 3]                      ← which slot holds each logical element (ghost)
+  free_list@  = [1, 2, 4, 5, 6, 7]          ← currently-free slots (ghost)
+  value_list_head = 0, value_list_tail = 3, value_list_len = 2
+  free_list_head  = 1, free_list_tail  = 7, free_list_len  = 6
+```
+
+The two chains share the same `Node.next` / `Node.prev` fields; value-chain nodes carry `value: Some(_)`, free-chain nodes carry `value: None`. `push` semantically does **two** chain operations: unlink one slot from the free chain, then link it onto the tail of the value chain. The return value is precisely **which slot was unlinked from the free chain** — caller code (`PageAllocator`) stores it in a reverse table so a later `remove(rev_index)` is O(1) instead of a linear scan.
+
+The crucial point for the incompleteness below: *which* free slot the impl chooses to pop is a private implementation decision (typical impls pop `free_list_head`, but nothing in the spec demands it). Because `free_list` is `Ghost<Seq<SLLIndex>>` and the only constraint on the post-state is the closed `wf()` clause — which merely requires the post-state's value-chain and free-chain to remain mutually consistent linked lists — the choice of slot is **free under the spec**, even though it leaks out through the return value.
+
+#### Why this is incomplete
+
+The return value `ret: SLLIndex` is pinned only via `post.get_node_ref(*new_value) == ret`, which by the closed body of `get_node_ref` resolves to `post.value_list@[post@.index_of(*new_value)]` — the **internal allocation slot** chosen for the new element. `value_list` is a `Ghost<Seq<SLLIndex>>` field updated only via the closed `wf()`'s `value_list_wf` clause; it has no public constraint other than "the new index must come from the previously-free slots".
+
+When `pre.free_list@.len() ≥ 2`, two impls may pop different elements from the free list:
+
+- Impl A picks `free_list[0]` (e.g. slot index 3) → `post.value_list@ = pre.value_list@.push(3)`, `r = 3`.
+- Impl B picks `free_list[1]` (e.g. slot index 7) → `post.value_list@ = pre.value_list@.push(7)`, `r = 7`.
+
+Both satisfy:
+- `post@ = pre@.push(*new_value)` ✓ (`spec_seq@` extended with the same element)
+- `post.get_node_ref(v) == pre.get_node_ref(v)` ∀v ∈ `pre@` ✓ (existing values keep their old slot indices)
+- `post.get_node_ref(*new_value) == r` ✓ for their respective `r`
+- `post.wf()` ✓ (free-list invariants hold under either choice of which slot was popped)
+
+But `r1 == 3 ≠ 7 == r2`. **Spec defect on the return value.**
+
+#### Caller audit
+
+The 3 allocator-side artifacts correspond to actual SLL pushes in `free_page_4k`, `merged_4k_to_2m`, `remove_mapping_4k_helper2`:
+
+```rust
+// allocator/__impl2__free_page_4k.rs:655
+let rev_index = self.free_pages_4k.push(&target_ptr);
+self.set_rev_pointer(page_ptr2page_index(target_ptr), rev_index);
+```
+
+`rev_index` is the SLL return value, and `set_rev_pointer(page_index, rev_index)` writes it into the publicly-observable `rev_pointer` field. So the SLL-level nondeterminism **escapes** into `PageAllocator`'s `rev_pointer` field.
+
+However, the outer functions `free_page_4k`, `merged_4k_to_2m`, `remove_mapping_4k_helper2`, plus their `kernel_*` wrappers, all carry `permitted: True` in the corpus — the project author has knowingly tagged this nondeterminism as acceptable at the public API surface. The spec leak is therefore real but **knowingly tolerated**; it does not propagate to a "P0 fix immediately" priority.
+
+#### Source-level fix sketch
+
+Tighten the spec by pinning the slot-allocation choice to a deterministic function of the free-list:
+
+```rust
+ensures
+    ...
+    post.value_list@ == pre.value_list@.push(pre.free_list_head),  // always take head
+    ret == pre.free_list_head,
+```
+
+This would make `push` fully deterministic at the SLL layer and remove `permitted: True` from all 4 caller chains. Alternatively, expose a public `spec_next_free_slot()` accessor and require `ret == old(self).spec_next_free_slot()`.
+
+#### Witness (sketch)
+
+```text
+N = 8, initial: SLL with pre@ = [10], free_list_head = 1, free_list = [1, 2, 3, 4, 5, 6, 7]
+new_value = 42
+
+Impl A pops slot 1:
+  post1.spec_seq@ == [10, 42]
+  post1.value_list@ == pre.value_list@.push(1)
+  post1.free_list_head == 2
+  r1 == 1
+
+Impl B pops slot 2 (free-list reorder still wf):
+  post2.spec_seq@ == [10, 42]
+  post2.value_list@ == pre.value_list@.push(2)
+  post2.free_list_head == 1
+  r2 == 2
+
+Both satisfy ensures (since `pre@.contains(v)` holds only for v=10, and slot for 10 is preserved).
+r1 == 1, r2 == 2, post1.spec_seq@ == post2.spec_seq@ == [10, 42], but post1 != post2 structurally
+AND `post.get_node_ref(42) == r` resolves to 1 on side A and 2 on side B.
+!det_push_equal(r1, r2, post1_self_, post2_self_)
+```
+
+#### Note on the codegen interaction
+
+The slinkedlist file artifact (`__slinkedlist__push__push`) has `opened_closed_specs = ['get_node_ref', 'wf', 'free_list_wf', ...]` — the 2026-05-29 verification confirmed the closed→opaque rewrite + `reveal` infrastructure (commit `659c9bdc`) fires on this case at the SLL source file. The 3 allocator-file artifacts have `opened_closed_specs = []` because `reachable_spec_fns` runs against the calling file's text where the SLL implementation is only imported. Either way, opening the closed body would **not** rescue this case: even with `get_node_ref`'s definition visible, the post-state `value_list@` is genuinely free to be any extension of `pre.value_list@` by a popped free-list element — the witness above is valid under fully-opened semantics.
+
+---
+
+## Part 4 — Fresh allocation under-specified
+
+### #11 `Array::new` (1 spec → 1 corpus artifact)
+
+- **Source**: [`verified/array/array_set__impl0__new.rs:17`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/array/array_set__impl0__new.rs#L17) (the only file where the `Array::new` definition appears in the corpus; identical text would apply if it were declared in a standalone `array.rs`).
+- **Artifact**: `/tmp/corpus_baseline/atmosphere/artifacts/atmosphere__verified__array__array_set__impl0__new__new/` (artifact key names `array_set__impl0__new__new`; the `__new` function actually extracted from this file is **`Array::new`**, not `ArraySet::new` — `gen_det` selects the first function named `new` in the file, which is the `Array<A, N>` constructor declared at line 17 above the `ArraySet` block).
+
+#### Why this is incomplete
+
+`Array::new` is the raw constructor of `Array<A, N> { seq: Ghost<Seq<A>>, ar: [A; N] }`. The spec only pins the length of the ghost view:
+
+```rust
+impl<A, const N: usize> Array<A, N> {
+    #[verifier(external_body)]
+    pub const fn new() -> (ret: Self)
+        ensures ret.wf(),   // ret.seq@.len() == N
+}
+```
+
+ensures says nothing about the ghost element values, and the concrete `ar` field is fully opaque. Under the project view-first equality policy the determinism check compares `r1@ == r2@` (= `r1.seq@ == r2.seq@`), but with only `len == N` on each side two impls may return `seq` values with completely different element contents.
+
+This case was originally swept into the `unknown` bucket by `gen_det`, because the codegen for top-level `Self`-typed returns falls back to **structural** `==` (`(r1 == r2)` on `Array<A, N>` — see [`atmosphere-unknown-A-view-gap-2026-05-28.en.md`](./atmosphere-unknown-A-view-gap-2026-05-28.en.md) for that view-policy gap). However, even after fixing the view-policy gap and using `r1@ == r2@`, the spec remains under-specified at the element level. So this entry stays in the incompleteness audit.
+
+#### Caller audit — leak containment
+
+`Array::new` is called in **exactly one location** in the entire atmosphere corpus:
+
+```bash
+$ grep -rn 'Array::new\|Array<.*>::new' verusage/source-projects/atmosphere/
+verusage/source-projects/atmosphere/verified/array/array_set__impl0__new.rs:71:            data: Array::new(),
+verusage/source-projects/atmosphere/unverified/array_set__impl0__new.rs:69:            data: Array::new(),
+```
+
+(both rows are the same call site, mirrored under `verified/` and `unverified/`).
+
+The caller is `ArraySet::new`, and the very next statements after `Array::new()` form a `for i in 0..N { ret.data.set(i, false); }` loop that overwrites every slot of the freshly-allocated `Array<bool, N>`:
+
+```rust
+pub fn new() -> (ret: Self)
+    ensures ret.wf(), ret@ == Set::<usize>::empty(),
+{
+    let mut ret = Self {
+        data: Array::new(),                                  // ← undetermined seq@
+        len: 0,
+        set: Ghost(Set::<usize>::empty()),
+    };
+    for i in 0..N
+        invariant ..., forall|j:int| 0<=j<i ==> ret.data@[j] == false,
+    {
+        ret.data.set(i, false);                              // ← writes seq@[i] = false; every slot overwritten
+    }
+    ret
+}
+```
+
+**Containment point**: the entire `for i in 0..N { ret.data.set(i, false); }` loop runs synchronously before `ret` is returned, and the loop invariant `forall|j:int| 0<=j<i ==> ret.data@[j] == false` certifies pointwise coverage. After the loop, `ret.data.seq@` is pinned to `[false; N]` regardless of what `Array::new` left in there. So the under-specified initial `seq@` is **never observed** by any client of the atmosphere project.
+
+No other caller exists in the corpus — neither `ArrayVec`, `PageMap`, `MemoryManager`, nor any kernel/`process_manager` module constructs an `Array` via this path; they declare it as a field and presumably rely on `new_with_*` or in-place initialization that bypasses `Array::new`.
+
+#### Source function
+
+```rust
+impl<A, const N: usize> Array<A, N> {
+
+    #[verifier::external_body]
+    #[verifier(external_body)]
+    pub const fn new() -> (ret: Self)
+        ensures
+            ret.wf(),
+    {
+        unimplemented!()
+    }
+
+    #[verifier(inline)]
+    pub open spec fn view(&self) -> Seq<A> { self.seq@ }
+
+    pub open spec fn wf(&self) -> bool { self.seq@.len() == N }
+}
+```
+
+#### Witness
+
+After the view-policy gap fix (= the codegen issue tracked in [`atmosphere-unknown-A-view-gap-2026-05-28.en.md`](./atmosphere-unknown-A-view-gap-2026-05-28.en.md)) the equal-fn becomes `r1@ =~= r2@`:
+
+```
+r1.seq@.len() == N                                          // both wf
+r2.seq@.len() == N
+r1.seq@ == Seq::new(N as nat, |i: int| A::default_a())      // some default
+r2.seq@ == Seq::new(N as nat, |i: int| A::default_b())      // some other default
+r1.seq@ != r2.seq@                                          // for any N > 0 and default_a != default_b
+!det_new_equal(r1, r2)
+```
+
+Instantiating at `A = bool, N = 1`:
+- `r1.seq@ == seq![false]`, `r2.seq@ == seq![true]` — both satisfy `wf()`; both are legal returns from `Array::<bool, 1>::new()`; views differ.
+
+Under the pre-fix structural equal-fn (`r1 == r2`) the witness additionally needs `r1.ar != r2.ar` — same idea, simpler example: `r1.ar = [false; 1], r2.ar = [true; 1]`.
+
+#### Suggested spec fix
+
+Add a deterministic element pin to the ensures, e.g.:
+
+```rust
+pub const fn new() -> (ret: Self)
+    ensures
+        ret.wf(),
+        forall|i: int| 0 <= i < N ==> ret.seq@[i] == A::default(),    // or some specified default
+```
+
+Or split into two constructors: an unsafe `new_uninit` (admitting non-determinism, marked `permitted_reason=fresh_alloc`) and a safe `new_zeroed` / `new_default` with a pointwise ensures. Given that the sole caller in atmosphere immediately overwrites every slot, the simpler fix is to either (a) inline `Array::new` away in `ArraySet::new` (allocate `Array` directly with a value-providing constructor), or (b) accept this entry as a permitted-by-design freshness slack and add a `permitted_reason=fresh_alloc_uninit` rule to the detector.
 
 ---
 

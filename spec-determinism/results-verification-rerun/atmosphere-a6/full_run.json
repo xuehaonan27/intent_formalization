@@ -1,0 +1,25 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/va_range/va_range__impl2_new.rs",
+    "function": "new",
+    "permitted": false,
+    "opened_closed_specs": [
+      "view_match_spec"
+    ],
+    "n_schemas": 3,
+    "n_params": 6,
+    "verus_ms": 510,
+    "smt2_bytes": 251641,
+    "ctx_ms": 28,
+    "search_ms": 50,
+    "n_rounds": 8,
+    "assumes": [
+      "len == 0",
+      "!det_new_equal(r1, r2)"
+    ],
+    "r0_z3": "unknown",
+    "status": "ok",
+    "total_ms": 599,
+    "artifact_key": "atmosphere__verified__va_range__va_range__impl2_new__new"
+  }
+]

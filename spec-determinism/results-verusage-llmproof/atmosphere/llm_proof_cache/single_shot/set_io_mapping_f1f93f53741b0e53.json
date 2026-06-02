@@ -1,0 +1,15 @@
+{
+  "cache_key": "f1f93f53741b0e53a093c5367d5914f9432c9b3eec3b22e6ff61e2d78289861d",
+  "function": "set_io_mapping",
+  "file": "allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T07:47:34Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__set_io_mapping/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__add_io_mapping_4k__set_io_mapping/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "853d760d5eb3d7f321c362b06a0ec5e544acef4895e4cc3318e1de4a4be3b447"
+}

@@ -1,0 +1,15 @@
+{
+  "cache_key": "423a1b16738e3aadf8e4f831d0a7d910442caa0c36c5c96e9b33faba5ef16581",
+  "function": "kill_process_none_root",
+  "file": "kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T10:39:09Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__kill_process_none_root/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__kernel_kill_proc__impl0__helper_kernel_kill_proc_non_root__kill_process_none_root/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "78cf3b56534543f8053bfcf2b716d3f78ddaf6c2932c6b94499655400dddfa91"
+}

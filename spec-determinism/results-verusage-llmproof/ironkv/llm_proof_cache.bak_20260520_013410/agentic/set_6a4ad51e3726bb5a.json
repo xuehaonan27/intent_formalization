@@ -1,0 +1,13 @@
+{
+  "cache_key": "6a4ad51e3726bb5a44235c313468e9e893f44338dfbdf3dd8cfe9d2ec3f3fa00",
+  "function": "set",
+  "file": "delegation_map_v__impl1_set",
+  "status": "verus_fail",
+  "proof_block": "if post1_self_.valid()\n        && post1_self_@ == pre_self_@.update(i as int, k)\n        && post2_self_.valid()\n        && post2_self_@ == pre_self_@.update(i as int, k)\n    {\n        assert(post1_self_@ =~= post2_self_@);\n        assert(post1_self_.v =~= post2_self_.v);\n        assert(post1_self_ == post2_self_);\n    }",
+  "rationale": "Set up det.rs with vstd prelude + supporting types (Ordering, KeyTrait, VerusClone, StrictlyOrderedVec, sorted). Modeled StrictlyOrderedVec's inner field as Seq<K> with an `open` view so spec equality is view-based (Verus does NOT give Vec<T> view-based extensional equality — confirmed by direct test). Proof block guards on the antecedent of the implication, then asserts seq extensionality on the views, on the inner field, and finally struct equality. verus det.rs exits 0 with 1 verified, 0 errors. Note: the same proof block referenced against the real source (which uses Vec<K>) would not close because Vec<T> lacks view-based extensional equality in Verus — that is a property of the source type, not the proof.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T13:05:51Z",
+  "verus_ms": 438,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl1_set__set/llm_proof/verify/delegation_map_v__impl1_set.rs:145:16\n    |\n145 |         assert(post1_self_.v =~= post2_self_.v);\n    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

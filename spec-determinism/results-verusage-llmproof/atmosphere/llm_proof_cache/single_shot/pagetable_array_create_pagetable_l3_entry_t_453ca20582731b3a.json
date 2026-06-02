@@ -1,0 +1,15 @@
+{
+  "cache_key": "453ca20582731b3abfbf5564b85d0702ac7b768585aa87e70918643eaff4334f",
+  "function": "pagetable_array_create_pagetable_l3_entry_t",
+  "file": "memory_manager__spec_impl__impl0__create_pagetable_l3_entry",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T13:03:52Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__create_pagetable_l3_entry__pagetable_array_create_pagetable_l3_entry_t/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__create_pagetable_l3_entry__pagetable_array_create_pagetable_l3_entry_t/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "360e2535b12d27b6735de7e78faefbf129614e20c1682768a0b306ec7555cda6"
+}

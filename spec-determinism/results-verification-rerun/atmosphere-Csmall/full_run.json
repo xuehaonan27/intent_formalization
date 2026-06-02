@@ -1,0 +1,23 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m.rs",
+    "function": "merge_4k_pages_to_2m_page",
+    "permitted": false,
+    "n_schemas": 8,
+    "n_params": 15,
+    "verus_ms": 1136,
+    "smt2_bytes": 892640,
+    "ctx_ms": 46,
+    "search_ms": 193,
+    "n_rounds": 9,
+    "assumes": [
+      "target_page_idx == 0",
+      "(page_perms)@.dom() == Set::<usize>::empty()",
+      "!det_merge_4k_pages_to_2m_page_equal(r1, r2)"
+    ],
+    "r0_z3": "unknown",
+    "status": "ok",
+    "total_ms": 1547,
+    "artifact_key": "atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merge_4k_pages_to_2m_page"
+  }
+]

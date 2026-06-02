@@ -1,0 +1,15 @@
+{
+  "cache_key": "f8898c8ac8bb4f10ceeb9b9d6fcc457177fea6fcc29fb98af83cdedaeeff2f21",
+  "function": "endpoint_push",
+  "file": "process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T14:46:57Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__endpoint_push/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_base__impl0__block_running_thread_and_set_trap_frame__endpoint_push/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "75547290f95980821cf5fb1c3f3e22ff8f52d609a7fd58441d749d07e6e61b73"
+}

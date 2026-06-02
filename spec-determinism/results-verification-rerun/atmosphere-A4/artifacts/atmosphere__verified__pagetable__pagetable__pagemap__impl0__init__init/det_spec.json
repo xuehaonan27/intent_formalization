@@ -1,0 +1,537 @@
+{
+  "function": "init",
+  "det_check_template": "proof fn det_init(pre_self_: PageMap, post1_self_: PageMap, r1: (), post2_self_: PageMap, r2: ())\n    requires (pre_self_.ar.wf()), (pre_self_.spec_seq@.len() == 512),\n    ensures\n        ({\n            &&& (post1_self_.wf())\n            &&& (forall|i: int| #![trigger post1_self_@[i].is_empty()] 0 <= i < 512 ==> post1_self_@[i].is_empty())\n            &&& (post2_self_.wf())\n            &&& (forall|i: int| #![trigger post2_self_@[i].is_empty()] 0 <= i < 512 ==> post2_self_@[i].is_empty())\n        }) ==> det_init_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "struct",
+        "name": "PageMap",
+        "fields": [
+          {
+            "name": "ar",
+            "type": {
+              "kind": "unknown",
+              "name": "Array<usize, 512>",
+              "type_args": [
+                {
+                  "kind": "usize",
+                  "name": "usize"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "512"
+                }
+              ]
+            }
+          },
+          {
+            "name": "spec_seq",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<PageEntry>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<PageEntry>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "PageEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "perm",
+                          "type": {
+                            "kind": "struct",
+                            "name": "PageEntryPerm",
+                            "fields": [
+                              {
+                                "name": "present",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "ps",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "write",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "execute_disable",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "user",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "Seq",
+          "name": "Seq<PageEntry>",
+          "type_args": [
+            {
+              "kind": "struct",
+              "name": "PageEntry",
+              "fields": [
+                {
+                  "name": "addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "PAddr"
+                  }
+                },
+                {
+                  "name": "perm",
+                  "type": {
+                    "kind": "struct",
+                    "name": "PageEntryPerm",
+                    "fields": [
+                      {
+                        "name": "present",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "ps",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "write",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "execute_disable",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "user",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "struct",
+        "name": "PageMap",
+        "fields": [
+          {
+            "name": "ar",
+            "type": {
+              "kind": "unknown",
+              "name": "Array<usize, 512>",
+              "type_args": [
+                {
+                  "kind": "usize",
+                  "name": "usize"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "512"
+                }
+              ]
+            }
+          },
+          {
+            "name": "spec_seq",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<PageEntry>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<PageEntry>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "PageEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "perm",
+                          "type": {
+                            "kind": "struct",
+                            "name": "PageEntryPerm",
+                            "fields": [
+                              {
+                                "name": "present",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "ps",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "write",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "execute_disable",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "user",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "Seq",
+          "name": "Seq<PageEntry>",
+          "type_args": [
+            {
+              "kind": "struct",
+              "name": "PageEntry",
+              "fields": [
+                {
+                  "name": "addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "PAddr"
+                  }
+                },
+                {
+                  "name": "perm",
+                  "type": {
+                    "kind": "struct",
+                    "name": "PageEntryPerm",
+                    "fields": [
+                      {
+                        "name": "present",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "ps",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "write",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "execute_disable",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "user",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "struct",
+        "name": "PageMap",
+        "fields": [
+          {
+            "name": "ar",
+            "type": {
+              "kind": "unknown",
+              "name": "Array<usize, 512>",
+              "type_args": [
+                {
+                  "kind": "usize",
+                  "name": "usize"
+                },
+                {
+                  "kind": "unknown",
+                  "name": "512"
+                }
+              ]
+            }
+          },
+          {
+            "name": "spec_seq",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Seq<PageEntry>>",
+              "type_args": [
+                {
+                  "kind": "Seq",
+                  "name": "Seq<PageEntry>",
+                  "type_args": [
+                    {
+                      "kind": "struct",
+                      "name": "PageEntry",
+                      "fields": [
+                        {
+                          "name": "addr",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "PAddr"
+                          }
+                        },
+                        {
+                          "name": "perm",
+                          "type": {
+                            "kind": "struct",
+                            "name": "PageEntryPerm",
+                            "fields": [
+                              {
+                                "name": "present",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "ps",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "write",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "execute_disable",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              },
+                              {
+                                "name": "user",
+                                "type": {
+                                  "kind": "bool",
+                                  "name": "bool"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "spec_view": {
+          "kind": "Seq",
+          "name": "Seq<PageEntry>",
+          "type_args": [
+            {
+              "kind": "struct",
+              "name": "PageEntry",
+              "fields": [
+                {
+                  "name": "addr",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "PAddr"
+                  }
+                },
+                {
+                  "name": "perm",
+                  "type": {
+                    "kind": "struct",
+                    "name": "PageEntryPerm",
+                    "fields": [
+                      {
+                        "name": "present",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "ps",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "write",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "execute_disable",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      },
+                      {
+                        "name": "user",
+                        "type": {
+                          "kind": "bool",
+                          "name": "bool"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_init_equal(r1: (), r2: (), post1_self_: Seq<PageEntry>, post2_self_: Seq<PageEntry>) -> bool {\n    (r1 == r2)\n    && (post1_self_ =~= post2_self_)\n}",
+  "equal_fn_name": "det_init_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_@",
+      "rhs": "post2_self_@"
+    }
+  ],
+  "check_fn_name": "det_init",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "PageMap",
+  "opened_closed_specs": []
+}

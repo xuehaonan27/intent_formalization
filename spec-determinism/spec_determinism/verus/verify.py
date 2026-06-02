@@ -100,7 +100,7 @@ def run_cargo_verus(
     env["RUSTC_BOOTSTRAP"] = "1"
 
     cmd = [
-        "cargo", "+nightly-2025-12-08", "verus",
+        "cargo", "verus",
         "build" if use_build else "verify",
     ]
     scoped = bool(verify_module) or bool(verify_function)

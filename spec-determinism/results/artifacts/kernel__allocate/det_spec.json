@@ -1,6 +1,6 @@
 {
   "function": "allocate",
-  "det_check_template": "proof fn det_allocate(pre_self_: Kheap, layout: Layout, post1_self_: Kheap, r1: Result<*mut u8, AllocError>, post2_self_: Kheap, r2: Result<*mut u8, AllocError>)\n    requires (pre_self_.inv()),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(ptr) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3b: address was free in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].free_addrs.contains(ptr as usize)\n                    // FN-3c: pointer is block-aligned\n                    &&& ptr as usize % pre_self_@.slabs[opt_idx.unwrap()].block_size == 0\n                    // FN-3d: exact state transition\n                    &&& post1_self_@ == pre_self_@.spec_allocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3g: state preserved on error\n                    &&& post1_self_@ == pre_self_@\n                    // FN-3f: error iff size unsupported or slab exhausted\n                    &&& (opt_idx.is_none()\n                        || pre_self_@.slabs[opt_idx.unwrap()].free_addrs\n                            == Set::<usize>::empty())\n                }\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(ptr) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3b: address was free in the correct slab\n                    &&& opt_idx.is_some()\n                    &&& pre_self_@.slabs[opt_idx.unwrap()].free_addrs.contains(ptr as usize)\n                    // FN-3c: pointer is block-aligned\n                    &&& ptr as usize % pre_self_@.slabs[opt_idx.unwrap()].block_size == 0\n                    // FN-3d: exact state transition\n                    &&& post2_self_@ == pre_self_@.spec_allocate(opt_idx.unwrap(), ptr as usize)\n                }\n                Err(_) => {\n                    let opt_idx = spec_slab_for_size(spec_layout_size(layout) as int);\n                    // FN-3g: state preserved on error\n                    &&& post2_self_@ == pre_self_@\n                    // FN-3f: error iff size unsupported or slab exhausted\n                    &&& (opt_idx.is_none()\n                        || pre_self_@.slabs[opt_idx.unwrap()].free_addrs\n                            == Set::<usize>::empty())\n                }\n            })\n        }) ==> det_allocate_equal(r1, r2, post1_self_@, post2_self_@),\n{\n{ASSUMES}}",
+  "det_check_template": "proof fn det_allocate(pre_self_: Kheap, layout: Layout, post1_self_: Kheap, r1: Result<*mut u8, AllocError>, post2_self_: Kheap, r2: Result<*mut u8, AllocError>)\n    requires (pre_self_.inv()),\n    ensures\n        ({\n            &&& (post1_self_.inv())\n            &&& (match r1 {\n                Ok(ptr) => {\n                    &&& ptr as usize != 0\n                    &&& !pre_self_@.allocations.dom().contains(ptr as int)\n                    &&& post1_self_@.allocations[ptr as int] == spec_layout_size(layout) as nat\n                    &&& post1_self_@ =~= pre_self_@.spec_allocate(\n                        ptr as int,\n                        spec_layout_size(layout) as nat,\n                    )\n                    &&& (ptr as int) % (spec_layout_align(layout) as int) == 0\n                },\n                Err(_) => {\n                    &&& post1_self_@ == pre_self_@\n                    &&& !(pre_self_@.allocations =~= Map::<int, nat>::empty())\n                        || spec_layout_align(layout) > spec_layout_size(layout)\n                        || spec_layout_size(layout) > 512\n                },\n            })\n            &&& (post2_self_.inv())\n            &&& (match r2 {\n                Ok(ptr) => {\n                    &&& ptr as usize != 0\n                    &&& !pre_self_@.allocations.dom().contains(ptr as int)\n                    &&& post2_self_@.allocations[ptr as int] == spec_layout_size(layout) as nat\n                    &&& post2_self_@ =~= pre_self_@.spec_allocate(\n                        ptr as int,\n                        spec_layout_size(layout) as nat,\n                    )\n                    &&& (ptr as int) % (spec_layout_align(layout) as int) == 0\n                },\n                Err(_) => {\n                    &&& post2_self_@ == pre_self_@\n                    &&& !(pre_self_@.allocations =~= Map::<int, nat>::empty())\n                        || spec_layout_align(layout) > spec_layout_size(layout)\n                        || spec_layout_size(layout) > 512\n                },\n            })\n        }) ==> det_allocate_equal(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
   "symbols": [
     {
       "name": "pre_self_",
@@ -79,7 +79,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -156,7 +157,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -231,7 +233,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -308,7 +311,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -383,7 +387,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -460,7 +465,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -535,7 +541,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -612,7 +619,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -687,7 +695,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -764,7 +773,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -839,7 +849,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -916,7 +927,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -991,7 +1003,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1068,79 +1081,35 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
+            }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
             }
           }
-        ],
-        "spec_view": {
-          "kind": "struct",
-          "name": "KheapView",
-          "fields": [
-            {
-              "name": "slabs",
-              "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
-                "type_args": [
-                  {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
+        ]
       },
       "phase": "input"
     },
@@ -1297,7 +1266,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1374,7 +1344,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -1449,7 +1420,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1526,7 +1498,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -1601,7 +1574,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1678,7 +1652,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -1753,7 +1728,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1830,7 +1806,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -1905,7 +1882,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -1982,7 +1960,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -2057,7 +2036,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2134,7 +2114,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -2209,7 +2190,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2286,79 +2268,35 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
+            }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
             }
           }
-        ],
-        "spec_view": {
-          "kind": "struct",
-          "name": "KheapView",
-          "fields": [
-            {
-              "name": "slabs",
-              "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
-                "type_args": [
-                  {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
+        ]
       },
       "phase": "output_compound"
     },
@@ -2439,7 +2377,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2516,7 +2455,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -2591,7 +2531,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2668,7 +2609,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -2743,7 +2685,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2820,7 +2763,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -2895,7 +2839,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -2972,7 +2917,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -3047,7 +2993,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -3124,7 +3071,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -3199,7 +3147,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -3276,7 +3225,8 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
             }
           },
@@ -3351,7 +3301,8 @@
                             ]
                           }
                         }
-                      ]
+                      ],
+                      "is_ext_equal": true
                     }
                   }
                 },
@@ -3428,85 +3379,41 @@
                       ]
                     }
                   }
-                ]
+                ],
+                "is_ext_equal": true
               }
+            }
+          },
+          {
+            "name": "alloc_map",
+            "type": {
+              "kind": "Ghost",
+              "name": "Ghost<Map<int, nat>>",
+              "type_args": [
+                {
+                  "kind": "Map",
+                  "name": "Map<int, nat>",
+                  "type_args": [
+                    {
+                      "kind": "int",
+                      "name": "int"
+                    },
+                    {
+                      "kind": "int",
+                      "name": "nat"
+                    }
+                  ]
+                }
+              ]
             }
           }
-        ],
-        "spec_view": {
-          "kind": "struct",
-          "name": "KheapView",
-          "fields": [
-            {
-              "name": "slabs",
-              "type": {
-                "kind": "Seq",
-                "name": "Seq<SlabView>",
-                "type_args": [
-                  {
-                    "kind": "struct",
-                    "name": "SlabView",
-                    "fields": [
-                      {
-                        "name": "block_size",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "start_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "end_addr",
-                        "type": {
-                          "kind": "usize",
-                          "name": "usize"
-                        }
-                      },
-                      {
-                        "name": "allocated_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "free_addrs",
-                        "type": {
-                          "kind": "Set",
-                          "name": "Set<usize>",
-                          "type_args": [
-                            {
-                              "kind": "usize",
-                              "name": "usize"
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
+        ]
       },
       "phase": "output_compound"
     }
   ],
   "verus_config": {},
-  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: KheapView, post2_self_: KheapView) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))\n    && ((post1_self_.slabs == post2_self_.slabs))\n}",
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_allocate_equal(r1: Result<*mut u8, AllocError>, r2: Result<*mut u8, AllocError>, post1_self_: Kheap, post2_self_: Kheap) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (true /* raw pointer: opaque by default */)))\n    && (((post1_self_.slab_8_bytes)@ == (post2_self_.slab_8_bytes)@) && ((post1_self_.slab_16_bytes)@ == (post2_self_.slab_16_bytes)@) && ((post1_self_.slab_32_bytes)@ == (post2_self_.slab_32_bytes)@) && ((post1_self_.slab_64_bytes)@ == (post2_self_.slab_64_bytes)@) && ((post1_self_.slab_128_bytes)@ == (post2_self_.slab_128_bytes)@) && ((post1_self_.slab_256_bytes)@ == (post2_self_.slab_256_bytes)@) && ((post1_self_.slab_512_bytes)@ == (post2_self_.slab_512_bytes)@) && ((post1_self_.alloc_map)@ =~= (post2_self_.alloc_map)@))\n}",
   "equal_fn_name": "det_allocate_equal",
   "equal_arg_pairs": [
     {
@@ -3514,8 +3421,8 @@
       "rhs": "r2"
     },
     {
-      "lhs": "post1_self_@",
-      "rhs": "post2_self_@"
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
     }
   ],
   "check_fn_name": "det_allocate",
@@ -3529,5 +3436,9 @@
     "rationale": null,
     "source": "default"
   },
-  "type_projections": {}
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": "Kheap",
+  "opened_closed_specs": []
 }

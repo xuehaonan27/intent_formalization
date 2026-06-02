@@ -1,0 +1,15 @@
+{
+  "cache_key": "4cabbc7c2eaacdf02feaf5a220cd5938c82fcf6fed7827c933612d2bda4858ed",
+  "function": "new",
+  "file": "array_set__impl0__new",
+  "status": "verus_fail",
+  "proof_block": "// `Array::new()` only ensures `ret.wf()`, which unfolds to\n// `ret.seq@.len() == N`. Surface that fact for both candidate\n// outputs so triggers line up. The struct `Array<A, N>` has fields\n// `{ seq: Ghost<Seq<A>>, ar: [A; N] }`; structural equality\n// `r1 == r2` requires both fields equal, and `wf` does not pin the\n// element contents of either field.\nif r1.wf() && r2.wf() {\n    // Per-output length facts from `wf`.\n    assert(r1.seq@.len() == N);\n    assert(r2.seq@.len() == N);\n    // Joint length agreement (helps any trigger looking at both seqs).\n    assert(r1.seq@.len() == r2.seq@.len());\n    // View is `#[verifier(inline)]` over `seq@`, so the same fact in\n    // view form may unlock view-keyed triggers.\n    assert(r1.view().len() == N);\n    assert(r2.view().len() == N);\n    assert(r1.view().len() == r2.view().len());\n}\n// Unguarded (implication) versions, so a trigger that fires only on\n// the bare `wf()` term in the postcondition also sees the length fact.\nassert(r1.wf() ==> r1.seq@.len() == N);\nassert(r2.wf() ==> r2.seq@.len() == N);\nassert(r1.wf() && r2.wf() ==> r1.seq@.len() == r2.seq@.len());",
+  "rationale": "The only ensures on Array::new is `ret.wf()` (i.e. `seq@.len() == N`), so we surface the length agreement of `r1.seq@` and `r2.seq@` in both guarded and unguarded forms (and via the inline `.view()` accessor) so that any trigger keyed on either form fires. Beyond this length fact, neither `seq` contents nor `ar` elements are pinned by `wf`, so the structural equality `r1 == r2` cannot be soundly derived from `r1.wf() && r2.wf()` alone.",
+  "attempts": 2,
+  "saved_at": "2026-05-24T09:45:32Z",
+  "verus_ms": 468,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nerror: postcondition not satisfied\n   --> /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__array__array_set__impl0__new__new/llm_proof/attempt_02/array_set__impl0__new.rs:128:9\n    |\n126 |   proof fn det_new<A, const N: usize>(g_neq_tuple: bool, r1: Array<A, N>, r2: Array<A, N>)\n    |         ---------------------------------------------------------------------------------- at the end of the function body\n127 |       ensures\n128 | /         ({\n129 | |             &&& (r1.wf())\n130 | |             &&& (r2.wf())\n131 | |         }) ==> det_new_equal(r1, r2),\n    | |____________________________________^ failed this postcondition\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "3753cb451b1e8d33ad6b474a487f3b4da1d9c10e84694a5fc3c52ee6e6a82b0f"
+}

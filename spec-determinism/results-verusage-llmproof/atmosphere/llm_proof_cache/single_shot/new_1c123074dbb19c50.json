@@ -1,0 +1,15 @@
+{
+  "cache_key": "1c123074dbb19c50f39a4d8a33ae6bce7d23a1bc22c5599da694b78a5e555020",
+  "function": "new",
+  "file": "va_range__impl2_new",
+  "status": "verus_pass",
+  "proof_block": "reveal(VaRange4K::view_match_spec);\n\nif r1.wf() && r1.start == va && r1.len == len\n    && r2.wf() && r2.start == va && r2.len == len {\n    lemma_va_range_4k_view_unique(va, len, r1, r2);\n    assert(r1.start == r2.start);\n    assert(r1.len == r2.len);\n    assert(r1@ == r2@);\n    assert(r1@.len() == r2@.len());\n}",
+  "rationale": "Use a module-scope functional-uniqueness lemma whose explicit `r1.wf()`/`r2.wf()` preconditions ensure `view_match_spec` is in scope; inside the lemma we explicitly bound `i` to usize before mentioning `spec_va_add_range(r{1,2}.start, iu)` so the closed `view_match_spec` forall fires, and then close with `Seq` extensionality (`=~=`). The prelude discharges the postcondition implication by case-analysis on the antecedent and invokes the lemma.",
+  "attempts": 2,
+  "saved_at": "2026-05-24T16:08:48Z",
+  "verus_ms": 609,
+  "verus_stderr_tail": "",
+  "cache_schema": 2,
+  "helper_lemmas": "proof fn lemma_va_range_4k_view_unique(va: VAddr, len: usize, r1: VaRange4K, r2: VaRange4K)\n    requires\n        r1.wf(),\n        r2.wf(),\n        r1.start == va,\n        r2.start == va,\n        r1.len == len,\n        r2.len == len,\n    ensures\n        r1.start == r2.start,\n        r1.len == r2.len,\n        r1@.len() == r2@.len(),\n        r1@ == r2@,\n{\n    reveal(VaRange4K::view_match_spec);\n\n    assert(r1@.len() == r1.len);\n    assert(r2@.len() == r2.len);\n    assert(r1@.len() == r2@.len());\n    assert(r1.view_match_spec());\n    assert(r2.view_match_spec());\n\n    assert forall|i: int| 0 <= i < r1@.len() implies r1@[i] == r2@[i] by {\n        assert(r1@.len() == r1.len);\n        assert(r2@.len() == r2.len);\n        assert(i < r1.len);\n        assert(i < r2.len);\n        assert(0 <= i < usize::MAX);\n        let iu: usize = i as usize;\n        assert(iu as int == i);\n        assert(0 <= iu < r1.len);\n        assert(0 <= iu < r2.len);\n        assert(spec_va_add_range(r1.start, iu) == r1@[iu as int]);\n        assert(spec_va_add_range(r2.start, iu) == r2@[iu as int]);\n        assert(r1.start == r2.start);\n        assert(spec_va_add_range(r1.start, iu) == spec_va_add_range(r2.start, iu));\n        assert(r1@[iu as int] == r2@[iu as int]);\n        assert(r1@[i] == r1@[iu as int]);\n        assert(r2@[i] == r2@[iu as int]);\n    };\n\n    assert(r1@ =~= r2@);\n}",
+  "shape_key": "1636636cb29bf0f092092c943f054bacd9ed3b3c71d18f029282a440ddeca280"
+}

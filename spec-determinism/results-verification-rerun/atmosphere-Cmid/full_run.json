@@ -1,0 +1,33 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/process_manager/process_manager__impl_base__impl0__schedule_blocked_thread.rs",
+    "function": "schedule_blocked_thread",
+    "permitted": false,
+    "n_schemas": 61,
+    "n_params": 109,
+    "verus_ms": 2104,
+    "smt2_bytes": 3413528,
+    "ctx_ms": 74,
+    "search_ms": 974,
+    "n_rounds": 17,
+    "assumes": [
+      "(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(pre_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()",
+      "(pre_self_.endpoint_perms)@.dom().len() == 0",
+      "(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(post1_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()",
+      "(post1_self_.endpoint_perms)@.dom().len() == 0",
+      "(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(post2_self_.thread_perms)@.dom() == Set::<ThreadPtr>::empty()",
+      "(post2_self_.endpoint_perms)@.dom().len() == 0",
+      "!det_schedule_blocked_thread_equal(r1, r2, post1_self_, post2_self_)"
+    ],
+    "r0_z3": "unknown",
+    "status": "ok",
+    "total_ms": 4136,
+    "artifact_key": "atmosphere__verified__process_manager__process_manager__impl_base__impl0__schedule_blocked_thread__schedule_blocked_thread"
+  }
+]

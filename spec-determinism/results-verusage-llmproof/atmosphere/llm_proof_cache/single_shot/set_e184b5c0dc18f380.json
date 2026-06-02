@@ -1,0 +1,15 @@
+{
+  "cache_key": "e184b5c0dc18f380da8dfd8849c91d9f301d4a4bad3ee7bc02987bce4e2cd909",
+  "function": "set",
+  "file": "array_set__impl0__new",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T10:06:55Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__array__array_set__impl0__new__set/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__array__array_set__impl0__new__set/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "4c19743f882cb1a0b0439f428c07a09c6ae1e92c5ca81744b329cc0e9dd9e0d9"
+}

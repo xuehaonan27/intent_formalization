@@ -1,0 +1,15 @@
+{
+  "cache_key": "d5804b9c03d94e69d379090fbce3b30d085d62d494d5687c605fa18ceb9a20c7",
+  "function": "send_packet_seq",
+  "file": "host_impl_v__impl2__host_noreceive_noclock_next",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-23T09:14:33Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun11/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__send_packet_seq/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun11/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__send_packet_seq/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "188070e09ab4c0daf317134dbb91638ca4ec1ab11578f6e1b886edb15fc789a5"
+}

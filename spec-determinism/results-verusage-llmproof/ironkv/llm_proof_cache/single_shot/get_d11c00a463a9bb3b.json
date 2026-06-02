@@ -1,0 +1,15 @@
+{
+  "cache_key": "d11c00a463a9bb3b7f6585ae4292002acbee41b9b50bff9aa714691e1ecc2271",
+  "function": "get",
+  "file": "host_impl_v__impl2__host_model_next_get_request",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-23T08:10:15Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun11/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__get/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun11/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_get_request__get/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "d39d0521069777b3dc8bbd808fa1a24e6fdaefecaa5cde8126f547300ae33e95"
+}

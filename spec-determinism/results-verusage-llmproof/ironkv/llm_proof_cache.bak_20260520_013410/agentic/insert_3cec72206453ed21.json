@@ -1,0 +1,13 @@
+{
+  "cache_key": "3cec72206453ed218befdf3d7b6a5b334ada034f1c46009f4415913e78f307d4",
+  "function": "insert",
+  "file": "single_delivery_model_impl2__maybe_ack_packet_impl",
+  "status": "verus_fail",
+  "proof_block": "if (post1_self_@ == pre_self_@.insert(key@, value))\n        && (post2_self_@ == pre_self_@.insert(key@, value)) {\n        assert(post1_self_@ == post2_self_@);\n    }",
+  "rationale": "Postcondition requires post1_self_ == post2_self_ on HashMap<V>, but HashMap is an external_body struct (#[verifier(external_body)]) without #[verifier::ext_equal] and its only public spec is `uninterp spec fn view`. The contract for `insert` only gives `self@ == old(self)@.insert(key@, value)`, i.e. view equality. Verus encodes external_body types as opaque SMT sorts, so view equality cannot imply structural ==. Confirmed by a minimal repro: forall a,b: ExtBody, a@ == b@ ==> a == b is rejected even with #[verifier::ext_equal] added, because view is uninterpreted. The g_neq_tuple branch additionally assumes !det_insert_equal, making the obligation contradictory only under extensionality, which is unavailable. No valid Verus statement (no axioms, no assume) can discharge the goal without adding ext_equal to HashMap or strengthening insert's postcondition, which is outside the proof body and would not propagate through re-injection. Best-effort proof block asserts the view equality that ",
+  "attempts": 1,
+  "saved_at": "2026-05-17T18:30:12Z",
+  "verus_ms": 879,
+  "verus_stderr_tail": "verification results:: 3 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__maybe_ack_packet_impl__insert/llm_proof/verify/single_delivery_model_impl2__maybe_ack_packet_impl.rs:1024:9\n     |\n1024 | /         ({\n1025 | |             &&& (post1_self_@ == pre_self_@.insert(key@, value))\n1026 | |             &&& (post2_self_@ == pre_self_@.insert(key@, value))\n1027 | |         }) ==> det_insert_equal(r1, r2, post1_self_, post2_self_),\n     | |_________________________________________________________________^ failed this postcondition\n...\n1049 | / if (post1_self_@ == pre_self_@.insert(key@, value))\n1050 | |         && (post2_self_@ == pre_self_@.insert(key@, value)) {\n1051 | |         assert(post1_self_@ == post2_self_@);\n1052 | |     }\n     | |_____- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

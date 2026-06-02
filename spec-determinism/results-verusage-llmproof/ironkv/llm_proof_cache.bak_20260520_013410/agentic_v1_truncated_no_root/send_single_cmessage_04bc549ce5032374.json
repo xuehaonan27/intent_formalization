@@ -1,0 +1,13 @@
+{
+  "cache_key": "04bc549ce5032374c18d89976f460957ed3527799d359a66413af3ef7ec9141c",
+  "function": "send_single_cmessage",
+  "file": "host_impl_v__impl2__host_model_next_get_request",
+  "status": "no_diff",
+  "proof_block": "",
+  "rationale": "The postcondition requires concrete HashMap equality (post1_self_.send_state.epmap == post2_self_.send_state.epmap and the same for receive_state.epmap). HashMap<V> wraps std::collections::HashMap and only exposes an uninterp spec view, so two HashMaps with the same Map view can be unequal concretely. The ensures of send_single_cmessage (which is #[verifier::external_body]) only constrains the abstract view post@ via SingleDelivery::send_single_message; it does not constrain post.send_state.epmap (the concrete HashMap). Hence concrete epmap equality is not derivable. Verified empirically: even `assert(post1.send_state.epmap == pre.send_state.epmap)` is rejected by Verus when the spec forces post@ == pre@ at the abstract level. The previous attempt_01 proof block (extensional view-equality chain via #[verifier::ext_equal]) also fails for the same reason.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T10:28:18Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "",
+  "cache_schema": 1
+}

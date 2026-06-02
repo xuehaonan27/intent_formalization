@@ -1,0 +1,15 @@
+{
+  "cache_key": "84c3ad2d8cb16b48c6a728814f582f00f884c0f824c48297356c59a42875c54b",
+  "function": "proc_perms_remove_subtree_set",
+  "file": "process_manager__impl_kill_proc__impl0__kill_process_none_root",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T15:28:11Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_perms_remove_subtree_set/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__process_manager__process_manager__impl_kill_proc__impl0__kill_process_none_root__proc_perms_remove_subtree_set/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "fe22a46485a372fbf176ff905a9f55b8dea8b382c4e8570b7cbcf3ca354ce4eb"
+}

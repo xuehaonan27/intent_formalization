@@ -1,0 +1,13 @@
+{
+  "cache_key": "e656f483110420fad2029a74b63f5a0954ac380928008e243757db065ce5fd6d",
+  "function": "clone_up_to_view",
+  "file": "single_delivery_model_impl2__receive_ack_impl",
+  "status": "verus_fail",
+  "proof_block": "if r1@ == self_@ && r2@ == self_@ {\n        assert(r1.id@ == self_.id@);\n        assert(r2.id@ == self_.id@);\n        assert(r1.id@ == r2.id@);\n        assert(r1.id =~= r2.id);\n    }",
+  "rationale": "The obligation requires proving det_clone_up_to_view_equal(r1, r2) := (r1.id == r2.id) for two EndPoint values whose only known property is r1@ == self_@ and r2@ == self_@. Those view-equalities give r1.id@ == r2.id@ (Seq-level), but Verus's spec equality `==` on `Vec<u8>` is opaque: no axiom in vstd::std_specs::vec maps Seq view-equality to structural Vec equality. Empirically confirmed by a minimal Verus test (asserting `v1 == v2` or even `v1 =~= v2` from `v1@ == v2@` for `Vec<u8>` fails). The external_body clone_up_to_view only guarantees view equality, so structural Vec equality of the cloned ids is not derivable. The obligation is unprovable without relaxing the equal-fn to compare via @ or view_equal.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T18:55:48Z",
+  "verus_ms": 1028,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nerror: assertion failed\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__clone_up_to_view/llm_proof/verify/single_delivery_model_impl2__receive_ack_impl.rs:1212:16\n     |\n1212 |         assert(r1.id =~= r2.id);\n     |                ^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

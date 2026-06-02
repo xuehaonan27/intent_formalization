@@ -1,0 +1,13 @@
+{
+  "cache_key": "3896ec0f6b8da95c4699768c7f0cd4c6b07d729b4efe04658eb10dfffb722d53",
+  "function": "retransmit_un_acked_packets_for_dst",
+  "file": "single_delivery_model_v__impl2__retransmit_un_acked_packets",
+  "status": "verus_fail",
+  "proof_block": "// The proof obligation requires Seq equality of post1_packets@ and post2_packets@,\n    // but the antecedent only constrains set equality of map_values(|p| p@).\n    // Two sequences with different ordering (or duplicates) can yield the same set,\n    // so this implication is mathematically unprovable. No proof statements suffice.",
+  "rationale": "The determinism postcondition requires Seq equality post1_packets@ == post2_packets@, but retransmit_un_acked_packets_for_dst only guarantees set equality on map_values(|p| p@).to_set(). Two sequences with different orderings of the same packets satisfy the antecedent but violate Seq equality, so the obligation is mathematically unprovable. Tried (1) transitivity of set equality (didn't help conclude Seq equality), (2) direct assert(post1_packets@ =~= post2_packets@) which Verus rejected as expected. No valid proof statements can close this gap without using assume/admit, which are forbidden.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T20:21:42Z",
+  "verus_ms": 1650,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__retransmit_un_acked_packets_for_dst/llm_proof/verify/single_delivery_model_v__impl2__retransmit_un_acked_packets.rs:1118:9\n     |\n1118 | /         ({\n1119 | |             &&& (post1_packets@.map_values(|p: CPacket| p@).to_set() ==\n1120 | |             pre_packets@.map_values(|p: CPacket| p@).to_set() + self_@.un_acked_messages_for_dest(src@, dst@))\n1121 | |             &&& (outbound_packet_seq_is_valid(post1_packets@))\n...    |\n1128 | |             &&& (CSingleDelivery::packets_are_valid_messages(post2_packets@))\n1129 | |         }) ==> det_retransmit_un_acked_packets_for_dst_equal(r1, r2, post1_packets@, post2_packets@),\n     | |____________________________________________________________________________________________________^ failed this postcondition\n...\n1269 |       if g_neq_tuple { assume(!det_retransmit_un_acked_packets_for_dst_equal(r1, r2, post1_packets@, post2_packets@)); }\n     |       ------------------------------------------------------------------------------------------------------------------ at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

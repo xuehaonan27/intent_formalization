@@ -1,0 +1,15 @@
+{
+  "cache_key": "5a61207002dc5b18d2a8e0f3868c89f58cf42f03bedeb330281ed8a1184120bd",
+  "function": "receive_ack_impl",
+  "file": "single_delivery_model_v__impl2__receive_impl",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-23T10:22:29Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun11/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_ack_impl/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun11/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__receive_impl__receive_ack_impl/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "2ccc00fcdbd823f1abab1b845b1cb6eec0b2939b33adf998f6fabb0c78d4a185"
+}

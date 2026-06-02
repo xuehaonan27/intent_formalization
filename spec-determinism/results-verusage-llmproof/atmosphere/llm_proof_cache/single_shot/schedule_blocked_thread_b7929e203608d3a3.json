@@ -1,0 +1,15 @@
+{
+  "cache_key": "b7929e203608d3a333d1025d80816ef289e75446c052f5bae70151de4b4f1385",
+  "function": "schedule_blocked_thread",
+  "file": "kernel__syscall_send_empty__impl0__syscall_send_empty_block",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T12:01:37Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__schedule_blocked_thread/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__syscall_send_empty__impl0__syscall_send_empty_block__schedule_blocked_thread/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "8f30b574e0c81ec3c86c808332934f363d8608b5626900f56ef215d3d192dda8"
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/pagetable/pagetable__pagemap__impl0__init.rs",
+    "function": "init",
+    "permitted": false,
+    "n_schemas": 1,
+    "n_params": 1,
+    "verus_ms": 601,
+    "smt2_bytes": 363924,
+    "ctx_ms": 30,
+    "search_ms": 43,
+    "n_rounds": 2,
+    "assumes": [
+      "!det_init_equal(r1, r2, post1_self_@, post2_self_@)"
+    ],
+    "r0_z3": "unknown",
+    "status": "ok",
+    "total_ms": 695,
+    "artifact_key": "atmosphere__verified__pagetable__pagetable__pagemap__impl0__init__init"
+  }
+]

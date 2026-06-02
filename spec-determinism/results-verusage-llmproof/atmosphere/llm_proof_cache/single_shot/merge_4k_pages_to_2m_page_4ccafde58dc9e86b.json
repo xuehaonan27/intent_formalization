@@ -1,0 +1,15 @@
+{
+  "cache_key": "4ccafde58dc9e86b64e3f96b78a7b1185d8ed361fd4fdeec924d94d1e23aa577",
+  "function": "merge_4k_pages_to_2m_page",
+  "file": "allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T09:06:52Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merge_4k_pages_to_2m_page/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m__merge_4k_pages_to_2m_page/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "33755ad1e2d6b9f59df36579a51b4a1346c5e6d062ca8ecd5e49785ae65d6850"
+}

@@ -1,0 +1,13 @@
+{
+  "cache_key": "44dcac4d1d03d3b5d2a560162f532b1de88a5ef359064823815f35637687a59f",
+  "function": "get_my_end_point",
+  "file": "host_impl_v__impl2__real_init_impl",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 1,
+  "saved_at": "2026-05-16T17:13:26Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__get_my_end_point/llm_proof/attempt_01/llm/response.md (last error: timeout after 600s). See attempt logs in /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__real_init_impl__get_my_end_point/llm_proof/attempt_01/llm.",
+  "cache_schema": 1
+}

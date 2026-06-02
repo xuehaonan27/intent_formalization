@@ -1,0 +1,13 @@
+{
+  "cache_key": "d1c33752c08c0e1d2393f4f93a5010a47f1c09db4b5d4554f893991313470ebb",
+  "function": "new",
+  "file": "delegation_map_v__impl3__new",
+  "status": "verus_fail",
+  "proof_block": "// Pull both ensures into context so triggers on `@` and `valid()` line up.\nassert(r1@ == Seq::<K>::empty());\nassert(r2@ == Seq::<K>::empty());\nassert(r1.valid());\nassert(r2.valid());\n\n// Sequence extensionality lifts the two \"== empty\" facts to r1@ == r2@.\nassert(r1@ =~= r2@);\nassert(r1@ == r2@);",
+  "rationale": "Re-assert each ensures conjunct so z3 instantiates `@` on both r1 and r2, then use Seq extensionality (`=~=`) to conclude r1@ == r2@ from r1@ == empty == r2@; combined with the asserted `valid()` facts this discharges det_new_equal.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T10:58:06Z",
+  "verus_ms": 403,
+  "verus_stderr_tail": "verification results:: 1 verified, 1 errors\n\nnote: function body check: not all errors may have been reported; rerun with a higher value for --multiple-errors to find other potential errors in this function\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new/llm_proof/attempt_01/delegation_map_v__impl3__new.rs:114:7\n    |\n114 | proof fn det_new<K: KeyTrait + VerusClone>(g_neq_tuple: bool, r1: StrictlyOrderedVec<K>, r2: StrictlyOrderedVec<K>)\n    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new/llm_proof/attempt_01/delegation_map_v__impl3__new.rs:126:8\n    |\n126 | assert(r1@ == Seq::<K>::empty());\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: assertion failed\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__new__new/llm_proof/attempt_01/delegation_map_v__impl3__new.rs:127:8\n    |\n127 | assert(r2@ == Seq::<K>::empty());\n    |        ^^^^^^^^^^^^^^^^^^^^^^^^ assertion failed\n\nerror: aborting due to 2 previous errors\n\n",
+  "cache_schema": 1
+}

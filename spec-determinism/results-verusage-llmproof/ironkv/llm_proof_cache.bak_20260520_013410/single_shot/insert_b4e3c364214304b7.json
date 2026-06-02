@@ -1,0 +1,13 @@
+{
+  "cache_key": "b4e3c364214304b71b3253b8cc0f49d0d93ae59c4e6ec4443bb3a00b90b499e5",
+  "function": "insert",
+  "file": "single_delivery_model_impl2__receive_ack_impl",
+  "status": "verus_fail",
+  "proof_block": "// The single ensures of `insert` is `self@ == old(self)@.insert(key@, value)`.\n// Applied to the two runs, both `post*_self_@` are equal to the same\n// `pre_self_@.insert(key@, value)` term, so transitivity collapses them.\n// We make this implication explicit (LHS = the two ensures, RHS = the\n// HashMap views coincide) so z3 doesn't have to bridge it through the\n// `Map::insert` axioms across the two runs. We also lift the equality\n// to `=~=` in case `det_insert_equal` is phrased with map extensionality.\nassert((post1_self_@ == pre_self_@.insert(key@, value)\n        && post2_self_@ == pre_self_@.insert(key@, value))\n       ==> post1_self_@ == post2_self_@);\nassert((post1_self_@ == pre_self_@.insert(key@, value)\n        && post2_self_@ == pre_self_@.insert(key@, value))\n       ==> post1_self_@ =~= post2_self_@);",
+  "rationale": "Both ensures pin `post*_self_@` to the same `pre_self_@.insert(key@, value)` term, so transitivity collapses them; asserting the implication (and the extensional `=~=` variant) directly hands z3 the chain it was missing across the two runs.",
+  "attempts": 1,
+  "saved_at": "2026-05-16T18:25:31Z",
+  "verus_ms": 944,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_impl2__receive_ack_impl__insert/llm_proof/attempt_01/single_delivery_model_impl2__receive_ack_impl.rs:1148:9\n     |\n1146 |   proof fn det_insert<V>(g_key_id_le...p<V>, r1: (), post2_self_: HashMap<V>, r2: ())\n     |         ----------------------------...---------------------------------------------- at the end of the function body\n1147 |       ensures\n1148 | /         ({\n1149 | |             &&& (post1_self_@ == pre_self_@.insert(key@, value))\n1150 | |             &&& (post2_self_@ == pre_self_@.insert(key@, value))\n1151 | |         }) ==> det_insert_equal(r1, r2, post1_self_, post2_self_),\n     | |_________________________________________________________________^ failed this postcondition\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "file": "/home/chentianyu/intent_formalization/verusage/source-projects/atmosphere/verified/kernel/kernel__kernel_kill_thread__impl0__kernel_kill_thread.rs",
+    "function": "kill_blocked_thread",
+    "permitted": false,
+    "n_schemas": 65,
+    "n_params": 113,
+    "verus_ms": 2606,
+    "smt2_bytes": 3115976,
+    "ctx_ms": 87,
+    "search_ms": 2519,
+    "n_rounds": 19,
+    "assumes": [
+      "(pre_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(pre_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(pre_self_.thread_perms)@.dom().len() == 0",
+      "(pre_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()",
+      "r1.1 is Some",
+      "r2.1 is Some",
+      "(post1_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(post1_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(post1_self_.thread_perms)@.dom().len() == 0",
+      "(post1_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()",
+      "(post2_self_.container_perms)@.dom() == Set::<ContainerPtr>::empty()",
+      "(post2_self_.process_perms)@.dom() == Set::<ProcPtr>::empty()",
+      "(post2_self_.thread_perms)@.dom().len() == 0",
+      "(post2_self_.endpoint_perms)@.dom() == Set::<EndpointPtr>::empty()",
+      "!det_kill_blocked_thread_equal(r1, r2, post1_self_, post2_self_)"
+    ],
+    "r0_z3": "unknown",
+    "status": "ok",
+    "total_ms": 7189,
+    "artifact_key": "atmosphere__verified__kernel__kernel__kernel_kill_thread__impl0__kernel_kill_thread__kill_blocked_thread"
+  }
+]

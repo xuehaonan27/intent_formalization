@@ -1,0 +1,15 @@
+{
+  "cache_key": "e66dedf754734d6e33c67c3f33ecf086cf86f17ed9212133ceead697ae18526e",
+  "function": "keys",
+  "file": "single_delivery_model_v__impl2__retransmit_un_acked_packets",
+  "status": "verus_fail",
+  "proof_block": "// Both ensures pin `r1@.map_values(|e: EndPoint| e@).to_set()` and\n// `r2@.map_values(|e: EndPoint| e@).to_set()` to the same value\n// `self_@.dom()`. State the resulting transitive equality between the two\n// mapped-view sets as a single quantifier-free implication so z3 does not\n// need to instantiate any forall — this avoids the trigger-inference\n// failure that the previous `assert forall|x: AbstractEndPoint| ...` block\n// hit, and lines up the two ensures clauses with a common reduced term.\nassert(\n    (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom()\n     && r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n    ==> r1@.map_values(|e: EndPoint| e@).to_set()\n        == r2@.map_values(|e: EndPoint| e@).to_set());",
+  "rationale": "The previous attempt failed because an `assert forall|x: AbstractEndPoint|` block could not have its triggers inferred; replace it with a single quantifier-free conditional that states transitivity of the two ensures through `self_@.dom()`, so z3 directly derives the mapped-view set equality of r1 and r2 without any forall instantiation.",
+  "attempts": 2,
+  "saved_at": "2026-05-23T09:53:29Z",
+  "verus_ms": 902,
+  "verus_stderr_tail": "verification results:: 2 verified, 1 errors\n\nerror: postcondition not satisfied\n    --> /tmp/ironkv_rerun11/artifacts/ironkv__verified__single_delivery_model_v__single_delivery_model_v__impl2__retransmit_un_acked_packets__keys/llm_proof/attempt_02/single_delivery_model_v__impl2__retransmit_un_acked_packets.rs:1116:9\n     |\n1114 |   proof fn det_keys<V>(g_r1_leneq: bool, k...: &HashMap<V>, r1: Vec<EndPoint>, r2: Vec<EndPoint>)\n     |         ----------------------------------...---------------------------------------------------- at the end of the function body\n1115 |       ensures\n1116 | /         ({\n1117 | |             &&& (r1@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n1118 | |             &&& (r2@.map_values(|e: EndPoint| e@).to_set() == self_@.dom())\n1119 | |         }) ==> det_keys_equal(r1, r2),\n     | |_____________________________________^ failed this postcondition\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "544b0efddc7dee7107a65e5bb48ec4298277a7f69010f4b9157899d88f456432"
+}

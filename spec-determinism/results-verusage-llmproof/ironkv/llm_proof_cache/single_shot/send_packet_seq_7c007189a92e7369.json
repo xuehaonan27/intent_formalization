@@ -1,0 +1,15 @@
+{
+  "cache_key": "7c007189a92e73690dcfc0e8186f60391e0e7e465eb23d9463e2f767a01b5d0e",
+  "function": "send_packet_seq",
+  "file": "net_sht_v__send_packet_seq",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-23T10:04:53Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/ironkv_rerun11/artifacts/ironkv__verified__net_sht_v__net_sht_v__send_packet_seq__send_packet_seq/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/ironkv_rerun11/artifacts/ironkv__verified__net_sht_v__net_sht_v__send_packet_seq__send_packet_seq/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "27e7fa911e42dae890d6ce272fee4b028e2f234a7479c859b031b375cc8f77d8"
+}

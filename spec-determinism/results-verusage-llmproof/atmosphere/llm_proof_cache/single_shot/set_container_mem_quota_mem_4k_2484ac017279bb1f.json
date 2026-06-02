@@ -1,0 +1,15 @@
+{
+  "cache_key": "2484ac017279bb1f2a58dc5a6a469ec77a583ae0d15def54d798c481248df770",
+  "function": "set_container_mem_quota_mem_4k",
+  "file": "kernel__mem_util__impl0__create_iommu_table_entry",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T10:55:06Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__set_container_mem_quota_mem_4k/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__kernel__kernel__mem_util__impl0__create_iommu_table_entry__set_container_mem_quota_mem_4k/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "bac98d623b2ca5869623b390f8f0591266876d02e1ba4f014695b82e58d23c16"
+}

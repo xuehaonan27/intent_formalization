@@ -1,0 +1,13 @@
+{
+  "cache_key": "6e51ac363778d134c88e49dda2c10ff446ae0a5ed12cd11a4cecbfccbe30278f",
+  "function": "new",
+  "file": "single_delivery_state_v__impl3__un_acked_messages_extend",
+  "status": "verus_fail",
+  "proof_block": "if r1@ == Map::<AbstractEndPoint, V>::empty() && r2@ == Map::<AbstractEndPoint, V>::empty() {\n        assert(r1@ =~= r2@);\n        assert(r1@ == r2@);\n    }",
+  "rationale": "Obligation: forall r1,r2:HashMap<V>, (r1@==empty && r2@==empty) ==> r1==r2. HashMap is #[verifier(external_body)] with an uninterp view() and no #[verifier::ext_equal] attribute, so view equality cannot imply structural equality r1==r2. Tried: direct assert(r1==r2); assert(r1 =~= r2); assert ... by(compute); case-splitting via 'if' to bring antecedent into scope, then chaining transitivity through Map::empty(). All failed because no axiom relates the uninterp view to == on the opaque struct. Without assume() (forbidden), this is unprovable from the given declarations.",
+  "attempts": 1,
+  "saved_at": "2026-05-17T21:39:53Z",
+  "verus_ms": 828,
+  "verus_stderr_tail": "verification results:: 4 verified, 1 errors\n\nerror: postcondition not satisfied\n   --> /home/chentianyu/intent_formalization/spec-determinism/results-verusage-llmproof/ironkv/artifacts/ironkv__verified__single_delivery_state_v__single_delivery_state_v__impl3__un_acked_messages_extend__new/llm_proof/verify/single_delivery_state_v__impl3__un_acked_messages_extend.rs:911:9\n    |\n911 | /         ({\n912 | |             &&& (r1@ == Map::<AbstractEndPoint, V>::empty())\n913 | |             &&& (r2@ == Map::<AbstractEndPoint, V>::empty())\n914 | |         }) ==> det_new_equal(r1, r2),\n    | |____________________________________^ failed this postcondition\n...\n918 | / if r1@ == Map::<AbstractEndPoint, V>::empty() && r2@ == Map::<AbstractEndPoint, V>::empty() {\n919 | |         assert(r1@ =~= r2@);\n920 | |         assert(r1@ == r2@);\n921 | |     }\n    | |_____- at the end of the function body\n\nerror: aborting due to 1 previous error\n\n",
+  "cache_schema": 1
+}

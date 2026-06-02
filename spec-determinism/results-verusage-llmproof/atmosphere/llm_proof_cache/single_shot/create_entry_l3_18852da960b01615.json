@@ -1,0 +1,15 @@
+{
+  "cache_key": "18852da960b01615fe6373d1a23fb0367039e0d3c6cfd2f5831d483c7c470369",
+  "function": "create_entry_l3",
+  "file": "pagetable__pagetable_impl_base__impl0__create_entry_l3",
+  "status": "llm_failure",
+  "proof_block": "",
+  "rationale": "",
+  "attempts": 2,
+  "saved_at": "2026-05-24T13:34:07Z",
+  "verus_ms": 0,
+  "verus_stderr_tail": "RuntimeError: copilot failed after 3 attempts without writing /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__create_entry_l3__create_entry_l3/llm_proof/attempt_02/llm/response.md (last error: timeout after 600s). See attempt logs in /tmp/corpus_rerun11/artifacts/atmosphere/atmosphere__verified__pagetable__pagetable__pagetable_impl_base__impl0__create_entry_l3__create_entry_l3/llm_proof/attempt_02/llm.",
+  "cache_schema": 2,
+  "helper_lemmas": "",
+  "shape_key": "3150825bf2b7d33ec85f5dfb10b54ea9748c3e252b361060142cd63b88c43dbe"
+}
