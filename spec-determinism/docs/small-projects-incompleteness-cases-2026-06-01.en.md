@@ -95,9 +95,9 @@ ensures
 
 ### Why this is incomplete
 
-`PDE::new_entry` packs 8 inputs into a 64-bit x86 page directory entry via bit-OR. The implementation is deterministic. The ensures clauses constrain individual bits via `r.entry & MASK_X == MASK_X` predicates but **never mention `MASK_PG_FLAG_G` (bit 8, "Global")**, even though `PDE::view()` reads it and exposes it as the `G: bool` field of `GPDE::Page`.
+`PDE::new_entry` packs **8 permission / flag bits** (plus the address) into a 64-bit page directory entry, and these 8 bits are exactly what `GPDE::Page` exposes via `view()`: `P, RW, US, PWT, PCD, G, PAT, XD`. The ensures pins **7** of them — `P`, `RW`, `US`, `PWT`, `PCD`, `XD` via per-bit `==` predicates, and `PAT` via `r.hp_pat_is_zero()` — but **omits the Global flag (`MASK_PG_FLAG_G`, bit 8)**. Two implementations that disagree on whether to OR-in `MASK_PG_FLAG_G` produce different `view().G` and both pass ensures.
 
-The determinism check is view-level (`r1.view() == r2.view()`). For `is_page=true` the view is `GPDE::Page { addr, P, RW, US, PWT, PCD, G, PAT, XD }`; every field is pinned by ensures **except `G`**. Two implementations differing only on whether they OR-in `MASK_PG_FLAG_G` produce different views, and both pass ensures.
+The real implementation leaves bit 8 at 0 by omission — the OR-chain at lines 357–368 simply never includes `MASK_PG_FLAG_G` — but the spec doesn't say so.
 
 ### Source function (ensures only)
 
