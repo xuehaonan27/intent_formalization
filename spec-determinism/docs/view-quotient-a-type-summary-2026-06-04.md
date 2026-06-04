@@ -61,8 +61,6 @@ struct DelegationMap<K> {
 spec fn view(self) -> Map<K, AbstractEndPoint> { self.m@ }
 ```
 
-`m@` 是逻辑层面的函数 `K → EndPoint`；`lows` 是它的高效实现，把连续相同值压成 "只在变化点存 key"。view 只看 `m@`，`lows` 对外不可见。
-
 ### 4.2 函数
 
 ```rust
