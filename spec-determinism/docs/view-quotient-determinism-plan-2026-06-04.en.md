@@ -374,3 +374,15 @@ They are complementary:
 For the next iteration, prioritize the spec-level plan because it is a
 direct extension of the existing determinism pipeline and requires no
 new executable semantics model.
+
+```text
+proof fn check(x, y1, y2)
+    requires P(x)
+    ensures Q(x, y1) && Q(x, y2) ==> y1 == y2
+```
+
+```text
+proof fn check(x1, x2, y1, y2)
+    requires P(x1) && P(x2) && x1@ == x2@
+    ensures Q(x1, y1) && Q(x2, y2) ==> y1@ == y2@
+```
