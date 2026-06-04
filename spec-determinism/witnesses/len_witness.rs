@@ -70,4 +70,34 @@ proof fn step2_len_check_fixed<T>(s1: SLL<T>, s2: SLL<T>, r1: usize, r2: usize)
 {
 }
 
+// Alternative fix: widen `view` to expose `value_list_len`.
+// New view returns (Seq<T>, usize); view-equality now pins the cached length,
+// so (E1) `r == self.value_list_len` is determined by `self@`.
+// Expected: VERIFIES.
+pub struct SLL2<T> {
+    pub spec_seq: Ghost<Seq<T>>,
+    pub value_list_len: usize,
+}
+
+impl<T> SLL2<T> {
+    // View now includes the cached length.
+    pub open spec fn view(&self) -> (Seq<T>, usize) {
+        (self.spec_seq@, self.value_list_len)
+    }
+
+    #[verifier::external_body]
+    pub closed spec fn wf(&self) -> bool { unimplemented!() }
+}
+
+proof fn step2_len_check_view_widened<T>(s1: SLL2<T>, s2: SLL2<T>, r1: usize, r2: usize)
+    requires
+        s1@ == s2@,
+        r1 == s1.value_list_len,
+        s1.wf() ==> r1 == s1@.0.len(),
+        r2 == s2.value_list_len,
+        s2.wf() ==> r2 == s2@.0.len(),
+    ensures r1 == r2,
+{
+}
+
 }

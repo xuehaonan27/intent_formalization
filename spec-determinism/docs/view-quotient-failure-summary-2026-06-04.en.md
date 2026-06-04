@@ -5,15 +5,8 @@
 
 | # | Function | Why it fails (one sentence) | Suggested fix |
 |---|----------|-----------------------------|---------------|
-| 1 | [`StaticLinkedList::len`](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L65) (atmosphere) | An ensures clause reads the hidden field `value_list_len` directly, and the function has no `requires` constraining the precondition | Add `requires self.wf()`, or drop the ensures clause that reads the hidden field |
-| 2 | [`DelegationMap::get_internal`](../../verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs#L238) (ironkv) | The `glb` component of ensures depends on the internal structure of the hidden field `lows`, and `valid()` allows `lows` to map two distinct keys to the same endpoint | Tighten `valid()` to forbid this redundancy, or rewrite the ensures so that `glb` is also determined by the view |
-
-Both cases have been mechanically confirmed: see the self-contained Verus witnesses under [`spec-determinism/witnesses/`](../witnesses/). Each witness composes the function's `ensures` for two independent calls and asks Verus to discharge the Step-2 obligation; the obligation that should fail does fail with a "postcondition not satisfied" error, while the Step-1 counterpart and the rescued sub-obligations verify.
-
-| witness file | expected outcome (Verus) |
-|---|---|
-| [`len_witness.rs`](../witnesses/len_witness.rs) | `2 verified, 1 errors` — `step2_len_check` rejects |
-| [`get_internal_witness.rs`](../witnesses/get_internal_witness.rs) | `6 verified, 1 errors` — `step2_get_internal_glb_check` rejects; `step2_get_internal_id_check` verifies (id rescued by `id@ == self@[*k]`) |
+| 1 | [`StaticLinkedList::len`](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L65) (atmosphere) | An ensures clause reads the hidden field `value_list_len` directly, and the function has no `requires` constraining the precondition | Add `requires self.wf()`, or widen `view` to include `value_list_len` |
+| 2 | [`DelegationMap::get_internal`](../../verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs#L238) (ironkv) | The `glb` component of ensures depends on the internal structure of the hidden field `lows`, and `valid()` allows `lows` to map two distinct keys to the same endpoint | Strengthen `valid()`, or widen `view` to include `lows` |
 
 ---
 
@@ -51,9 +44,10 @@ Let both `s1` and `s2` have `spec_seq@` equal to the empty sequence, with `value
 - Both satisfy ensures (only (E1) is active; (E2) trivially holds)
 - `r1 = 0`, `r2 = 7`; `usize` has no view, so comparison falls back to `==` — fails.
 
-### 2.4 This is a real spec defect
+### 2.4 Fixes
 
-The spec of `len` promises to return `value_list_len`, but that field is garbage in non-wf states. Any caller relying on `len`'s return value without first establishing `self.wf()` is depending on undefined behaviour. The minimal fix is a single `requires self.wf()`: it has no side effects and tightens both (E1) and (E2) at the same time.
+- **Add `requires self.wf()`**.
+- **Widen `view` to include `value_list_len`**, e.g. `view(self) -> (Seq<T>, usize)`.
 
 ---
 
@@ -109,5 +103,5 @@ Query `*k = k₆` with `k₅ < k₆`:
 
 ### 3.5 Fixes
 
-- **Strengthen `valid()`**: add a clause requiring adjacent keys in `lows` to map to different endpoints (equivalently, `lows.dom` is the canonical RLE of `m@`). `s2` becomes invalid and the counterexample disappears.
-- **Rewrite ensures**: make `glb` derivable from `m@`, e.g. return "the left endpoint of the maximal equal-value run containing `*k`", bypassing the internal structure of `lows`.
+- **Strengthen `valid()`** to require adjacent keys in `lows` to map to different endpoints.
+- **Widen `view` to include `lows`**, e.g. `view(self) -> (Map<K, AbstractEndPoint>, StrictlyOrderedMap<K>)`.
