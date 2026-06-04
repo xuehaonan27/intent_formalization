@@ -31,9 +31,18 @@ For each `status: ok` det-spec artifact:
    Frame clauses of the shape `post1_self_.X == (pre_)?self_.X` with
    `X ∉ vf` are **not** a leak — `post.X` is not observable when the post-state
    is compared by view.
-4. The candidate is **A-type** iff `requires` does not contain a wf-style
-   predicate (`(pre_)?self_.{wf,valid,invariant,invariants,inv}()`) that could
-   rescue the leak.
+4. The candidate is provisionally **A-type** iff `requires` does not contain
+   a wf-style predicate (`(pre_)?self_.{wf,valid,invariant,invariants,inv}()`)
+   that could rescue the leak.
+
+> **Note on "rescued by requires".** This filter is purely **syntactic**: it
+> only checks whether `requires` mentions a wf/valid/invariant predicate, not
+> whether the predicate's body actually constrains the hidden field to be
+> view-derivable. Cases the scan marks as "rescued" must still be audited by
+> unfolding the wf-predicate. §3.2 below is exactly such a case: the scan
+> initially flagged `DelegationMap::get_internal` as rescued, but manual
+> unfolding of `valid()` shows the rescue only covers one of the two output
+> components.
 
 `E_R` rule (consistent with the plan, §1):
 
@@ -49,39 +58,45 @@ The scan is in [`/tmp/vq/scan_a_type_v3.py`](#) (script reproduced in §6).
 
 ## 2. Summary
 
-| project          | Step-1 ok entries | leak candidates (unique) | A-type | rescued by `requires` |
-|------------------|------------------:|-------------------------:|------:|----------------------:|
-| atmosphere       |              1242 |                        4 |     4 |                     0 |
-| ironkv           |               171 |                        1 |     0 |                     1 |
-| memory-allocator |                15 |                        0 |     0 |                     0 |
-| nrkernel         |                 6 |                        0 |     0 |                     0 |
-| anvil-library    |                 0 |                        0 |     0 |                     0 |
-| storage          |                 0 |                        0 |     0 |                     0 |
-| vest             |                 2 |                        0 |     0 |                     0 |
-| **total**        |          **1436** |                    **5** | **4** |                 **1** |
+| project          | Step-1 ok entries | leak candidates (unique) | A-type | borderline (old E_R only) | syntactic-rescue (verified) |
+|------------------|------------------:|-------------------------:|------:|--------------------------:|----------------------------:|
+| atmosphere       |              1242 |                        4 |     1 |                         3 |                           0 |
+| ironkv           |               171 |                        1 |     1 |                         0 |                           0 |
+| memory-allocator |                15 |                        0 |     0 |                         0 |                           0 |
+| nrkernel         |                 6 |                        0 |     0 |                         0 |                           0 |
+| anvil-library    |                 0 |                        0 |     0 |                         0 |                           0 |
+| storage          |                 0 |                        0 |     0 |                         0 |                           0 |
+| vest             |                 2 |                        0 |     0 |                         0 |                           0 |
+| **total**        |          **1436** |                    **5** | **2** |                     **3** |                       **0** |
 
-Unique here means `(project, function, type-base)`. The 4 A-type candidates
-expand to **136 ok instances** when counted at the per-callsite level the
-harness inlines into:
+Unique here means `(project, function, type-base)`. The 2 A-type cases plus
+the 3 borderline ones expand to **137 ok instances** when counted at the
+per-callsite level the harness inlines into:
 
-| (function, type)                          | distinct ok instances |
-|-------------------------------------------|----------------------:|
-| `StaticLinkedList::len`                   |                   114 |
-| `StaticLinkedList::set_next`              |                    10 |
-| `StaticLinkedList::set_prev`              |                    10 |
-| `StaticLinkedList::set_value`             |                     2 |
-| **total**                                 |               **136** |
+| (function, type)                                  | classification              | distinct ok instances |
+|---------------------------------------------------|-----------------------------|----------------------:|
+| `StaticLinkedList::len`                           | A-type (no requires)        |                   114 |
+| `DelegationMap::get_internal`                     | A-type (partial rescue)     |                     1 |
+| `StaticLinkedList::set_next`                      | borderline (old E_R)        |                    10 |
+| `StaticLinkedList::set_prev`                      | borderline (old E_R)        |                    10 |
+| `StaticLinkedList::set_value`                     | borderline (old E_R)        |                     2 |
+| **total**                                         |                             |               **137** |
 
-Note the next section narrows this further: **only `len` is A-type under the
-new view-aware `E_R`**. The three `set_*` cases are A-type only under the
-**existing dumper-generated `E_R`** (which compares `post_self_` structurally
-via `==`); they cease to be A-type once `E_R` is fixed to compare by view as
-the plan prescribes. They are included here because they expose a parallel
-issue: the dumper's equality function itself is not yet view-aware.
+The scan initially flagged `DelegationMap::get_internal` as syntactically
+rescued by `requires self.valid()`; manual unfolding shows the rescue is
+partial — see §3.2.
 
-## 3. Confirmed A-type: `StaticLinkedList<T, N>::len`
+The 3 `set_*` cases are A-type only under the **existing dumper-generated
+`E_R`** (which compares `post_self_` structurally via `==`); they cease to
+be A-type once `E_R` is fixed to compare by view as the plan prescribes.
+They are recorded here because they expose a parallel issue: the dumper's
+equality function itself is not yet view-aware.
 
-### 3.1 Source
+## 3. Confirmed A-type cases
+
+### 3.1 `StaticLinkedList<T, N>::len`
+
+#### 3.1.1 Source
 
 ```rust
 // atmosphere/verified/slinkedlist/slinkedlist__spec_impl_u__impl2__init.rs:43-50
@@ -134,7 +149,7 @@ proof fn det_len<T, const N: usize>(self_: StaticLinkedList<T, N>, r1: usize, r2
 spec fn det_len_equal(r1: usize, r2: usize) -> bool { (r1 == r2) }
 ```
 
-### 3.2 Step 1 (concrete-input determinism)
+### 3.1.2 Step 1 (concrete-input determinism)
 
 ```
 P(self_)    := true
@@ -149,7 +164,7 @@ E_R(r1, r2) := r1 == r2
 Trivially valid (both equal `self_.value_list_len`). Verus confirms in
 913ms on the artifact; corpus marks `status: ok`.
 
-### 3.3 Step 2 (view-quotient determinism)
+### 3.1.3 Step 2 (view-quotient determinism)
 
 ```
 V(s1, s2) := s1@ == s2@  ≡  s1.spec_seq@ == s2.spec_seq@
@@ -179,7 +194,7 @@ Per-clause check:
 `P(s1) ∧ V(s1, s2) ⟹ P(s2)` is trivially satisfied — the failure is in the
 **core** view-quotient obligation, not in domain preservation.
 
-### 3.4 Why this is a real spec issue, not just a counter-modelling artifact
+### 3.1.4 Why this is a real spec issue, not just a counter-modelling artifact
 
 The two pieces of state in the struct are intentionally separate:
 
@@ -196,7 +211,7 @@ relate the result to the view **only under `wf`**. Without a
 which leaks hidden state through the result, exactly what view-quotient
 captures.
 
-### 3.5 Two minimal fixes (either makes Step 2 pass)
+### 3.1.5 Two minimal fixes (either makes Step 2 pass)
 
 1. Move the view-level statement out of the conditional and drop the leak:
    ```rust
@@ -217,11 +232,129 @@ captures.
    Now `wf` forces `value_list_len == self@.len()`, so the witness pair
    above is no longer reachable.
 
-### 3.6 Reach in the corpus
+### 3.1.6 Reach in the corpus
 
 114 `ok` instances of `StaticLinkedList::len` across atmosphere — the harness
 inlines `len` into every transitive caller (allocator, page-map, container,
 syscall layers). All 114 share the same root spec.
+
+### 3.2 `DelegationMap<K>::get_internal` (partial rescue)
+
+The scan flagged this case as syntactically rescued by `requires self.valid()`.
+Unfolding `valid()` shows the rescue is **partial**: it closes the leak on
+the first output component but not the second, so the function is still
+A-type.
+
+#### 3.2.1 Source
+
+```rust
+// ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs:212-249
+pub struct DelegationMap<K: KeyTrait + VerusClone> {
+    lows: StrictlyOrderedMap<K>,             // ← hidden, concrete
+    m:    Ghost<Map<K, AbstractEndPoint>>,
+}
+
+impl<K: KeyTrait + VerusClone> DelegationMap<K> {
+    pub closed spec fn view(self) -> Map<K, AbstractEndPoint> { self.m@ }
+    //                                                          ^^^^^^^ view fields = {m}
+
+    pub closed spec fn valid(self) -> bool {
+        &&& self.lows.valid()
+        &&& self.lows@.contains_key(K::zero_spec())
+        &&& self@.dom().is_full()
+        &&& forall|k| self@[k].valid_physical_address()
+        &&& forall|k, i, j|
+              self.lows@.contains_key(i)
+            ∧ self.lows.gap(KeyIterator::new_spec(i), j)
+            ∧ KeyIterator::between(KeyIterator::new_spec(i),
+                                   KeyIterator::new_spec(k), j)
+            ⟹ self@[k] == self.lows@[i]@                 // (★)
+    }
+
+    fn get_internal(&self, k: &K) -> (res: (ID, Ghost<KeyIterator<K>>))
+        requires self.valid(),
+        ensures ({
+            let (id, glb) = res;
+            &&& id@ == self@[*k]                                   // (E1) view-only
+            &&& self.lows.greatest_lower_bound_spec(
+                    KeyIterator::new_spec(*k), glb@)              // (E2) reads lows
+            &&& id@.valid_physical_address()
+        }),
+    { unimplemented!() }
+}
+```
+
+`ID = EndPoint` and `EndPoint` has a `view() -> AbstractEndPoint` (line 492).
+`KeyIterator<K>` does **not** define a view, so the new view-aware `E_R`
+collapses to `==` on `glb`:
+
+```
+E_R(r1, r2) :=  id1@ == id2@   ∧   glb1 == glb2
+```
+
+#### 3.2.2 What `valid()` rescues
+
+Clause (E1) `id@ == self@[*k]` is **expressed entirely through the view**.
+`pre1@ == pre2@` immediately gives `pre1@[*k] = pre2@[*k]`, hence
+`id1@ = id2@`. **`id` rescued.** Note that (★) is not actually needed for
+this part — (E1) is self-sufficient.
+
+#### 3.2.3 What `valid()` does *not* rescue
+
+Clause (E2) ties `glb@` to `self.lows.greatest_lower_bound_spec`, whose body
+quantifies over `self.lows@.dom()` (= `self.lows.keys@.to_set()`). The
+invariant (★) only forces **value agreement on the shared sub-domain**
+(`m@[k] == lows@[i]@` when `i` is the gap-witness for `k`); it does **not**
+force `lows@.dom()` to be a function of `m@.dom()`. Two `valid`,
+view-equal `DelegationMap` states can therefore disagree on `lows.keys@`,
+and `greatest_lower_bound` will pick different witnesses.
+
+**Concrete witness** with constant view `m@ = K → ep_x`:
+
+| state | `m@` | `lows.keys@` | `lows.vals` | `lows@`                       | `valid()` |
+|-------|------|--------------|-------------|-------------------------------|:--------:|
+| `s1`  | `K → ep_x` | `[K::zero]`         | `[ep_x]`         | `{K::zero ↦ ep_x}`        | ✓ |
+| `s2`  | `K → ep_x` | `[K::zero, k₅]`     | `[ep_x, ep_x]`   | `{K::zero ↦ ep_x, k₅ ↦ ep_x}` | ✓ |
+
+Both satisfy `valid()`:
+- `lows.valid()`: keys sorted, no duplicates ✓.
+- `lows@.contains_key(K::zero)` ✓.
+- `self@.dom().is_full()` ✓ (`m@` is total).
+- (★) `m@[k] == lows@[i]@`: holds because `m@` is constant `ep_x` and every
+  `lows@[i]@` is also `ep_x`.
+
+Take the query `*k = k₆` with `k₅ < k₆`. By `greatest_lower_bound_spec`
+(line 174-181), `glb.k.get_Some_0()` is the unique
+`max(lows@.dom() ∩ [⊥, KeyIterator::new(k₆)))`:
+
+- `s1.lows@.dom() = {K::zero}` → `glb1 = KeyIterator::new(K::zero)`
+- `s2.lows@.dom() = {K::zero, k₅}` → `glb2 = KeyIterator::new(k₅)`
+
+So `glb1 ≠ glb2` while `id1@ = id2@ = ep_x` and `pre1@ = pre2@`. **Step 2
+fails on the `glb` component**; the `id` component holds. The function is
+genuinely A-type, just with a partially-effective rescue.
+
+#### 3.2.4 Where the rescue would need to be strengthened
+
+To close (E2), `valid()` would need to additionally pin `lows@.dom()` as a
+function of `m@`. A natural strengthening is "canonical representation":
+require `lows@.dom()` to be exactly the run-length-encoded breakpoints of
+`m@` — i.e., `lows@.dom() = { k | k = K::zero ∨ m@[k] ≠ m@[predecessor(k)] }`.
+That extra clause would force `s2` above to be invalid (the `k₅` entry is
+redundant) and the witness pair would not be reachable.
+
+Alternative fix (without touching `valid()`): change the ensures of
+`get_internal` to expose `glb` only as a view-derived quantity, e.g. by
+returning the corresponding `m@.dom()` key rather than the `lows` key.
+
+#### 3.2.5 Lesson for the audit
+
+A `requires` predicate "rescues" a leak only when it constrains the
+hidden field used by the ensures to be a function of the view. `valid()`
+in `DelegationMap` is **structural** (value agreement on a shared sub-domain)
+rather than **representational** (uniqueness of the concrete encoding); the
+audit must unfold the predicate to tell which kind it is. The scan's
+syntactic "rescued" label is a hint to investigate, not a verdict.
 
 ## 4. Borderline cases
 
@@ -275,39 +408,7 @@ about `value_list_head/_tail/_len` etc.). Hence they show up in my scan as
 
 Instance counts: `set_value` ×2, `set_next` ×10, `set_prev` ×10 ok rows.
 
-### 4.2 `DelegationMap<K>::get_internal` (ironkv) — rescued by `requires self.valid()`
-
-```rust
-// ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs:238-246
-fn get_internal(&self, k: &K) -> (res: (ID, Ghost<KeyIterator<K>>))
-    requires
-        self.valid(),
-    ensures ({
-        let (id, glb) = res;
-        &&& id@ == self@[*k]
-        &&& self.lows.greatest_lower_bound_spec(KeyIterator::new_spec(*k), glb@)  // ← reads self.lows
-        &&& id@.valid_physical_address()
-    }),
-{ unimplemented!() }
-```
-
-- `view = self.m@`; `self.lows` is a hidden concrete field.
-- The second ensures clause pins `glb@` (the ghost output) via `self.lows`,
-  which view does not project.
-- **Rescued by** `requires self.valid()`. `valid()` (line 225-235) asserts
-  ```
-  ∀ k, i, j.  self.lows@.contains_key(i) ∧ self.lows.gap(...,j) ∧ ...
-              ⟹  self@[k] == self.lows@[i]@
-  ```
-  i.e. `self.lows@` is fully determined by `self.m@` (= the view). Hence
-  any two `valid` view-equal states already agree on `self.lows@`, and
-  `greatest_lower_bound_spec` produces the same `glb` on both. Step 2 holds.
-
-Recorded for completeness. It is a **negative result** for the audit (the
-spec is fine *because* the wf-rescue genuinely closes the gap), not an
-A-type case.
-
-### 4.3 `PageAllocator::set_*` etc. — view-quotient degenerate
+### 4.2 `PageAllocator::set_*` etc. — view-quotient degenerate
 
 `atmosphere::PageAllocator`, `atmosphere::Quota`, `atmosphere::Page`,
 `atmosphere::PageTable`, `atmosphere::Kernel` do not define `spec fn view`
@@ -322,19 +423,28 @@ If/when these types acquire a `view`, the same scan should be re-run.
 ## 5. Implications
 
 1. **Coverage finding**: of 1436 Step-1-complete obligations across seven
-   projects, exactly **one** unique function is A-type under the
-   view-quotient framework (`StaticLinkedList::len`), with 114 corpus
-   instances. The audit is high-precision: the new check fires only on
-   genuinely under-specified spec.
-2. **By-product**: the three `set_*` candidates surface a separate weakness
-   in the existing dumper — it still compares view-bearing post-states
-   structurally. Fixing the equal-fn generator to honour the type's `view()`
-   would close those cases without changing the ensures.
-3. **`requires` discipline**: the rescued `DelegationMap::get_internal`
-   case shows that `valid()` (when it ties hidden state to the view) is
-   the right idiom for any function that needs to read hidden state in
-   ensures. The `len` author should either drop the hidden-state ensures
-   or add `requires self.wf()` — both fixes appear in §3.5.
+   projects, **two** unique functions are A-type under the view-quotient
+   framework — `StaticLinkedList::len` (114 instances) and
+   `DelegationMap::get_internal` (1 instance). The audit is high-precision:
+   the new check fires only on genuinely under-specified spec.
+2. **Two flavours of A-type**:
+   - **No-requires A-type** (`len`): the ensures simply forgets to ask for
+     `wf`. Drop the hidden-state ensures or add `requires self.wf()`.
+   - **Partial-rescue A-type** (`get_internal`): the requires *is* there,
+     but its body only constrains hidden state structurally, not
+     representationally. Either tighten the invariant to canonicalize the
+     representation, or rewrite the ensures to be view-derivable.
+3. **`requires` discipline is not free**: a `requires wf()` only rescues
+   when `wf` ties the hidden field to the view as a function. §3.2.5
+   describes the gap between *structural* and *representational*
+   invariants; future audits should unfold the predicate, not just check
+   for its presence.
+4. **By-product** — the three `set_*` candidates surface a separate
+   weakness in the existing dumper: it still compares view-bearing
+   post-states structurally. Fixing the equal-fn generator to honour the
+   type's `view()` would close those cases without changing the ensures.
+   See `view-quotient-determinism-plan-2026-06-04.en.md` §7 for the
+   implementation task.
 
 ## 6. Reproducer
 
@@ -466,15 +576,27 @@ candidates=2, A-type=1, rescued=1
 [atmosphere] StaticLinkedList<T, N>::len  (1 leaks)  atmosphere__verified__allocator__allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped__len
 ```
 
+The `rescued=1` row is `DelegationMap<K>::get_internal`. As §3.2 details,
+this is a **partial-rescue** A-type: the scan's syntactic filter cannot
+tell that `requires self.valid()` only closes the leak on `id`, not on
+`glb`. Treat all rescued entries as candidates needing manual unfolding,
+not as confirmed safe.
+
 ## 7. Open follow-ups
 
-- Extend the wf-rescue filter: today we conservatively treat any
-  `requires self.wf()/valid()/...` as a rescue. To classify more precisely,
-  unfold each rescue predicate's body and check whether it tightens the
-  hidden field enough for view-determinism. `DelegationMap::get_internal`
-  is verified by hand in §4.2; the rest are presumed but not mechanised.
+- Mechanise the wf-rescue check: today we conservatively treat any
+  `requires self.wf()/valid()/...` as a rescue and audit the body by hand.
+  An automated pass could (a) unfold the predicate body, (b) check whether
+  each `pre_self_.X` mentioned in a leaking ensures clause is a function
+  of `pre_self_@` modulo the body. `DelegationMap::get_internal` (§3.2)
+  illustrates the failure mode the automation needs to catch — value
+  agreement on a sub-domain is not the same as representational
+  uniqueness.
 - Re-run on `PageAllocator`, `Quota`, `Page`, `PageTable`, `Kernel` once
   they grow a `view`.
 - Audit `&mut` parameters other than `self_`. The current scan only
   considers `post_self_`. If the dumper ever emits a det template with
   `post1_arg_` for a view-bearing `&mut arg`, the same rule applies.
+- Lift the equal-fn generator to be view-aware (per plan §7). That
+  retires the three borderline `set_*` cases and makes `E_R` consistent
+  across the corpus.
