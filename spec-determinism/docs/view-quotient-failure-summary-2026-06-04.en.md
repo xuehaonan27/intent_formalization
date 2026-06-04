@@ -8,8 +8,6 @@
 | 1 | [`StaticLinkedList::len`](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L65) (atmosphere) | An ensures clause reads the hidden field `value_list_len` directly, and the function has no `requires` constraining the precondition | Add `requires self.wf()`, or drop the ensures clause that reads the hidden field |
 | 2 | [`DelegationMap::get_internal`](../../verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs#L238) (ironkv) | The `glb` component of ensures depends on the internal structure of the hidden field `lows`, and `valid()` allows `lows` to map two distinct keys to the same endpoint | Tighten `valid()` to forbid this redundancy, or rewrite the ensures so that `glb` is also determined by the view |
 
-Together, **115** corpus instances are flagged by the new check (114 + 1).
-
 ---
 
 ## 2. Case 1: `StaticLinkedList::len`
