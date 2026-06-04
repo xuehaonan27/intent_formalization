@@ -152,7 +152,118 @@ When congruence fails, the spec author has three repair options:
 3. **Accept the defect** and add concrete-state machinery into op's
    spec — typically a smell that the type's abstract level is wrong.
 
-### 3.2 The check, as an SMT query
+### 3.2 Algebraic intuition: view induces a quotient
+
+The equivalence relation `≡_view` partitions `V` into equivalence
+classes; the set of classes is naturally identified with the image
+of view in `A`. **Congruence of op with respect to `≡_view`** is the
+standard algebraic notion that lets an operation *descend to the
+quotient*:
+
+* If `op` is a congruence, the recipe "apply op concretely, then
+  view" gives the same answer regardless of which representative we
+  pick within an equivalence class. Equivalently, the abstract op
+  defined by `op_A(view(c), x) := view(op(c, x))` is **well-defined**
+  precisely because picking any other representative `c' ≡_view c`
+  would give the same right-hand side.
+* If `op` is not a congruence, no such `op_A` exists; the spec
+  layer (which only sees the quotient `A`) cannot host op.
+
+This is the same construction as `Z/nZ`: addition on integers
+descends to addition mod `n` because integer addition respects
+mod-`n` equivalence; multiplication does too. Take any operation
+that does *not* respect mod-`n` equivalence (e.g.,
+"return the integer's third decimal digit") and you cannot define
+its mod-`n` analogue — the same equivalence class would map to
+different "results".
+
+Two practical consequences for our setting:
+
+1. **Spec expressibility.** Suppose the spec author wants to write
+   `ensures view(self_new) == f(view(self_old), x)` for some
+   spec-level `f`. Such an `f` exists iff op is a congruence.
+   No congruence ⟹ the cleanest ensures shape is unavailable, and
+   the author must either drag concrete state into the ensures or
+   settle for a weaker (vacuous-on-fiber) ensures.
+2. **Composition.** If congruence holds for every op on `V`, the
+   spec layer is closed under sequencing: a method that composes
+   `op1; op2; op3` can be specced in pure abstract terms by
+   composing `op1_A; op2_A; op3_A`. A single non-congruent op in
+   the chain breaks this — at least one step cannot be summarized
+   abstractly.
+
+### 3.3 Two worked examples
+
+**Positive: `Vec<i32>::push`.**
+
+```rust
+struct Vec<i32> { data: *mut i32, len: usize, cap: usize }
+
+spec fn view(self) -> Seq<i32> {
+    Seq::new(self.len, |i| self.data[i])
+}
+
+fn push(self, x: i32) -> Self { /* appends x, may realloc */ }
+```
+
+Congruence query: assume `view(c1) == view(c2)`. Then `c1.len ==
+c2.len` and `c1.data[i] == c2.data[i]` for every `i < c1.len`. The
+fields `cap`, the pointer addresses, and the slots `data[i]` for
+`i ≥ len` are free to differ. After `push(x)`:
+
+* both lengths become `old.len + 1`,
+* `data[old.len]` is `x` in both,
+* `data[i]` for `i < old.len` is unchanged in both.
+
+So `view(push(c1, x)) == view(push(c2, x))`. **Congruence holds.**
+The induced abstract op is exactly `Seq::push`, and the homomorphism
+law `view(push(c, x)) == view(c).push(x)` becomes provable.
+
+**Negative: a bit-packed `PageEntry` with a hidden flag.**
+
+```rust
+struct PageEntry { bits: u64 }
+
+spec fn view(self) -> AbstractPage {
+    AbstractPage {
+        addr:     extract_addr(self.bits),  // bits 12..51
+        present:  bit(self.bits, 0),
+        writable: bit(self.bits, 1),
+        // bit 8 (MASK_PG_FLAG_G — "global") deliberately omitted
+    }
+}
+
+// Reads bit 8 (invisible to view) and writes bit 1 (visible).
+fn sync_writable_to_global(self) -> Self {
+    let g = bit(self.bits, 8);
+    PageEntry { bits: (self.bits & !(1 << 1)) | (g << 1) }
+}
+```
+
+Congruence query: pick `c1, c2` differing only on bit 8. Then
+`view(c1) == view(c2)` (view never reads bit 8). After
+`sync_writable_to_global`:
+
+* `c1`'s new bit 1 is `bit(c1.bits, 8)`,
+* `c2`'s new bit 1 is `bit(c2.bits, 8)`,
+* these differ by assumption.
+
+View reads bit 1, so `view(sync(c1)) ≠ view(sync(c2))`.
+**Congruence fails.** The SMT counter-model is `c1.bits = 0`,
+`c2.bits = (1 << 8)`, no `op` arguments.
+
+Diagnosis: **view-too-coarse.** `sync_writable_to_global` consumes
+bit 8, which view hides. Repair option 1 (extend view to expose
+`global: bit(self.bits, 8)`) restores congruence; option 2 (tighten
+`requires`) is inappropriate because both `c1` and `c2` are
+well-formed PageEntries.
+
+This is exactly the structural defect that, at the method level,
+shows up as our familiar `PDE::new_entry` incompleteness — a hidden
+field that some operation has to consume. Congruence catches it
+function-independently, before anyone writes `new_entry`'s ensures.
+
+### 3.4 The check, as an SMT query
 
 The harness is exactly parallel to the determinism harness:
 
@@ -184,7 +295,7 @@ Three knobs to set per check:
    choose an explicit equivalence (often syntactic equality) on the
    return value `Out`. If `Out` itself has its own view, recurse.
 
-### 3.3 Pipeline plumbing — reuse, don't rebuild
+### 3.5 Pipeline plumbing — reuse, don't rebuild
 
 The current determinism harness already runs the shape:
 
@@ -209,7 +320,7 @@ counter-example shape, same `verdict ∈ {complete, incomplete, crash,
 unknown, verus_err}` reporting. The only new piece is the
 **enumerator** of `(V, op)` pairs over the corpus.
 
-### 3.4 Enumeration over the corpus
+### 3.6 Enumeration over the corpus
 
 For each project:
 
@@ -229,7 +340,7 @@ Skip lists:
 * Types whose view body uses `closed` / `uninterp` — SMT cannot
   reason inside, mark as `unknown`.
 
-### 3.5 Finding categorization
+### 3.7 Finding categorization
 
 Each failure is one of two shapes:
 
@@ -247,7 +358,7 @@ Each failure is one of two shapes:
 
 Output per failure: `(V, op, c1, c2, x, shape, suggested_fix)`.
 
-### 3.6 What this audit buys us
+### 3.8 What this audit buys us
 
 * **Spec-quality findings without any spec.** Congruence is a
   property of `(view, op)`; it can flag abstraction defects before
@@ -262,7 +373,7 @@ Output per failure: `(V, op, c1, c2, x, shape, suggested_fix)`.
   an explicit, audited trust boundary; congruence verdicts are part
   of its evidence file.
 
-### 3.7 Limitations
+### 3.9 Limitations
 
 * `closed` / `uninterp` bodies inside view defeat the check; those
   pairs are unfalsifiable in SMT and have to be hand-justified.
