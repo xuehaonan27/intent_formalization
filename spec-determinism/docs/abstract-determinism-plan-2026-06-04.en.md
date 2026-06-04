@@ -1,4 +1,4 @@
-# Two-Step View-Quotient Determinism Plan
+# Two-Step Abstract Determinism Plan
 
 ## 0. Motivation
 
@@ -9,7 +9,7 @@ still admit two observably different outputs?
 The proposed extension keeps that first step unchanged, and then adds a
 second step only for the cases where the first step already succeeds
 and the input contains at least one object with a `view`. The second
-step asks whether the complete spec is also **view-preserving**:
+step asks whether the complete spec is also **abstract-deterministic**:
 if two concrete inputs look the same at the view layer, does the spec
 force their outputs to look the same at the view layer too?
 
@@ -17,7 +17,7 @@ This separates two defects:
 
 1. **Spec incompleteness** — the spec permits multiple outputs for one
    fixed concrete input.
-2. **View-quotient mismatch** — the spec is complete per concrete
+2. **Abstract non-determinism** — the spec is complete per concrete
    input, but the result still depends on concrete representation
    details hidden by `view`.
 
@@ -92,7 +92,7 @@ proof fn det_<f>(<args>, r1: R, r2: R)
 Verdict:
 
 * If this fails, the spec is incomplete. Do **not** run Step 2; the
-  view-preserving question would be confounded by ordinary
+  abstract-determinism question would be confounded by ordinary
   incompleteness.
 * If this passes, the spec is complete for each fixed concrete input.
   Such targets become possible Step 2 candidates.
@@ -110,7 +110,7 @@ resolvable `view`.
 
 ---
 
-## 3. Step 2 — view-quotient spec preservation
+## 3. Step 2 — abstract determinism
 
 For a Step 2 candidate `f(o, a) -> R`, compare two runs with:
 
@@ -139,7 +139,7 @@ representation details inside `o`.
 Template shape:
 
 ```rust
-proof fn view_preserve_<f>(
+proof fn abstract_det_<f>(
     o1: T,
     o2: T,
     <shared_args>,
@@ -210,13 +210,13 @@ both `P(o1, a)` and `P(o2, a)`.
 
 ## 5. Verdict table
 
-| Step 1 concrete determinism | Step 2 view preservation | Meaning |
+| Step 1 concrete determinism | Step 2 abstract determinism | Meaning |
 |---|---|---|
 | fail | skipped | Ordinary spec incompleteness: `Q` allows multiple outputs for one concrete input. |
 | pass | N/A | Complete spec, but no view-bearing input object exists. |
-| pass | pass | Complete spec and view-preserving: the specified output descends to the view quotient. |
-| pass | fail | Complete per concrete input, but not view-preserving: hidden concrete state affects the specified observable output. |
-| pass | unknown | Complete, but the view-preservation proof is inconclusive. |
+| pass | pass | Complete spec and abstract-deterministic: the specified output descends to the view quotient. |
+| pass | fail | Complete per concrete input, but not abstract-deterministic: hidden concrete state affects the specified observable output. |
+| pass | unknown | Complete, but the abstract-determinism proof is inconclusive. |
 
 The interesting new bucket is:
 
@@ -226,7 +226,7 @@ Step2 = fail
 ```
 
 This means the existing determinism pipeline says the spec is complete,
-but the new quotient-level check says the complete spec is not a
+but the new abstract-determinism check says the complete spec is not a
 function of `view(o)`.
 
 ---
@@ -294,7 +294,7 @@ Generate a second proof file per candidate:
 
 ```text
 det_<f>.rs                  // existing Step 1
-view_preserve_<f>.rs        // new Step 2
+abstract_det_<f>.rs         // new Step 2
 domain_preserve_<f>.rs      // optional Step 2a
 ```
 
@@ -317,8 +317,8 @@ Add columns to the per-target result:
 | `view_object` | selected input object (`self`, `arg_name`, etc.) |
 | `view_source` | native `View`, registry view, prelude view, unknown |
 | `domain_preserve_verdict` | optional domain check |
-| `view_preserve_verdict` | Step 2 verdict |
-| `view_preserve_bucket` | `pass`, `view-too-coarse`, `Q-hidden-state`, `P-hidden-state`, `equal-fn-too-strict`, `unknown`, `not-checkable` |
+| `abstract_det_verdict` | Step 2 verdict |
+| `abstract_det_bucket` | `pass`, `view-too-coarse`, `Q-hidden-state`, `P-hidden-state`, `equal-fn-too-strict`, `unknown`, `not-checkable` |
 
 Aggregate tables should be per-project and per-view-bearing type, not
 only per-function. The type-level view is what is being audited.
@@ -368,7 +368,7 @@ They are complementary:
 
 * **operation–view congruence** checks whether the executable
   operation respects the view quotient;
-* **view-quotient spec preservation** checks whether the written spec
+* **abstract determinism** checks whether the written spec
   respects the view quotient.
 
 For the next iteration, prioritize the spec-level plan because it is a
