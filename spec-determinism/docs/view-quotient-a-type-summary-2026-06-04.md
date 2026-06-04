@@ -6,7 +6,7 @@
 | # | 函数 | 失败原因（一句话） | 修法方向 |
 |---|------|-------------------|---------|
 | 1 | `StaticLinkedList::len`（atmosphere） | ensures 直读 hidden 字段 `value_list_len`，且没有任何 `requires` 限定调用前提 | 补 `requires self.wf()`，或去掉读 hidden 字段的 ensures |
-| 2 | `DelegationMap::get_internal`（ironkv） | ensures 里 `glb` 一项依赖 hidden 字段 `lows` 的内部结构，而 `valid()` 没把这一结构钉死 | 强化 `valid()` 让 `lows` 唯一，或改 ensures 让 `glb` 也由 view 决定 |
+| 2 | `DelegationMap::get_internal`（ironkv） | ensures 里 `glb` 一项依赖 hidden 字段 `lows` 的内部结构，而 `valid()` 允许 `lows` 把两个不同的 key 映到同一个 endpoint | 收紧 `valid()` 禁止这种重复，或改 ensures 让 `glb` 也由 view 决定 |
 
 合计 **115** 个 corpus 实例被新检查命中（114 + 1）。
 
