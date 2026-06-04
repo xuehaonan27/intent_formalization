@@ -8,6 +8,13 @@
 | 1 | [`StaticLinkedList::len`](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L65) (atmosphere) | An ensures clause reads the hidden field `value_list_len` directly, and the function has no `requires` constraining the precondition | Add `requires self.wf()`, or drop the ensures clause that reads the hidden field |
 | 2 | [`DelegationMap::get_internal`](../../verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl4__set.rs#L238) (ironkv) | The `glb` component of ensures depends on the internal structure of the hidden field `lows`, and `valid()` allows `lows` to map two distinct keys to the same endpoint | Tighten `valid()` to forbid this redundancy, or rewrite the ensures so that `glb` is also determined by the view |
 
+Both cases have been mechanically confirmed: see the self-contained Verus witnesses under [`spec-determinism/witnesses/`](../witnesses/). Each witness composes the function's `ensures` for two independent calls and asks Verus to discharge the Step-2 obligation; the obligation that should fail does fail with a "postcondition not satisfied" error, while the Step-1 counterpart and the rescued sub-obligations verify.
+
+| witness file | expected outcome (Verus) |
+|---|---|
+| [`len_witness.rs`](../witnesses/len_witness.rs) | `2 verified, 1 errors` — `step2_len_check` rejects |
+| [`get_internal_witness.rs`](../witnesses/get_internal_witness.rs) | `6 verified, 1 errors` — `step2_get_internal_glb_check` rejects; `step2_get_internal_id_check` verifies (id rescued by `id@ == self@[*k]`) |
+
 ---
 
 ## 2. Case 1: `StaticLinkedList::len`
