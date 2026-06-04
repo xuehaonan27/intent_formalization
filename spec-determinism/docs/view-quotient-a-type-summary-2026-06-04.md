@@ -78,18 +78,9 @@ fn get_internal(&self, k: &K) -> (res: (ID, Ghost<KeyIterator<K>>))
 
 返回值比较时，`id` 有 view，比较 `id@`；`glb` 包了一层 `Ghost`，内部的 `KeyIterator` **没有 view**，回落到结构 `==`。
 
-### 4.3 `valid()` 救一半
+### 4.3 漏洞所在
 
-关键漏洞：`valid()` **没有禁止 `lows` 里两个不同的 key 映到同一个 endpoint**。也就是说，同一个逻辑值可以在 `lows` 里被拆成任意多段表示。
-
-逐条对照两条 ensures：
-
-| ensures | 关键字段 | 是否被 `valid()` 救 |
-|---------|----------|--------------------|
-| (E1) `id@ == self@[*k]` | 只读 view (`self@`) | ✅ 直接由 `pre1@ == pre2@` 推出 |
-| (E2) `greatest_lower_bound_spec(lows, ...)` | 读 `lows@.dom()` | ❌ 两个 view 相等的状态可以有不同的 `lows@.dom()` |
-
-`id` 这一边不依赖 `lows`，自然安全；`glb` 这一边在 `lows@.dom()` 上做"最大下界"运算，而 `valid()` 没把 `lows@.dom()` 钉成 `m@` 的函数 —— 漏洞由此而生。
+ensures 的 (E2) `self.lows.greatest_lower_bound_spec(KI(*k), glb@)` 是**直接定义在 view 不可见的字段 `self.lows` 上的性质** —— 它的取值随 `lows` 的内部结构而变。两个 view 相等的状态可以有不同的 `lows`，从而满足同一条 ensures 时给出不同的 `glb`。
 
 ### 4.4 反例（最小）
 
@@ -100,7 +91,7 @@ fn get_internal(&self, k: &K) -> (res: (ID, Ghost<KeyIterator<K>>))
 | `s1`  | `[K::zero]` | `{K::zero ↦ ep_x}` | ✓ |
 | `s2`  | `[K::zero, k₅]` | `{K::zero ↦ ep_x, k₅ ↦ ep_x}` | ✓ |
 
-`s2` 里 `K::zero` 和 `k₅` 是不同的 key，却都映到 `ep_x` —— 正是 §4.3 描述的漏洞。
+`s2` 里 `K::zero` 和 `k₅` 是不同的 key，却都映到 `ep_x` —— `lows` 的内部结构在两个 view 相等的状态间发生了变化。
 
 查询 `*k = k₆`，且 `k₅ < k₆`：
 - `glb1 = KI::new(K::zero)`（`s1.lows@.dom()` 里 < `k₆` 的最大 key）
