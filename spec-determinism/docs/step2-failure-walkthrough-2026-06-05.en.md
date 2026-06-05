@@ -55,7 +55,7 @@ Proposed fixes (consistent with `view-quotient-failure-summary-2026-06-04.en.md`
 
 - inlines: 10
 - artifact: `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__len`
-- status: **pending**
+- status: **fix-verified (A)**
 
 Spec (verbatim):
 ```rust
@@ -73,10 +73,16 @@ pub open spec fn view(&self) -> Seq<T>
     self.view_until(self.len() as nat)        // subrange(0, self.len)
 }
 
+pub open spec fn view_until(&self, len: nat) -> Seq<T>
+    recommends 0 <= len <= self.len() as nat,
+{
+    self.data@.subrange(0, len as int)
+}
+
 pub open spec fn wf(&self) -> bool {
     &&& 0 <= N <= usize::MAX
     &&& self.len() <= self.capacity()
-    &&& self.data.wf()
+    &&& self.data.wf()                         // implies data@.len() == N
 }
 ```
 
@@ -91,17 +97,45 @@ proof fn det_step2_len(self1, self2, r1, r2)
     ensures det_len_equal(r1, r2),
 ```
 
-Why it fails: `wf()` is already required, but `view()` is a closed projection
-to `subrange(0, self.len)` and Verus does not unfold it to learn
-`self_i@.len() == self_i.len` from `self1@ == self2@`. `spec_len()` returns
-`self.len` directly, which is *not* in the view.
+Why it fails: note that **`wf()` is already required** here (unlike Case 1).
+Mathematically the obligation holds — under `wf`, `data@.len() == N` and
+`self.len <= N`, so `subrange(0, self.len).len() == self.len` and therefore
+`self1@.len() == self1.len == r1` and similarly for side 2. But Verus with an
+empty proof body never triggers the `Seq::subrange_len` axiom from
+`self1@ == self2@` alone, because `.len()` is not mentioned in any clause that
+would bind the trigger. The leak is therefore a missing abstraction lemma in
+the producer-side spec, not a fundamental view-quotient hole.
 
 Proposed fixes:
-- **A. Add a lemma/`ensures` that bridges view and len**, e.g. an axiom
-  `self.wf() ==> self@.len() == self.spec_len()`, exposed by `view()` or by an
-  external proof obligation.
-- **B. Widen the view** so `len` is a separate component (return `(Seq<T>, usize)`
-  or include `spec_len` in a richer abstract view).
+- **A. Strengthen `len()` ensures** so the bridge becomes an external axiom:
+  add `ret as nat == self@.len()` to `ArrayVec::len()`. Since `len()` is
+  `external_body` and provable under `wf()`, this is a one-line spec
+  strengthening with no blast radius beyond `len()`.
+- **B. Widen the view** so `len` is a separate component (return
+  `(Seq<T>, usize)` or expose `spec_len` in a richer abstract view). Far larger
+  blast radius — every `@` consumer changes.
+
+### Fix A — verified
+
+Patched `len()` ensures:
+```rust
+pub fn len(&self) -> (ret: usize)
+    requires self.wf(),
+    ensures
+        ret == self.spec_len(),
+        ret as nat == self@.len(),     // new
+```
+
+That extra ensures propagates into Step 2 as two per-side requires
+(`r1 as nat == self1@.len()` and `r2 as nat == self2@.len()`), after which
+Verus closes the obligation immediately:
+
+```
+verification results:: 1 verified, 0 errors
+```
+
+Patched source persisted at
+`files/step2_sweep/fixed_step2_srcs/atmosphere__len__ArrayVec.fixA.rs`.
 
 ---
 
@@ -302,7 +336,7 @@ Proposed fixes:
 | # | proj | type::fn | inl | family | fix candidates |
 |---|---|---|---:|---|---|
 | 1 | atmosphere | `StaticLinkedList::len`       | 114 | length not in view              | A: `requires self.wf()`  •  B: widen view to expose `value_list_len` |
-| 2 | atmosphere | `ArrayVec::len`               |  10 | length not in view              | A: axiom `wf ==> @.len()==spec_len()`  •  B: widen view to include `len` |
+| 2 | atmosphere | `ArrayVec::len`               |  10 | length not in view              | **A: ensures `ret as nat == self@.len()` — verified**  •  B: widen view to include `len` |
 | 3 | atmosphere | `StaticLinkedList::get_value` |   8 | ghost-field not in view         | A: re-shape spec to read via `self@`  •  B: widen view to expose `arr_seq` |
 | 4 | atmosphere | `StaticLinkedList::get_next`  |   6 | ghost-field not in view         | A: drop from public surface       •  B: widen view to expose linkage |
 | 5 | atmosphere | `StaticLinkedList::get_prev`  |   4 | ghost-field not in view         | same as #4 |
