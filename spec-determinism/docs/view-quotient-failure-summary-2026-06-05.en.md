@@ -119,4 +119,4 @@ Both have view `seq![1]`. But `s1.get_value(1) = None ≠ Some(999) = s2.get_val
 ### 2.5 Fixes
 
 - **`pub` → `pub(crate)/private` (recommended)** — call-site survey shows `get_value` / `get_next` / `get_prev` are used only by internal slab-navigation paths (`pop`, `remove_helper2`, `remove_helper3`).
-- **Strengthen `fn wf`** — add clauses that determine the full contents of `arr_seq` from the view (e.g. pin down free / stale slots to a canonical layout, on top of the existing `spec_seq_wf` bridge for value-list slots), and tighten the three functions' precondition from `array_wf()` to `wf()`. Then view-equal wf states agree on every `arr_seq` slot. 
+- **Strengthen `fn wf`** — add clauses that determine the full contents of `arr_seq` from the view, and tighten the three functions' precondition from `array_wf()` to `wf()`.
