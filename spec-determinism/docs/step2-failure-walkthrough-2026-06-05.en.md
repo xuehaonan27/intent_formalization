@@ -1,8 +1,34 @@
 # Step 2 Failure Walkthrough — 7 cases (working doc)
 
-Status legend per case: `pending` (not yet reviewed) | `discussed` (decision made,
-not implemented) | `fix-drafted` | `fix-verified` (Verus accepts the proposed
-spec change).
+Status legend per case: `pending` (not yet reviewed) | `A-class` (real
+abstract incomplete: no proof hint alone can close Step 2) | `B-class`
+(sweep false positive: Step 2 closes with proof hints, no spec change).
+
+**Methodology** (the only fair test for abstract-incompleteness):
+in the empty Step 2 body, add only `assert`/lemma-call **proof hints**
+(no `requires`/`ensures` change, no `assume`). If Verus then accepts,
+the spec is abstract-complete on its contract domain and the sweep
+flagged a triggering issue (B-class). If Verus still rejects with hints
+that should be derivable from spec + view-eq, the obligation is
+mathematically unprovable (A-class) — a genuine abstract-incompleteness.
+
+Hint-only sweep across the 7 mechanical failures (results in
+`files/step2_sweep/hint_attempts/c*_h.rs`):
+
+| # | type::fn | hint-only result | class |
+|---|---|---|---|
+| 1 | `StaticLinkedList::len`       | trivial view-len assert passes; postcondition still fails — no bridge to `value_list_len` without assuming `wf` | A |
+| 2 | `ArrayVec::len`               | 2-line `subrange.len()` assert closes Step 2 | **B** |
+| 3 | `StaticLinkedList::get_value` | bridging assert itself fails (arr_seq is unconstrained by view) | A |
+| 4 | `StaticLinkedList::get_next`  | bridging assert itself fails | A |
+| 5 | `StaticLinkedList::get_prev`  | bridging assert itself fails | A |
+| 6 | `CKeyHashMap::to_vec`         | bridging assert itself fails (uninterp `spec_to_vec` independent of view) | A |
+| 7 | `CSendState::get`             | bridging assert itself fails (view collapses each `CAckState` to its view) | A |
+
+**Real abstract-incompleteness count: 6** (Cases 1, 3, 4, 5, 6, 7).
+Case 2 is reclassified as a sweep false positive.
+
+---
 
 Generator: `/home/chentianyu/.copilot/session-state/.../files/step2_sweep/vq_step2_check.py`
 Per-failure Step 2 source: `files/step2_sweep/failure_step2_srcs/<proj>__<fn>__<type>.rs`.
@@ -51,11 +77,11 @@ Proposed fixes (consistent with `view-quotient-failure-summary-2026-06-04.en.md`
 
 ---
 
-## Case 2 — `atmosphere::ArrayVec::len`
+## Case 2 — `atmosphere::ArrayVec::len`  *(reclassified: NOT abstract incomplete)*
 
 - inlines: 10
 - artifact: `atmosphere__verified__memory_manager__memory_manager__spec_impl__impl0__alloc_iommu_table__len`
-- status: **fix-verified (A)**
+- status: **B-class — sweep false positive (abstract complete; SMT triggering issue)**
 
 Spec (verbatim):
 ```rust
@@ -86,7 +112,7 @@ pub open spec fn wf(&self) -> bool {
 }
 ```
 
-Step 2 obligation:
+Step 2 obligation (auto-generated):
 ```rust
 proof fn det_step2_len(self1, self2, r1, r2)
     requires
@@ -97,45 +123,42 @@ proof fn det_step2_len(self1, self2, r1, r2)
     ensures det_len_equal(r1, r2),
 ```
 
-Why it fails: note that **`wf()` is already required** here (unlike Case 1).
-Mathematically the obligation holds — under `wf`, `data@.len() == N` and
-`self.len <= N`, so `subrange(0, self.len).len() == self.len` and therefore
-`self1@.len() == self1.len == r1` and similarly for side 2. But Verus with an
-empty proof body never triggers the `Seq::subrange_len` axiom from
-`self1@ == self2@` alone, because `.len()` is not mentioned in any clause that
-would bind the trigger. The leak is therefore a missing abstraction lemma in
-the producer-side spec, not a fundamental view-quotient hole.
+### Hint-only verification (no spec changes)
 
-Proposed fixes:
-- **A. Strengthen `len()` ensures** so the bridge becomes an external axiom:
-  add `ret as nat == self@.len()` to `ArrayVec::len()`. Since `len()` is
-  `external_body` and provable under `wf()`, this is a one-line spec
-  strengthening with no blast radius beyond `len()`.
-- **B. Widen the view** so `len` is a separate component (return
-  `(Seq<T>, usize)` or expose `spec_len` in a richer abstract view). Far larger
-  blast radius — every `@` consumer changes.
+Producer requires `self.wf()`, so Step 2 already gets it via auto-propagation.
+With **two pure proof hints** in the (otherwise empty) Step 2 body — and **no
+modification to any spec/requires/ensures** — Verus accepts:
 
-### Fix A — verified
-
-Patched `len()` ensures:
 ```rust
-pub fn len(&self) -> (ret: usize)
-    requires self.wf(),
-    ensures
-        ret == self.spec_len(),
-        ret as nat == self@.len(),     // new
+{
+    assert(self1.data@.subrange(0, self1.len as int).len() == self1.len as nat);
+    assert(self2.data@.subrange(0, self2.len as int).len() == self2.len as nat);
+}
+// verification results:: 1 verified, 0 errors
 ```
 
-That extra ensures propagates into Step 2 as two per-side requires
-(`r1 as nat == self1@.len()` and `r2 as nat == self2@.len()`), after which
-Verus closes the obligation immediately:
+Hint source persisted at `files/step2_sweep/hint_attempts/c2_h.rs`.
 
-```
-verification results:: 1 verified, 0 errors
-```
+### Why this is *not* abstract-incomplete
 
-Patched source persisted at
-`files/step2_sweep/fixed_step2_srcs/atmosphere__len__ArrayVec.fixA.rs`.
+Under wf the math closes by `Seq` axioms alone:
+1. `data.wf() ⇒ data@.len() == N`
+2. `wf() ⇒ self.len ≤ capacity() == N`
+3. `Seq::subrange_len` gives `subrange(0, n).len() == n` when `0 ≤ n ≤ seq.len()`,
+   so `self_i@.len() == self_i.len`.
+4. `self1@ == self2@` ⇒ `self1@.len() == self2@.len()` ⇒ `self1.len == self2.len`
+   ⇒ `r1 == r2`. ∎
+
+There is **no pair `(s1, s2)` satisfying the contract** (both wf, `s1@ == s2@`)
+with `s1.len ≠ s2.len`. The spec is abstract-deterministic on its declared
+contract domain; the mechanical sweep flagged it only because the
+`Seq::subrange_len` axiom isn't auto-triggered with an empty body.
+
+### Disposition
+
+This case should be **dropped** from the abstract-incompleteness list. No
+spec change required; the determinism check is closable with a 2-line proof
+hint at the consumer site.
 
 ---
 
@@ -331,17 +354,18 @@ Proposed fixes:
 
 ---
 
-## Aggregate summary
+## Aggregate summary (after hint-only reclassification)
 
-| # | proj | type::fn | inl | family | fix candidates |
-|---|---|---|---:|---|---|
-| 1 | atmosphere | `StaticLinkedList::len`       | 114 | length not in view              | A: `requires self.wf()`  •  B: widen view to expose `value_list_len` |
-| 2 | atmosphere | `ArrayVec::len`               |  10 | length not in view              | **A: ensures `ret as nat == self@.len()` — verified**  •  B: widen view to include `len` |
-| 3 | atmosphere | `StaticLinkedList::get_value` |   8 | ghost-field not in view         | A: re-shape spec to read via `self@`  •  B: widen view to expose `arr_seq` |
-| 4 | atmosphere | `StaticLinkedList::get_next`  |   6 | ghost-field not in view         | A: drop from public surface       •  B: widen view to expose linkage |
-| 5 | atmosphere | `StaticLinkedList::get_prev`  |   4 | ghost-field not in view         | same as #4 |
-| 6 | ironkv     | `CKeyHashMap::to_vec`         |  14 | uninterp not view-stable        | A: add abstraction axiom on `spec_to_vec`  •  B: compare results view-wise |
-| 7 | ironkv     | `CSendState::get`             |   2 | concrete return ignores view    | A: tighten view to `epmap@`        •  B: compare returns via `v@` |
+| # | proj | type::fn | inl | class | family | fix candidates |
+|---|---|---|---:|---|---|---|
+| 1 | atmosphere | `StaticLinkedList::len`       | 114 | A | length not in view              | A: `requires self.wf()`  •  B: widen view to expose `value_list_len` |
+| 2 | atmosphere | `ArrayVec::len`               |  10 | **B (false positive)** | length not in view              | none — close at consumer with 2-line hint |
+| 3 | atmosphere | `StaticLinkedList::get_value` |   8 | A | ghost-field not in view         | A: re-shape spec to read via `self@`  •  B: widen view to expose `arr_seq` |
+| 4 | atmosphere | `StaticLinkedList::get_next`  |   6 | A | ghost-field not in view         | A: drop from public surface       •  B: widen view to expose linkage |
+| 5 | atmosphere | `StaticLinkedList::get_prev`  |   4 | A | ghost-field not in view         | same as #4 |
+| 6 | ironkv     | `CKeyHashMap::to_vec`         |  14 | A | uninterp not view-stable        | A: add abstraction axiom on `spec_to_vec`  •  B: compare results view-wise |
+| 7 | ironkv     | `CSendState::get`             |   2 | A | concrete return ignores view    | A: tighten view to `epmap@`        •  B: compare returns via `v@` |
 
-We'll walk through them one by one and record the chosen fix + verification
-status in the per-case sections.
+**Real abstract-incompleteness count: 6** (Cases 1, 3, 4, 5, 6, 7).
+We'll walk through the 6 A-class cases one by one and record the chosen fix +
+verification status in the per-case sections.
