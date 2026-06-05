@@ -1,4 +1,4 @@
-# View-quotient determinism — mechanical sweep failure summary (2026-06-05)
+# StaticLinkedList — view-quotient determinism defects (2026-06-05)
 
 | # | Function(s) | Why it fails (one sentence) | Suggested fix |
 |---|-------------|-----------------------------|---------------|
