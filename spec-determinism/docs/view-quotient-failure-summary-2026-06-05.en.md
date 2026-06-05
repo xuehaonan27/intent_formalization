@@ -11,8 +11,6 @@
 
 Source: [`atmosphere/.../free_pages_are_not_mapped.rs`](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs) — struct at [L42](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L42), `len` at [L65](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L65), `view` at [L82](../../verusage/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl1__free_pages_are_not_mapped.rs#L82).
 
-> This case was already covered by the 06-04 hand-witness doc; it is re-listed here because the mechanical sweep independently rediscovered it.
-
 ### 1.1 Struct
 
 ```rust
@@ -105,11 +103,11 @@ All three take a **physical slot index**, require only `array_wf()` (just `arr_s
 
 ### 2.3 Where the defect lies
 
-All three functions' return values are read from `arr_seq@[index]`. Their precondition is only `array_wf()`, which says nothing more than `arr_seq.len() == N && size == N` — **it does not constrain the relationship between `arr_seq` and `spec_seq` at all**. Under just `array_wf()`, two states with the same `spec_seq@` (i.e. the same view) can hold completely different `arr_seq@`, and so the returned `arr_seq@[index].{value,next,prev}` can differ.
+All three functions' return values are read from `arr_seq@[index]`. Their precondition is only `array_wf()`, which says nothing more than `arr_seq.len() == N && size == N` — **it does not constrain the relationship between `arr_seq` and `spec_seq`**. Under just `array_wf()`, two states with the same `spec_seq@` (i.e. the same view) can hold completely different `arr_seq@`, and so the returned `arr_seq@[index].{value,next,prev}` can differ.
 
 ### 2.4 Minimal counterexample (`get_value` representative)
 
-Fix `N = 3`, `index = 1`. Both states have `spec_seq@ == seq![1]`, `value_list@ == seq![0]` (so logical position 0 maps to physical slot 0):
+Let `N = 3`, `index = 1`. Both states have `spec_seq@ == seq![1]`, `value_list@ == seq![0]` (so logical position 0 maps to physical slot 0):
 
 | state | `spec_seq@` | `arr_seq@[0].value` | `arr_seq@[1].value` | `arr_seq@[2].value` | `value_list_len` | `wf()` |
 |-------|-------------|---------------------|---------------------|---------------------|:----------------:|:------:|
@@ -121,4 +119,4 @@ Both have view `seq![1]`. But `s1.get_value(1) = None ≠ Some(999) = s2.get_val
 ### 2.5 Fixes
 
 - **`pub` → `pub(crate)/private` (recommended)** — call-site survey shows `get_value` / `get_next` / `get_prev` are used only by internal slab-navigation paths (`pop`, `remove_helper2`, `remove_helper3`).
-- **Reshape API** — change the argument to an abstract position (`0..value_list_len`) and return the value at `spec_seq[pos]`. 
+- **Strengthen `fn wf`** — add clauses that determine the full contents of `arr_seq` from the view (e.g. pin down free / stale slots to a canonical layout, on top of the existing `spec_seq_wf` bridge for value-list slots), and tighten the three functions' precondition from `array_wf()` to `wf()`. Then view-equal wf states agree on every `arr_seq` slot. 
