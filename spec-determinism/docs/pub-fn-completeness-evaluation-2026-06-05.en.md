@@ -16,9 +16,11 @@
   - `verified` — Step-2 obligation discharged from `s1@ == s2@` plus the shared per-call requires.
   - `failed (...)` — Step-2 obligation rejected. After the strict hint-only reclassification:
     - `failed (A)` — true abstract-incompleteness on the current spec; can not be rescued by body-only proof hints (see [`view-quotient-failure-summary-2026-06-05.en.md`](view-quotient-failure-summary-2026-06-05.en.md))
-    - `failed (B-trigger)` — sweep false positive; spec is fine, two-line body hint suffices
-    - `failed (B-uninterp)` — both view and spec function under test are `uninterp`; obligation has no semantic content
-    - `failed (B-oracle)` — source is provably view-deterministic; the auto-generated `det_*_equal` oracle uses struct-eq instead of view-eq
+    - `failed (B)` — sweep false positive: spec is fine, two-line body hint suffices (SMT auto-trigger gap)
+    - `failed (C)` — vacuous obligation: both `view` and the spec under test are `uninterp`, no axiom relates them
+    - `failed (D)` — source is provably view-deterministic; the auto-generated `det_*_equal` oracle uses struct-eq instead of view-eq
+
+    Types B / C / D together form the sweep's framework-side false positives — see [`step2-false-positives-2026-06-05.en.md`](step2-false-positives-2026-06-05.en.md).
 
 ## 2. Aggregate numbers
 
@@ -32,7 +34,7 @@
 | abstract: verified | **102** |
 | abstract: failed — total | 7 |
 | &nbsp;&nbsp;&nbsp;&nbsp;of which true abstract-incompleteness (A) | **4** |
-| &nbsp;&nbsp;&nbsp;&nbsp;of which framework-side false positives (B) | 3 |
+| &nbsp;&nbsp;&nbsp;&nbsp;of which framework-side false positives (B + C + D) | 3 |
 
 A-class abstract-incompleteness cases collapse to **2 distinct design defects** (one in `StaticLinkedList::len`, one shared across `StaticLinkedList::{get_value, get_next, get_prev}`); see [`view-quotient-failure-summary-2026-06-05.en.md`](view-quotient-failure-summary-2026-06-05.en.md).
 
@@ -59,13 +61,13 @@ Sections below partition the 329 pub fns by outcome. Within each section rows ar
 
 | proj | type | fn | concrete | abstract |
 |------|------|----|----------|----------|
-| atmosphere | `ArrayVec` | `len` | verified | failed (B-trigger) |
+| atmosphere | `ArrayVec` | `len` | verified | failed (B) |
 | atmosphere | `StaticLinkedList` | `get_next` | verified | failed (A) |
 | atmosphere | `StaticLinkedList` | `get_prev` | verified | failed (A) |
 | atmosphere | `StaticLinkedList` | `get_value` | verified | failed (A) |
 | atmosphere | `StaticLinkedList` | `len` | verified | failed (A) |
-| ironkv | `CKeyHashMap` | `to_vec` | verified | failed (B-uninterp) |
-| ironkv | `CSendState` | `get` | verified | failed (B-oracle) |
+| ironkv | `CKeyHashMap` | `to_vec` | verified | failed (C) |
+| ironkv | `CSendState` | `get` | verified | failed (D) |
 
 ## 4.2 Abstract step-2 VERIFIED (102)
 
