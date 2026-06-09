@@ -326,12 +326,6 @@ In every instance, the spec offers two (or more) legal post-states for the same 
 | 13 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same spec as #11 (sibling file). Currently `unknown`. |
 | 14 | `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same defect as #12; `&[u8]` instead of `&S` argument. Currently `unknown`. |
 
-## Witness format
-
-Each witness is written as a list of assumed facts about inputs and the two outputs (`r1` / `r2`, `post1_*` / `post2_*`). Lines containing `==` are equalities the witness commits to; the closing line starting with `!det_*_equal(...)` is the negated equivalence that fails the structural equality check.
-
----
-
 ## Part 2 — Error path under-specified
 
 ### #2 `read_log_variables` (×1 instance)
@@ -463,67 +457,6 @@ The codegen for `Result<T, E>` only descends into the `Ok` payload — `Err` var
 
 Different `Err` variants compare equal under this fn even though they carry different information; that part of the incompleteness is invisible to the current tool.
 
-#### Witness
-
-Pick an input where `state.is_None()` through the simplest semantic-mismatch path: the on-disk `region_metadata.log_id` (a fixed value baked into the bytes) differs from the caller's `log_id` parameter.
-
-```
-  pre_pm_region.inv()
-  pre_pm_region@.no_outstanding_writes()
-
-  // ---- Construct `committed` so metadata_types_set passes but region_meta.log_id ≠ caller log_id ----
-  pre_pm_region@.committed() ==
-       GlobalMetadata { version_number: 1, length_of_region_metadata: 32, program_guid: LOG_PROGRAM_GUID }.spec_to_bytes()  // [0,32)
-    ++ u64::spec_to_bytes(crc_of(GlobalMetadata { 1, 32, LOG_PROGRAM_GUID }))                                               // [32,40)
-    ++ RegionMetadata   { region_size: 257, log_area_len: 1, log_id: 0xAAA }.spec_to_bytes()                                // [40,72)
-    ++ u64::spec_to_bytes(crc_of(RegionMetadata { 257, 1, 0xAAA }))                                                         // [72,80)
-    ++ u64::spec_to_bytes(CDB_FALSE)                                                                                        // [80,88)
-    ++ LogMetadata { log_length: 0, _padding: 0, head: 0 }.spec_to_bytes()                                                  // [88,120)  active
-    ++ u64::spec_to_bytes(crc_of(LogMetadata { 0, 0, 0 }))                                                                  // [120,128) active CRC
-    ++ Seq::new(40, |_| 0u8)                                                                                                // [128,168) inactive slot
-    ++ Seq::new(88, |_| 0u8)                                                                                                // [168,256) gap
-    ++ Seq::new( 1, |_| 0u8)                                                                                                // [256,257) log_area
-
-  metadata_types_set(pre_pm_region@.committed())                       == true
-  deserialize_and_check_log_cdb(pre_pm_region@.committed())            == Some(false)
-  cdb                                                                  == false              // matches on-disk CDB_FALSE
-
-  // Caller asks for log_id = 0xBBB; on-disk region_metadata.log_id = 0xAAA.
-  log_id == 0xBBB
-
-  // Therefore recover_given_cdb hits the `region_meta.log_id != log_id` branch.
-  let state := recover_given_cdb(pre_pm_region@.committed(), 0xBBB, false)
-            == None
-
-  // ---- Run 1 — Impl A: report LogIDMismatch (honest) ----
-  r1 == Err(LogErr::StartFailedDueToLogIDMismatch {
-      log_id_expected: 0xBBB,
-      log_id_read:     0xAAA,
-  })
-       // ensures arm for LogIDMismatch: state is None ✓, 0xBBB ≠ 0xAAA ✓.
-
-  // ---- Run 2 — Impl B: return Ok with an arbitrary (junk) LogInfo (vacuous) ----
-  r2 == Ok(LogInfo {
-      log_area_len:            0,
-      head:                    0,
-      head_log_area_offset:    0,
-      log_length:              0,
-      log_plus_pending_length: 0,
-  })
-       // ensures arm for Ok: state.is_Some() ==> { ... }
-       // state is None ⇒ antecedent false ⇒ clause vacuously true ⇒ any LogInfo is admissible.
-
-  // Both runs satisfy every ensures clause on the same pre-state and inputs.
-  (r1 is Ok) == false
-  (r2 is Ok) == true
-  ((r1 is Ok) == (r2 is Ok)) == false
-  !det_read_log_variables_equal(r1, r2)
-```
-
-Aside — Err-vs-Err witnesses that the current equal_fn cannot see (still real incompleteness):
-- r1 = `Err(LogIDMismatch { 0xBBB, 0xAAA })`, r2 = `Err(InvalidMemoryContents)`: both legal on the input above (state is None covers both arms), but equal_fn treats them as equal because it ignores Err variants.
-- r1 = `Err(ProgramVersionNumberUnsupported { vn: 0, max: 1 })` on an input with the same `program_guid=LOG_PROGRAM_GUID` (i.e. version is fine), r2 = `Err(LogIDMismatch { ... })`: spec lets both through despite `version_number != max_supported` being a *fabricated* claim.
-
 #### Suggested fix
 
 Two layers of tightening, both needed:
@@ -651,44 +584,6 @@ pub fn read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: &PMRegion) -> (resu
 - `check_crc` Form C — `pmem_pmemutil/pmemutil_check_crc.rs` (#7), `log_start/start_read_log_variables.rs` (#8 — surfaces as `verus_error` from the `Box<S>: SpecEq` residual)
 - `read_log_variables` — `log_start/start_read_log_variables.rs` (#9 — Form A + Part 2 issues stacked; `verus_error`)
 
-### Shared witness pattern
-
-All seven follow the same template — for any input that satisfies the (strong) precondition, the spec admits two outcomes:
-
-| function | r1 (correct) | r2 (spurious, admissible iff `!impervious_to_corruption`) | discriminator |
-|---|---|---|---|
-| `read_cdb` ×2 | `Ok(true)` (or `Ok(false)`, matching `recover_cdb(committed)`) | `Err(LogErr::CRCMismatch)` | Ok vs Err |
-| `check_cdb` ×2 | `Some(true)` (or `Some(false)`, matching `true_cdb`) | `None` | Some vs None |
-| `check_crc` ×2 | `true` (when read-back bytes match the on-disk truth — they do, since the precondition allows the impervious branch) | `false` (claiming a mismatch the impl never actually observed) | true vs false |
-| `read_log_variables` (`log_start/`) | `Ok(LogInfo { ... })` | `Err(LogErr::CRCMismatch)` | Ok vs Err |
-
-A concrete `read_cdb` witness (for #3 and #4 — identical):
-
-```
-  pre_pm_region.inv()
-  pre_pm_region@.no_outstanding_writes()
-  metadata_types_set(pre_pm_region@.committed())
-  pre_pm_region.constants().impervious_to_corruption == false      // real hardware
-
-  // CDB bytes at offset 80..88 decode to CDB_FALSE, so recover_cdb returns Some(false).
-  recover_cdb(pre_pm_region@.committed()) == Some(false)
-
-  // ---- Run 1 — Impl A: honest, returns the correct CDB ----
-  r1 == Ok(false)
-       // ensures arm Ok(b): Some(false) == recover_cdb(committed) ✓
-
-  // ---- Run 2 — Impl B: returns CRCMismatch despite no CRC actually mismatching ----
-  r2 == Err(LogErr::CRCMismatch)
-       // ensures arm Err(CRCMismatch): !impervious_to_corruption ✓ (= true)
-
-  (r1 is Ok) == true
-  (r2 is Ok) == false
-  ((r1 is Ok) == (r2 is Ok)) == false
-  !det_read_cdb_equal(r1, r2)
-```
-
-Equivalent witnesses for #5/#6 swap `Ok(false)` → `Some(false)` and `Err(CRCMismatch)` → `None`; for #7/#8 swap to `true` / `false`.
-
 ### Suggested fix (shared)
 
 Tighten each arm into an `iff` that ties the return value to the actual on-disk bytes (or to genuine corruption, defined as `read_back ≠ true_bytes`), and drop the unconditional impervious escape:
@@ -790,15 +685,6 @@ The ensures clauses do not constrain either of the two fields that the equal_fn 
 1. **`digest: ExternalDigest` field.** No ensures clause on `new` / `write` mentions it. Even if one did, `ExternalDigest` is `#[verifier::external_body]` so z3 has no axioms beyond `==` reflexivity; arbitrary two values are not provably equal.
 2. **`bytes_in_digest: Ghost<...>` field.** Ensures only mentions the **method** `bytes_in_digest(...)`, whose body is closed and missing. The method-to-field relationship is invisible to z3, so even though both `new()` returns satisfy `output.bytes_in_digest() == empty()`, z3 cannot conclude both have `output.bytes_in_digest@ == empty()`, hence cannot discharge `(r1.bytes_in_digest)@ =~= (r2.bytes_in_digest)@` either.
 
-Strictly structural witness (no implementation semantics needed):
-
-| witness pair | both legal w.r.t. ensures? | equal_fn |
-|---|---|---|
-| `r1 = CrcDigest { digest: D1, bytes_in_digest: Ghost(L1) }` | ✓ if `bytes_in_digest()` happens to satisfy the ensures-equation at this state | |
-| `r2 = CrcDigest { digest: D2, bytes_in_digest: Ghost(L2) }` with `D1 ≠ D2` or `L1 ≠ L2` | ✓ similarly | structural inequality on either field → returns false |
-
-z3 cannot rule this witness out because (a) ensures says nothing about `digest`, (b) the bodyless `bytes_in_digest()` decouples the method from the field. No assumption about CRC32 / CRC64 / Castagnoli / etc. is needed; the defect is purely "spec under-constrains the fields the equal_fn checks".
-
 The judgement call about whether this is a "real" defect or a "fine" design choice still applies:
 
 - **"Fine"**: `digest` is implementation-private state; observably, the only operation that exposes it is `sum64()`, which depends only on `bytes_in_digest()`. The spec's intent is "behaviour through the public API is deterministic", which is achieved.
@@ -822,8 +708,6 @@ pub fn new() -> (output: Self)
 { unimplemented!() }
 ```
 
-Witness: any pair `r1, r2` with `r1.digest ≠ r2.digest` (any two abstract `ExternalDigest` values; z3 has no axiom to refute the difference). Even if both `bytes_in_digest@` fields happen to equal `empty()`, the opaque-field disagreement defeats `det_new_equal`.
-
 **Other instances of the same pattern** (see overview table and case-pairing summary above):
 
 - `CrcDigest::write<S>` — `pmem_pmemutil/pmemutil_calculate_crc.rs` (#12 — opaque field after update; same `digest` defect as #11)
@@ -831,7 +715,6 @@ Witness: any pair `r1, r2` with `r1.digest ≠ r2.digest` (any two abstract `Ext
 - `CrcDigest::write_bytes` — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#14 — sibling of #12 with `&[u8]` parameter)
 
 ### Suggested fix (shared)
-
 
 Two ways to close the hole — pick one:
 
@@ -889,12 +772,6 @@ The two subregion impls are the tool's "previously reported 4 incomplete cases, 
 > | 2 | nrkernel         | `PDE::new_entry`          | Per-bit `MASK_X` predicates omit bit 8 (Global flag), which `view()` reads |
 > | 3 | anvil-library    | `vec_filter`              | Spec uses multiset-eq while impl + `filter`-convention are order-preserving |
 
-## Witness format
-
-Each witness lists assumed facts on inputs / outputs (`r1`, `r2`); the closing `!det_*_equal(...)` is the negated structural equality. "z3 sample" is the raw assumes from `full_run.json`; "constructed witness" is the manually-constructed concrete sat model demonstrating the spec gap.
-
----
-
 ## #1 `CommitMask::next_run`
 
 - **Project**: memory-allocator
@@ -931,24 +808,6 @@ pub fn next_run(&self, idx: usize) -> (res: (usize, usize))
 
 ```rust
 spec fn det_next_run_equal(r1: (usize, usize), r2: (usize, usize)) -> bool { r1 == r2 }
-```
-
-### Witness
-
-z3 sample (`full_run.json`, `n_schemas=11, n_rounds=33`):
-
-```
-  idx == 0
-  r1 == (0, 0)   r2 == (0, 1)
-  !det_next_run_equal(r1, r2)
-```
-
-Constructed sat model — input `self.mask[0] & 1 == 1`, all other bits 0 (so `self@ == {0}`), `idx == 0`:
-
-```
-  Impl A: r1 = (0, 0)         // 0+0 ≤ 512 ✓ ; forall t. 0 ≤ t < 0 vacuous ✓
-  Impl B: r2 = (0, 1)         // 0+1 ≤ 512 ✓ ; self@.contains(0) ✓
-  ⇒ both pass; !det_next_run_equal
 ```
 
 ### Suggested fix
@@ -1017,30 +876,6 @@ pub open spec fn view(self) -> GPDE {
 spec fn det_new_entry_equal(r1: PDE, r2: PDE) -> bool { r1.view() == r2.view() }
 ```
 
-### Witness
-
-z3 sample (`full_run.json`, `n_schemas=17, n_rounds=21`) — all 8 inputs fully pinned; z3 returns unknown without concrete `(r1, r2)`:
-
-```
-  layer == 1; address == 0
-  is_page == is_writable == is_supervisor == is_writethrough
-           == disable_cache == disable_execute == true
-  !det_new_entry_equal(r1, r2)
-```
-
-Constructed sat model:
-
-```
-  Impl A (source impl):       r1.entry = MASK_FLAG_P | MASK_L1_PG_FLAG_PS | MASK_FLAG_RW
-                                       | MASK_FLAG_PWT | MASK_FLAG_PCD | MASK_FLAG_XD
-                              r1.view().G == false
-  Impl B (alt — also ORs G):  r2.entry = r1.entry | MASK_PG_FLAG_G
-                              r2.view().G == true
-  // every bit-wise ensures clause holds for both (G not in mb0 set, not in MASK_ADDR,
-  //  bits 5/6/12 still 0, all P/RW/US/PWT/PCD/XD/PS predicates equal)
-  // r1.view() and r2.view() differ only on G ⇒ !det_new_entry_equal
-```
-
 ### Suggested fix
 
 Add the missing Global-flag clause (minimal):
@@ -1085,23 +920,6 @@ fn vec_filter<V: VerusClone + View + Sized>(
 
 ```rust
 spec fn det_vec_filter_equal<V: ...>(r1: Vec<V>, r2: Vec<V>) -> bool { r1 == r2 }
-```
-
-### Witness
-
-z3 sample (`full_run.json`, `n_schemas=7, n_rounds=6`) — this frame is not itself a valid sat model (`v.len=0` forces `r.len=0`); z3 returns unknown because multiset/`filter` quantifiers exceed its trigger heuristics:
-
-```
-  v@.len() == 0;  r1@.len() == 0;  r2@.len() == 1
-  !det_vec_filter_equal(r1, r2)
-```
-
-Constructed sat model — two distinct elements `a, b` with `a@ != b@` and `f_spec(a) = f_spec(b) = true`, `v = vec![a, b]`:
-
-```
-  Impl A (preserves order):  r1 = vec![a, b]   to_multiset = {a, b} ✓
-  Impl B (reverses):         r2 = vec![b, a]   to_multiset = {a, b} ✓
-  ⇒ both pass; vec![a, b] ≠ vec![b, a]
 ```
 
 ### Suggested fix
