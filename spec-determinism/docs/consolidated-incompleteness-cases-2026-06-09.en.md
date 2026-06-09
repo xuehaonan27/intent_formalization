@@ -665,7 +665,6 @@ pub fn new() -> (output: Self)
 
 ---
 
-
 > **Source:** [`spec-determinism/docs/small-projects-incompleteness-cases-2026-06-01.en.md`](./small-projects-incompleteness-cases-2026-06-01.en.md)
 
 # small-projects spec-incompleteness case set
