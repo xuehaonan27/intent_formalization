@@ -1,31 +1,6 @@
 # Consolidated Incompleteness Cases — Issue Bundle (2026-06-09)
 
-Verbatim concatenation of the per-project incompleteness audit docs
-linked in `progress/progress-2026-0609.md` Future Work §3, grouped by
-the three issue-submission clusters. Each source file is included in
-full; nothing is rewritten. The intent is a single artefact to read
-through when drafting the three upstream issues (one per cluster).
-
-## Cluster index
-
-| Cluster              | Sources concatenated below                                                                                  |
-|----------------------|-------------------------------------------------------------------------------------------------------------|
-| Verus ecosystem      | ironkv, storage, small-projects (covers memory-allocator + nrkernel + anvil-library cases)                  |
-| Anvil ecosystem      | (anvil-library case lives inside the `small-projects` doc included under Verus above; no AC doc yet)        |
-| Atmosphere ecosystem | atmosphere-incompleteness-pr, view-quotient-failure-summary (the 4 SLL A-class)                             |
-
----
-
-# Verus ecosystem
-
-
----
-
-> **Source:** [`spec-determinism/docs/ironkv-spec-incompleteness-cases-2026-05-20.en.md`](./ironkv-spec-incompleteness-cases-2026-05-20.en.md)
-
 # ironkv spec-incompleteness case set
-
-> **Status (2026-05-20)**: 3 confirmed incompleteness cases.
 
 ## Overview
 
@@ -35,7 +10,7 @@ through when drafting the three upstream issues (one per cluster).
 | 2 | `values_agree` (also `keys_in_index_range_agree`) | 2 | Spec only constrains `ret.1` when `!ret.0`; `ret.0 == true` leaves `ret.1` free |
 | 3 | `sht_demarshall_data_method` | 1 | The `InvalidMessage` branch is entirely unconstrained by the spec |
 
-## #1 `host_model_next_receive_message` (×1 instance)
+###1 `host_model_next_receive_message` (×1 instance)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs:759`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs#L759)
 
@@ -189,40 +164,10 @@ pub fn sht_demarshall_data_method(buffer: &Vec<u8>) -> (out: CSingleMessage)
 ### #2 `read_log_variables` (×1 instance)
 
 - **Source**: [`verified/log_logimpl/logimpl_start.rs:100`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_logimpl/logimpl_start.rs#L100)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_logimpl__logimpl_start__read_log_variables/`
-
-#### What the function does
-
-Reverse of `write_setup_metadata`: read a persistent-memory region that has already passed byte-level CRC self-checks (`metadata_types_set` holds and the CDB byte matches the input `cdb` parameter) and either:
-
-- return `Ok(LogInfo)` describing the log's runtime state (`log_area_len`, `head`, `head_log_area_offset`, `log_length`, `log_plus_pending_length`), or
-- return `Err(LogErr::...)` flagging *semantic* fields that disagree with what this caller expects: wrong `program_guid`, unsupported `version_number`, `log_id` mismatch, `region_size` mismatch, or a catch-all "invalid memory contents".
-
-Note the precondition `metadata_types_set(committed)` already rules out byte-level parse failures and CRC mismatches on the active slot; everything checked by the ensures is at a *semantic* layer above that.
 
 #### Why this is incomplete
 
-The error path is the gap. Three compounding issues — the most important is the first one, which means **the spec does not even force `Ok` on legitimate input**:
-
-1. **`Err(CRCMismatch)` is admissible even on a legitimate input.** The arm requires only `state.is_Some() ==> !pm_region.constants().impervious_to_corruption`. When `impervious_to_corruption == false` (a real and common hardware configuration), the consequent is true, so `Err(CRCMismatch)` is permitted on **any** `state.is_Some()` input — including inputs where the precondition `metadata_types_set(committed)` guarantees every CRC actually matches. In other words: on a fully valid header, the spec lets the impl claim "CRC mismatch" and abort even though no CRC actually mismatches. There is no `state.is_Some() ==> result.is_Ok()` clause anywhere.
-
-2. **`Ok(info)` arm uses `==>` not `<==>`.** When `recover_given_cdb(committed, log_id, cdb).is_None()` (e.g. wrong `program_guid`, wrong `log_id`, oversized `log_length`), the implication `state.is_Some() ==> { consistency... }` has a false antecedent — the whole clause becomes **vacuously true**, so `Ok(arbitrary LogInfo)` is admissible on a clearly-invalid input.
-
-3. **Multiple `Err(...)` variants are simultaneously legal on the same `state.is_None()` input.** When `state.is_None()`, all five Err variants admit it:
-
-   | Err variant | Condition | Free fields |
-   |---|---|---|
-   | `CRCMismatch` | `state.is_Some() ==> ...` — **vacuously** when state is None | — |
-   | `InvalidMemoryContents` | `len < min ||| state is None` | — |
-   | `ProgramVersionNumberUnsupported { vn, max }` | `state is None && vn != max` | any two distinct u64s |
-   | `LogIDMismatch { expected, read }` | `state is None && expected != read` | any two distinct u128s |
-   | `RegionSizeMismatch { expected, read }` | `state is None && expected != read` | any two distinct u64s |
-
-   On a single input where `state.is_None()` (e.g. on-disk `region_metadata.log_id ≠ caller log_id`), the spec permits Ok-with-arbitrary-info *and* any of 5 Err variants — six families of return values for one input.
-
-The classifier promotes via the `|||` at L121-123 (`InvalidMemoryContents` arm), and the `permissive_or` finding is *real* here: that OR is the literal source of "two ways to legitimately return `InvalidMemoryContents`". But the deeper non-determinism is issues (1) and (2): the error path is admissible on inputs that should force `Ok`, and the `Ok` arm is vacuous on inputs that should force a specific `Err`.
-
-A subtle artefact of the codegen: the generated `equal_fn` for `Result<LogInfo, LogErr>` only descends into the `Ok` payload (see below). So differences *between* `Err` variants are invisible to the determinism check — the materialisable witness has to use the **Ok-vs-Err split**, not the Err-vs-Err split. The Err-vs-Err split is also a real incompleteness, but the current tool only catches the Ok-vs-Err one.
+`Err(CRCMismatch)` is admissible even on a legitimate input. The arm requires only `state.is_Some() ==> !pm_region.constants().impervious_to_corruption`. 
 
 #### Source function
 
@@ -274,148 +219,18 @@ pub fn read_log_variables<PMRegion: PersistentMemoryRegion>(
 { unimplemented!() }
 ```
 
-Supporting spec fn (abbreviated):
-
-```rust
-// recover_given_cdb returns None when any of the following hold (the requires-clause
-// rules out only byte-parse and CRC failures on the *active* slot, NOT these semantic checks):
-pub open spec fn recover_given_cdb(mem: Seq<u8>, log_id: u128, cdb: bool) -> Option<AbstractLogState> {
-    // ... extracts GlobalMetadata, RegionMetadata, active LogMetadata ...
-    if mem.len() < ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE              { None }
-    else if global_meta.program_guid != LOG_PROGRAM_GUID                     { None }
-    else if global_meta.version_number != 1                                  { None }
-    else if global_meta.length_of_region_metadata != RegionMetadata::spec_size_of() { None }
-    else if region_meta.region_size != mem.len()                             { None }
-    else if region_meta.log_id != log_id                                     { None }
-    else if region_meta.log_area_len < MIN_LOG_AREA_SIZE                     { None }
-    else if mem.len() < ABSOLUTE_POS_OF_LOG_AREA + region_meta.log_area_len  { None }
-    else if log_meta.log_length > region_meta.log_area_len                   { None }
-    else if log_meta.head + log_meta.log_length > u128::MAX                  { None }
-    else { Some(AbstractLogState { head: log_meta.head as int, log: ..., pending: empty, capacity: ... }) }
-}
-```
-
-Each `None` branch is a separate semantic-fail condition that can be reached *without* violating the requires clause.
-
-#### Generated equal_fn
-
-```rust
-spec fn det_read_log_variables_equal(
-    r1: Result<LogInfo, LogErr>,
-    r2: Result<LogInfo, LogErr>,
-) -> bool {
-    ((r1 is Ok) == (r2 is Ok))
-    && ((r1 is Ok) ==> ((r1->Ok_0).view() == (r2->Ok_0).view()))
-}
-```
-
-The codegen for `Result<T, E>` only descends into the `Ok` payload — `Err` variants and their fields are not compared. So this equal_fn flags only:
-- `Ok` vs `Err` discriminant disagreement, or
-- two `Ok`s whose `LogInfo.view()` differs.
-
-Different `Err` variants compare equal under this fn even though they carry different information; that part of the incompleteness is invisible to the current tool.
-
-#### Suggested fix
-
-Two layers of tightening, both needed:
-
-(1) Make the `Ok` arm an iff and require `state.is_Some()`:
-
-```rust
-Ok(info) =>
-    &&& state.is_Some()
-    &&& metadata_consistent_with_info(pm_region@, log_id, cdb, info)
-    &&& info_consistent_with_log_area_in_region(pm_region@, info, state.unwrap()),
-```
-
-(2) Bind each `Err` variant to the *unique* failure path that produces it, with a priority order so that for any input exactly one variant is admissible. Extract `global_meta = deserialize_global_metadata(committed)` and `region_meta = deserialize_region_metadata(committed)` and write:
-
-```rust
-Err(LogErr::CRCMismatch) =>
-    // Byte-level corruption on a CRC-bearing slot. metadata_types_set guarantees
-    // the active slot is self-consistent, so this can only fire if hardware can corrupt
-    // (i.e. the caller violated metadata_types_set assumption transiently).
-    state.is_Some() && !pm_region.constants().impervious_to_corruption,
-
-Err(LogErr::StartFailedDueToProgramVersionNumberUnsupported { version_number, max_supported }) =>
-    // iff the program version is wrong (highest-priority semantic check).
-    global_meta.program_guid == LOG_PROGRAM_GUID
-    && global_meta.version_number != 1
-    && version_number == global_meta.version_number
-    && max_supported  == 1,
-
-Err(LogErr::StartFailedDueToLogIDMismatch { log_id_expected, log_id_read }) =>
-    // iff GUID + version are OK but log_id mismatches.
-    global_meta.program_guid == LOG_PROGRAM_GUID
-    && global_meta.version_number == 1
-    && global_meta.length_of_region_metadata == 32
-    && region_meta.log_id != log_id
-    && log_id_expected == log_id
-    && log_id_read     == region_meta.log_id,
-
-Err(LogErr::StartFailedDueToRegionSizeMismatch { region_size_expected, region_size_read }) =>
-    // iff GUID + version + log_id are OK but region_size mismatches.
-    global_meta.program_guid == LOG_PROGRAM_GUID
-    && global_meta.version_number == 1
-    && region_meta.log_id == log_id
-    && region_meta.region_size != pm_region@.len()
-    && region_size_expected == pm_region@.len()
-    && region_size_read     == region_meta.region_size,
-
-Err(LogErr::StartFailedDueToInvalidMemoryContents) =>
-    // Strict catch-all: state is None for some *other* reason
-    // (log_area_len too small / total length too short / log_length > area / head overflow).
-    state.is_None()
-    && global_meta.program_guid == LOG_PROGRAM_GUID
-    && global_meta.version_number == 1
-    && region_meta.log_id == log_id
-    && region_meta.region_size == pm_region@.len(),
-
-_ => false,
-```
-
-After these changes the input uniquely determines which arm is taken, the Ok arm forbids junk info, and the equal_fn's blindness to Err-variant differences no longer matters — different impls are forced to return the same Err with the same fields.
-
 ---
 
 ## Part 3 — `impervious_to_corruption` pattern family
 
-### Shared shape
+### Why this is incomplete
 
-CapybaraKV's persistent-memory abstraction models hardware corruption with a constant `pm_region.constants().impervious_to_corruption: bool`. The convention throughout the storage layer is that **every spurious-failure arm** of a read/check function is permitted *whenever the hardware is not impervious*. Concretely each function's ensures contains one of three syntactic forms:
+The root cause is that the failure arm is guarded only by `!pm_region.constants().impervious_to_corruption`: when that deployment constant is `false`, `Err(CRCMismatch)` / `None` / `false` is allowed without any actual byte mismatch. The same valid input can therefore satisfy both the correct return (`Ok` / `Some` / `true`) and a spurious corruption return, so two implementations may disagree while both satisfy the spec.
 
-```rust
-// Form A — Result return, Err admissible unconditionally when not impervious.
-Err(LogErr::CRCMismatch) => !pm_region.constants().impervious_to_corruption,
-
-// Form B — Option return, None admissible whenever not impervious.
-None => !impervious_to_corruption,
-
-// Form C — bool return, false admissible whenever not impervious (under a precondition antecedent).
-true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
-    if b { ... } else { !impervious_to_corruption }
-}
-```
-
-`impervious_to_corruption` is a hardware-deployment property — on real persistent memory it is `false`. On every concrete deployment the spec therefore admits **two valid outcomes on the same input**: the *correct* `Ok(b)` / `Some(b)` / `b=true` *and* the spurious-corruption `Err(CRCMismatch)` / `None` / `b=false`. The equal_fn is sensitive to the Ok-vs-Err / Some-vs-None / true-vs-false discriminant, so this is real determinism non-determinism — two implementations may legitimately disagree.
-
-The 7 affected functions all sit on the log-startup read path and share the same idiom. Their precondition is strong enough to pin the *correct* answer (CDB ∈ {FALSE, TRUE}, CRC matches data); the only thing the spec doesn't force is "must return the correct answer when the hardware isn't claimed impervious".
-
-### Why the current detector misses these
-
-`spec_determinism.classify.ensures_uses_permissive_or` triggers on **syntactic disjunction in the ensures** (`|||` or `||`). The forms above are *implications* (`==>`), not disjunctions, so the detector lets them through. The functions then run through schema search; z3 cannot rule out the spurious arm (because it really is admissible under the spec), R0 comes back `unknown`, and the case lands in `ok_inconclusive` — what the public docs call **`unknown`**. The 2 sibling cases in `start_read_log_variables.rs` are additionally blocked by the residual `Box<S>: SpecEq<S>` source incompatibility and surface as `verus_error` rather than `unknown`, but the underlying spec defect is the same.
-
-A reasonable detector extension that would catch all 7 (and the originally-flagged `read_log_variables`): treat `Err(_) | None | (... = false)` arms as "permitted" whenever the arm body is **implied by** `!pm_region.constants().impervious_to_corruption` (or has that term as a top-level conjunct on the right of `==>`). This requires a tiny AST scan, not a model query.
-
-### Per-case spec snippets
-
-#### #3 `read_cdb` (`log_logimpl/logimpl_start.rs`) — Form A
+#### #3 `read_cdb` (`log_logimpl/logimpl_start.rs`)
 
 - **Source**: [`verified/log_logimpl/logimpl_start.rs:77`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_logimpl/logimpl_start.rs#L77)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_logimpl__logimpl_start__read_cdb/`
-- **Status**: `unknown` (R0 = unknown).
 
-Signature + ensures:
 
 ```rust
 #[verifier::external_body]
@@ -442,121 +257,17 @@ pub fn read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: &PMRegion) -> (resu
 - `check_crc` Form C — `pmem_pmemutil/pmemutil_check_crc.rs` (#7), `log_start/start_read_log_variables.rs` (#8 — surfaces as `verus_error` from the `Box<S>: SpecEq` residual)
 - `read_log_variables` — `log_start/start_read_log_variables.rs` (#9 — Form A + Part 2 issues stacked; `verus_error`)
 
-### Suggested fix (shared)
-
-Tighten each arm into an `iff` that ties the return value to the actual on-disk bytes (or to genuine corruption, defined as `read_back ≠ true_bytes`), and drop the unconditional impervious escape:
-
-```rust
-// Form A (Result):
-Ok(b) => Some(b) == recover_cdb(pm_region@.committed()),
-Err(LogErr::CRCMismatch) =>
-    !pm_region.constants().impervious_to_corruption
-    && exists |i: int| 0 <= i < cdb_addrs.len()
-       && pm_region@.committed()[cdb_addrs[i]] != true_cdb_bytes[i],     // actually witnessed corruption
-Err(e) => e == LogErr::PmemErr { err: PmemError::AccessOutOfRange },
-
-// Form B (Option):
-Some(b) => if b { true_cdb == CDB_TRUE } else { true_cdb == CDB_FALSE },
-None =>
-    !impervious_to_corruption
-    && exists |i: int| 0 <= i < cdb_addrs.len()
-       && cdb_c@[i] != true_cdb_bytes[i],
-
-// Form C (bool):
-true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
-    b <==> (data_c@ == true_data_bytes && crc_c@ == true_crc_bytes)
-}
-```
-
-The second conjunct ("there is an i where the read-back byte differs from the true byte") forces the impl to *witness* corruption before claiming it, eliminating the spurious-error degree of freedom. Two impls on the same uncorrupted input must now return the same value.
-
-### Footnote — non-corpus instances of the same pattern
-
-The pattern also appears verbatim on impl-method specs that the extractor does *not* target (the extractor only picks free-standing `pub fn`, not `impl` methods). The most prominent:
-
-- `UntrustedLogImpl::start` (`verified/log_logimpl/logimpl_start.rs:1194`) — `Err(LogErr::CRCMismatch) => !wrpm_region.constants().impervious_to_corruption`. Same incompleteness; not counted in the 7 because the case never enters the `total` for this corpus.
-
-If the developer's intuition is "virtually every CapybaraKV function" — including these impl methods — the count of structurally-identical incomplete cases grows further once impl methods are added to the corpus.
-
 ---
 
 ## Part 4 — Opaque internal state under-specified
 
-### Case-pairing summary
+### Why this is incomplete
 
-The four cases pair up as line-exact sibling copies (verified by `diff`):
-
-| sibling pair | files | difference |
-|---|---|---|
-| **#11 ≡ #13** (`new`) | `pmem_pmemutil/pmemutil_calculate_crc.rs:114-119` vs `..._calculate_crc_bytes.rs:114-119` | none — identical |
-| **#12 ↔ #14** (`write` companion) | `..._calculate_crc.rs:122-127` (`write<S>(&S)`, `val.spec_to_bytes()`) vs `..._calculate_crc_bytes.rs:122-127` (`write_bytes(&[u8])`, `val@`) | input shape (typed value vs raw byte slice); spec shape identical |
-
-So Part 4 is really 2 logically-distinct defects (`new`-shape + `write`-shape), each duplicated across the two sibling files. The "Shared shape" section below applies uniformly.
-
-### Shared shape
-
-CapybaraKV's CRC machinery uses a "ghost view + opaque backend" pattern. The relevant declarations (`pmemutil_calculate_crc.rs:100-142`, `pmemutil_calculate_crc_bytes.rs:100-142` is byte-for-byte identical):
-
-```rust
-#[verifier::external_body]
-struct ExternalDigest {           // wraps a real CRC accumulator from a sibling crate
-    digest: Digest,
-}
-
-pub struct CrcDigest {
-    digest: ExternalDigest,                 // opaque, #[verifier::external_body]
-    bytes_in_digest: Ghost<Seq<Seq<u8>>>,   // ghost field
-}
-
-impl CrcDigest {
-    pub closed spec fn bytes_in_digest(self) -> Seq<Seq<u8>>;  // ← NO body
-    pub fn new() -> (output: Self) ensures output.bytes_in_digest() == Seq::empty();
-    pub fn write<S>(&mut self, val: &S) where S: PmCopy
-        ensures self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes());
-    pub fn sum64(&self) -> (output: u64)
-        requires self.bytes_in_digest().len() != 0,
-        ensures output == spec_crc_u64(self.bytes_in_digest().flatten()), ...;
-}
-```
-
-What the spec actually tells z3:
-- `ExternalDigest` is `#[verifier::external_body]` — z3 has no axioms about it; `==` is uninterpreted (only reflexivity).
-- `bytes_in_digest(self)` is `pub closed spec fn ... ;` with **no body** — it is an abstract / uninterpreted function symbol whose codomain is `Seq<Seq<u8>>`. z3 only knows the equations the ensures provide.
-- `spec_crc_u64` is similarly `closed` and bodyless (line 231).
-
-The CRC interpretation ("`digest` is an incremental CRC32 accumulator") is **not** in the spec — it comes from the file names, type names, and the external library wired into `Digest`. Verus sees an unspecified byte-accumulator type whose only observable contract is "after `new` the abstract `bytes_in_digest()` is empty; `write(v)` appends `v.spec_to_bytes()` to it; `sum64` returns `spec_crc_u64(flatten(...))`".
-
-The codegen produces a structural equal_fn for `CrcDigest` that includes both fields:
-
-```rust
-spec fn det_new_equal(r1: CrcDigest, r2: CrcDigest) -> bool {
-    (r1.digest == r2.digest) && ((r1.bytes_in_digest)@ =~= (r2.bytes_in_digest)@)
-}
-```
-
-(Note `r1.bytes_in_digest` is the **field** access — the `Ghost<...>` field — not the `bytes_in_digest()` method call.) z3 needs to discharge both conjuncts.
-
-### Why this is incomplete (with respect to the equal_fn)
-
-The ensures clauses do not constrain either of the two fields that the equal_fn checks:
-
-1. **`digest: ExternalDigest` field.** No ensures clause on `new` / `write` mentions it. Even if one did, `ExternalDigest` is `#[verifier::external_body]` so z3 has no axioms beyond `==` reflexivity; arbitrary two values are not provably equal.
-2. **`bytes_in_digest: Ghost<...>` field.** Ensures only mentions the **method** `bytes_in_digest(...)`, whose body is closed and missing. The method-to-field relationship is invisible to z3, so even though both `new()` returns satisfy `output.bytes_in_digest() == empty()`, z3 cannot conclude both have `output.bytes_in_digest@ == empty()`, hence cannot discharge `(r1.bytes_in_digest)@ =~= (r2.bytes_in_digest)@` either.
-
-The judgement call about whether this is a "real" defect or a "fine" design choice still applies:
-
-- **"Fine"**: `digest` is implementation-private state; observably, the only operation that exposes it is `sum64()`, which depends only on `bytes_in_digest()`. The spec's intent is "behaviour through the public API is deterministic", which is achieved.
-- **"Defect"**: the type `CrcDigest` is `pub` and uses Verus's default structural equality. If any caller stores or compares `CrcDigest` values (e.g. inside another struct that derives equality), the non-determinism leaks.
-
-Either reading, **the tool's structural-equality check flags it as incomplete**, and the spec as written does not constrain either field to be implementation-uniform.
-
-### Per-case spec snippets
+The root cause is that `CrcDigest` is checked structurally, but its ensures only constrain the abstract method `bytes_in_digest()`; they do not constrain the concrete `digest: ExternalDigest` field, and the method-to-field relationship for `bytes_in_digest: Ghost<...>` is not visible because the spec method is closed/bodyless. Thus two implementations can satisfy the same ensures while producing structurally different `CrcDigest` values.
 
 #### #11 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field at construction
 
 - **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc.rs:114`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs#L114)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_calculate_crc__new/`
-- **Status**: `unknown`.
 
 ```rust
 #[verifier::external_body]
@@ -572,46 +283,16 @@ pub fn new() -> (output: Self)
 - `CrcDigest::new` sibling — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#13 — byte-for-byte the same spec as #11)
 - `CrcDigest::write_bytes` — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#14 — sibling of #12 with `&[u8]` parameter)
 
-### Suggested fix (shared)
-
-Two ways to close the hole — pick one:
-
-**(A) Pin the opaque field through a spec view.** Add a closed-spec accessor `spec fn digest_state(self) -> Seq<u8>` (or similar) and an ensures clause tying it to `bytes_in_digest()`:
-
-```rust
-pub closed spec fn digest_state(self) -> Seq<u8>;
-
-#[verifier::external_body]
-pub fn new() -> (output: Self)
-    ensures
-        output.bytes_in_digest() == Seq::<Seq<u8>>::empty(),
-        output.digest_state() == seq_canonical_initial_crc_state(),    // pin the opaque field
-{ unimplemented!() }
-```
-
-**(B) Make `digest` ghost-only.** If the opaque accumulator is never observed externally, replace `digest: ExternalDigest` with a `Ghost<...>` field or move it into the body of the external_body function (not in the struct). The struct then has only the ghost log, which the ensures already pins.
-
-**(C) Pipeline-side: equal_fn ignores `#[verifier::external_body]` fields.** A tool-side workaround — when generating the structural equal_fn for a struct, skip fields whose type is `#[verifier::external_body]`. This treats opaque state as "outside the determinism contract". Subjective; some projects might prefer pinning explicitly via (A) or (B).
-
 ---
 
-> **Source:** [`spec-determinism/docs/small-projects-incompleteness-cases-2026-06-01.en.md`](./small-projects-incompleteness-cases-2026-06-01.en.md)
 
-# small-projects spec-incompleteness case set
+# memory-allocator spec-incompleteness case set
 
-> **3 source-level cases / 3 unique spec functions / 3 raw corpus artifacts.**
-> Each is the sole `unknown` record in its project after the 2026-05-26 verus_error closeout. The 2026-06-01 manual audit found **all three are real spec defects** (not z3 limits), so they were reclassified `unknown` → `incomplete` in `corpus_rerun11_results.md` §"Source-level distribution".
-> Source: `spec-determinism/results-verusage-viewreg/{memory-allocator,nrkernel,anvil-library}/full_run.json`.
->
-> | # | Project          | Function                  | Defect mechanism |
-> |---|------------------|---------------------------|------------------|
-> | 1 | memory-allocator | `CommitMask::next_run`    | Author commented out the strengthening ensures clauses |
-> | 2 | nrkernel         | `PDE::new_entry`          | Per-bit `MASK_X` predicates omit bit 8 (Global flag), which `view()` reads |
-> | 3 | anvil-library    | `vec_filter`              | Spec uses multiset-eq while impl + `filter`-convention are order-preserving |
+> **1 source-level case / 1 unique spec function / 1 raw corpus artifact.**
+> `CommitMask::next_run` was reclassified `unknown` → `incomplete` in the 2026-06-01 manual audit.
 
-## #1 `CommitMask::next_run`
+## `CommitMask::next_run`
 
-- **Project**: memory-allocator
 - **Source**: [`verified/commit_mask/commit_mask__impl__next_run.rs:82`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/memory-allocator/verified/commit_mask/commit_mask__impl__next_run.rs#L82)
 - **Pattern**: spec weakening — author-acknowledged
 
@@ -641,11 +322,6 @@ pub fn next_run(&self, idx: usize) -> (res: (usize, usize))
 
 `self@: Set<int>` is the abstract view of the 8 × 64-bit mask.
 
-### Generated equal_fn
-
-```rust
-spec fn det_next_run_equal(r1: (usize, usize), r2: (usize, usize)) -> bool { r1 == r2 }
-```
 
 ### Suggested fix
 
@@ -660,76 +336,11 @@ ensures
         || !self@.contains((next_idx + count) as int),
 ```
 
----
 
-## #2 `PDE::new_entry`
+# anvil-library spec-incompleteness case set
 
-- **Project**: nrkernel
-- **Source**: [`verified/impl_u__l2_impl/impl_u__l2_impl__impl0__new_entry.rs:325`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/nrkernel/verified/impl_u__l2_impl/impl_u__l2_impl__impl0__new_entry.rs#L325)
-- **Pattern**: per-bit predicate gap — Global flag (bit 8) unconstrained but view-observed
+## `vec_filter`
 
-### Why this is incomplete
-
-`PDE::new_entry` packs **8 permission / flag bits** (plus the address) into a 64-bit page directory entry, and these 8 bits are exactly what `GPDE::Page` exposes via `view()`: `P, RW, US, PWT, PCD, G, PAT, XD`. The ensures pins **7** of them — `P`, `RW`, `US`, `PWT`, `PCD`, `XD` via per-bit `==` predicates, and `PAT` via `r.hp_pat_is_zero()` — but **omits the Global flag (`MASK_PG_FLAG_G`, bit 8)**. Two implementations that disagree on whether to OR-in `MASK_PG_FLAG_G` produce different `view().G` and both pass ensures.
-
-The real implementation leaves bit 8 at 0 by omission — the OR-chain at lines 357–368 simply never includes `MASK_PG_FLAG_G` — but the spec doesn't say so.
-
-### Source function (ensures only)
-
-```rust
-ensures
-    r.all_mb0_bits_are_zero(),
-    if is_page { r@ is Page && r@->Page_addr == address }
-    else       { r@ is Directory && r@->Directory_addr == address },
-    r.hp_pat_is_zero(),
-    r.entry & bit!(5) == 0,   r.entry & bit!(6) == 0,
-    r.layer@ == layer,
-    r.entry & MASK_ADDR == address,
-    r.entry & MASK_FLAG_P  == MASK_FLAG_P,
-    (r.entry & MASK_L1_PG_FLAG_PS == MASK_L1_PG_FLAG_PS) == (is_page && layer != 3),
-    (r.entry & MASK_FLAG_RW  == MASK_FLAG_RW)  == is_writable,
-    (r.entry & MASK_FLAG_US  == MASK_FLAG_US)  == !is_supervisor,
-    (r.entry & MASK_FLAG_PWT == MASK_FLAG_PWT) == is_writethrough,
-    (r.entry & MASK_FLAG_PCD == MASK_FLAG_PCD) == disable_cache,
-    (r.entry & MASK_FLAG_XD  == MASK_FLAG_XD)  == disable_execute,
-    // *** no clause constrains MASK_PG_FLAG_G ***
-```
-
-Implementation: `r.entry = address | MASK_FLAG_P | (PS if is_page&&layer!=3) | (RW if is_writable) | (US if !is_supervisor) | (PWT if is_writethrough) | (PCD if disable_cache) | (XD if disable_execute)`. No `MASK_PG_FLAG_G` ever set.
-
-### View function (defines what the equal_fn observes)
-
-```rust
-pub open spec fn view(self) -> GPDE {
-    let v = self.entry;
-    let G = v & MASK_PG_FLAG_G == MASK_PG_FLAG_G;   // ← view reads bit 8
-    // … if P set and mb0 ok: GPDE::Page { addr, P, RW, US, PWT, PCD, G, PAT, XD } …
-}
-```
-
-### Generated equal_fn
-
-```rust
-spec fn det_new_entry_equal(r1: PDE, r2: PDE) -> bool { r1.view() == r2.view() }
-```
-
-### Suggested fix
-
-Add the missing Global-flag clause (minimal):
-
-```rust
-ensures r.entry & MASK_PG_FLAG_G == 0,
-```
-
-(Or pin `r.entry` to the literal bit-OR expression — also pins the unobserved bits 9/10/11.)
-
-The 8 input parameters cover every flag the function is meant to control. The author clearly never intended `G` to be settable — it's an *omission*, not a deliberate weakening (contrast Case 1).
-
----
-
-## #3 `vec_filter`
-
-- **Project**: anvil-library
 - **Source**: [`verified/vstd_exd/vec_lib/vec_lib.rs:13`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/anvil-library/verified/vstd_exd/vec_lib/vec_lib.rs#L13)
 - **Pattern**: multiset-eq ensures vs sequence-eq equal_fn (impl + convention are order-preserving)
 
@@ -753,12 +364,6 @@ fn vec_filter<V: VerusClone + View + Sized>(
 }
 ```
 
-### Generated equal_fn
-
-```rust
-spec fn det_vec_filter_equal<V: ...>(r1: Vec<V>, r2: Vec<V>) -> bool { r1 == r2 }
-```
-
 ### Suggested fix
 
 Tighten the spec to sequence-preserving filter:
@@ -773,21 +378,6 @@ ensures r@ == v@.filter(f_spec)
 ---
 
 # Atmosphere ecosystem
-
-
----
-
-> **Source:** [`spec-determinism/docs/atmosphere-incompleteness-pr-2026-06-01.en.md`](./atmosphere-incompleteness-pr-2026-06-01.en.md)
-
-# atmosphere page-allocator spec — incompleteness audit (PR-ready summary)
-
-> **5 actionable spec defects** in `verified/allocator/`.
-> Audit derived from a determinism analysis of the VeruSAGE-Bench atmosphere corpus.
-> Long-form rationale, full witnesses, and per-case source / equal-fn listings are in [`atmosphere-incompleteness-cases-2026-05-26.en.md`](./atmosphere-incompleteness-cases-2026-05-26.en.md); this file is the compressed PR companion.
-
-## TL;DR
-
-For each function below, the public `ensures` admits two implementations whose post-states differ observably on the same input — i.e. the spec is incomplete with respect to determinism. All 5 cases are missing-constraint defects; per-case ensures additions (1–6 lines each) close them. The 5 cases are independent and each can be merged in isolation.
 
 ## Overview
 
@@ -911,9 +501,8 @@ ensures
 
 ---
 
-> **Source:** [`spec-determinism/docs/view-quotient-failure-summary-2026-06-05.en.md`](./view-quotient-failure-summary-2026-06-05.en.md)
 
-# StaticLinkedList — view-quotient determinism defects (2026-06-05)
+# Atmosphere's view-level determinism defects
 
 | # | Function(s) | Why it fails (one sentence) | Suggested fix |
 |---|-------------|-----------------------------|---------------|
