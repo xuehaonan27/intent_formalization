@@ -38,7 +38,6 @@ through when drafting the three upstream issues (one per cluster).
 ## #1 `host_model_next_receive_message` (×1 instance)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs:759`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs#L759)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_receive_message__host_model_next_receive_message/`
 
 ### Why this is incomplete (under-specified error path)
 
@@ -88,10 +87,16 @@ fn host_model_next_receive_message(&mut self) -> (sent_packets: Vec<CPacket>)
 }
 ```
 
+The pattern in case #1 — an `ensures` written as `||| normal_path ||| error_path` without any guard saying when the error path applies — recurs in several other ironkv functions:
+
+- `host_model_next_delegate`
+- `process_received_packet_next_impl`
+- `parse_command_line_configuration`
+- `host_model_next_shard`, `host_model_next_get_request`, `host_model_next_set_request`
+
 ## #2 `values_agree` (×2 instances; same issue in `keys_in_index_range_agree`, ×2 instances)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl3__values_agree.rs`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl3__values_agree.rs)
-- **Artifact (sample)**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__values_agree/`
 
 ### Why this is incomplete
 
@@ -124,67 +129,14 @@ fn keys_in_index_range_agree(&self, lo: usize, hi: usize, v: &ID) -> (ret: (bool
 }
 ```
 
-### Source function (full)
-
-```rust
-fn values_agree(&self, lo: usize, hi: usize, v: &ID) -> (ret: (bool, bool))
-    requires
-        self.valid(),
-        0 <= lo <= hi < self.keys@.len(),
-    ensures
-        ret.0 == forall |i| #![auto] lo <= i <= hi ==> self.vals@[i]@ == v@,
-        !ret.0 ==> (ret.1 == (self.vals@[hi as int]@ != v@
-                              && forall |i| #![auto] lo <= i < hi ==> self.vals@[i]@ == v@)),
-{
-    let mut i = lo;
-    while i <= hi
-        invariant
-            lo <= i,
-            self.keys@.len() <= usize::MAX,
-            hi < self.keys@.len() as usize == self.vals@.len(),
-            forall |j| #![auto] lo <= j < i ==> self.vals@[j]@ == v@,
-        decreases self.keys@.len() - i
-    {
-        let eq = do_end_points_match(&self.vals[i], v);
-        if !eq {
-            if i == hi { return (false, true); }
-            else       { return (false, false); }
-        } else {
-            proof { /* K::cmp_properties(); — currently commented out */ }
-        }
-        i = i + 1;
-    }
-    (true, true)
-}
-```
 
 ## #3 `sht_demarshall_data_method` (×1 instance)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/net_sht_v/net_sht_v__receive_with_demarshal.rs:381`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/net_sht_v/net_sht_v__receive_with_demarshal.rs#L381)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__net_sht_v__net_sht_v__receive_with_demarshal__sht_demarshall_data_method/`
 
 ### Why this is incomplete
 
-The function is trusted (`unimplemented!()`). Its ensures is hedged by `!(out is InvalidMessage)`:
-
-```rust
-ensures
-    !(out is InvalidMessage) ==> {
-        &&& out.is_marshalable()
-        &&& out@ == sht_demarshal_data(buffer@)@
-        &&& out.abstractable()
-    }
-```
-
-Two implementations are both compliant if one returns `InvalidMessage` while the other parses successfully — the spec puts **no** lower bound on the implementation's effort to actually demarshal. Concretely, even when `buffer` is a well-formed message, an implementation that gives up and returns `CSingleMessage::InvalidMessage` still satisfies the ensures.
-
-(`CSingleMessage::InvalidMessage` is a fieldless variant, so two successful "bail out" returns are themselves structurally equal — the witness has to mix `InvalidMessage` against a successful parse.)
-
-**Fix directions**:
-- Require the implementation to succeed when `buffer` is in `sht_demarshal_data`'s domain (e.g. `is_marshalable_data(buffer@) ==> !(out is InvalidMessage)`).
-- Or accept the design choice and document the under-specification permanently.
-
-### Source function (full)
+Two implementations are both compliant if one returns `InvalidMessage` while the other parses successfully.
 
 ```rust
 pub fn sht_demarshall_data_method(buffer: &Vec<u8>) -> (out: CSingleMessage)
@@ -199,39 +151,38 @@ pub fn sht_demarshall_data_method(buffer: &Vec<u8>) -> (out: CSingleMessage)
 }
 ```
 
-## Appendix: other under-specified error paths
+**Fix directions**:
+- Require the implementation to succeed when `buffer` is in `sht_demarshal_data`'s domain (e.g. `is_marshalable_data(buffer@) ==> !(out is InvalidMessage)`).
+- Or accept the design choice and document the under-specification permanently.
 
-The pattern in case #1 — an `ensures` written as `||| normal_path ||| error_path` without any guard saying when the error path applies — recurs in several other ironkv functions:
-
-- `host_model_next_delegate` (via `next_delegate_postconditions`): `||| next_delegate(pre, post, ..., out) ||| Self::host_ignoring_unparseable(pre, post, out)`.
-- `process_received_packet_next_impl` (called from two source locations): `||| process_received_packet_next ||| ignore_nonsensical_delegation_packet`.
-- `parse_command_line_configuration`: 3-way disjunction in the `None` branch, listing three possible reasons for parse failure with no constraint on which one applies when several hold simultaneously.
-- `host_model_next_shard`, `host_model_next_get_request`, `host_model_next_set_request`: same shape, but encoded as `exists |sm, m, b| next_*(...)` rather than an explicit `|||` — the binder leaks into the post-state, so the implementation effectively picks any witness.
-
-In every instance, the spec offers two (or more) legal post-states for the same input without prescribing which one the implementation must produce. We believe this reflects an incomplete handling of the error path rather than an intentional under-specification: the original author wanted to model "the host may always reject an unparseable / nonsensical packet," but did not write down "...and otherwise must process it." The resulting spec is silent on the actual semantics for any non-trivial input.
 
 ---
 
-> **Source:** [`spec-determinism/docs/storage-incompleteness-cases-2026-05-26.en.md`](./storage-incompleteness-cases-2026-05-26.en.md)
-
 # storage spec-incompleteness case set
-
-> 12 incomplete cases on the rerun11 storage corpus, included in this bundle.
-> Each case shows two implementations whose post-states differ on the same input even though both satisfy the spec — i.e. the spec is incomplete with respect to determinism.
-> Source dataset: `spec-determinism/results-verusage-viewreg/storage/full_run.json`.
->
-> The 12 cases fall into three patterns:
-> - **Part 2 — Error path under-specified** (1 case): even legitimate inputs are allowed to return `Err(...)`; on invalid inputs multiple `Err(...)` variants coexist and the `Ok` arm is vacuously satisfied.
-> - **Part 3 — `impervious_to_corruption` pattern family** (7 cases): every `Err(...)` / `None` / `false` arm is guarded by `... ==> !impervious_to_corruption` (or just `!impervious_to_corruption`). Real hardware sets that constant to `false`, so the spec lets *any* implementation report a spurious corruption error on any valid input. Detector-missed because the current `permissive_or` test only fires on syntactic `|||`; these are implication-shaped (`==>`), so they currently land in the `unknown` (`r0_z3=unknown`) or `verus_error` (`Box<S>: SpecEq` residual) bucket.
-> - **Part 4 — Opaque internal state under-specified** (4 cases): a struct contains an `#[verifier::external_body]` opaque field (e.g. `ExternalDigest`) plus a `Ghost<...>` view; the ensures pins only the ghost view, leaving the opaque field unconstrained. The generated equal_fn includes structural equality on the opaque field, so two impls with different opaque-field values both satisfy the spec yet are unequal.
-
-## Overview
 
 | Pattern | Cases | Representative case | Notes |
 |---|---|---|---|
 | Error path under-specified | 1 (#2) | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | On a `state.is_None()` input, multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied; even on a legitimate input an `Err(CRCMismatch)` return is admissible whenever `!impervious_to_corruption`. |
 | `impervious_to_corruption` family | 7 (#3–#9) | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption` with no `state.is_Some()` guard — spurious CRC error admissible unconditionally whenever the constant is `false` (i.e. on real hardware). |
 | Opaque internal state under-specified | 4 (#11–#14) | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view); the `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is unconstrained. Generated equal_fn does structural `==` on `digest`, so two impls with different initial digest values both satisfy ensures yet compare unequal. |
+
+**All 12 cases by function name:**
+
+- **Error path under-specified (1):**
+  - #2 `read_log_variables` (`log_logimpl/logimpl_start.rs`)
+- **`impervious_to_corruption` family (7):**
+  - #3 `read_cdb` (`log_logimpl/logimpl_start.rs`)
+  - #4 `read_cdb` (`log_start/start_read_cdb.rs`)
+  - #5 `check_cdb` (`log_start/start_read_cdb.rs`)
+  - #6 `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`)
+  - #7 `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`)
+  - #8 `check_crc` (`log_start/start_read_log_variables.rs`)
+  - #9 `read_log_variables` (`log_start/start_read_log_variables.rs`)
+- **Opaque internal state under-specified (4):**
+  - #11 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`)
+  - #12 `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`)
+  - #13 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
+  - #14 `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
 
 ## Part 2 — Error path under-specified
 
