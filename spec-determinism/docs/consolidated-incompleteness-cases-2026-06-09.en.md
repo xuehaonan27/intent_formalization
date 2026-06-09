@@ -227,32 +227,11 @@ In every instance, the spec offers two (or more) legal post-states for the same 
 
 ## Overview
 
-### Pattern 2 — Error path under-specified (1 case)
-
-| # | Case | Notes |
-|---|------|-------|
-| 2 | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
-
-### Pattern 3 — `impervious_to_corruption` family (7 cases)
-
-| # | Case | Notes |
-|---|------|-------|
-| 3 | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption`. No `state.is_Some()` guard — spurious CRC error admissible *unconditionally* when not impervious. Currently `unknown`. |
-| 4 | `read_cdb` (`log_start/start_read_cdb.rs`) | Same spec as #3 (sibling copy in `log_start/`). Currently `unknown`. |
-| 5 | `check_cdb` (`log_start/start_read_cdb.rs`) | `None => !impervious_to_corruption` on an `Option<bool>` return — admissible whenever not impervious, even though the precondition pins `true_cdb ∈ {CDB_FALSE, CDB_TRUE}`. Currently `unknown`. |
-| 6 | `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) | Same spec as #5 (sibling copy in `pmem_pmemutil/`). Currently `unknown`. |
-| 7 | `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) | `true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> if b { ... } else { !impervious_to_corruption }` — even on matching-CRC input, `b=false` is admissible. Currently `unknown`. |
-| 8 | `check_crc` (`log_start/start_read_log_variables.rs`) | Same spec as #7 (sibling copy embedded in the `start_read_log_variables.rs` file). Currently `verus_error` (`Box<S>: SpecEq` residual — same semantic issue as #7). |
-| 9 | `read_log_variables` (`log_start/start_read_log_variables.rs`) | Same spec as #2 (sibling copy in `log_start/`); the spec also carries the `impervious_to_corruption` arm so it sits in this pattern alongside Part 2's #2. Currently `verus_error` (`Box<S>: SpecEq` residual). |
-
-### Pattern 4 — Opaque internal state under-specified (4 cases)
-
-| # | Case | Notes |
-|---|------|-------|
-| 11 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view). The `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is not constrained. Generated `det_new_equal` compares `r1.digest == r2.digest` AND the ghost view; two impls with different initial digest state both satisfy ensures yet are structurally unequal. Currently `unknown`. |
-| 12 | `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins `self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes())`. The `digest` field update is unconstrained — two impls (e.g. incremental CRC32 vs. recompute-on-`sum64`) produce different opaque post-states. Currently `unknown`. |
-| 13 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same spec as #11 (sibling file). Currently `unknown`. |
-| 14 | `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same defect as #12; `&[u8]` instead of `&S` argument. Currently `unknown`. |
+| Pattern | Cases | Representative case | Notes |
+|---|---|---|---|
+| Error path under-specified | 1 (#2) | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | On a `state.is_None()` input, multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied; even on a legitimate input an `Err(CRCMismatch)` return is admissible whenever `!impervious_to_corruption`. |
+| `impervious_to_corruption` family | 7 (#3–#9) | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption` with no `state.is_Some()` guard — spurious CRC error admissible unconditionally whenever the constant is `false` (i.e. on real hardware). |
+| Opaque internal state under-specified | 4 (#11–#14) | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view); the `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is unconstrained. Generated equal_fn does structural `==` on `digest`, so two impls with different initial digest values both satisfy ensures yet compare unequal. |
 
 ## Part 2 — Error path under-specified
 
