@@ -263,7 +263,7 @@ pub fn read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: &PMRegion) -> (resu
 
 ### Why this is incomplete
 
-The root cause is that `CrcDigest` is checked structurally, but its ensures only constrain the abstract method `bytes_in_digest()`; they do not constrain the concrete `digest: ExternalDigest` field, and the method-to-field relationship for `bytes_in_digest: Ghost<...>` is not visible because the spec method is closed/bodyless. Thus two implementations can satisfy the same ensures while producing structurally different `CrcDigest` values.
+The root cause is that `CrcDigest` is checked structurally, but its ensures clauses only constrain the abstract method `bytes_in_digest()`; they do not constrain the concrete `digest: ExternalDigest` field, and the method-to-field relationship for `bytes_in_digest: Ghost<...>` is not visible because the spec method is closed/bodyless. Thus two implementations can satisfy the same ensures while producing structurally different `CrcDigest` values.
 
 #### #11 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field at construction
 
@@ -277,7 +277,7 @@ pub fn new() -> (output: Self)
 { unimplemented!() }
 ```
 
-**Other instances of the same pattern** (see overview table and case-pairing summary above):
+**Other instances of the same pattern** (see overview table above):
 
 - `CrcDigest::write<S>` — `pmem_pmemutil/pmemutil_calculate_crc.rs` (#12 — opaque field after update; same `digest` defect as #11)
 - `CrcDigest::new` sibling — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#13 — byte-for-byte the same spec as #11)
@@ -294,11 +294,10 @@ pub fn new() -> (output: Self)
 ## `CommitMask::next_run`
 
 - **Source**: [`verified/commit_mask/commit_mask__impl__next_run.rs:82`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/memory-allocator/verified/commit_mask/commit_mask__impl__next_run.rs#L82)
-- **Pattern**: spec weakening — author-acknowledged
 
 ### Why this is incomplete
 
-`next_run` is meant to "scan starting at `idx` and return `(start, length)` of the first maximal run of set bits". The implementation is a deterministic two-level bit scan, but the author **explicitly commented out** the two clauses needed for that semantics:
+`next_run` is meant to "scan starting at `idx` and return `(start, length)` of the first maximal run of set bits". The implementation is a deterministic two-level bit scan, but the author **explicitly commented out** the two clauses needed for those semantics:
 
 ```rust
 // This should be true, but isn't strictly needed to prove safety:
@@ -346,7 +345,7 @@ ensures
 
 ### Why this is incomplete
 
-Spec is `r@.to_multiset() =~= v@.to_multiset().filter(f_spec)` — multiset equality, no ordering. Two valid impls may return the surviving elements in different orders; both pass ensures but are unequal as `Vec<V>` sequences, which is what `det_vec_filter_equal` compares. The source impl happens to preserve input order (single forward pass + `push`), and `filter` is order-preserving by universal convention (Rust `Iterator::filter`, Python, Haskell, JS). Only the spec dropped the constraint.
+The spec is `r@.to_multiset() =~= v@.to_multiset().filter(f_spec)` — multiset equality, no ordering. Two valid impls may return the surviving elements in different orders; both pass ensures but are unequal as `Vec<V>` sequences, which is what `det_vec_filter_equal` compares. The source impl happens to preserve input order (single forward pass + `push`), and `filter` is order-preserving by universal convention (Rust `Iterator::filter`, Python, Haskell, JS). Only the spec dropped the constraint.
 
 ### Source function
 
@@ -384,9 +383,9 @@ ensures r@ == v@.filter(f_spec)
 | # | Case | Sibling | One-line summary |
 |---|------|---------|------------------|
 | 1 | `alloc_and_map_2m`              | —                              | No `contains(ret)` clause; impl may overwrite a *mapped* page |
-| 2 | `merged_4k_to_2m`               | —                              | ensures references neither `target_ptr` nor `target_page_idx` |
+| 2 | `merged_4k_to_2m`               | —                              | The ensures clause references neither `target_ptr` nor `target_page_idx` |
 | 3 | `remove_io_mapping_4k_helper1`  | `remove_mapping_4k_helper1`    | `Free*` pools have no anchor; impl may steal an unrelated free page |
-| 4 | `remove_mapping_4k_helper2`     | —                              | (**P0**) ensures byte-identical to `helper1` despite opposite recycle path |
+| 4 | `remove_mapping_4k_helper2`     | —                              | (**P0**) The ensures clause is byte-identical to `helper1` despite the opposite recycle path |
 | 5 | `remove_mapping_4k_helper3`     | —                              | Cleanest "Free pool no anchor" instance |
 
 ---
@@ -412,7 +411,7 @@ ensures
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m.rs:610`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__merged_4k_to_2m.rs#L610)
 
-**Problem.** The ensures references **neither** `target_ptr` **nor** `target_page_idx`. The only constraint on the free pools is the *count delta* (4k: −512, 2m: +1). An implementation may ignore the caller's input and merge any other 2m-aligned block of 512 consecutive `Free4k` pages.
+**Problem.** The ensures clause references **neither** `target_ptr` **nor** `target_page_idx`. The only constraint on the free pools is the *count delta* (4k: −512, 2m: +1). An implementation may ignore the caller's input and merge any other 2m-aligned block of 512 consecutive `Free4k` pages.
 
 **Suggested fix.** Bind the input to the post-state:
 
@@ -436,7 +435,7 @@ ensures
 - **Source (io)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1.rs:552`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_io_mapping_4k_helper1.rs#L552)
 - **Source (sibling)**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1.rs:551`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper1.rs#L551)
 
-**Problem.** The ensures anchors `Mapped*`, `Allocated*`, and `container_map_*`, but provides **no anchor for the `Free*` pools or `page_perms_*`**. Page-array entries in state `Free4k` / `Unavailable4k` / `Pagetable` / `Io` are unconstrained. An implementation may, in addition to recycling `target_ptr`, secretly remove an unrelated `Free4k` page `q` from `free_pages_4k`, flip its state to `Unavailable4k`, and `tracked_remove` its perm. The dual `free_pages_4k_wf` invariant becomes vacuous because both directions are degenerate (state was flipped and the seq is empty).
+**Problem.** The ensures clauses anchor `Mapped*`, `Allocated*`, and `container_map_*`, but provide **no anchor for the `Free*` pools or `page_perms_*`**. Page-array entries in state `Free4k` / `Unavailable4k` / `Pagetable` / `Io` are unconstrained. An implementation may, in addition to recycling `target_ptr`, secretly remove an unrelated `Free4k` page `q` from `free_pages_4k`, flip its state to `Unavailable4k`, and `tracked_remove` its perm. The dual `free_pages_4k_wf` invariant becomes vacuous because both directions are degenerate (state was flipped and the seq is empty).
 
 **Suggested fix.**
 
@@ -459,7 +458,7 @@ The mapping sibling has identical ensures and takes the same fix.
 
 - **Source**: [`verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2.rs:598`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/atmosphere/verified/allocator/allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2.rs#L598)
 
-**Problem (most serious of the set).** `helper2`'s ensures is **byte-for-byte identical** to `helper1`'s; only the `requires` flips `is_io_page == true → false`. But the two helpers have opposite *recycle paths*:
+**Problem (most serious of the set).** `helper2`'s ensures clause is **byte-for-byte identical** to `helper1`'s; only the `requires` flips `is_io_page == true → false`. But the two helpers have opposite *recycle paths*:
 
 - `helper1` (IO page, hand-off): target's `state → Unavailable4k`, perm dropped, **not** in free pool.
 - `helper2` (RAM page, recycle): target's `state → Free4k`, perm kept, **pushed into** `free_pages_4k`.
