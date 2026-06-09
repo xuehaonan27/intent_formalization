@@ -288,250 +288,47 @@ In every instance, the spec offers two (or more) legal post-states for the same 
 
 # storage spec-incompleteness case set
 
-> 14 incomplete cases on the rerun11 storage corpus (2 originally flagged by the `permissive_or` detector + 12 detector-missed, found by a manual audit of the remaining `unknown` bucket).
+> 12 incomplete cases on the rerun11 storage corpus, included in this bundle.
 > Each case shows two implementations whose post-states differ on the same input even though both satisfy the spec — i.e. the spec is incomplete with respect to determinism.
 > Source dataset: `spec-determinism/results-verusage-viewreg/storage/full_run.json`.
 >
-> The 14 cases fall into four patterns:
-> - **Part 1 — On-disk byte layout under-specified** (2 cases): spec pins the *abstract recovered state* but leaves multiple concrete byte regions free.
+> The 12 cases fall into three patterns:
 > - **Part 2 — Error path under-specified** (1 case): even legitimate inputs are allowed to return `Err(...)`; on invalid inputs multiple `Err(...)` variants coexist and the `Ok` arm is vacuously satisfied.
 > - **Part 3 — `impervious_to_corruption` pattern family** (7 cases): every `Err(...)` / `None` / `false` arm is guarded by `... ==> !impervious_to_corruption` (or just `!impervious_to_corruption`). Real hardware sets that constant to `false`, so the spec lets *any* implementation report a spurious corruption error on any valid input. Detector-missed because the current `permissive_or` test only fires on syntactic `|||`; these are implication-shaped (`==>`), so they currently land in the `unknown` (`r0_z3=unknown`) or `verus_error` (`Box<S>: SpecEq` residual) bucket.
 > - **Part 4 — Opaque internal state under-specified** (4 cases): a struct contains an `#[verifier::external_body]` opaque field (e.g. `ExternalDigest`) plus a `Ghost<...>` view; the ensures pins only the ghost view, leaving the opaque field unconstrained. The generated equal_fn includes structural equality on the opaque field, so two impls with different opaque-field values both satisfy the spec yet are unequal.
 
 ## Overview
 
-| # | Case | Pattern | Notes |
-|---|------|---------|-------|
-| 1 | `write_setup_metadata` (`log_logimpl/logimpl_setup.rs`) | Byte layout under-specified | mkfs / format: spec pins abstract `recover_state == Some(initialize(log_capacity))`, leaves CDB-side choice, `_padding`, inactive metadata, gap, and log_area bytes all free. |
-| 2 | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | Error path under-specified | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
-| 3 | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `impervious_to_corruption` | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption`. No `state.is_Some()` guard — spurious CRC error admissible *unconditionally* when not impervious. Currently `unknown`. |
-| 4 | `read_cdb` (`log_start/start_read_cdb.rs`) | `impervious_to_corruption` | Same spec as #3 (sibling copy in `log_start/`). Currently `unknown`. |
-| 5 | `check_cdb` (`log_start/start_read_cdb.rs`) | `impervious_to_corruption` | `None => !impervious_to_corruption` on an `Option<bool>` return — admissible whenever not impervious, even though the precondition pins `true_cdb ∈ {CDB_FALSE, CDB_TRUE}`. Currently `unknown`. |
-| 6 | `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) | `impervious_to_corruption` | Same spec as #5 (sibling copy in `pmem_pmemutil/`). Currently `unknown`. |
-| 7 | `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) | `impervious_to_corruption` | `true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> if b { ... } else { !impervious_to_corruption }` — even on matching-CRC input, `b=false` is admissible. Currently `unknown`. |
-| 8 | `check_crc` (`log_start/start_read_log_variables.rs`) | `impervious_to_corruption` | Same spec as #7 (sibling copy embedded in the `start_read_log_variables.rs` file). Currently `verus_error` (`Box<S>: SpecEq` residual — same semantic issue as #7). |
-| 9 | `read_log_variables` (`log_start/start_read_log_variables.rs`) | Error path under-specified + `impervious_to_corruption` | Same spec as #2 (sibling copy in `log_start/`). Currently `verus_error` (`Box<S>: SpecEq` residual). |
-| 10 | `write_setup_metadata_to_region` (`log_setup/setup_write_setup_metadata_to_region.rs`) | Byte layout under-specified | Lower-level twin of #1: spec pins `memory_correctly_set_up_on_region(pm@.flush().committed(), region_size, log_id)` (which fixes CDB to `Some(false)`), still leaves `_padding`, inactive `LogMetadata`+`LogCRC`, gap `[168,256)`, and `log_area` bytes free. Slightly tighter than #1 (CDB pinned) but same defect family. Currently `unknown`. |
-| 11 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Opaque internal state under-specified | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view). The `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is not constrained. Generated `det_new_equal` compares `r1.digest == r2.digest` AND the ghost view; two impls with different initial digest state both satisfy ensures yet are structurally unequal. Currently `unknown`. |
-| 12 | `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Opaque internal state under-specified | Spec pins `self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes())`. The `digest` field update is unconstrained — two impls (e.g. incremental CRC32 vs. recompute-on-`sum64`) produce different opaque post-states. Currently `unknown`. |
-| 13 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Opaque internal state under-specified | Same spec as #11 (sibling file). Currently `unknown`. |
-| 14 | `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Opaque internal state under-specified | Same defect as #12; `&[u8]` instead of `&S` argument. Currently `unknown`. |
+### Pattern 2 — Error path under-specified (1 case)
+
+| # | Case | Notes |
+|---|------|-------|
+| 2 | `read_log_variables` (`log_logimpl/logimpl_start.rs`) | The error path is the gap: (a) a **legitimate input** (`state.is_Some()`, all CRCs / fields parse) still admits `Err(CRCMismatch)` whenever `!impervious_to_corruption`, so an Ok return is not forced even when nothing is wrong; (b) on a **state.is_None()** input multiple `Err(...)` variants are simultaneously admissible and the `Ok` arm is vacuously satisfied by any `LogInfo`. |
+
+### Pattern 3 — `impervious_to_corruption` family (7 cases)
+
+| # | Case | Notes |
+|---|------|-------|
+| 3 | `read_cdb` (`log_logimpl/logimpl_start.rs`) | `Err(CRCMismatch) => !pm_region.constants().impervious_to_corruption`. No `state.is_Some()` guard — spurious CRC error admissible *unconditionally* when not impervious. Currently `unknown`. |
+| 4 | `read_cdb` (`log_start/start_read_cdb.rs`) | Same spec as #3 (sibling copy in `log_start/`). Currently `unknown`. |
+| 5 | `check_cdb` (`log_start/start_read_cdb.rs`) | `None => !impervious_to_corruption` on an `Option<bool>` return — admissible whenever not impervious, even though the precondition pins `true_cdb ∈ {CDB_FALSE, CDB_TRUE}`. Currently `unknown`. |
+| 6 | `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) | Same spec as #5 (sibling copy in `pmem_pmemutil/`). Currently `unknown`. |
+| 7 | `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) | `true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> if b { ... } else { !impervious_to_corruption }` — even on matching-CRC input, `b=false` is admissible. Currently `unknown`. |
+| 8 | `check_crc` (`log_start/start_read_log_variables.rs`) | Same spec as #7 (sibling copy embedded in the `start_read_log_variables.rs` file). Currently `verus_error` (`Box<S>: SpecEq` residual — same semantic issue as #7). |
+| 9 | `read_log_variables` (`log_start/start_read_log_variables.rs`) | Same spec as #2 (sibling copy in `log_start/`); the spec also carries the `impervious_to_corruption` arm so it sits in this pattern alongside Part 2's #2. Currently `verus_error` (`Box<S>: SpecEq` residual). |
+
+### Pattern 4 — Opaque internal state under-specified (4 cases)
+
+| # | Case | Notes |
+|---|------|-------|
+| 11 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins only `output.bytes_in_digest() == Seq::empty()` (a `Ghost<...>` view). The `digest: ExternalDigest` field (an `#[verifier::external_body]` opaque) is not constrained. Generated `det_new_equal` compares `r1.digest == r2.digest` AND the ghost view; two impls with different initial digest state both satisfy ensures yet are structurally unequal. Currently `unknown`. |
+| 12 | `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) | Spec pins `self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes())`. The `digest` field update is unconstrained — two impls (e.g. incremental CRC32 vs. recompute-on-`sum64`) produce different opaque post-states. Currently `unknown`. |
+| 13 | `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same spec as #11 (sibling file). Currently `unknown`. |
+| 14 | `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`) | Same defect as #12; `&[u8]` instead of `&S` argument. Currently `unknown`. |
 
 ## Witness format
 
 Each witness is written as a list of assumed facts about inputs and the two outputs (`r1` / `r2`, `post1_*` / `post2_*`). Lines containing `==` are equalities the witness commits to; the closing line starting with `!det_*_equal(...)` is the negated equivalence that fails the structural equality check.
-
----
-
-## Part 1 — On-disk byte layout under-specified
-
-### #1 `write_setup_metadata` (×1 instance)
-
-- **Source**: [`verified/log_logimpl/logimpl_setup.rs:86`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_logimpl/logimpl_setup.rs#L86)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_logimpl__logimpl_setup__write_setup_metadata/`
-
-#### What the function does
-
-mkfs / format routine for a persistent-log on-disk layout. Given a fresh `PersistentMemoryRegion` of size `region_size`, write header bytes so that a later `recover_state(committed_bytes, log_id)` returns `Some(AbstractLogState::initialize(log_capacity))` (an empty log of the given capacity with `head == 0`).
-
-On-disk layout (from `ABSOLUTE_POS_OF_*` constants):
-
-```
-byte offset                                     constraint after mkfs
-  0 .. 32   GlobalMetadata {                    version_number=1,
-              version_number: u64,              length_of_region_metadata
-              length_of_region_metadata: u64,     = RegionMetadata::spec_size_of() = 32,
-              program_guid: u128 }              program_guid = LOG_PROGRAM_GUID
- 32 .. 40   GlobalCRC (u64)                     = CRC(GlobalMetadata bytes)
- 40 .. 72   RegionMetadata {                    region_size = mem.len(),
-              region_size: u64,                 log_id      = caller log_id,
-              log_area_len: u64,                log_area_len= log_capacity
-              log_id: u128 }
- 72 .. 80   RegionCRC (u64)                     = CRC(RegionMetadata bytes)
- 80 .. 88   LogCDB (u64)                        ∈ { CDB_FALSE, CDB_TRUE }  ← free!
- 88 ..120   LogMetadata for CDB_FALSE           active iff CDB=FALSE
-              { log_length: u64,                  → log_length=0, head=0
-                _padding:  u64,                   → _padding   FREE!
-                head:      u128 }
-120 ..128   LogCRC      for CDB_FALSE (u64)     active iff CDB=FALSE
-128 ..160   LogMetadata for CDB_TRUE            symmetric
-160 ..168   LogCRC      for CDB_TRUE  (u64)     symmetric
-168 ..256   gap (88 bytes)                      FREE!
-256 .. end  LogArea (region_size - 256 bytes)   FREE!  (log_length=0 ⇒ unread)
-```
-
-CDB ("current data block") is a flip bit that lets future log updates atomically switch between two metadata slots; only the slot pointed to by `LogCDB` is "active".
-
-#### Why this is incomplete
-
-The ensures pins the *abstract* recovered state but leaves five disjoint concrete byte regions free:
-
-1. **`LogCDB` value** — `recover_cdb` accepts either `CDB_FALSE` or `CDB_TRUE` (1 bit free).
-2. **`_padding` field** of the active `LogMetadata` — 8 bytes free (CRC follows the chosen value).
-3. **Inactive `LogMetadata` + `LogCRC`** (40 bytes) — `metadata_types_set` only checks the *active* slot's parseable/CRC conditions.
-4. **Gap bytes `[168, 256)`** (88 bytes) — never referenced by any spec fn.
-5. **`LogArea` bytes `[256, region_size)`** — `log_length == 0` makes `extract_log_from_log_area` return `Seq::empty()` regardless of contents.
-
-`equal_fn` compares `post1_pm_region == post2_pm_region`, which (at the trait level, via Verus structural equality) collapses to byte-level equality on `committed()`. Two impls choosing different values for any of the five regions above produce different `committed()` bytes and fail `equal_fn`.
-
-z3 returns `unknown` because materialising a concrete witness requires modelling byte-level `extract_bytes` + struct `spec_from_bytes`/`spec_to_bytes` + the CRC function `spec_crc_u64`, all of which are opaque or recursive. The classifier promotes the case to `incomplete` via the `permissive_or` detector triggered by the 4-way `|||` inside `recover_given_cdb` (region_size / log_id / log_area_len / total-length rejection at L759-762). That `|||` is not itself the source of nondeterminism — the byte under-specification is.
-
-#### Source function
-
-```rust
-#[verifier::external_body]
-pub fn write_setup_metadata<PMRegion: PersistentMemoryRegion>(
-    pm_region: &mut PMRegion,
-    region_size: u64,
-    Ghost(log_capacity): Ghost<u64>,
-    log_id: u128,
-)
-    requires
-        old(pm_region).inv(),
-        old(pm_region)@.len() == region_size,
-        old(pm_region)@.len() >= ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE,
-        old(pm_region)@.len() == log_capacity + ABSOLUTE_POS_OF_LOG_AREA,
-        old(pm_region)@.no_outstanding_writes(),
-    ensures
-        pm_region.inv(),
-        pm_region.constants() == old(pm_region).constants(),
-        pm_region@.len() == old(pm_region)@.len(),
-        pm_region@.no_outstanding_writes(),
-        recover_state(pm_region@.committed(), log_id) == Some(
-            AbstractLogState::initialize(log_capacity as int),
-        ),
-        metadata_types_set(pm_region@.committed()),
-{ unimplemented!() }
-```
-
-Supporting spec fns (abbreviated):
-
-```rust
-pub open spec fn recover_state(mem: Seq<u8>, log_id: u128) -> Option<AbstractLogState> {
-    match recover_cdb(mem) {
-        Some(cdb) => recover_given_cdb(mem, log_id, cdb),
-        None      => None,
-    }
-}
-
-// recover_cdb accepts EITHER CDB_FALSE OR CDB_TRUE at offset 80..88:
-pub open spec fn deserialize_and_check_log_cdb(mem: Seq<u8>) -> Option<bool> {
-    let log_cdb = deserialize_log_cdb(mem);
-    if      log_cdb == CDB_FALSE { Some(false) }
-    else if log_cdb == CDB_TRUE  { Some(true)  }
-    else                          { None        }
-}
-
-// recover_given_cdb -> Some(AbstractLogState{ head, log: extract_log_from_log_area(...), pending: empty, capacity })
-// extract_log_from_log_area returns Seq::empty() when log_length == 0.
-
-pub open spec fn metadata_types_set(mem: Seq<u8>) -> bool {
-    // GlobalMetadata bytes_parseable + CRC matches
-    // RegionMetadata bytes_parseable + CRC matches
-    // active-side LogMetadata bytes_parseable + CRC matches
-    // LogCDB ∈ {CDB_TRUE, CDB_FALSE}
-    // ... (no constraint on inactive slot, gap, or log_area)
-}
-```
-
-#### Generated equal_fn
-
-```rust
-spec fn det_write_setup_metadata_equal<PMRegion: PersistentMemoryRegion>(
-    r1: (), r2: (),
-    post1_pm_region: PMRegion, post2_pm_region: PMRegion,
-) -> bool {
-    (r1 == r2) && (post1_pm_region == post2_pm_region)
-}
-```
-
-Structural equality on `PMRegion`. Two impls whose `committed()` byte sequences differ are unequal.
-
-#### Witness
-
-```
-  pre_pm_region.inv()
-  pre_pm_region@.len() == region_size == log_capacity + 256          // ABSOLUTE_POS_OF_LOG_AREA = 256
-  pre_pm_region@.no_outstanding_writes()
-  region_size == 257                                                 // log_capacity == 1 (smallest valid)
-  log_id == 0x42
-
-  // ---- Run 1 — Impl A: choose CDB_FALSE, fill all "free" regions with zeros ----
-  r1 == ()
-  post1_pm_region@.committed() ==
-      GlobalMetadata { version_number: 1, length_of_region_metadata: 32, program_guid: LOG_PROGRAM_GUID }.spec_to_bytes()  // [0,32)
-   ++ u64::spec_to_bytes(crc_of(GlobalMetadata { 1, 32, LOG_PROGRAM_GUID }))                                               // [32,40)
-   ++ RegionMetadata   { region_size: 257, log_area_len: 1, log_id: 0x42 }.spec_to_bytes()                                 // [40,72)
-   ++ u64::spec_to_bytes(crc_of(RegionMetadata { 257, 1, 0x42 }))                                                          // [72,80)
-   ++ u64::spec_to_bytes(CDB_FALSE)                                                                                        // [80,88)
-   ++ LogMetadata { log_length: 0, _padding: 0,            head: 0 }.spec_to_bytes()                                       // [88,120)  active
-   ++ u64::spec_to_bytes(crc_of(LogMetadata { 0, 0,            0 }))                                                       // [120,128) active CRC
-   ++ Seq::new(32, |_| 0u8)                                                                                                // [128,160) inactive LogMetadata
-   ++ Seq::new( 8, |_| 0u8)                                                                                                // [160,168) inactive LogCRC
-   ++ Seq::new(88, |_| 0u8)                                                                                                // [168,256) gap
-   ++ Seq::new( 1, |_| 0u8)                                                                                                // [256,257) log_area
-
-  // ---- Run 2 — Impl B: choose CDB_TRUE, vary every free region ----
-  r2 == ()
-  post2_pm_region@.committed() ==
-      GlobalMetadata { 1, 32, LOG_PROGRAM_GUID }.spec_to_bytes()                                                           // [0,32)   same
-   ++ u64::spec_to_bytes(crc_of(GlobalMetadata { 1, 32, LOG_PROGRAM_GUID }))                                               // [32,40)  same
-   ++ RegionMetadata   { 257, 1, 0x42 }.spec_to_bytes()                                                                    // [40,72)  same
-   ++ u64::spec_to_bytes(crc_of(RegionMetadata { 257, 1, 0x42 }))                                                          // [72,80)  same
-   ++ u64::spec_to_bytes(CDB_TRUE)                                                                                         // [80,88)  DIFFERS
-   ++ Seq::new(32, |_| 0xFFu8)                                                                                             // [88,120) inactive garbage
-   ++ Seq::new( 8, |_| 0xFFu8)                                                                                             // [120,128) inactive garbage
-   ++ LogMetadata { log_length: 0, _padding: 0xDEADBEEFDEADBEEF, head: 0 }.spec_to_bytes()                                 // [128,160) active, padding ≠ 0
-   ++ u64::spec_to_bytes(crc_of(LogMetadata { 0, 0xDEADBEEFDEADBEEF, 0 }))                                                 // [160,168) active CRC (new padding)
-   ++ Seq::new(88, |_| 0xCCu8)                                                                                             // [168,256) gap garbage
-   ++ Seq::new( 1, |_| 0x99u8)                                                                                             // [256,257) log_area garbage
-
-  // Both runs satisfy every ensures clause:
-  //   - pm_region.inv()                                ✓ (assumed of the implementer)
-  //   - constants() unchanged                          ✓
-  //   - len() unchanged                                ✓
-  //   - no_outstanding_writes()                        ✓
-  //   - recover_state(committed, 0x42) == Some(AbstractLogState{ head:0, log:empty, pending:empty, capacity:1 })
-  //       ↳ recover_cdb sees LogCDB ∈ {CDB_FALSE, CDB_TRUE} → Some(cdb)
-  //       ↳ recover_given_cdb reads RegionMetadata (same in both), log_area_len=1=log_capacity,
-  //         active-side LogMetadata has {log_length:0, head:0} → recover_log returns
-  //         AbstractLogState{ head:0, log:empty (log_length=0), pending:empty, capacity:1 }
-  //   - metadata_types_set(committed)                  ✓
-  //       ↳ active-side CRC self-consistent in both
-  //       ↳ inactive slot, gap, log_area unchecked
-  //
-  // committed() bytes differ in five disjoint regions: [80,88), [88,120), [120,128), [128,160),
-  // [160,168), [168,256), [256,257). ⇒ post1_pm_region ≠ post2_pm_region.
-  !det_write_setup_metadata_equal((), (), post1_pm_region, post2_pm_region)
-```
-
-#### Suggested fix
-
-Pin every free byte region in the ensures. The cleanest form is canonicalising the choice and zeroing everything not load-bearing:
-
-```rust
-// (1) Pick a canonical CDB.
-deserialize_log_cdb(pm_region@.committed()) == CDB_FALSE,
-
-// (2) Pin the active LogMetadata bytes including _padding.
-extract_log_metadata(pm_region@.committed(), false) =~=
-    LogMetadata { log_length: 0, _padding: 0, head: 0 }.spec_to_bytes(),
-
-// (3) Pin the inactive LogMetadata + CRC bytes (zeros, or any canonical value).
-extract_log_metadata(pm_region@.committed(), true) =~= Seq::new(32, |_| 0u8),
-extract_log_crc     (pm_region@.committed(), true) =~= Seq::new( 8, |_| 0u8),
-
-// (4) Pin the gap bytes.
-pm_region@.committed().subrange(168, ABSOLUTE_POS_OF_LOG_AREA as int) =~= Seq::new(88, |_| 0u8),
-
-// (5) Pin the log_area bytes.
-pm_region@.committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as int)
-    =~= Seq::new(log_capacity as nat, |_| 0u8),
-```
-
-Once these five are added, the post-state byte sequence is uniquely determined and any two implementations of `write_setup_metadata` must produce identical bytes.
-
-**Also affects #10** (`write_setup_metadata_to_region` in `log_setup/setup_write_setup_metadata_to_region.rs`) — the lower-level twin pinning `memory_correctly_set_up_on_region` (which already fixes CDB to `Some(false)`); same byte regions remain free, same fix shape (drop item (1), keep (2)–(5)).
 
 ---
 
@@ -1059,7 +856,7 @@ pub fn new() -> (output: Self)
 
 ## Audit footnote — cases reviewed but NOT counted as incomplete
 
-The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases **and** the 4 historically-`permitted=True` cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 5 cases above (#10-#14) are real incompleteness; **three cases — one in the unknown bucket and two in the historical-incomplete bucket — were excluded as the same z3-weakness rather than spec defects**:
+The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases **and** the 4 historically-`permitted=True` cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 4 cases above (#11-#14) are real incompleteness; **three cases — one in the unknown bucket and two in the historical-incomplete bucket — were excluded as the same z3-weakness rather than spec defects**:
 
 All three are instances of the same shape — a `serialize_and_write` exec fn on a trait-bound generic where the spec pins `self@` uniquely but the equal_fn does structural `==` on the trait-bound `Self`:
 
