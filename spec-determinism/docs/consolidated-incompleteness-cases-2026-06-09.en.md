@@ -531,6 +531,8 @@ pm_region@.committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as 
 
 Once these five are added, the post-state byte sequence is uniquely determined and any two implementations of `write_setup_metadata` must produce identical bytes.
 
+**Also affects #10** (`write_setup_metadata_to_region` in `log_setup/setup_write_setup_metadata_to_region.rs`) — the lower-level twin pinning `memory_correctly_set_up_on_region` (which already fixes CDB to `Some(false)`); same byte regions remain free, same fix shape (drop item (1), keep (2)–(5)).
+
 ---
 
 ## Part 2 — Error path under-specified
@@ -845,93 +847,12 @@ pub fn read_cdb<PMRegion: PersistentMemoryRegion>(pm_region: &PMRegion) -> (resu
 
 `recover_cdb(committed).is_Some()` is in the requires, so `Ok(b)` is always derivable with the unique `b` returned by `recover_cdb`. `Err(CRCMismatch)` is admissible whenever `!impervious_to_corruption`. On any concrete deployment (real hardware sets `impervious_to_corruption = false`), the spec allows both `Ok(correct_b)` *and* `Err(CRCMismatch)`.
 
-#### #4 `read_cdb` (`log_start/start_read_cdb.rs`) — Form A
+**Other instances of the same pattern** (specs structurally identical to #3 — see overview table for one-line summaries):
 
-- **Source**: [`verified/log_start/start_read_cdb.rs:621`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_start/start_read_cdb.rs#L621)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_start__start_read_cdb__read_cdb/`
-- **Status**: `unknown`.
-
-Byte-for-byte the same ensures as #3; the file lives in `log_start/` rather than `log_logimpl/` because the `verusage` benchmark splits some functions into two files for measurement purposes. Same incompleteness.
-
-#### #5 `check_cdb` (`log_start/start_read_cdb.rs`) — Form B
-
-- **Source**: [`verified/log_start/start_read_cdb.rs:328`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_start/start_read_cdb.rs#L328)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_start__start_read_cdb__check_cdb/`
-- **Status**: `unknown`.
-
-```rust
-pub fn check_cdb(
-    cdb_c: MaybeCorruptedBytes<u64>,
-    Ghost(mem): Ghost<Seq<u8>>,
-    Ghost(impervious_to_corruption): Ghost<bool>,
-    Ghost(cdb_addrs): Ghost<Seq<int>>,
-) -> (result: Option<bool>)
-    requires
-        // ... true_cdb ∈ {CDB_FALSE, CDB_TRUE} ...
-        if impervious_to_corruption {
-            cdb_c@ == true_cdb_bytes
-        } else {
-            maybe_corrupted(cdb_c@, true_cdb_bytes, cdb_addrs)
-        },
-    ensures
-        match result {
-            Some(b) => if b { true_cdb == CDB_TRUE } else { true_cdb == CDB_FALSE },
-            None    => !impervious_to_corruption,
-        },
-```
-
-The precondition pins the *true* CDB; the implementation, on impervious hardware, can read it back directly. On non-impervious hardware (the only deployment that matters), `None` is admissible regardless of what the bytes actually decode to. So `Some(correct_b)` *and* `None` are both legal on every realistic input.
-
-#### #6 `check_cdb` (`pmem_pmemutil/pmemutil_check_cdb.rs`) — Form B
-
-- **Source**: [`verified/pmem_pmemutil/pmemutil_check_cdb.rs:254`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_check_cdb.rs#L254)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_check_cdb__check_cdb/`
-- **Status**: `unknown`.
-
-Byte-for-byte the same as #5; the file lives under `pmem_pmemutil/` (the lower-layer copy of the spec).
-
-#### #7 `check_crc` (`pmem_pmemutil/pmemutil_check_crc.rs`) — Form C
-
-- **Source**: [`verified/pmem_pmemutil/pmemutil_check_crc.rs:238`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_check_crc.rs#L238)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_check_crc__check_crc/`
-- **Status**: `unknown`.
-
-```rust
-pub fn check_crc(
-    data_c: &[u8], crc_c: &[u8],
-    Ghost(mem): Ghost<Seq<u8>>,
-    Ghost(impervious_to_corruption): Ghost<bool>,
-    Ghost(data_addrs): Ghost<Seq<int>>,
-    Ghost(crc_addrs):  Ghost<Seq<int>>,
-) -> (b: bool)
-    requires
-        // ... if impervious_to_corruption { data_c == true_data && crc_c == true_crc } else { maybe_corrupted(...) } ...
-    ensures
-        true_crc_bytes == spec_crc_bytes(true_data_bytes) ==> {
-            if b {
-                &&& data_c@ == true_data_bytes
-                &&& crc_c@  == true_crc_bytes
-            } else {
-                !impervious_to_corruption
-            }
-        },
-```
-
-When the antecedent `true_crc_bytes == spec_crc_bytes(true_data_bytes)` holds (i.e. the on-disk CRC really is the CRC of the on-disk data — the only case the function is meaningfully called on), the impl may return either `true` (when the read-back bytes match) **or** `false` (claiming corruption — admissible because `!impervious_to_corruption`). Different impls on the same input may legitimately return opposite booleans.
-
-#### #8 `check_crc` (`log_start/start_read_log_variables.rs`) — Form C
-
-- **Source**: same `check_crc` spec, embedded in `verified/log_start/start_read_log_variables.rs` alongside `read_log_variables`.
-- **Status**: `verus_error` (residual `Box<S>: SpecEq<S>` source incompatibility — currently the pipeline can't even compile this case after closeout).
-
-Byte-for-byte the same spec as #7; would be `unknown` under the current detector once the `Box<S>` residual is resolved.
-
-#### #9 `read_log_variables` (`log_start/start_read_log_variables.rs`) — Form A + Part 2 issues
-
-- **Source**: same spec as Part 2 case #2, lives in `verified/log_start/start_read_log_variables.rs:464`.
-- **Status**: `verus_error` (residual `Box<S>: SpecEq<S>`).
-
-This is the `log_start/`-copy of #2. The `Err(CRCMismatch) => state.is_Some() ==> !impervious_to_corruption` arm is the impervious-pattern half; the Err-vs-Err / Ok-vacuity issues from Part 2 also apply. Two layers of incompleteness stacked.
+- `read_cdb` Form A sibling — `log_start/start_read_cdb.rs` (#4)
+- `check_cdb` Form B — `log_start/start_read_cdb.rs` (#5), `pmem_pmemutil/pmemutil_check_cdb.rs` (#6)
+- `check_crc` Form C — `pmem_pmemutil/pmemutil_check_crc.rs` (#7), `log_start/start_read_log_variables.rs` (#8 — surfaces as `verus_error` from the `Box<S>: SpecEq` residual)
+- `read_log_variables` — `log_start/start_read_log_variables.rs` (#9 — Form A + Part 2 issues stacked; `verus_error`)
 
 ### Shared witness pattern
 
@@ -1006,76 +927,6 @@ The pattern also appears verbatim on impl-method specs that the extractor does *
 - `UntrustedLogImpl::start` (`verified/log_logimpl/logimpl_start.rs:1194`) — `Err(LogErr::CRCMismatch) => !wrpm_region.constants().impervious_to_corruption`. Same incompleteness; not counted in the 7 because the case never enters the `total` for this corpus.
 
 If the developer's intuition is "virtually every CapybaraKV function" — including these impl methods — the count of structurally-identical incomplete cases grows further once impl methods are added to the corpus.
-
----
-
-## Part 1 (continued) — `write_setup_metadata_to_region` (#10)
-
-The same mkfs work is performed at two levels of the storage stack. Part 1 #1 (`write_setup_metadata` in `log_logimpl/logimpl_setup.rs`) is the **higher-level** entry point whose ensures speaks about the abstract `recover_state`. The **lower-level twin** lives in `log_setup/setup_write_setup_metadata_to_region.rs` and pins a more concrete (but still partial) on-disk predicate `memory_correctly_set_up_on_region`. Both leave the same byte regions free.
-
-### #10 `write_setup_metadata_to_region` (×1 instance)
-
-- **Source**: [`verified/log_setup/setup_write_setup_metadata_to_region.rs:599`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/log_setup/setup_write_setup_metadata_to_region.rs#L599)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__log_setup__setup_write_setup_metadata_to_region__write_setup_metadata_to_region/`
-- **Status**: `unknown` (R0 = unknown, no permissive `|||` in ensures).
-
-```rust
-fn write_setup_metadata_to_region<PMRegion: PersistentMemoryRegion>(
-    pm_region: &mut PMRegion,
-    region_size: u64,
-    log_id: u128,
-)
-    requires
-        old(pm_region).inv(),
-        old(pm_region)@.no_outstanding_writes(),
-        old(pm_region)@.len() == region_size,
-        region_size >= ABSOLUTE_POS_OF_LOG_AREA + MIN_LOG_AREA_SIZE,
-    ensures
-        pm_region.inv(),
-        pm_region.constants() == old(pm_region).constants(),
-        memory_correctly_set_up_on_region(pm_region@.flush().committed(), region_size, log_id),
-        metadata_types_set(pm_region@.flush().committed()),
-{ ... }
-```
-
-`memory_correctly_set_up_on_region` is the concrete on-disk predicate:
-
-```rust
-spec fn memory_correctly_set_up_on_region(mem: Seq<u8>, region_size: u64, log_id: u128) -> bool {
-    let global_metadata    = deserialize_global_metadata(mem);
-    let region_metadata    = deserialize_region_metadata(mem);
-    let log_cdb            = deserialize_and_check_log_cdb(mem);
-    let log_metadata       = deserialize_log_metadata(mem, false);
-    // ... CRCs, GUID/version checks ...
-    &&& region_metadata.region_size == region_size
-    &&& region_metadata.log_id == log_id
-    &&& region_metadata.log_area_len == region_size - ABSOLUTE_POS_OF_LOG_AREA
-    &&& log_cdb == Some(false)             // CDB pinned to false (tighter than #1)
-    &&& log_metadata.head == 0
-    &&& log_metadata.log_length == 0
-}
-```
-
-Vs Part 1 #1's ensures: this predicate pins `log_cdb == Some(false)` explicitly (instead of allowing either via `recover_cdb`). Everything else is still free:
-
-1. **`_padding` field of active `LogMetadata`** — 8 bytes free (active LogCRC follows the chosen value).
-2. **Inactive `LogMetadata` + `LogCRC`** (40 bytes free) — `metadata_types_set` only checks the active slot.
-3. **Gap bytes `[168, 256)`** (88 bytes free).
-4. **`LogArea` bytes `[256, region_size)`** — log_length=0 ⇒ unread.
-
-Witness: identical structure to #1's witness, with the CDB byte fixed to `CDB_FALSE` in both runs and one of the four remaining regions differing between runs. The det fn equal_fn (`(post1_pm_region == post2_pm_region)`) compares full byte sequences, so two impls choosing different `_padding` (or any of the four free regions) are unequal.
-
-**Suggested fix**: same as #1 with item (1) dropped — pin items (2)-(5):
-
-```rust
-extract_log_metadata(pm@.flush().committed(), false) =~=
-    LogMetadata { log_length: 0, _padding: 0, head: 0 }.spec_to_bytes(),
-extract_log_metadata(pm@.flush().committed(), true ) =~= Seq::new(32, |_| 0u8),
-extract_log_crc     (pm@.flush().committed(), true ) =~= Seq::new( 8, |_| 0u8),
-pm@.flush().committed().subrange(168, ABSOLUTE_POS_OF_LOG_AREA as int) =~= Seq::new(88, |_| 0u8),
-pm@.flush().committed().subrange(ABSOLUTE_POS_OF_LOG_AREA as int, region_size as int)
-    =~= Seq::new((region_size - ABSOLUTE_POS_OF_LOG_AREA) as nat, |_| 0u8),
-```
 
 ---
 
@@ -1176,43 +1027,11 @@ pub fn new() -> (output: Self)
 
 Witness: any pair `r1, r2` with `r1.digest ≠ r2.digest` (any two abstract `ExternalDigest` values; z3 has no axiom to refute the difference). Even if both `bytes_in_digest@` fields happen to equal `empty()`, the opaque-field disagreement defeats `det_new_equal`.
 
-#### #12 `CrcDigest::write<S>` (`pmem_pmemutil/pmemutil_calculate_crc.rs`) — opaque field after update
+**Other instances of the same pattern** (see overview table and case-pairing summary above):
 
-- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc.rs:122`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc.rs#L122)
-- **Artifact**: `spec-determinism/results-verusage-viewreg/storage/artifacts/storage__verified__pmem_pmemutil__pmemutil_calculate_crc__write/`
-- **Status**: `unknown`.
-
-```rust
-#[verifier::external_body]
-pub fn write<S>(&mut self, val: &S) where S: PmCopy
-    ensures
-        self.bytes_in_digest() == old(self).bytes_in_digest().push(val.spec_to_bytes()),
-{ unimplemented!() }
-```
-
-Witness: identical `pre_self`, identical `val`, two posts whose `digest: ExternalDigest` fields differ. ensures says nothing about the post-`digest` field — any two values pass.
-
-#### #13 `CrcDigest::new` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
-
-- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs:114`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs#L114)
-- **Status**: `unknown`.
-
-Byte-for-byte the same spec as #11 (sibling file targeting `&[u8]` instead of `&S` in the `write*` companion).
-
-#### #14 `CrcDigest::write_bytes` (`pmem_pmemutil/pmemutil_calculate_crc_bytes.rs`)
-
-- **Source**: [`verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs:122`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/storage/verified/pmem_pmemutil/pmemutil_calculate_crc_bytes.rs#L122)
-- **Status**: `unknown`.
-
-```rust
-#[verifier::external_body]
-pub fn write_bytes(&mut self, val: &[u8])
-    ensures
-        self.bytes_in_digest() == old(self).bytes_in_digest().push(val@),
-{ unimplemented!() }
-```
-
-Same opaque-field defect as #12; `&[u8]` parameter instead of `&S: PmCopy`.
+- `CrcDigest::write<S>` — `pmem_pmemutil/pmemutil_calculate_crc.rs` (#12 — opaque field after update; same `digest` defect as #11)
+- `CrcDigest::new` sibling — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#13 — byte-for-byte the same spec as #11)
+- `CrcDigest::write_bytes` — `pmem_pmemutil/pmemutil_calculate_crc_bytes.rs` (#14 — sibling of #12 with `&[u8]` parameter)
 
 ### Suggested fix (shared)
 
