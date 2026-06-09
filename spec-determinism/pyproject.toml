@@ -18,6 +18,7 @@ dependencies = [
 spec-determinism-run = "spec_determinism.cli:run_all_main"
 spec-determinism-regen = "spec_determinism.cli:regen_main"
 spec-determinism-verusage = "spec_determinism.cli:verusage_main"
+spec-determinism-step2 = "spec_determinism.verus.step2_sweep:main"
 
 [tool.setuptools.packages.find]
 include = ["spec_determinism*"]
