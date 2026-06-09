@@ -25,85 +25,17 @@ through when drafting the three upstream issues (one per cluster).
 
 # ironkv spec-incompleteness case set
 
-> **Status (2026-05-20)**: cases are partitioned into two groups.
-> - **Part 1 — Pending review** (2 cases): we believe the spec genuinely admits more behaviours than intended (or our equality check is stricter than what the spec calls for), but we want a second pair of eyes before committing to a fix direction.
-> - **Part 2 — Confirmed incompleteness** (2 cases): the cause has been triaged and a fix direction is agreed.
+> **Status (2026-05-20)**: 3 confirmed incompleteness cases.
 
 ## Overview
 
-| # | Case | Functions covered | Source of non-determinism | Status |
-|---|------|------------------|---------------------------|--------|
-| 1 | `retransmit_un_acked_packets` (also `retransmit_un_acked_packets_for_dst`) | 2 | Spec only constrains the `.to_set()` image of the produced `Vec<CPacket>`; equal_fn falls back to structural `Vec==` and so rejects permutations | Pending: equal_fn-too-strict candidate |
-| 2 | `host_model_next_receive_message` | 1 | Top-level `|||` (process vs ignore-unparseable) with no guard saying when the ignore branch may fire | Pending: under-specified error path |
-| 3 | `values_agree` (also `keys_in_index_range_agree`) | 2 | Spec only constrains `ret.1` when `!ret.0`; `ret.0 == true` leaves `ret.1` free | Confirmed: spec bug |
-| 4 | `sht_demarshall_data_method` | 1 | The `InvalidMessage` branch is entirely unconstrained by the spec | Confirmed: spec design choice |
+| # | Case | Functions covered | Source of non-determinism |
+|---|------|------------------|---------------------------|
+| 1 | `host_model_next_receive_message` | 1 | Top-level `\|\|\|` (process vs ignore-unparseable) with no guard saying when the ignore branch may fire |
+| 2 | `values_agree` (also `keys_in_index_range_agree`) | 2 | Spec only constrains `ret.1` when `!ret.0`; `ret.0 == true` leaves `ret.1` free |
+| 3 | `sht_demarshall_data_method` | 1 | The `InvalidMessage` branch is entirely unconstrained by the spec |
 
-## Part 1 — Pending review
-
-## #1 `retransmit_un_acked_packets` (×2 instances; same issue in `retransmit_un_acked_packets_for_dst`, ×2 instances)
-
-- **Source**: [`verusage/source-projects/ironkv/verified/single_delivery_model_v/single_delivery_model_v__impl2__retransmit_un_acked_packets.rs`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/single_delivery_model_v/single_delivery_model_v__impl2__retransmit_un_acked_packets.rs)
-- **Artifact (sample)**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_noreceive_noclock_next__retransmit_un_acked_packets/`
-
-### Why this is incomplete (candidate: equal_fn-too-strict)
-
-The function returns `Vec<CPacket>`, but the spec only constrains the **set** image of `packets@.map_values(@)`:
-
-```
-abstractify_seq_of_cpackets_to_set_of_sht_packets(packets@) == self@.un_acked_messages(src@),
-self@.un_acked_messages(src@) == packets@.map_values(|p: CPacket| p@).to_set(),
-```
-
-Two implementations may iterate the underlying `epmap` in different orders and produce permutations of the same packet set. The codegen, working purely from the return type, falls back to structural `Vec<CPacket>` equality, which rejects permutations. Even at the right view level the resulting `s1 =~= s2` would remain stricter than `s1.to_set() == s2.to_set()`.
-
-**Same issue also seen in**: `retransmit_un_acked_packets_for_dst` (in-place accumulator variant in the same file). Its ensures uses the same `.to_set()`-equivalence on the post-state, so any order of appended packets is allowed; `det_*_equal` again falls back to structural `Vec==`. The `_for_dst` body is `unimplemented!()` (a trusted stub), so only the spec contributes to the witness.
-
-### Source function (full)
-
-```rust
-pub fn retransmit_un_acked_packets(&self, src: &EndPoint) -> (packets: Vec<CPacket>)
-    requires
-        self.valid(),
-        src.abstractable(),
-    ensures
-        abstractify_seq_of_cpackets_to_set_of_sht_packets(packets@) == self@.un_acked_messages(src@),
-        outbound_packet_seq_is_valid(packets@),
-        outbound_packet_seq_has_correct_srcs(packets@, src@),
-        self@.un_acked_messages(src@) == packets@.map_values(|p: CPacket| p@).to_set(),
-        Self::packets_are_valid_messages(packets@),
-{
-    let mut packets = Vec::new();
-    let dests = self.send_state.epmap.keys();
-    let mut dst_i = 0;
-    proof { /* ... assert_seqs_equal / assert_sets_equal / lemma_un_acked_messages_for_dests_empty ... */ }
-
-    while dst_i < dests.len()
-      invariant
-          self.valid(),
-          dests@.map_values(|ep: EndPoint| ep@).to_set() == self.send_state.epmap@.dom(),
-          src.abstractable(),
-          0 <= dst_i <= dests.len(),
-          outbound_packet_seq_is_valid(packets@),
-          outbound_packet_seq_has_correct_srcs(packets@, src@),
-          packets@.map_values(|p: CPacket| p@).to_set() ==
-              self@.un_acked_messages_for_dests(src@, dests@.subrange(0, dst_i as int).map_values(|ep: EndPoint| ep@).to_set()),
-          Self::packets_are_valid_messages(packets@),
-      decreases
-          dests.len() - dst_i
-    {
-        let dst = &dests[dst_i];
-        self.retransmit_un_acked_packets_for_dst(src, dst, &mut packets);
-        dst_i = dst_i + 1;
-        proof { /* ~30 lines: lemma_to_set_singleton_auto / lemma_map_values_singleton_auto /
-                   lemma_flatten_sets_union_auto / set_map_union_auto / ... to relate the
-                   updated packets-set to un_acked_messages_for_dests(...) */ }
-    }
-    proof { /* tail lemma assert_sets_equal!: dests covers all dests → un_acked_messages(src@) */ }
-    packets
-}
-```
-
-## #2 `host_model_next_receive_message` (×1 instance)
+## #1 `host_model_next_receive_message` (×1 instance)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs:759`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/host_impl_v/host_impl_v__impl2__host_model_next_receive_message.rs#L759)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__host_impl_v__host_impl_v__impl2__host_model_next_receive_message__host_model_next_receive_message/`
@@ -113,8 +45,6 @@ pub fn retransmit_un_acked_packets(&self, src: &EndPoint) -> (packets: Vec<CPack
 The spec writes a 2-way `|||` at the top level of `ensures`: an implementation may either *process* a received packet via `process_message` or *drop* it as unparseable via `host_ignoring_unparseable`. **Crucially, the spec never says when the drop branch is allowed to fire** — there is no guard like `(cpacket.msg is well-formed) ==> process_message(...)`. As written, two implementations can disagree on the same well-formed input: one runs the appropriate handler, the other "gives up" and discards the packet. Both satisfy the ensures.
 
 We do not believe this is an intentional IronFleet feature; the error path appears to have been added without specifying its trigger. The reasonable fix is to add a guard that pins down which branch the implementation must take for each class of input.
-
-**Pending question**: should we treat this family as a documented under-specification, or push back and ask for guards distinguishing the normal and error branches?
 
 ### Source function (full)
 
@@ -158,9 +88,7 @@ fn host_model_next_receive_message(&mut self) -> (sent_packets: Vec<CPacket>)
 }
 ```
 
-## Part 2 — Confirmed incompleteness
-
-## #3 `values_agree` (×2 instances; same issue in `keys_in_index_range_agree`, ×2 instances)
+## #2 `values_agree` (×2 instances; same issue in `keys_in_index_range_agree`, ×2 instances)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl3__values_agree.rs`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/delegation_map_v/delegation_map_v__impl3__values_agree.rs)
 - **Artifact (sample)**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__delegation_map_v__delegation_map_v__impl3__keys_in_index_range_agree__values_agree/`
@@ -230,7 +158,7 @@ fn values_agree(&self, lo: usize, hi: usize, v: &ID) -> (ret: (bool, bool))
 }
 ```
 
-## #4 `sht_demarshall_data_method` (×1 instance)
+## #3 `sht_demarshall_data_method` (×1 instance)
 
 - **Source**: [`verusage/source-projects/ironkv/verified/net_sht_v/net_sht_v__receive_with_demarshal.rs:381`](https://github.com/microsoft/verus-proof-synthesis/blob/main/benchmarks/VeruSAGE-Bench/source-projects/ironkv/verified/net_sht_v/net_sht_v__receive_with_demarshal.rs#L381)
 - **Artifact**: `spec-determinism/results-verusage-viewreg/ironkv/artifacts/ironkv__verified__net_sht_v__net_sht_v__receive_with_demarshal__sht_demarshall_data_method/`
@@ -273,7 +201,7 @@ pub fn sht_demarshall_data_method(buffer: &Vec<u8>) -> (out: CSingleMessage)
 
 ## Appendix: other under-specified error paths
 
-The pattern in case #2 — an `ensures` written as `||| normal_path ||| error_path` without any guard saying when the error path applies — recurs in several other ironkv functions:
+The pattern in case #1 — an `ensures` written as `||| normal_path ||| error_path` without any guard saying when the error path applies — recurs in several other ironkv functions:
 
 - `host_model_next_delegate` (via `next_delegate_postconditions`): `||| next_delegate(pre, post, ..., out) ||| Self::host_ignoring_unparseable(pre, post, out)`.
 - `process_received_packet_next_impl` (called from two source locations): `||| process_received_packet_next ||| ignore_nonsensical_delegation_packet`.
@@ -737,26 +665,6 @@ pub fn new() -> (output: Self)
 
 ---
 
-## Audit footnote — cases reviewed but NOT counted as incomplete
-
-The full audit covered all 11 `unknown` (R0=unknown, permitted=False) cases **and** the 4 historically-`permitted=True` cases in storage. The 5 `impervious_to_corruption` cases (#3-#7) and the 4 cases above (#11-#14) are real incompleteness; **three cases — one in the unknown bucket and two in the historical-incomplete bucket — were excluded as the same z3-weakness rather than spec defects**:
-
-All three are instances of the same shape — a `serialize_and_write` exec fn on a trait-bound generic where the spec pins `self@` uniquely but the equal_fn does structural `==` on the trait-bound `Self`:
-
-  - Ensures: `self@ == old(self)@.write(addr as int, to_write.spec_to_bytes())`, `self.constants() == old(self).constants()`, plus a `subrange()` agreement clause. The post-`self@` is uniquely pinned by `old@.write(...)`.
-  - Equal_fn: `(post1_self_ == post2_self_)` — structural equality on a trait-bound generic.
-  - Why unknown / why the tool calls it incomplete: z3 has no model for what `==` means on a generic trait-bound type. The trait declares `spec fn view(&self) -> PersistentMemoryRegionView` and `spec fn constants(...) -> PersistentMemoryConstants` but not how those relate to `Self`'s structural equality. So even though both runs derive the same `@` and the same `constants()`, z3 cannot conclude `post1_self_ == post2_self_`.
-  - Verdict: **z3-weakness, not spec incompleteness.** A pipeline-side fix would replace structural `==` with `(post1@, post1.constants()) == (post2@, post2.constants())` for trait-bound `&mut self` exec fns. Out of scope for this document.
-
-The three instances:
-
-- **Trait declaration — `serialize_and_write` (`verified/log_setup/setup_write_setup_metadata_to_region.rs:281`, trait method on `PersistentMemoryRegion`).** Lands in the `unknown` bucket (`r0_z3=unknown, permitted=False`).
-- **Subregion impl — `subregion_serialize_and_write_absolute3.rs:225`** (impl of the same trait method on the absolute-addressing subregion wrapper).
-- **Subregion impl — `subregion_serialize_and_write_relative3.rs:247`** (impl on the relative-addressing wrapper).
-
-The two subregion impls are the tool's "previously reported 4 incomplete cases, last 2 of which do not count" — they have identical ensures shape (line-for-line copy of the trait spec), and were reclassified from `incomplete` → `complete` in [3dcccb58](https://github.com/q5438722/intent_formalization/commit/3dcccb58) on the basis that subsequent z3 runs gave `r0_z3=unsat` on the same artifacts. On this rerun they regressed back to `r0_z3=unknown, permitted=True`. The verdict is z3-jitter on top of a generic z3-weakness; treating them as complete (as the corpus_rerun11 / progress-2026-05-26 numbers do) is the right call.
-
----
 
 > **Source:** [`spec-determinism/docs/small-projects-incompleteness-cases-2026-06-01.en.md`](./small-projects-incompleteness-cases-2026-06-01.en.md)
 
