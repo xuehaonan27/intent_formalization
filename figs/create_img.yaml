@@ -1,0 +1,2 @@
+url: "https://swedencentral.api.cognitive.microsoft.com/openai/deployments/gpt-image-2/images/generations"
+api-key: "<set via local environment; do not commit real keys>"
