@@ -31,20 +31,20 @@ Saved as:
 
 - `results/verusage_exec_fn_coverage_summary.csv`
 
-`checked_in_verified_reported_total` is the 346-row determinism status table from the 2026-06-02/06-09 progress notes. `matched_to_pub_eval_raw` is the subset that can be matched back to the local source scan through the 2026-06-05 raw public-fn eval file; it is useful for explaining the source-scan partition but is not the same versioned aggregate as the 346-row progress table.
+This is the compact table requested for reporting. `checked_in_verified` is the 346-row determinism status table from the 2026-06-02/06-09 progress notes. `found_in_unverified` means the function name appears in `unverified/` task-file content, either as a `fn <name>` definition/signature or as a textual mention. Detailed splits are kept in `results/verusage_not_selected_unverified_check.csv`.
 
-| Project | Exec fn with postcondition | Checked in verified (reported) | Matched to raw eval | Found in `unverified/` | Mentioned only in `unverified/` | Verified-only unmeasured | Not matched | Incomplete |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| ironkv | 112 | 80 | 58 | 34 | 1 | 0 | 19 | 9 |
-| atmosphere | 297 | 222 | 218 | 12 | 4 | 0 | 63 | 16 |
-| memory-allocator | 178 | 15 | 15 | 0 | 1 | 0 | 162 | 1 |
-| nrkernel | 70 | 8 | 2 | 45 | 1 | 0 | 22 | 1 |
-| anvil-library | 19 | 1 | 0 | 3 | 2 | 3 | 11 | 1 |
-| anvil-controller | 28 |  | 0 | 13 | 3 | 0 | 12 |  |
-| node-replication | 33 |  | 0 | 0 | 2 | 0 | 31 |  |
-| storage | 93 | 18 | 12 | 31 | 1 | 0 | 49 | 9 |
-| vest | 32 | 2 | 2 | 1 | 2 | 1 | 26 | 0 |
-| **SUMMARY** | **862** | **346** | **307** | **139** | **17** | **4** | **395** | **37** |
+| Project | Exec fn with postcondition | Checked in verified | Found in `unverified/` | Not matched | Incomplete |
+|---|---:|---:|---:|---:|---:|
+| ironkv | 112 | 80 | 35 | 19 | 9 |
+| atmosphere | 297 | 222 | 16 | 63 | 16 |
+| memory-allocator | 178 | 15 | 1 | 162 | 1 |
+| nrkernel | 70 | 8 | 46 | 22 | 1 |
+| anvil-library | 19 | 1 | 5 | 11 | 1 |
+| anvil-controller | 28 |  | 16 | 12 |  |
+| node-replication | 33 |  | 2 | 31 |  |
+| storage | 93 | 18 | 32 | 49 | 9 |
+| vest | 32 | 2 | 3 | 26 | 0 |
+| **SUMMARY** | **862** | **346** | **156** | **395** | **37** |
 
 ## Are `not selected/extracted` functions from `source-projects/*/unverified`?
 
