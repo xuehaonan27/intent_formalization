@@ -85,3 +85,21 @@ Per-project examples:
 | atmosphere | `capacity`, `get_cr3_by_pcid`, `remove_l4_entry`, `resolve`, `syscall_new_proc_with_endpoint_iommu`, `syscall_receive_empty_block`, `syscall_receive_empty_no_block`, `transfer_idle_cpu` | `empty`, `insert`, `is_none`, `is_some` | `adopt_dom0`, `container_perms_subset_remove`, `container_remove_child`, `container_set_root_proc`, `container_to_page`, `endpoint_remove_thread`, `endpoint_set_owning_container`, `flush_tlb_4kentry` |
 | storage | `advance_head`, `as_slice`, `commit`, `compare_crcs`, `flush`, `get_pm_region_ref`, `new_with_condition`, `padding_needed` | `append` | `alloc_list_node_and_append`, `alloc_list_node_update_item_and_append`, `append_to_list`, `append_to_list_and_update_item`, `bytes_crc`, `check_for_required_space`, `compute_log_capacities`, `copy_from_slice` |
 | vest | `init_vec_u8` | `len`, `new` | `and_then`, `apply`, `as_byte_slice`, `as_u32`, `as_usize`, `btc_varint_inner`, `clone`, `compare` |
+
+## Why are the `not_matched` functions absent from VeruSAGE?
+
+The 862 source-level exec fns should be read as a broad upper bound: they come from scanning relevant source-repo paths for exec fns with postconditions. VeruSAGE does not extract every such function. It extracts standalone benchmark tasks that are useful as proof-synthesis / determinism targets, and filters out many functions that are runtime plumbing, trusted/external wrappers, dependency context, or use complex Verus features.
+
+Project-level patterns among `not_matched` functions:
+
+| Project | Likely reason |
+|---|---|
+| memory-allocator | Mostly allocator runtime / pointer / tracked-permission helpers from `types.rs`, `linked_list.rs`, `page.rs`, `free.rs`, `flags.rs`, etc. The MA README notes that tasks involving complicated tracked pointers and tokenized state-machine features were excluded. |
+| atmosphere | Many kernel accessors, initialization routines, TLB/page-table/process-manager helpers, or low-level functions with `Tracked`/`Ghost` permission arguments. These tend to be dependency/helper or complex system-operation code rather than selected benchmark targets. |
+| nrkernel | Many OS code VC, token/lock/shootdown/map/protect/unmap paths with `Tracked<Token>` or implementation/VC plumbing. These are more complex execution paths than the selected page-table/spec proof tasks. |
+| storage | Many functions come from `storage_node/src/kv`, setup, pmem wrappers, or Rust external-spec helpers. The ST benchmark focuses on log, pmemutil, subregion, and invariant tasks rather than every storage-node helper. |
+| ironkv | Includes IO/trusted/external-body functions, clone/wrapper helpers, and host main-loop helpers. The IronKV README says some functions no longer require proof annotations and are excluded from the benchmark suite. |
+| vest | Mostly generic combinator, trait/helper, and conversion functions. The Vest README explicitly says only 22 non-trivial proof/exec functions were extracted and trait implementation proofs were excluded. |
+| anvil-library | Mostly `vstd_ext` string/map helper functions that appear to be dependencies/context rather than proof-synthesis targets. |
+
+So `not_matched` primarily means "present in the original source repo scan but outside VeruSAGE's target-selection scope," not "missing from the `unverified/` tasks."
