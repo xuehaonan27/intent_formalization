@@ -31,9 +31,9 @@ Saved as:
 
 - `results/verusage_exec_fn_coverage_summary.csv`
 
-`measured_in_verified_reported_total` is the 346-row determinism status table from the 2026-06-02/06-09 progress notes. `matched_to_pub_eval_raw` is the subset that can be matched back to the local source scan through the 2026-06-05 raw public-fn eval file; it is useful for explaining the source-scan partition but is not the same versioned aggregate as the 346-row progress table.
+`checked_in_verified_reported_total` is the 346-row determinism status table from the 2026-06-02/06-09 progress notes. `matched_to_pub_eval_raw` is the subset that can be matched back to the local source scan through the 2026-06-05 raw public-fn eval file; it is useful for explaining the source-scan partition but is not the same versioned aggregate as the 346-row progress table.
 
-| Project | Exec fn with postcondition | Measured in verified (reported) | Matched to raw eval | New defined in `unverified/` | Mentioned only in `unverified/` | Verified-only unmeasured | No task-content match | Incomplete |
+| Project | Exec fn with postcondition | Checked in verified (reported) | Matched to raw eval | Found in `unverified/` | Mentioned only in `unverified/` | Verified-only unmeasured | Not matched | Incomplete |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | ironkv | 112 | 80 | 58 | 34 | 1 | 0 | 19 | 9 |
 | atmosphere | 297 | 222 | 218 | 12 | 4 | 0 | 63 | 16 |
@@ -58,7 +58,7 @@ The check no longer uses task filenames. It scans file contents and classifies e
 
 Summary:
 
-| Project | Not selected | Defined in `unverified/` | Mentioned only in `unverified/` | Mentioned/defined only in `verified/` | No task-content match |
+| Project | Not selected | Defined in `unverified/` | Mentioned only in `unverified/` | Mentioned/defined only in `verified/` | Not matched |
 |---|---:|---:|---:|---:|---:|
 | anvil-library | 18 | 2 | 2 | 3 | 11 |
 | ironkv | 32 | 12 | 1 | 0 | 19 |

@@ -1,4 +1,4 @@
-project,exec_fn_with_postcondition,measured_in_verified_reported_total,matched_to_pub_eval_raw,new_defined_in_unverified,mentioned_only_in_unverified,verified_only_unmeasured,no_task_content_match,incomplete
+project,exec_fn_with_postcondition,checked_in_verified_reported_total,matched_to_pub_eval_raw,found_defined_in_unverified,mentioned_only_in_unverified,verified_only_unmeasured,not_matched,incomplete
 ironkv,112,80,58,34,1,0,19,9
 atmosphere,297,222,218,12,4,0,63,16
 memory-allocator,178,15,15,0,1,0,162,1
