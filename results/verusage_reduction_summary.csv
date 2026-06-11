@@ -1,0 +1,7 @@
+stage,count,note
+source_scan_dedup_by_project_fn,861,"Existing CSV total: comments/strings skipped, spec/proof fn excluded, functions with ensures, deduped by project/function name over selected source dirs."
+source_scan_dedup_by_project_type_fn,1027,"Same source scan but using the later pipeline key (project,type_base,function). This is finer than 861 because methods with the same name on different types split."
+pub_fn_eval_raw_unique_entries,370,"Raw data from pub_fn_eval_per_case_2026-06-05.json; pipeline dedup key is (project,function_name,type_base), based on VeruSAGE standalone tasks, not full source repos."
+pub_fn_eval_private_entries_excluded,41,Rows in raw eval with pub=priv; excluded from public-API determinism question.
+pub_fn_eval_public_entries,329,"Rows in raw eval with pub=pub, documented as the 2026-06-05 public fn evaluation set."
+weekly_2026_06_02_status_total,346,Progress table total supplied by user / progress-2026-0602 and 0609. This is a status aggregate from the public-fn determinism line; it is not the same raw file as the 06-05 329-row pub eval.

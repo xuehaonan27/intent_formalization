@@ -1,0 +1,11 @@
+project,exec_fn_with_postcondition,measured_in_verified_reported_total,matched_to_pub_eval_raw,new_defined_in_unverified,mentioned_only_in_unverified,verified_only_unmeasured,no_task_content_match,incomplete
+ironkv,112,80,58,34,1,0,19,9
+atmosphere,297,222,218,12,4,0,63,16
+memory-allocator,178,15,15,0,1,0,162,1
+nrkernel,70,8,2,45,1,0,22,1
+anvil-library,19,1,0,3,2,3,11,1
+anvil-controller,28,,0,13,3,0,12,
+node-replication,33,,0,0,2,0,31,
+storage,93,18,12,31,1,0,49,9
+vest,32,2,2,1,2,1,26,0
+SUMMARY,862,346,307,139,17,4,395,37
