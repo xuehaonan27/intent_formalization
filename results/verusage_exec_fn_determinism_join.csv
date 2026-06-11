@@ -1,0 +1,9 @@
+project,prefix,source_repo,relevant_source_paths,commit,tracked_rs_files,exec_fn_items_no_comments,dedup_exec_fn_names,dedup_exec_fn_names_with_postcondition,complete,plus_llm,incomplete,unknown,crash,verus_err,determinism_total
+ironkv,IR,verus-lang/verified-ironkv,ironsht/src/,d99bf9f,34,246,171,112,49,2,9,27,0,0,80
+atmosphere,OS,mars-research/atmosphere,kernel/verified/,bd485f2,94,355,315,297,89,18,16,73,40,0,222
+memory-allocator,MA,verus-lang/verified-memory-allocator,verus-mimalloc/,847354e,28,308,280,178,14,0,1,0,0,0,15
+nrkernel,NR,matthias-brun/verified-nrkernel,page-table/src/,2579f33,25,146,117,70,7,0,1,0,0,0,8
+anvil-library,AL,anvil-verifier/anvil,src/controllers/vreplicaset_controller/,aa72ead,25,34,28,28,0,0,1,0,0,0,1
+storage,ST,microsoft/verified-storage,storage_node/,f49f053,42,245,108,93,6,0,9,0,0,5,18
+vest,VE,secure-foundations/vest,vest/src/,78b1aa9,23,213,37,32,2,0,0,0,0,0,2
+SUMMARY,,,,,271,1547,1056,810,167,20,37,100,40,5,346

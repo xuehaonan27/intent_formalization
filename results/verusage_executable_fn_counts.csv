@@ -1,0 +1,10 @@
+project_prefixes,source_repo,local_directory,relevant_source_paths,commit,tracked_rs_files,exec_fn_items_no_comments,dedup_exec_fn_names,dedup_exec_fn_names_with_postcondition,exec_fn_items_without_postcondition,dedup_fn_names_without_postcondition,proof_fn_items_excluded,spec_fn_items_excluded
+AL/AC,anvil-verifier/anvil,anvil,src/controllers/vreplicaset_controller/;src/temporal_logic/;src/vstd_ext/,aa72ead,36,55,48,46,6,2,266,168
+IR,verus-lang/verified-ironkv,verified-ironkv,ironsht/src/,d99bf9f,34,246,171,112,108,59,115,216
+MA,verus-lang/verified-memory-allocator,verified-memory-allocator,verus-mimalloc/,847354e,28,308,280,178,110,102,202,289
+NO,verus-lang/verified-node-replication,verified-node-replication,verified-node-replication/src/,eb8e272,18,144,124,33,100,91,68,159
+NR,matthias-brun/verified-nrkernel,verified-nrkernel,page-table/src/,2579f33,25,146,117,70,66,47,286,437
+OS,mars-research/atmosphere,atmosphere,kernel/verified/,bd485f2,94,355,315,297,29,18,179,389
+ST,microsoft/verified-storage,verified-storage,storage_node/,f49f053,42,245,108,93,71,15,85,295
+VE,secure-foundations/vest,vest,vest/src/,78b1aa9,23,213,37,32,166,5,254,331
+SUMMARY,,,,,300,1712,1200,861,656,339,1455,2284
