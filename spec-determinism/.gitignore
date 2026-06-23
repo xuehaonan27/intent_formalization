@@ -9,6 +9,8 @@ results/artifacts/
 results/artifacts.*/
 results/full_test_*.json
 results/full_test_run.log
+results/specgen_det_feedback/
+results/specgen_det_feedback_batch*/
 # Per-target det_spec.json files are regeneratable from source via
 # `spec-determinism-verusage`. They are heavy (108 MB for atmosphere
 # alone) and fragile to internal schema changes, so we keep the
