@@ -1,0 +1,40 @@
+{
+  "module": "raw_ptr",
+  "function": "allocate",
+  "source_line": 908,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__allocate__L908",
+  "status": "ok",
+  "requires": [
+    "valid_layout(size, align)",
+    "size != 0"
+  ],
+  "ensures": [
+    "pt.1@.is_range(pt.0.addr() as int, size as int)",
+    "pt.0.addr() + size <= usize::MAX + 1",
+    "pt.2@@ == (DeallocData {\n            addr: pt.0.addr(),\n            size: size as nat,\n            align: align as nat,\n            provenance: pt.1@.provenance(),\n        })",
+    "pt.0.addr() as int % align as int == 0",
+    "pt.0@.provenance == pt.1@.provenance()"
+  ],
+  "det_function": "det_allocate",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 1,
+  "verus_ms": 431,
+  "smt2": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__allocate__L908/verus_log/root.smt2",
+  "smt2_bytes": 143328,
+  "ctx_ms": 21,
+  "search_ms": 56,
+  "r0_z3": "unknown",
+  "n_rounds": 15,
+  "assumes": [
+    "size == 1",
+    "align == 0",
+    "!det_allocate_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 604
+}

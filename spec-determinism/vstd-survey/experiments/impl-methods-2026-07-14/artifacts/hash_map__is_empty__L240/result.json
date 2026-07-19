@@ -1,0 +1,29 @@
+{
+  "module": "hash_map",
+  "function": "is_empty",
+  "source_line": 240,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/hash_map.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_map__is_empty__L240",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result == self@.is_empty()"
+  ],
+  "det_function": "det_is_empty",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 0,
+  "verus_ms": 567,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_map__is_empty__L240/verus_log/root.smt2",
+  "smt2_bytes": 94489,
+  "ctx_ms": 19,
+  "search_ms": 16,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 615
+}

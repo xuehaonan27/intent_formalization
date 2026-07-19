@@ -1,0 +1,35 @@
+{
+  "module": "simple_pptr",
+  "function": "write",
+  "source_line": 557,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/simple_pptr.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/simple_pptr__write__L557",
+  "status": "ok",
+  "requires": [
+    "old(perm).pptr() == self"
+  ],
+  "ensures": [
+    "final(perm).pptr() == old(perm).pptr()",
+    "final(perm).mem_contents() == MemContents::Init(in_v)"
+  ],
+  "det_function": "det_write",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "addr",
+    "mem_contents"
+  ],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 563,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/simple_pptr__write__L557/verus_log/root.smt2",
+  "smt2_bytes": 99176,
+  "ctx_ms": 18,
+  "search_ms": 133,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 755
+}

@@ -1,0 +1,104 @@
+{
+  "function": "take",
+  "det_check_template": "proof fn det_take<V>(self_: PPtr<V>, pre_perm: PointsTo<V>, post1_perm: PointsTo<V>, r1: V, post2_perm: PointsTo<V>, r2: V)\n    requires (pre_perm.pptr() == self_), (pre_perm.is_init()),\n    ensures\n        ({\n            &&& (post1_perm.pptr() == pre_perm.pptr())\n            &&& (post1_perm.mem_contents() == MemContents::Uninit::<V>)\n            &&& (r1 == pre_perm.value())\n            &&& (post2_perm.pptr() == pre_perm.pptr())\n            &&& (post2_perm.mem_contents() == MemContents::Uninit::<V>)\n            &&& (r2 == pre_perm.value())\n        }) ==> det_take_equal::<V>(r1, r2, post1_perm, post2_perm),\n{\n    reveal(PointsTo::addr);\n    reveal(PointsTo::mem_contents);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "PPtr<V>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<V>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "V"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "V"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "V"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<V>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "V"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<V>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "V"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_take_equal<V>(r1: V, r2: V, post1_perm: PointsTo<V>, post2_perm: PointsTo<V>) -> bool {\n    (r1 == r2)\n    && (((post1_perm).is_init() == (post2_perm).is_init()) && ((post1_perm).ptr().addr() == (post2_perm).ptr().addr()) && ((post1_perm).is_init() ==> ((post1_perm).value() == (post2_perm).value())))\n}",
+  "equal_fn_name": "det_take_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_perm",
+      "rhs": "post2_perm"
+    }
+  ],
+  "check_fn_name": "det_take",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V>",
+  "where_decl": "",
+  "self_type": "PPtr<V>",
+  "opened_closed_specs": [
+    "addr",
+    "mem_contents"
+  ]
+}

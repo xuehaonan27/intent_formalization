@@ -1,0 +1,9 @@
+group,modules,lines,exec_body_sites,exec_body_post_sites,exec_body_requires_only_sites,exec_body_no_contract_sites,exec_signature_sites,public_exec_body_sites,public_exec_body_post_sites,public_exec_body_requires_only_sites,public_exec_body_no_contract_sites,public_exec_body_no_post_sites,exec_post_sites,assume_spec_with_post_sites,model_spec_fn_sites,proof_fn_sites,axiom_fn_sites,total_contract_sites,total_spec_sites,parser_error_modules,macro_rules_sites
+Mathematical foundations,32,15822,0,0,0,0,0,0,0,0,0,0,0,0,271,539,53,0,863,10,30
+Rust standard-library specs,25,8321,0,0,0,0,6,0,0,0,0,0,4,279,375,93,28,283,779,9,23
+Runtime collections and data,11,5130,72,72,0,0,13,60,60,0,0,0,72,26,187,78,28,98,391,8,1
+Memory and ownership,6,2690,47,45,2,0,0,41,39,2,0,2,45,6,71,6,14,51,142,3,3
+Concurrency and prophecy,9,3455,23,13,1,9,0,20,12,1,7,8,13,0,58,14,11,13,96,6,28
+Resources and protocols,19,6455,0,0,0,0,0,0,0,0,0,0,0,0,164,271,18,0,453,4,0
+Experimental exec-spec,8,1637,70,44,0,26,43,0,0,0,0,0,48,0,3,0,0,48,51,3,2
+Infrastructure,6,1223,8,3,3,2,2,5,0,3,2,5,3,0,25,31,3,3,62,4,5

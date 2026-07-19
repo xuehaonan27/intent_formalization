@@ -1,0 +1,109 @@
+{
+  "function": "fetch_xor",
+  "det_check_template": "proof fn det_fetch_xor<T>(self_: &PAtomicPtr<T>, pre_perm: PermissionPtr<T>, n: usize, post1_perm: PermissionPtr<T>, r1: *mut T, post2_perm: PermissionPtr<T>, r2: *mut T)\n    requires (equal(self_.id(), pre_perm.view().patomic)),\n    ensures\n        ({\n            &&& (equal(pre_perm.view().value, r1))\n            &&& (post1_perm.view().patomic == pre_perm.view().patomic)\n            &&& (post1_perm.view().value@.addr == (pre_perm.view().value@.addr ^ n))\n            &&& (post1_perm.view().value@.provenance == pre_perm.view().value@.provenance)\n            &&& (post1_perm.view().value@.metadata == pre_perm.view().value@.metadata)\n            &&& (equal(pre_perm.view().value, r2))\n            &&& (post2_perm.view().patomic == pre_perm.view().patomic)\n            &&& (post2_perm.view().value@.addr == (pre_perm.view().value@.addr ^ n))\n            &&& (post2_perm.view().value@.provenance == pre_perm.view().value@.provenance)\n            &&& (post2_perm.view().value@.metadata == pre_perm.view().value@.metadata)\n        }) ==> det_fetch_xor_equal::<T>(r1, r2, post1_perm, post2_perm),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "PAtomicPtr<T>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_perm",
+      "type": {
+        "kind": "unknown",
+        "name": "PermissionPtr<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "n",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "*mut T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "*mut T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post1_perm",
+      "type": {
+        "kind": "unknown",
+        "name": "PermissionPtr<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_perm",
+      "type": {
+        "kind": "unknown",
+        "name": "PermissionPtr<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_fetch_xor_equal<T>(r1: *mut T, r2: *mut T, post1_perm: PermissionPtr<T>, post2_perm: PermissionPtr<T>) -> bool {\n    (true /* raw pointer: opaque by default */)\n    && (post1_perm == post2_perm)\n}",
+  "equal_fn_name": "det_fetch_xor_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_perm",
+      "rhs": "post2_perm"
+    }
+  ],
+  "check_fn_name": "det_fetch_xor",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T>",
+  "where_decl": "",
+  "self_type": "PAtomicPtr<T>",
+  "opened_closed_specs": []
+}

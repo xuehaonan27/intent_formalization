@@ -1,0 +1,30 @@
+{
+  "module": "raw_ptr",
+  "function": "with_exposed_provenance",
+  "source_line": 744,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__with_exposed_provenance__L744",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "p == ptr_mut_from_data::<T>(\n            PtrData::<T> { addr: addr, provenance: provenance@, metadata: () },\n        )"
+  ],
+  "det_function": "det_with_exposed_provenance",
+  "equal_fn_trivial": true,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 3,
+  "n_params": 6,
+  "verus_returncode": 0,
+  "verus_ms": 590,
+  "smt2": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
+  "smt2_bytes": 100015,
+  "ctx_ms": 17,
+  "search_ms": 14,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "raw_classification": "complete",
+  "classification": "invalid_equal_fn_trivial",
+  "wall_ms": 675
+}

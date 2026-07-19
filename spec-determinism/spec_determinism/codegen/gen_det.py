@@ -117,6 +117,24 @@ def _is_raw_pointer_type(ty: TypeInfo) -> bool:
     return any(name.startswith(p) for p in _RAW_POINTER_PREFIXES)
 
 
+def _is_points_to_raw_type(ty: TypeInfo) -> bool:
+    """Return True only when the outer type itself is `PointsToRaw`.
+
+    A substring check is unsound here: tuple spellings such as
+    `(*mut u8, Tracked<PointsToRaw>, Tracked<Dealloc>)` also contain the
+    text `PointsToRaw`, but the tuple's other observable components must
+    still participate in the generated equality.
+    """
+    name = (ty.name or "").strip()
+    head = name.split("<", 1)[0].strip().rsplit("::", 1)[-1]
+    return head == "PointsToRaw"
+
+
+def _is_pcell_points_to_type(ty: TypeInfo) -> bool:
+    name = (ty.name or "").replace(" ", "")
+    return "pcell::PointsTo<" in name or "cell::pcell::PointsTo<" in name
+
+
 def _type_name(param: Param) -> str:
     return param.type.name
 
@@ -181,6 +199,84 @@ def _ts_collect_referenced(node: ts.Node, known: set[str]) -> set[str]:
 
     visit(node)
     return out
+
+
+def _collect_referenced_text(text: str, known: set[str]) -> set[str]:
+    """Text fallback for tiny snippets tree-sitter cannot parse well.
+
+    This is intentionally conservative and is used only as an auxiliary source
+    for generic-bound dependencies in `_prune_generics`.
+    """
+    out: set[str] = set()
+    for name in known:
+        if name.startswith("'"):
+            pattern = re.escape(name) + r"\b"
+        else:
+            pattern = r"\b" + re.escape(name) + r"\b"
+        if re.search(pattern, text):
+            out.add(name)
+    return out
+
+
+def _generic_call_turbofish(generics_decl: str) -> str:
+    """Render `::<...>` call arguments from a function generic declaration."""
+    if not generics_decl.strip():
+        return ""
+    probe_src = f"fn __probe{generics_decl}() {{}}"
+    tree = _parser.parse(probe_src.encode())
+    fn_node = _ts_find_function_item(tree.root_node)
+    if fn_node is None:
+        return ""
+    tp_node = _ts_child_by_type(fn_node, "type_parameters")
+    if tp_node is None:
+        return ""
+    args: list[str] = []
+    for child in tp_node.children:
+        if child.type == "lifetime_parameter":
+            # Function lifetimes are inferred at the call site; explicitly
+            # passing them can fail for late-bound lifetimes (E0794).
+            continue
+        elif child.type == "type_parameter":
+            ti = _ts_child_by_type(child, "type_identifier")
+            if ti is not None:
+                args.append(ti.text.decode())
+        elif child.type == "const_parameter":
+            raw = child.text.decode()
+            m = re.match(r"\s*const\s+([A-Za-z_][A-Za-z0-9_]*)", raw)
+            if m is not None:
+                args.append(m.group(1))
+    return f"::<{', '.join(args)}>" if args else ""
+
+
+def _augment_generics_from_self_type(generics_decl: str, self_type: str | None) -> str:
+    """Add missing bare type parameters that appear in `SelfType<...>`.
+
+    Some source-native fallback extraction paths recover only the impl target
+    text (e.g. `HashMap<V>`) and lose the enclosing `impl<V>` generic list.
+    Without `V` in the synthesized det/equal function signatures, Verus emits
+    `cannot find type V`.  Add simple identifier generic args back; bounds are
+    intentionally not guessed.
+    """
+    if not self_type or "<" not in self_type:
+        return generics_decl
+    m = re.match(r"^[A-Za-z_][A-Za-z0-9_:]*\s*<(.+)>\s*$", self_type.strip())
+    if m is None:
+        return generics_decl
+    existing = set(_parse_generic_bounds(generics_decl).keys())
+    additions: list[str] = []
+    for arg in _split_top_level_commas_text(m.group(1)):
+        arg = arg.strip()
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", arg):
+            continue
+        if arg not in existing and arg not in additions:
+            additions.append(arg)
+    if not additions:
+        return generics_decl
+    text = generics_decl.strip()
+    if text.startswith("<") and text.endswith(">"):
+        inner = text[1:-1].strip()
+        return f"<{inner}, {', '.join(additions)}>" if inner else f"<{', '.join(additions)}>"
+    return f"<{', '.join(additions)}>"
 
 
 def _prune_generics(
@@ -281,13 +377,32 @@ def _prune_generics(
                 refs = _ts_collect_referenced(c, known)
                 wp_list.append((c.text.decode(), refs))
 
-    # 4. Closure: predicate that overlaps kept ⇒ keep predicate AND pull in
-    #    its other referenced names so we don't end up referencing an
+    # Generic-parameter bounds can also reference other generics, e.g.
+    # `<I, __DetSelf: VestPublicOutput<I>>`. If `__DetSelf` is kept because it
+    # appears in the signature, `I` must be kept too even if it appears only in
+    # that bound. Tree-sitter does not model these as where-predicates, so add a
+    # second closure source from each kept generic parameter's own bound text.
+    generic_bound_refs: list[tuple[str, set[str]]] = [
+        (
+            name,
+            _ts_collect_referenced(_parser.parse(raw.encode()).root_node, known)
+            | _collect_referenced_text(raw, known),
+        )
+        for (_kind, name, raw) in entries
+        if name
+    ]
+
+    # 4. Closure: predicate/bound that overlaps kept ⇒ keep predicate AND pull
+    #    in its other referenced names so we don't end up referencing an
     #    undeclared generic.
     kept = set(used)
     changed = True
     while changed:
         changed = False
+        for name, refs in generic_bound_refs:
+            if name in kept and not refs.issubset(kept):
+                kept |= refs
+                changed = True
         for raw, refs in wp_list:
             if refs & kept and not refs.issubset(kept):
                 kept |= refs
@@ -516,6 +631,8 @@ def _build_template(
     sig_for_prune = params_str + " " + run1 + " " + run2 + " " + requires_str
     if spec.self_type:
         sig_for_prune = re.sub(r'\bSelf\b', spec.self_type, sig_for_prune)
+    if spec.trait_name:
+        sig_for_prune += " " + spec.trait_name
     pruned_generics, pruned_where = _prune_generics(
         spec.generics_decl, spec.where_decl, sig_for_prune)
 
@@ -540,6 +657,7 @@ def _build_template(
         run2 = re.sub(r'\bSelf\b', placeholder, run2)
         requires_str = re.sub(r'\bSelf\b', placeholder, requires_str)
         conclusion = re.sub(r'\bSelf\b', placeholder, conclusion)
+        pruned_where = re.sub(r'\bSelf\b', placeholder, pruned_where)
         # If the source fn lives inside a `trait Foo { ... }` declaration,
         # bound `__DetSelf` by the trait so `Self::method` calls (e.g.
         # `Self::zero_spec()`) resolve. Otherwise leave it unbounded.
@@ -552,6 +670,42 @@ def _build_template(
             pruned_generics = f"<{inner}, {placeholder_decl}>"
         else:
             pruned_generics = f"<{placeholder_decl}>"
+
+    # Build the default equal spec fn body uses bare names (no `@`).
+    equal_fn_self_type = spec.self_type
+    equal_fn_generics = spec.generics_decl
+    if needs_self_subst:
+        equal_fn_self_type = "__DetSelf"
+        placeholder_decl = (
+            f"__DetSelf: {spec.trait_name}" if spec.trait_name else "__DetSelf"
+        )
+        # Add the placeholder to the equal-fn's generics decl as well.
+        if equal_fn_generics.strip():
+            inner = equal_fn_generics.strip().lstrip('<').rstrip('>').strip()
+            equal_fn_generics = f"<{inner}, {placeholder_decl}>"
+        else:
+            equal_fn_generics = f"<{placeholder_decl}>"
+    equal_param_decls_for_prune = ", ".join(
+        f"{n}: {_type_annotation(t)}" for (n, t) in equal_params
+    )
+    if equal_fn_self_type:
+        equal_param_decls_for_prune = re.sub(
+            r'\bSelf\b', equal_fn_self_type, equal_param_decls_for_prune
+        )
+    equal_call_generics, _ = _prune_generics(
+        equal_fn_generics, spec.where_decl, equal_param_decls_for_prune
+    )
+    conclusion = (
+        f"{equal_fn_name}{_generic_call_turbofish(equal_call_generics)}"
+        f"({', '.join(call_args_flat)})"
+    )
+    equal_fn_def = _build_equal_fn(
+        equal_fn_name, equal_params, equal_body_args, policy,
+        generics_decl=equal_fn_generics,
+        where_decl=spec.where_decl,
+        self_type=equal_fn_self_type,
+        view_registry=view_registry,
+    )
 
     where_block = f"\n    {pruned_where}" if pruned_where else ""
     # Reveal block: opt-in opening of ``#[verifier::opaque] open spec fn``
@@ -580,28 +734,6 @@ def _build_template(
     # when ensures/requires referenced `Self` directly.
     if spec.self_type:
         code = _substitute_self_type(code, spec.self_type)
-
-    # Build the default equal spec fn body uses bare names (no `@`).
-    equal_fn_self_type = spec.self_type
-    equal_fn_generics = spec.generics_decl
-    if needs_self_subst:
-        equal_fn_self_type = "__DetSelf"
-        placeholder_decl = (
-            f"__DetSelf: {spec.trait_name}" if spec.trait_name else "__DetSelf"
-        )
-        # Add the placeholder to the equal-fn's generics decl as well.
-        if equal_fn_generics.strip():
-            inner = equal_fn_generics.strip().lstrip('<').rstrip('>').strip()
-            equal_fn_generics = f"<{inner}, {placeholder_decl}>"
-        else:
-            equal_fn_generics = f"<{placeholder_decl}>"
-    equal_fn_def = _build_equal_fn(
-        equal_fn_name, equal_params, equal_body_args, policy,
-        generics_decl=equal_fn_generics,
-        where_decl=spec.where_decl,
-        self_type=equal_fn_self_type,
-        view_registry=view_registry,
-    )
 
     return code, equal_fn_def, equal_fn_name, equal_call_args
 
@@ -802,6 +934,8 @@ def _substitute_self_type(text: str, self_type: str) -> str:
     base, args = m.group(1), m.group(2)
     # Path-expression context: ``Self::`` → ``Base::<Args>::``
     text = re.sub(r'\bSelf::', f'{base}::<{args}>::', text)
+    # Tuple-struct constructor context: ``Self(...)`` → ``Base(...)``.
+    text = re.sub(r'\bSelf\s*\(', f'{base}(', text)
     # Type-context: remaining ``Self`` → full ``Base<Args>`` form.
     text = re.sub(r'\bSelf\b', self_type, text)
     return text
@@ -1232,11 +1366,12 @@ def _build_equal_fn(
     else:
         prelude_decls = []
         clauses = []
+        caller_context = f"{generics_decl} {where_decl}".strip()
         for (lhs, rhs, ty) in arg_pairs:
             clauses.append(build_equal_expr(ty, lhs, rhs, policy,
                                             view_registry=view_registry,
                                             prelude_collector=prelude_decls,
-                                            caller_generics=generics_decl))
+                                            caller_generics=caller_context))
 
         if not clauses:
             body = "true"
@@ -1334,16 +1469,23 @@ def _contains_result(ty: TypeInfo, _seen: Optional[set[int]] = None) -> bool:
 
 def _container_needs_elementwise(ty: TypeInfo, policy: EqualPolicy) -> bool:
     """True iff a container of `ty` cannot be safely compared with raw
-    structural `==` under `policy`. Currently this fires only when
-    `errs_equivalent=True` and `ty` transitively contains a `Result`."""
+    structural equality under `policy`. Result elements need elementwise
+    comparison so `errs_equivalent` reaches nested payloads. String elements
+    need elementwise comparison so equality goes through `@` rather than raw
+    exec String identity."""
+    if ty.kind == TypeKind.STR:
+        return True
     if not policy.errs_equivalent:
         return False
     return _contains_result(ty)
 
 
 def _parse_generic_bounds(generics_decl: str) -> dict[str, set[str]]:
-    """Parse a generic declaration like ``<K: KeyTrait + VerusClone, V>``
-    into a map ``{"K": {"KeyTrait", "VerusClone"}, "V": set()}``.
+    """Parse generic/where bounds into ``{"K": {"Trait"}, ...}``.
+
+    Accepts either a generic declaration like
+    ``<K: KeyTrait + VerusClone, V>`` or a combined context like
+    ``<K> where K: KeyTrait``.
 
     Robust against missing leading/trailing angle brackets and trims
     whitespace. Bounds with ``::`` (path traits) are kept as-is.
@@ -1351,13 +1493,49 @@ def _parse_generic_bounds(generics_decl: str) -> dict[str, set[str]]:
     import re
     if not generics_decl:
         return {}
-    m = re.search(r'<([^<>]*(?:<[^<>]*>[^<>]*)*)>', generics_decl)
-    inside = m.group(1) if m else generics_decl
+    text = generics_decl or ""
+    where_tail = ""
+    where_match = re.search(r'\bwhere\b', text)
+    if where_match:
+        where_tail = text[where_match.end():]
+        text = text[:where_match.start()]
+    m = re.search(r'<([^<>]*(?:<[^<>]*>[^<>]*)*)>', text)
+    inside = m.group(1) if m else text
     out: dict[str, set[str]] = {}
+    chunks = _split_top_level_commas_text(inside)
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if ':' in chunk:
+            tp, bounds = chunk.split(':', 1)
+            tp = tp.strip()
+            traits = {_short_bound_name(b.strip()) for b in bounds.split('+') if b.strip()}
+        else:
+            tp = chunk.strip()
+            traits = set()
+        out[tp] = traits
+
+    for pred in _split_top_level_commas_text(where_tail):
+        pred = pred.strip()
+        if not pred or ':' not in pred:
+            continue
+        lhs, bounds = pred.split(':', 1)
+        lhs = lhs.strip()
+        # Associated-type predicates like `T::V: Foo` do not mean `T` itself
+        # has view equality, so keep only direct type-parameter bounds here.
+        if '::' in lhs:
+            continue
+        bucket = out.setdefault(lhs, set())
+        bucket |= {_short_bound_name(b.strip()) for b in bounds.split('+') if b.strip()}
+    return out
+
+
+def _split_top_level_commas_text(text: str) -> list[str]:
     depth = 0
     chunks: list[str] = []
     cur = []
-    for ch in inside:
+    for ch in text:
         if ch == '<':
             depth += 1
             cur.append(ch)
@@ -1371,19 +1549,89 @@ def _parse_generic_bounds(generics_decl: str) -> dict[str, set[str]]:
             cur.append(ch)
     if cur:
         chunks.append("".join(cur))
-    for chunk in chunks:
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        if ':' in chunk:
-            tp, bounds = chunk.split(':', 1)
-            tp = tp.strip()
-            traits = {b.strip() for b in bounds.split('+') if b.strip()}
-        else:
-            tp = chunk.strip()
-            traits = set()
-        out[tp] = traits
-    return out
+    return chunks
+
+
+def _short_bound_name(bound: str) -> str:
+    bound = bound.strip()
+    if not bound:
+        return bound
+    bound = re.sub(r'^\?+', '', bound)
+    bound = bound.split('<', 1)[0].strip()
+    return bound.rsplit('::', 1)[-1].strip()
+
+
+_VIEW_LIKE_BOUNDS = {
+    "View",
+    "ViewReflex",
+    "PersistentMemoryRegion",
+    "PersistentMemoryRegions",
+    "VestInput",
+    "VestPublicInput",
+    "VestOutput",
+    "VestPublicOutput",
+    "Combinator",
+    "Iso",
+    "IsoFn",
+    "From",
+    "Into",
+    "TryFrom",
+    "TryInto",
+}
+
+
+def _generic_view_equal(
+    ty: TypeInfo,
+    lhs: str,
+    rhs: str,
+    caller_generics: str,
+) -> Optional[str]:
+    """Use view equality for generic types whose bounds guarantee `View`.
+
+    The project convention is: compare through `@` whenever a view is available;
+    only fall back to structural equality when no view can be established. The
+    ViewRegistry covers concrete known types; this helper covers generic type
+    parameters such as `O: VestOutput<I>` and `__DetSelf: VestInput`.
+    """
+    if not caller_generics or not ty.name:
+        return None
+    name = _strip_ref_type_name(ty.name.strip())
+    caller_bounds = _parse_generic_bounds(caller_generics)
+    assoc = re.match(r"^([_A-Za-z][_A-Za-z0-9]*)::[_A-Za-z][_A-Za-z0-9]*$", name)
+    if assoc is not None:
+        base = assoc.group(1)
+        lookup_base = "__DetSelf" if base == "Self" and "__DetSelf" in caller_bounds else base
+        if caller_bounds.get(lookup_base, set()) & _VIEW_LIKE_BOUNDS:
+            return f"({lhs})@ == ({rhs})@"
+        if re.search(rf"<\s*{re.escape(name)}\s+as\s+View\s*>", caller_generics):
+            return f"({lhs})@ == ({rhs})@"
+        return None
+    if not re.match(r"^'?[_A-Za-z][_A-Za-z0-9]*$", name):
+        return None
+    lookup_name = "__DetSelf" if name == "Self" and "__DetSelf" in caller_bounds else name
+    bounds = caller_bounds.get(lookup_name, set())
+    if bounds & _VIEW_LIKE_BOUNDS:
+        return f"({lhs})@ == ({rhs})@"
+    return None
+
+
+def _strip_ref_type_name(name: str) -> str:
+    """Return the inner type for simple reference spellings.
+
+    The extractor preserves reference return types as names like ``&PMRegion``.
+    If the inner generic has a view-like bound (``PMRegion:
+    PersistentMemoryRegion``), equality should still go through ``@`` rather
+    than raw reference identity.
+    """
+    text = name.strip()
+    while text.startswith("&"):
+        text = text[1:].lstrip()
+        if text.startswith("'"):
+            parts = text.split(None, 1)
+            text = parts[1].lstrip() if len(parts) == 2 else ""
+        if text.startswith("mut "):
+            text = text[4:].lstrip()
+    return text
 
 
 def _shim_bounds_satisfied(prelude_decl: str, caller_generics: str) -> bool:
@@ -1469,6 +1717,10 @@ def build_equal_expr(
     if ty.name and ty.name in policy.opaque_types:
         return "true"
 
+    # Permission/provenance carrier with no deterministic observable value.
+    if _is_points_to_raw_type(ty):
+        return "true /* PointsToRaw permission: opaque */"
+
     # Raw-pointer opacity (mechanical default).
     # `*mut T` / `*const T` addresses are allocator-nondeterministic at the
     # Verus/Z3 level — structural `==` compares abstract heap addresses and
@@ -1478,14 +1730,23 @@ def build_equal_expr(
     if _is_raw_pointer_type(ty) and not policy.compare_raw_pointers:
         return "true /* raw pointer: opaque by default */"
 
+    if k == TypeKind.STR:
+        return f"({lhs})@ == ({rhs})@"
+
     # Primitive / value types where structural `==` is safe
     if k in (
         TypeKind.INT, TypeKind.USIZE, TypeKind.ISIZE,
         TypeKind.U8, TypeKind.U16, TypeKind.U32, TypeKind.U64,
         TypeKind.I8, TypeKind.I16, TypeKind.I32, TypeKind.I64,
-        TypeKind.BOOL, TypeKind.UNIT, TypeKind.STR,
+        TypeKind.BOOL, TypeKind.UNIT,
     ):
         return f"{lhs} == {rhs}"
+
+    alias_eq = _alias_result_equal_expr(
+        ty, lhs, rhs, policy, view_registry, prelude_collector, caller_generics
+    )
+    if alias_eq is not None:
+        return alias_eq
 
     # `Set<E>` — extensional equality. Z3's structural `==` on Set is the
     # constructor-term identity (history of `.insert` / `.remove`); `=~=`
@@ -1516,6 +1777,11 @@ def build_equal_expr(
                 caller_generics=caller_generics,
             )
         elem_ty = ty.type_args[0] if ty.type_args else None
+        if elem_ty is not None and elem_ty.kind == TypeKind.STR:
+            return (
+                f"(({lhs}).map_values(|x: String| x@)"
+                f" == ({rhs}).map_values(|x: String| x@))"
+            )
         if elem_ty is not None and _container_needs_elementwise(elem_ty, policy):
             elem_eq = build_equal_expr(elem_ty, f"{lhs}[i]", f"{rhs}[i]", policy,
                                        view_registry=view_registry,
@@ -1600,6 +1866,16 @@ def build_equal_expr(
     if k in (TypeKind.TRACKED, TypeKind.GHOST):
         if ty.type_args:
             inner_ty = ty.type_args[0]
+            if inner_ty.spec_view is not None:
+                return build_equal_expr(
+                    inner_ty.spec_view,
+                    f"({lhs})@@",
+                    f"({rhs})@@",
+                    policy,
+                    view_registry=view_registry,
+                    prelude_collector=prelude_collector,
+                    caller_generics=caller_generics,
+                )
             inner_eq = build_equal_expr(
                 inner_ty, f"({lhs})@", f"({rhs})@", policy,
                 view_registry=view_registry,
@@ -1614,9 +1890,11 @@ def build_equal_expr(
     # state, and (if init) same inner value, at the same addr". We
     # compare each projection separately so policy can drive the inner.
     if k == TypeKind.POINTS_TO:
+        if _is_pcell_points_to_type(ty):
+            return "true /* pcell PointsTo permission: opaque */"
         parts = [
             f"(({lhs}).is_init() == ({rhs}).is_init())",
-            f"(({lhs}).addr() == ({rhs}).addr())",
+            f"(({lhs}).ptr().addr() == ({rhs}).ptr().addr())",
         ]
         if ty.type_args:
             v_ty = ty.type_args[0]
@@ -1760,6 +2038,14 @@ def build_equal_expr(
         # provably weaker than the specs can drive — leading to unknown
         # on otherwise-deterministic constructors like ``HashMap::new``.
         if ty.is_opaque and view is None:
+            vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
+                                               prelude_collector,
+                                               caller_generics=caller_generics)
+            if vreg_eq is not None:
+                return vreg_eq
+            generic_view_eq = _generic_view_equal(ty, lhs, rhs, caller_generics)
+            if generic_view_eq is not None:
+                return generic_view_eq
             return f"{lhs} == {rhs}"
         # Transparent alias: an LLM type-completion patch with empty
         # `fields` + a `spec_view` is the canonical encoding of a
@@ -1794,6 +2080,22 @@ def build_equal_expr(
             # a raw `@ == @` comparison — if the caller needs that, they
             # should supply a custom_body for this function.
             return f"({lhs})@ == ({rhs})@"
+        # Phase-2 view resolution takes precedence over source-struct
+        # extensional equality. An external/opaque wrapper may be marked
+        # `#[verifier::ext_equal]` while also exposing the actual semantic
+        # state through `impl View`; comparing the wrapper with `=~=` can
+        # still leave representation fields uninterpreted. The registered
+        # view is the contract-facing equality and should win.
+        vreg_eq = _try_view_registry_equal(
+            view_registry,
+            ty,
+            lhs,
+            rhs,
+            prelude_collector,
+            caller_generics=caller_generics,
+        )
+        if vreg_eq is not None:
+            return vreg_eq
         # ``#[verifier::ext_equal]`` struct: per the Verus extensional_equality
         # guide, ``=~=`` on this type drills recursively through any
         # Seq / Set / Map / spec_fn fields (and through nested
@@ -1812,17 +2114,9 @@ def build_equal_expr(
         if (ty.is_ext_equal and not policy.ignore_fields
                 and not lhs_is_viewed and not rhs_is_viewed):
             return f"({lhs}) =~= ({rhs})"
-        # Phase-2 hook: no inline `TypeInfo.spec_view` was discovered.
-        # Consult the L1+L2+L3+L4 resolver before falling back to a recursive
-        # field-by-field structural comparison. The resolver's hit covers
-        # alias-to-primitive (e.g. `Pcid = usize`), prelude containers
-        # appearing as struct types, explicit `impl View for X`, and
-        # cached LLM-synthesised `impl View` declarations.
-        vreg_eq = _try_view_registry_equal(view_registry, ty, lhs, rhs,
-                                           prelude_collector,
-                                           caller_generics=caller_generics)
-        if vreg_eq is not None:
-            return vreg_eq
+        generic_view_eq = _generic_view_equal(ty, lhs, rhs, caller_generics)
+        if generic_view_eq is not None:
+            return generic_view_eq
         if ty.fields:
             clauses = []
             for fld in ty.fields:
@@ -1846,7 +2140,101 @@ def build_equal_expr(
                                        caller_generics=caller_generics)
     if vreg_eq is not None:
         return vreg_eq
+    generic_view_eq = _generic_view_equal(ty, lhs, rhs, caller_generics)
+    if generic_view_eq is not None:
+        return generic_view_eq
     return f"{lhs} == {rhs}"
+
+
+def _alias_result_equal_expr(
+    ty: TypeInfo,
+    lhs: str,
+    rhs: str,
+    policy: EqualPolicy,
+    view_registry: Optional["ViewRegistry"],
+    prelude_collector: Optional[list[str]],
+    caller_generics: str,
+) -> Optional[str]:
+    args = _alias_type_args(ty.name or "", "SResult")
+    if args is not None and len(args) >= 2:
+        ok_ty = _typeinfo_from_alias_arg(args[0])
+        err_ty = _typeinfo_from_alias_arg(args[1])
+        result_ty = TypeInfo(
+            TypeKind.RESULT,
+            f"Result<{args[0]}, {args[1]}>",
+            type_args=[ok_ty, err_ty],
+        )
+        return build_equal_expr(
+            result_ty, lhs, rhs, policy,
+            view_registry=view_registry,
+            prelude_collector=prelude_collector,
+            caller_generics=caller_generics,
+        )
+
+    args = _alias_type_args(ty.name or "", "PResult")
+    if args is None or len(args) < 2:
+        return None
+    ok_value_ty = _typeinfo_from_alias_arg(args[0])
+    err_ty = _typeinfo_from_alias_arg(args[1])
+    ok_value_eq = build_equal_expr(
+        ok_value_ty,
+        f"({lhs}->Ok_0).1",
+        f"({rhs}->Ok_0).1",
+        policy,
+        view_registry=view_registry,
+        prelude_collector=prelude_collector,
+        caller_generics=caller_generics,
+    )
+    ok_clause = (
+        f"(({lhs} is Ok) ==> "
+        f"(({lhs}->Ok_0).0 == ({rhs}->Ok_0).0 && ({ok_value_eq})))"
+    )
+    if policy.errs_equivalent:
+        return f"(({lhs} is Ok) == ({rhs} is Ok)) && {ok_clause}"
+    err_eq = build_equal_expr(
+        err_ty,
+        f"{lhs}->Err_0",
+        f"{rhs}->Err_0",
+        policy,
+        view_registry=view_registry,
+        prelude_collector=prelude_collector,
+        caller_generics=caller_generics,
+    )
+    return (
+        f"(({lhs} is Ok) == ({rhs} is Ok))"
+        f" && {ok_clause}"
+        f" && (({lhs} is Err) ==> ({err_eq}))"
+    )
+
+
+def _alias_type_args(type_name: str, head: str) -> Optional[list[str]]:
+    text = " ".join(type_name.strip().split())
+    prefix = f"{head}<"
+    if not text.startswith(prefix) or not text.endswith(">"):
+        return None
+    return _split_top_level_commas_text(text[len(prefix):-1])
+
+
+def _typeinfo_from_alias_arg(raw: str) -> TypeInfo:
+    name = raw.strip()
+    primitive = {
+        "int": TypeKind.INT,
+        "usize": TypeKind.USIZE,
+        "isize": TypeKind.ISIZE,
+        "u8": TypeKind.U8,
+        "u16": TypeKind.U16,
+        "u32": TypeKind.U32,
+        "u64": TypeKind.U64,
+        "i8": TypeKind.I8,
+        "i16": TypeKind.I16,
+        "i32": TypeKind.I32,
+        "i64": TypeKind.I64,
+        "bool": TypeKind.BOOL,
+        "()": TypeKind.UNIT,
+    }.get(name)
+    if primitive is not None:
+        return TypeInfo(primitive, name)
+    return TypeInfo(TypeKind.UNKNOWN, name)
 
 
 def _try_view_registry_equal(
@@ -1889,11 +2277,53 @@ def _try_view_registry_equal(
             return None
         if res.prelude_decl and prelude_collector is not None:
             prelude_collector.append(res.prelude_decl)
-        return f"({res.view_expr(lhs)} == {res.view_expr(rhs)})"
+        lhs_view = res.view_expr(lhs)
+        rhs_view = res.view_expr(rhs)
+        if (res.layer == "L3"
+                and "inherent view for" not in (res.rationale or "")
+                and not _generic_l3_view_bounds_satisfied(
+                    ty.name,
+                    caller_generics,
+                    res.view_type_text,
+                )):
+            return None
+        return f"({lhs_view} =~= {rhs_view})"
     except Exception as e:  # pragma: no cover — safety net
         logger.warning("ViewRegistry.equal_expr failed for %s: %s",
                        ty.name, e)
         return None
+
+
+def _generic_l3_view_bounds_satisfied(
+    type_name: str,
+    caller_generics: str,
+    view_type_text: str = "",
+) -> bool:
+    m = re.match(r"^[A-Za-z_][A-Za-z0-9_:]*\s*<(.+)>\s*$", type_name.strip())
+    if m is None:
+        return True
+    caller_bounds = _parse_generic_bounds(caller_generics)
+    projected_args = set(
+        re.findall(
+            r"<\s*([A-Za-z_][A-Za-z0-9_]*)\s+as\s+View\s*>::V",
+            view_type_text,
+        )
+    )
+    if view_type_text and not projected_args:
+        return True
+    args = [
+        arg.strip()
+        for arg in _split_top_level_commas_text(m.group(1))
+    ]
+    if projected_args:
+        args = [arg for arg in args if arg in projected_args]
+    for arg in args:
+        arg = arg.strip()
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", arg):
+            continue
+        if arg in caller_bounds and not (caller_bounds[arg] & _VIEW_LIKE_BOUNDS):
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -2086,6 +2516,22 @@ def _run_self_tests() -> int:
           expr_end_point, ["(r1.id)@ =~= (r2.id)@"],
           forbidden_substrs=["r1.id == r2.id"])
 
+    # A tuple containing PointsToRaw is not itself a PointsToRaw permission.
+    # The old substring test collapsed the entire tuple to true and silently
+    # discarded observable sibling fields such as the returned pointer/value.
+    points_to_raw = TypeInfo(
+        TypeKind.STRUCT, "PointsToRaw", is_opaque=True)
+    tracked_points_to_raw = TypeInfo(
+        TypeKind.TRACKED, "Tracked<PointsToRaw>",
+        type_args=[points_to_raw])
+    tuple_with_points_to_raw = TypeInfo(
+        TypeKind.STRUCT, "(u8, Tracked<PointsToRaw>)",
+        fields=[_FI("0", u8_ty), _FI("1", tracked_points_to_raw)])
+    expr_tuple_points_to_raw = build_equal_expr(
+        tuple_with_points_to_raw, "r1", "r2", default_policy())
+    check("Tuple containing PointsToRaw keeps observable sibling fields",
+          expr_tuple_points_to_raw, ["r1.0 == r2.0"])
+
     # PR-N: HashMap<K,V> wrapper (kind=MAP, spec_view=Map<K,V>) — symmetric
     # to the Vec case. struct-eq is not derivable; compare via @.
     map_view = TypeInfo(TypeKind.MAP, "Map<int, u32>",
@@ -2096,6 +2542,39 @@ def _run_self_tests() -> int:
     check("HashMap<K,V> (MAP + spec_view) compares via @",
           expr_hashmap, ["(h1)@ =~= (h2)@"],
           forbidden_substrs=["h1 == h2"])
+
+    class _ResolvedView:
+        layer = "L3"
+        rationale = "impl View for StringHashSet"
+        view_type_text = "Set<Seq<char>>"
+        prelude_decl = None
+        is_resolved = True
+
+        @staticmethod
+        def view_expr(value: str) -> str:
+            return f"({value}).view()"
+
+    class _ViewFirstRegistry:
+        @staticmethod
+        def resolve(_expr):
+            return _ResolvedView()
+
+    ext_equal_with_view = TypeInfo(
+        TypeKind.STRUCT,
+        "StringHashSet",
+        is_ext_equal=True,
+    )
+    expr_ext_equal_with_view = build_equal_expr(
+        ext_equal_with_view,
+        "s1",
+        "s2",
+        default_policy(),
+        view_registry=_ViewFirstRegistry(),
+    )
+    check("Registered View takes precedence over ext_equal wrapper",
+          expr_ext_equal_with_view,
+          ["(s1).view() =~= (s2).view()"],
+          forbidden_substrs=["s1) =~= (s2"])
 
     # Map<int, Result<u32, MyErr>> — was buggy pre-PR-G. dom comparison
     # uses =~= (extensional set equality).
@@ -2255,15 +2734,32 @@ def _run_self_tests() -> int:
     check("Tracked<u32> compares through @",
           expr_tracked, ["(t1)@", "(t2)@"])
 
+    dealloc_view = TypeInfo(TypeKind.UNKNOWN, "DeallocData")
+    dealloc_ty = TypeInfo(
+        TypeKind.STRUCT, "Dealloc",
+        fields=[FieldInfo("no_copy", TypeInfo(TypeKind.UNKNOWN, "NoCopy"))],
+        spec_view=dealloc_view,
+        is_opaque=True,
+    )
+    tracked_dealloc = TypeInfo(
+        TypeKind.TRACKED, "Tracked<Dealloc>",
+        type_args=[dealloc_ty],
+    )
+    expr_tracked_dealloc = build_equal_expr(
+        tracked_dealloc, "t1", "t2", default_policy())
+    check("Tracked<T-with-view> compares through double @",
+          expr_tracked_dealloc, ["(t1)@@", "(t2)@@"],
+          forbidden_substrs=["no_copy"])
+
     expr_ghost = build_equal_expr(ghost_seq_u32, "g1", "g2", default_policy())
     check("Ghost<Seq<u32>> compares through @ then raw == on Seq",
           expr_ghost, ["(g1)@", "(g2)@"])
 
     expr_pt = build_equal_expr(points_to_u32, "p1", "p2", default_policy())
-    check("PointsTo<u32> emits is_init/addr/value clauses",
+    check("PointsTo<u32> emits is_init/ptr().addr/value clauses",
           expr_pt,
           ["(p1).is_init() == (p2).is_init()",
-           "(p1).addr() == (p2).addr()",
+           "(p1).ptr().addr() == (p2).ptr().addr()",
            "(p1).is_init() ==> (",
            "(p1).value()", "(p2).value()"])
 
@@ -2372,6 +2868,34 @@ def _run_self_tests() -> int:
         failures.append(
             f"A2: _strip_unary_deref must not corrupt unrelated `*` operators; "
             f"got {got!r}"
+        )
+
+    # L3 view bounds: only generic parameters actually projected through
+    # `T::V` require a View-like bound. HashMapWithView<Key, Value> maps to
+    # Map<<Key as View>::V, Value>; Value intentionally needs no View bound.
+    if not _generic_l3_view_bounds_satisfied(
+        "HashMapWithView<Key, Value>",
+        "<Key: View + Eq + Hash, Value>",
+        "Map<<Key as View>::V, Value>",
+    ):
+        failures.append(
+            "L3 view-bound gate should accept unprojected generic Value"
+        )
+    if _generic_l3_view_bounds_satisfied(
+        "HashMapWithView<Key, Value>",
+        "<Key: Eq + Hash, Value>",
+        "Map<<Key as View>::V, Value>",
+    ):
+        failures.append(
+            "L3 view-bound gate should reject projected Key without View"
+        )
+    if not _generic_l3_view_bounds_satisfied(
+        "StringHashMap<Value>",
+        "<Value>",
+        "Map<Seq<char>, Value>",
+    ):
+        failures.append(
+            "L3 view-bound gate should accept concrete-key StringHashMap view"
         )
 
     # A3 regression — `Self` in a trait-fn ensures must be replaced by the

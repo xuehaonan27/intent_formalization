@@ -1,0 +1,31 @@
+{
+  "module": "array",
+  "function": "array_index_get",
+  "source_line": 76,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+  "artifact_dir": "vstd-survey/experiments/public-free-2026-07-14/artifacts/array__array_index_get__L76",
+  "status": "ok",
+  "requires": [
+    "0 <= i < N"
+  ],
+  "ensures": [
+    "*out == ar@.index(i as int)"
+  ],
+  "det_function": "det_array_index_get",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 0,
+  "verus_ms": 660,
+  "smt2": "vstd-survey/experiments/public-free-2026-07-14/artifacts/array__array_index_get__L76/verus_log/root.smt2",
+  "smt2_bytes": 127039,
+  "ctx_ms": 23,
+  "search_ms": 19,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 720
+}

@@ -1,0 +1,287 @@
+module,file,line,name,context,node_kind,visibility,contract_status,post_kinds,flags
+array,array.rs,42,set,free,signature,private,no-contract,,
+array,array.rs,64,set,"impl<T, const N: usize> ArrayAdditionalExecFns<T> for [T; N]",definition,private,post,ensures,external_body
+array,array.rs,76,array_index_get,free,definition,public,post,ensures,
+array,array.rs,135,array_as_slice,free,definition,public,post,ensures,
+array,array.rs,164,array_fill_for_copy_types,free,definition,public,post,ensures,
+array,array.rs,195,ref_mut_array_unsizing_coercion,free,definition,public,post,ensures,
+atomic,atomic.rs,604,fetch_and,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+atomic,atomic.rs,624,fetch_xor,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+atomic,atomic.rs,644,fetch_or,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+bytes,bytes.rs,79,u16_from_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,91,u16_to_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,174,u32_from_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,186,u32_to_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,331,u64_from_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,343,u64_to_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,518,u128_from_le_bytes,free,definition,public,post,ensures,external_body
+bytes,bytes.rs,530,u128_to_le_bytes,free,definition,public,post,ensures,external_body
+cell,cell.rs,168,empty,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,178,new,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,188,put,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,203,take,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,223,replace,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,246,borrow,impl<V> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,261,into_inner,impl<V> PCell<V>,definition,public,post,ensures,
+cell,cell.rs,277,borrow_mut,impl<V> PCell<V>,definition,public,post,ensures,external_body+hidden
+cell,cell.rs,297,write,impl<V: Copy> PCell<V>,definition,public,post,ensures,external_body
+cell,cell.rs,344,new,impl<T> InvCell<T>,definition,public,post,ensures,
+cell,cell.rs,359,replace,impl<T> InvCell<T>,definition,public,post,ensures,
+cell,cell.rs,378,get,impl<T: Copy> InvCell<T>,definition,public,post,ensures,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,24,get_ref,"impl< 'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone, > ToRef<&'a HashMap<K, V>> for &'a HashMap<K, V>",definition,private,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,36,get_owned,"impl< 'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone, > ToOwned<HashMap<K, V>> for &'a HashMap<K, V>",definition,private,no-contract,,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,51,deep_clone,"impl< K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone, > DeepViewClone for HashMap<K, V>",definition,private,no-contract,,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,72,exec_eq,"impl< 'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone, > ExecSpecEq<'a> for &'a HashMap<K, V> where &'a K: ExecSpe...",definition,private,no-contract,,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,97,exec_len,"impl< 'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone, > ExecSpecLen for &'a HashMap<K, V>",definition,private,post,ensures,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,108,exec_empty,trait ExecSpecMapEmpty,signature,public,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,120,exec_index,trait ExecSpecMapIndex,signature,public,requires-only,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,132,exec_insert,trait ExecSpecMapInsert,signature,public,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,139,exec_remove,trait ExecSpecMapRemove,signature,public,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,146,exec_dom,trait ExecSpecMapDom,signature,public,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,155,exec_get,trait ExecSpecMapGet,signature,public,no-contract,,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,161,exec_empty,"impl<K: DeepView + std::hash::Hash + std::cmp::Eq, V: DeepView> ExecSpecMapEmpty for HashMap<K, V>",definition,private,post,ensures,
+contrib::exec_spec::map,contrib/exec_spec/map.rs,178,exec_index,"impl<'a, K: DeepView + std::hash::Hash + std::cmp::Eq, V: DeepView> ExecSpecMapIndex< 'a, > for &'a HashMap<K, V>",definition,private,post,ensures,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,196,exec_insert,"impl<'a, K, V> ExecSpecMapInsert<'a, HashMap<K, V>> for &'a HashMap<K, V> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + Deep...",definition,private,post,ensures,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,214,exec_remove,"impl<'a, K, V> ExecSpecMapRemove<'a, HashMap<K, V>> for &'a HashMap<K, V> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + Deep...",definition,private,post,ensures,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,232,exec_dom,"impl<'a, K, V> ExecSpecMapDom<'a> for &'a HashMap<K, V> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone,",definition,private,post,ensures,external_body
+contrib::exec_spec::map,contrib/exec_spec/map.rs,254,exec_get,"impl<'a, K, V> ExecSpecMapGet<'a> for &'a HashMap<K, V> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, V: DeepView + DeepViewClone,",definition,private,post,ensures,external_body
+contrib::exec_spec,contrib/exec_spec/mod.rs,31,get_ref,trait ToRef,signature,public,post,ensures,
+contrib::exec_spec,contrib/exec_spec/mod.rs,38,get_owned,trait ToOwned,signature,public,post,ensures,
+contrib::exec_spec,contrib/exec_spec/mod.rs,46,deep_clone,trait DeepViewClone,signature,public,post,ensures,
+contrib::exec_spec,contrib/exec_spec/mod.rs,70,exec_eq,trait ExecSpecEq,signature,public,post,ensures,
+contrib::exec_spec,contrib/exec_spec/mod.rs,80,exec_index,trait ExecSpecIndex,signature,public,requires-only,,
+contrib::exec_spec,contrib/exec_spec/mod.rs,88,exec_len,trait ExecSpecLen,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,42,get_ref,"impl<'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ToRef< &'a ExecMultiset<T>, > for &'a ExecMultiset<T>",definition,private,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,52,get_owned,"impl<'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ToOwned< ExecMultiset<T>, > for &'a ExecMultiset<T>",definition,private,no-contract,,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,66,deep_clone,"impl<T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> DeepViewClone for ExecMultiset< T, >",definition,private,no-contract,,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,82,exec_eq,"impl<'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ExecSpecEq< 'a, > for &'a ExecMultiset<T> where &'a T: ExecSpecEq<'a, Other = &'a T>",definition,private,no-contract,,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,106,exec_len,"impl< 'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, > ExecSpecLen for &'a ExecMultiset<T>",definition,private,post,ensures,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,125,exec_count,trait ExecSpecMultisetCount,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,130,exec_empty,trait ExecSpecMultisetEmpty,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,137,exec_singleton,trait ExecSpecMultisetSingleton,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,142,exec_add,trait ExecSpecMultisetAdd,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,147,exec_sub,trait ExecSpecMultisetSub,signature,public,no-contract,,
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,161,exec_count,"impl< 'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, > ExecSpecMultisetCount for &'a ExecMultiset<T>",definition,private,post,ensures,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,175,exec_empty,impl<T: DeepView + std::hash::Hash + std::cmp::Eq> ExecSpecMultisetEmpty for ExecMultiset<T>,definition,private,post,ensures,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,190,exec_singleton,"impl< T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq, > ExecSpecMultisetSingleton for ExecMultiset<T>",definition,private,post,ensures,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,205,exec_add,"impl<'a, T> ExecSpecMultisetAdd<'a, ExecMultiset<T>> for &'a ExecMultiset<T> where T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::multiset,contrib/exec_spec/multiset.rs,227,exec_sub,"impl<'a, T> ExecSpecMultisetSub<'a, ExecMultiset<T>> for &'a ExecMultiset<T> where T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::option,contrib/exec_spec/option.rs,10,get_ref,"impl<'a, T: Sized + DeepView> ToRef<&'a Option<T>> for &'a Option<T>",definition,private,no-contract,,
+contrib::exec_spec::option,contrib/exec_spec/option.rs,17,get_owned,"impl<'a, T: DeepView + DeepViewClone> ToOwned<Option<T>> for &'a Option<T>",definition,private,no-contract,,
+contrib::exec_spec::option,contrib/exec_spec/option.rs,24,deep_clone,impl<T: DeepViewClone> DeepViewClone for Option<T>,definition,private,no-contract,,
+contrib::exec_spec::option,contrib/exec_spec/option.rs,36,exec_eq,"impl<'a, T: DeepView> ExecSpecEq<'a> for &'a Option<T> where &'a T: ExecSpecEq<'a, Other = &'a T>",definition,private,no-contract,,
+contrib::exec_spec::option,contrib/exec_spec/option.rs,52,exec_unwrap,trait ExecSpecOptionUnwrap,signature,public,requires-only,,
+contrib::exec_spec::option,contrib/exec_spec/option.rs,67,exec_unwrap,"impl<'a, T> ExecSpecOptionUnwrap<'a> for &'a Option<T> where T: DeepView + DeepViewClone",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,15,get_ref,"impl<'a, T: DeepView> ToRef<&'a [T]> for &'a Vec<T>",definition,private,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,24,get_owned,"impl<'a, T: DeepView + DeepViewClone> ToOwned<Vec<T>> for &'a [T]",definition,private,no-contract,,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,33,deep_clone,impl<T: DeepViewClone> DeepViewClone for Vec<T>,definition,private,no-contract,,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,43,exec_eq,"impl<'a, T: DeepView> ExecSpecEq<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>",definition,private,no-contract,,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,55,exec_eq,"impl<'a, T: DeepView> ExecSpecEq<'a> for &'a Vec<T> where &'a T: ExecSpecEq<'a, Other = &'a T>",definition,private,no-contract,,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,64,exec_len,"impl<'a, T: DeepView> ExecSpecLen for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,76,exec_index,"impl<'a, T: DeepView> ExecSpecIndex<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,89,exec_add,trait ExecSpecSeqAdd,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,96,exec_push,trait ExecSpecSeqPush,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,103,exec_update,trait ExecSpecSeqUpdate,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,110,exec_subrange,trait ExecSpecSeqSubrange,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,118,exec_empty,trait ExecSpecSeqEmpty,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,125,exec_to_multiset,trait ExecSpecSeqToMultiset,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,135,exec_drop_first,trait ExecSpecSeqDropFirst,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,145,exec_drop_last,trait ExecSpecSeqDropLast,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,155,exec_take,trait ExecSpecSeqTake,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,165,exec_skip,trait ExecSpecSeqSkip,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,175,exec_last,trait ExecSpecSeqLast,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,185,exec_first,trait ExecSpecSeqFirst,signature,public,requires-only,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,195,exec_is_prefix_of,trait ExecSpecSeqIsPrefixOf,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,202,exec_is_suffix_of,trait ExecSpecSeqIsSuffixOf,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,209,exec_contains,trait ExecSpecSeqContains,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,216,exec_index_of,trait ExecSpecSeqIndexOf,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,223,exec_index_of_first,trait ExecSpecSeqIndexOfFirst,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,230,exec_index_of_last,trait ExecSpecSeqIndexOfLast,signature,public,no-contract,,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,239,exec_add,"impl<'a, T: DeepView + DeepViewClone> ExecSpecSeqAdd<'a, Vec<T>> for &'a [T]",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,252,exec_push,"impl<'a, T: DeepView + DeepViewClone> ExecSpecSeqPush<'a, Vec<T>> for &'a [T]",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,266,exec_update,"impl<'a, T: DeepView + DeepViewClone> ExecSpecSeqUpdate<'a, Vec<T>> for &'a [T]",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,281,exec_subrange,"impl<'a, T: DeepView> ExecSpecSeqSubrange<'a> for &'a [T]",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,294,exec_empty,impl<T: DeepView> ExecSpecSeqEmpty for Vec<T>,definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,309,exec_to_multiset,"impl<'a, T: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ExecSpecSeqToMultiset< 'a, > for &'a [T]",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,332,exec_drop_first,"impl<'a, T: DeepView> ExecSpecSeqDropFirst<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,344,exec_drop_last,"impl<'a, T: DeepView> ExecSpecSeqDropLast<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,356,exec_take,"impl<'a, T: DeepView> ExecSpecSeqTake<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,368,exec_skip,"impl<'a, T: DeepView> ExecSpecSeqSkip<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,380,exec_last,"impl<'a, T: DeepView> ExecSpecSeqLast<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,392,exec_first,"impl<'a, T: DeepView> ExecSpecSeqFirst<'a> for &'a [T]",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,407,exec_is_prefix_of,"impl<'a, T: DeepView> ExecSpecSeqIsPrefixOf<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>, &'a [T]: DeepView<V = Seq<<&'a T as DeepView>::V>>,",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,425,exec_is_suffix_of,"impl<'a, T: DeepView> ExecSpecSeqIsSuffixOf<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>, &'a [T]: DeepView<V = Seq<<&'a T as DeepView>::V>>,",definition,private,post,ensures,
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,443,exec_contains,"impl<'a, T: DeepView + PartialEq> ExecSpecSeqContains<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>,",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,459,exec_index_of,"impl<'a, T: DeepView + PartialEq> ExecSpecSeqIndexOf<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>,",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,478,exec_index_of_first,"impl<'a, T: DeepView + PartialEq> ExecSpecSeqIndexOfFirst<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>,",definition,private,post,ensures,external_body
+contrib::exec_spec::seq,contrib/exec_spec/seq.rs,502,exec_index_of_last,"impl<'a, T: DeepView + PartialEq> ExecSpecSeqIndexOfLast<'a> for &'a [T] where &'a T: ExecSpecEq<'a, Other = &'a T>,",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,18,get_ref,"impl<'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ToRef< &'a HashSet<K>, > for &'a HashSet<K>",definition,private,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,28,get_owned,"impl<'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ToOwned< HashSet<K>, > for &'a HashSet<K>",definition,private,no-contract,,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,40,deep_clone,impl<K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> DeepViewClone for HashSet<K>,definition,private,no-contract,,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,56,exec_eq,"impl<'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ExecSpecEq< 'a, > for &'a HashSet<K> where &'a K: ExecSpecEq<'a, Other = &'a K>",definition,private,no-contract,,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,74,exec_len,"impl<'a, K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq> ExecSpecLen for &'a HashSet< K, >",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,85,exec_empty,trait ExecSpecSetEmpty,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,92,exec_contains,trait ExecSpecSetContains,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,99,exec_insert,trait ExecSpecSetInsert,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,106,exec_remove,trait ExecSpecSetRemove,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,111,exec_intersect,trait ExecSpecSetIntersect,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,116,exec_union,trait ExecSpecSetUnion,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,121,exec_difference,trait ExecSpecSetDifference,signature,public,no-contract,,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,127,exec_empty,impl<K: DeepView + std::hash::Hash + std::cmp::Eq> ExecSpecSetEmpty for HashSet<K>,definition,private,post,ensures,
+contrib::exec_spec::set,contrib/exec_spec/set.rs,140,exec_contains,"impl<'a, K: DeepView + std::hash::Hash + std::cmp::Eq> ExecSpecSetContains<'a> for &'a HashSet<K>",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,155,exec_insert,"impl<'a, K> ExecSpecSetInsert<'a, HashSet<K>> for &'a HashSet<K> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,172,exec_remove,"impl<'a, K> ExecSpecSetRemove<'a, HashSet<K>> for &'a HashSet<K> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,187,exec_intersect,"impl<'a, K> ExecSpecSetIntersect<'a, HashSet<K>> for &'a HashSet<K> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,206,exec_union,"impl<'a, K> ExecSpecSetUnion<'a, HashSet<K>> for &'a HashSet<K> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::set,contrib/exec_spec/set.rs,223,exec_difference,"impl<'a, K> ExecSpecSetDifference<'a, HashSet<K>> for &'a HashSet<K> where K: DeepView + DeepViewClone + std::hash::Hash + std::cmp::Eq,",definition,private,post,ensures,external_body
+contrib::exec_spec::string,contrib/exec_spec/string.rs,20,get_ref,impl<'a> ToRef<&'a str> for &'a String,definition,private,no-contract,,
+contrib::exec_spec::string,contrib/exec_spec/string.rs,28,get_owned,impl<'a> ToOwned<String> for &'a str,definition,private,no-contract,,external_body
+contrib::exec_spec::string,contrib/exec_spec/string.rs,35,deep_clone,impl DeepViewClone for String,definition,private,no-contract,,
+contrib::exec_spec::string,contrib/exec_spec/string.rs,45,exec_eq,impl<'a> ExecSpecEq<'a> for &'a str,definition,private,no-contract,,external_body
+contrib::exec_spec::string,contrib/exec_spec/string.rs,56,exec_eq,impl<'a> ExecSpecEq<'a> for &'a String,definition,private,no-contract,,external_body
+contrib::exec_spec::string,contrib/exec_spec/string.rs,63,exec_len,impl<'a> ExecSpecLen for &'a str,definition,private,post,ensures,
+contrib::exec_spec::string,contrib/exec_spec/string.rs,75,exec_index,impl<'a> ExecSpecIndex<'a> for &'a str,definition,private,post,ensures,
+float,float.rs,127,float_cast,free,definition,public,post,ensures,
+future,future.rs,33,exec_await,free,definition,private,post,ensures,external_body
+hash_map,hash_map.rs,43,new,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,59,with_capacity,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,73,reserve,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,82,is_empty,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,95,len,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body+when_used_as_spec
+hash_map,hash_map.rs,106,insert,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,118,remove,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,133,contains_key,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,144,get,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,158,clear,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,167,union_prefer_right,"impl<Key, Value> HashMapWithView<Key, Value> where Key: View + Eq + Hash",definition,public,post,ensures,external_body
+hash_map,hash_map.rs,209,new,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,220,with_capacity,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,231,reserve,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,240,is_empty,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,253,len,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body+when_used_as_spec
+hash_map,hash_map.rs,264,insert,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,275,remove,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,286,contains_key,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,297,get,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,311,clear,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_map,hash_map.rs,320,union_prefer_right,impl<Value> StringHashMap<Value>,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,44,new,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,60,with_capacity,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,74,reserve,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,87,len,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body+when_used_as_spec
+hash_set,hash_set.rs,96,is_empty,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,107,insert,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,118,remove,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,129,contains,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,140,get,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,154,clear,impl<Key> HashSetWithView<Key> where Key: View + Eq + Hash,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,195,new,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,206,with_capacity,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,217,reserve,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,226,is_empty,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,239,len,impl StringHashSet,definition,public,post,ensures,external_body+when_used_as_spec
+hash_set,hash_set.rs,250,insert,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,261,remove,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,272,contains,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,283,get,impl StringHashSet,definition,public,post,ensures,external_body
+hash_set,hash_set.rs,297,clear,impl StringHashSet,definition,public,post,ensures,external_body
+invariant,invariant.rs,320,create_open_invariant_credit,free,definition,public,no-contract,,external_body
+invariant,invariant.rs,337,spend_open_invariant_credit,free,definition,public,no-contract,,hidden
+invariant,invariant.rs,372,open_atomic_invariant_begin,free,definition,public,no-contract,,external+hidden
+invariant,invariant.rs,382,open_local_invariant_begin,free,definition,public,no-contract,,external+hidden
+invariant,invariant.rs,392,open_invariant_end,free,definition,public,no-contract,,external+hidden
+layout,layout.rs,118,layout_for_type_is_valid,free,definition,public,post,ensures,external_body
+layout,layout.rs,141,layout_for_val_is_valid,free,definition,public,post,ensures,external_body
+pervasive,pervasive.rs,124,exec_nonstatic_call,free,definition,private,post,ensures,external_body+hidden
+pervasive,pervasive.rs,190,unreached,free,definition,public,requires-only,,external_body
+pervasive,pervasive.rs,199,print_u64,free,definition,public,no-contract,,external_body
+pervasive,pervasive.rs,204,runtime_assert,free,definition,public,requires-only,,external_body
+pervasive,pervasive.rs,381,set,trait VecAdditionalExecFns,signature,public,no-contract,,
+pervasive,pervasive.rs,383,set_and_swap,trait VecAdditionalExecFns,signature,public,no-contract,,
+pervasive,pervasive.rs,390,set,impl<T> VecAdditionalExecFns<T> for alloc::vec::Vec<T>,definition,private,post,ensures,external_body
+pervasive,pervasive.rs,401,set_and_swap,impl<T> VecAdditionalExecFns<T> for alloc::vec::Vec<T>,definition,private,post,ensures,external_body
+pervasive,pervasive.rs,443,__call_panic,free,definition,public,requires-only,,external_body+hidden
+pervasive,pervasive.rs,454,__new_argument,free,definition,public,no-contract,,external_body+hidden
+proph,proph.rs,179,new,impl<T> Prophecy<T> where T: Structural,definition,public,no-contract,,external_body
+proph,proph.rs,187,resolve,impl<T> Prophecy<T> where T: Structural,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,446,cast_ptr_to_thin_ptr,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,468,cast_array_ptr_to_slice_ptr,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,492,cast_slice_ptr_to_slice_ptr,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,516,cast_slice_ptr_to_str_ptr,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,540,cast_str_ptr_to_slice_ptr,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,560,cast_ptr_to_usize,free,definition,public,post,ensures,
+raw_ptr,raw_ptr.rs,579,ptr_mut_write,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,602,ptr_mut_read,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,620,ptr_ref,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,636,ptr_mut_ref,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,701,clone,impl Clone for IsExposed,definition,private,post,ensures,external_body
+raw_ptr,raw_ptr.rs,731,expose_provenance,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,744,with_exposed_provenance,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,908,allocate,free,definition,public,post,ensures,external_body
+raw_ptr,raw_ptr.rs,948,deallocate,free,definition,public,requires-only,,external_body
+raw_ptr,raw_ptr.rs,982,clone,"impl<'a, T> Clone for SharedReference<'a, T>",definition,private,post,ensures,external_body
+raw_ptr,raw_ptr.rs,1000,new,"impl<'a, T> SharedReference<'a, T>",definition,private,post,ensures,external_body
+raw_ptr,raw_ptr.rs,1008,as_ref,"impl<'a, T> SharedReference<'a, T>",definition,private,post,ensures,external_body
+raw_ptr,raw_ptr.rs,1016,as_ptr,"impl<'a, T> SharedReference<'a, T>",definition,private,post,ensures,external_body
+raw_ptr,raw_ptr.rs,1038,ptr_ref2,free,definition,public,post,ensures,external_body
+rwlock,rwlock.rs,403,release_write,"impl<'a, V, Pred: RwLockPredicate<V>> WriteHandle<'a, V, Pred>",definition,public,requires-only,,
+rwlock,rwlock.rs,441,borrow,"impl<'a, V, Pred: RwLockPredicate<V>> ReadHandle<'a, V, Pred>",definition,public,post,ensures,
+rwlock,rwlock.rs,474,release_read,"impl<'a, V, Pred: RwLockPredicate<V>> ReadHandle<'a, V, Pred>",definition,public,no-contract,,
+rwlock,rwlock.rs,502,new,"impl<V, Pred: RwLockPredicate<V>> RwLock<V, Pred>",definition,public,post,ensures,
+rwlock,rwlock.rs,530,acquire_write,"impl<V, Pred: RwLockPredicate<V>> RwLock<V, Pred>",definition,public,post,ensures,
+rwlock,rwlock.rs,620,acquire_read,"impl<V, Pred: RwLockPredicate<V>> RwLock<V, Pred>",definition,public,post,ensures,
+rwlock,rwlock.rs,702,into_inner,"impl<V, Pred: RwLockPredicate<V>> RwLock<V, Pred>",definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,184,addr,impl<V> PPtr<V>,definition,public,post,ensures,when_used_as_spec
+simple_pptr,simple_pptr.rs,203,from_addr,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,212,from_usize,impl<V> PPtr<V>,definition,public,post,ensures,hidden
+simple_pptr,simple_pptr.rs,332,clone,impl<V> Clone for PPtr<V>,definition,private,post,ensures,
+simple_pptr,simple_pptr.rs,347,empty,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,397,new,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,413,free,impl<V> PPtr<V>,definition,public,requires-only,,
+simple_pptr,simple_pptr.rs,442,into_inner,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,462,put,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,487,take,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,508,replace,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,530,borrow,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,548,borrow_mut,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,568,write,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,585,read,impl<V> PPtr<V>,definition,public,post,ensures,
+slice,slice.rs,45,set,free,signature,private,no-contract,,
+slice,slice.rs,50,set,impl<T> SliceAdditionalExecFns<T> for [T],definition,private,post,ensures,external_body
+slice,slice.rs,62,slice_index_get,free,definition,public,post,ensures,
+slice,slice.rs,100,slice_to_vec,free,definition,public,post,ensures,external_body
+slice,slice.rs,108,slice_subrange,free,definition,public,post,ensures,external_body
+slice,slice.rs,127,index,trait ExSliceIndex,signature,public,requires-only,,
+std_specs::clone,std_specs/clone.rs,10,clone,trait ExClone,signature,public,no-contract,,
+std_specs::convert,std_specs/convert.rs,17,from,trait ExFrom,signature,public,post,ensures,
+std_specs::convert,std_specs/convert.rs,32,into,trait ExInto,signature,public,post,ensures,
+std_specs::convert,std_specs/convert.rs,68,try_from,trait ExTryFrom,signature,public,post,ensures,
+std_specs::convert,std_specs/convert.rs,85,try_into,trait ExTryInto,signature,public,post,ensures,
+std_specs::default,std_specs/default.rs,10,default,trait ExDefault,signature,public,no-contract,,
+std_specs::range,std_specs/range.rs,396,start_bound,trait ExRangeBounds,signature,public,no-contract,,
+std_specs::range,std_specs/range.rs,398,end_bound,trait ExRangeBounds,signature,public,no-contract,,
+string,string.rs,168,unicode_len,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,170,get_char,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,172,substring_ascii,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,174,substring_char,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,176,get_ascii,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,179,as_bytes_vec,trait StrSliceExecFns,signature,public,no-contract,,
+string,string.rs,189,unicode_len,impl StrSliceExecFns for str,definition,private,post,ensures,external_body
+string,string.rs,198,get_char,impl StrSliceExecFns for str,definition,private,post,ensures,external_body
+string,string.rs,208,substring_ascii,impl StrSliceExecFns for str,definition,private,post,ensures,external_body
+string,string.rs,221,substring_char,impl StrSliceExecFns for str,definition,private,post,ensures,external_body
+string,string.rs,253,get_ascii,impl StrSliceExecFns for str,definition,private,post,ensures,
+string,string.rs,267,as_bytes_vec,impl StrSliceExecFns for str,definition,private,post,ensures,
+string,string.rs,370,is_ascii,trait StringExecFnsIsAscii,signature,public,no-contract,,
+string,string.rs,377,is_ascii,impl StringExecFnsIsAscii for String,definition,private,post,ensures,when_used_as_spec
+string,string.rs,388,from_str,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,390,append,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,392,concat,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,398,from_str,impl StringExecFns for String,definition,private,post,ensures,external_body
+string,string.rs,406,append,impl StringExecFns for String,definition,private,post,ensures,external_body
+string,string.rs,414,concat,impl StringExecFns for String,definition,private,post,ensures,external_body
+thread,thread.rs,27,join,impl<Ret> JoinHandle<Ret>,definition,public,post,ensures,external_body
+thread,thread.rs,107,spawn,free,definition,public,post,ensures,external_body
+thread,thread.rs,183,clone,impl Clone for IsThread,definition,private,no-contract,,
+thread,thread.rs,188,clone,impl Clone for IsThread,definition,private,no-contract,,
+thread,thread.rs,200,thread_id,free,definition,public,post,ensures,external_body

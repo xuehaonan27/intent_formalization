@@ -1,0 +1,89 @@
+{
+  "function": "u32_to_le_bytes",
+  "det_check_template": "proof fn det_u32_to_le_bytes(x: u32, r1: alloc::vec::Vec<u8>, r2: alloc::vec::Vec<u8>)\n    ensures\n        ({\n            &&& (r1@ == spec_u32_to_le_bytes(x))\n            &&& (r1@.len() == 4)\n            &&& (r2@ == spec_u32_to_le_bytes(x))\n            &&& (r2@.len() == 4)\n        }) ==> det_u32_to_le_bytes_equal(r1, r2),\n{\n    reveal(spec_u32_to_le_bytes);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "x",
+      "type": {
+        "kind": "u32",
+        "name": "u32"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Seq",
+        "name": "alloc::vec::Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ],
+        "spec_view": {
+          "kind": "Seq",
+          "name": "Seq<u8>",
+          "type_args": [
+            {
+              "kind": "u8",
+              "name": "u8"
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Seq",
+        "name": "alloc::vec::Vec<u8>",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ],
+        "spec_view": {
+          "kind": "Seq",
+          "name": "Seq<u8>",
+          "type_args": [
+            {
+              "kind": "u8",
+              "name": "u8"
+            }
+          ]
+        }
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_u32_to_le_bytes_equal(r1: alloc::vec::Vec<u8>, r2: alloc::vec::Vec<u8>) -> bool {\n    ((r1)@ =~= (r2)@)\n}",
+  "equal_fn_name": "det_u32_to_le_bytes_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_u32_to_le_bytes",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": [
+    "spec_u32_to_le_bytes"
+  ]
+}

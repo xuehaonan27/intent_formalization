@@ -217,6 +217,8 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
         elif child.type == "parameter":
             name_node = _child_by_type(child, "identifier")
             param_name: Optional[str] = _text(name_node) if name_node else None
+            child_text = _text(child).lstrip()
+            explicit_self = bool(re.match(r"(?:mut\s+)?self\s*:", child_text))
             # Type is the child after ":"
             type_node = None
             after_colon = False
@@ -285,11 +287,11 @@ def _extract_params(params_node: ts.Node) -> list[Param]:
                 inner = param_type.type_args[0]
                 param_type = inner
             result.append(Param(
-                name=param_name if param_name else "?",
+                name="self" if explicit_self else (param_name if param_name else "?"),
                 type=param_type,
                 is_mut_ref=is_mut,
                 is_ref=is_ref,
-                is_self=False,
+                is_self=explicit_self,
                 destructure_ctor=destructure_ctor,
             ))
     return result
@@ -411,7 +413,11 @@ def _is_inside_block_comment(source: str, pos: int) -> bool:
     return depth > 0
 
 
-def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]]:
+def _extract_fn_chunk(
+    source: str,
+    fn_name: str,
+    source_line: Optional[int] = None,
+) -> tuple[str, Optional[ts.Tree]]:
     """
     Extract a source chunk containing #[verus_spec(...)] + fn definition,
     and re-parse it in isolation for a cleaner AST.
@@ -429,11 +435,17 @@ def _extract_fn_chunk(source: str, fn_name: str) -> tuple[str, Optional[ts.Tree]
     # extracted as live targets, then gen_det synthesises calls to
     # ``spec_va_2m_valid`` / ``spec_va_1g_valid`` that don't exist in
     # the current source.
-    m = None
+    candidates = []
     for candidate in fn_pattern.finditer(source):
         if not _is_inside_block_comment(source, candidate.start()):
-            m = candidate
-            break
+            candidates.append(candidate)
+    if source_line is not None and candidates:
+        candidates.sort(
+            key=lambda candidate: abs(
+                source.count("\n", 0, candidate.start()) + 1 - source_line
+            )
+        )
+    m = candidates[0] if candidates else None
     if not m:
         return "", None
 
@@ -1137,6 +1149,23 @@ def _find_impl_node(fn_node: ts.Node, tree: ts.Tree) -> Optional[ts.Node]:
     return best
 
 
+def _find_enclosing_node_by_line(
+    tree: ts.Tree,
+    node_type: str,
+    source_line: int,
+) -> Optional[ts.Node]:
+    """Return the smallest node of ``node_type`` containing ``source_line``."""
+    target_row = source_line - 1
+    best = None
+    for node in _find_all_nodes(tree.root_node, node_type):
+        if node.start_point.row <= target_row <= node.end_point.row:
+            if best is None or (node.end_byte - node.start_byte) < (
+                best.end_byte - best.start_byte
+            ):
+                best = node
+    return best
+
+
 def _impl_target_node(impl_node: ts.Node) -> Optional[ts.Node]:
     """Return the type-reference child that names the impl target.
 
@@ -1209,6 +1238,7 @@ def extract_spec(
     fn_name: str,
     type_sources: list[str] | None = None,
     active_features: Optional[set[str]] = None,
+    source_line: Optional[int] = None,
 ) -> FunctionSpec:
     """
     Extract function spec from source code using tree-sitter-verus.
@@ -1217,6 +1247,8 @@ def extract_spec(
         source: The .rs source containing the function
         fn_name: Name of the target function
         type_sources: Additional sources to search for type definitions
+        source_line: Optional 1-based source line used to disambiguate
+            same-named functions or methods.
 
     Returns:
         FunctionSpec
@@ -1229,17 +1261,42 @@ def extract_spec(
     # Find target function — first try tree-sitter, then re-parse a chunk
     fn_node = None
     tree = full_tree  # tree used for fn_node context (may be chunk tree)
+    matching_fns = []
     for fn in _find_function_items(full_tree):
         name_node = _child_by_type(fn, "identifier")
         if name_node and _text(name_node) == fn_name:
-            fn_node = fn
-            break
+            matching_fns.append(fn)
+    if source_line is not None and matching_fns:
+        exact = [
+            fn
+            for fn in matching_fns
+            if fn.start_point.row + 1 == source_line
+        ]
+        if len(exact) == 1:
+            fn_node = exact[0]
+        elif len(exact) > 1:
+            raise Unsupported(
+                f"Multiple functions named '{fn_name}' start at line "
+                f"{source_line}"
+            )
+        else:
+            candidate_lines = [fn.start_point.row + 1 for fn in matching_fns]
+            raise Unsupported(
+                f"Cannot find function '{fn_name}' at line {source_line}; "
+                f"candidate lines: {candidate_lines}"
+            )
+    elif matching_fns:
+        fn_node = matching_fns[0]
 
     if fn_node is None:
         # Fallback: extract the function chunk and re-parse it in isolation.
         # This handles cases where ERROR recovery in the full file swallows
         # some functions (e.g. due to proof! macros, nested cfg_attr, etc.)
-        chunk, chunk_tree = _extract_fn_chunk(source, fn_name)
+        chunk, chunk_tree = _extract_fn_chunk(
+            source,
+            fn_name,
+            source_line=source_line,
+        )
         if chunk_tree is not None:
             tree = chunk_tree
             for fn in _find_function_items(tree):
@@ -1280,7 +1337,11 @@ def extract_spec(
     # surfaces generics + where), and fall back to the older flat-token
     # `_find_impl_type` (chunk-parsed / recovery cases) for bare type
     # names only.
-    impl_node = _find_impl_node(fn_node, full_tree)
+    impl_node = (
+        _find_enclosing_node_by_line(full_tree, "impl_item", source_line)
+        if source_line is not None
+        else _find_impl_node(fn_node, full_tree)
+    )
     impl_ctx = _extract_impl_context(impl_node)
     if impl_ctx.self_type is None:
         bare_name = _find_impl_type(fn_node, full_tree, source, fn_name=fn_name)
@@ -1703,6 +1764,45 @@ def _run_self_tests() -> int:
         failures.append(
             "A3: trait-declared fn must capture enclosing trait name "
             f"'KeyTrait'; got trait_name={spec.trait_name!r}"
+        )
+
+    # Same-named impl methods must be selectable by source line. vstd has many
+    # repeated names (`new`, `get`, `insert`, `take`) in one module; silently
+    # taking the first match audits the wrong specification.
+    src_same_name = (
+        "verus! {\n"
+        "pub struct First {}\n"
+        "pub struct Second {}\n"
+        "impl First {\n"
+        "    pub fn get(&self) -> (r: u32)\n"
+        "        ensures r == 1\n"
+        "    { 1 }\n"
+        "}\n"
+        "impl Second {\n"
+        "    pub fn get(&self) -> (r: u32)\n"
+        "        ensures r == 2\n"
+        "    { 2 }\n"
+        "}\n"
+        "}\n"
+    )
+    first_get = src_same_name.index("pub fn get")
+    second_get = src_same_name.index("pub fn get", first_get + 1)
+    second_line = src_same_name.count("\n", 0, second_get) + 1
+    spec = extract_spec(
+        src_same_name,
+        "get",
+        type_sources=[],
+        source_line=second_line,
+    )
+    if spec.self_type != "Second":
+        failures.append(
+            "line-qualified extraction should select impl Second::get; "
+            f"got self_type={spec.self_type!r}"
+        )
+    if not any("r == 2" in ensure for ensure in spec.ensures):
+        failures.append(
+            "line-qualified extraction selected the wrong ensures; "
+            f"got ensures={spec.ensures}"
         )
 
     if failures:

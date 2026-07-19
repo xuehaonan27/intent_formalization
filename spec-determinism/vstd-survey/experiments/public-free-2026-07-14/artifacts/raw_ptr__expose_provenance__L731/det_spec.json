@@ -1,0 +1,79 @@
+{
+  "function": "expose_provenance",
+  "det_check_template": "proof fn det_expose_provenance<T: Sized>(m: *mut T, r1: Tracked<IsExposed>, r2: Tracked<IsExposed>)\n    ensures\n        ({\n            &&& (r1@@ == m@.provenance)\n            &&& (r2@@ == m@.provenance)\n        }) ==> det_expose_provenance_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "m",
+      "type": {
+        "kind": "unknown",
+        "name": "*mut T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<IsExposed>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "IsExposed",
+            "spec_view": {
+              "kind": "unknown",
+              "name": "Provenance",
+              "is_opaque": true
+            },
+            "is_opaque": true
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Tracked",
+        "name": "Tracked<IsExposed>",
+        "type_args": [
+          {
+            "kind": "struct",
+            "name": "IsExposed",
+            "spec_view": {
+              "kind": "unknown",
+              "name": "Provenance",
+              "is_opaque": true
+            },
+            "is_opaque": true
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_expose_provenance_equal(r1: Tracked<IsExposed>, r2: Tracked<IsExposed>) -> bool {\n    ((r1)@@ == (r2)@@)\n}",
+  "equal_fn_name": "det_expose_provenance_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_expose_provenance",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T: Sized>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

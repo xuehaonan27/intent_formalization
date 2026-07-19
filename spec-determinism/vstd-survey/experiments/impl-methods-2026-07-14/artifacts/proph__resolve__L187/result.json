@@ -1,0 +1,29 @@
+{
+  "module": "proph",
+  "function": "resolve",
+  "source_line": 187,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/proph.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/proph__resolve__L187",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "self@ == v"
+  ],
+  "det_function": "det_resolve",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 525,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/proph__resolve__L187/verus_log/root.smt2",
+  "smt2_bytes": 52043,
+  "ctx_ms": 16,
+  "search_ms": 9,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 558
+}

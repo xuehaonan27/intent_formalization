@@ -1,0 +1,36 @@
+{
+  "module": "rwlock",
+  "function": "acquire_read",
+  "source_line": 620,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/rwlock.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/rwlock__acquire_read__L620",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "read_handle.rwlock() == *self",
+    "self.inv(read_handle.view())"
+  ],
+  "det_function": "det_acquire_read",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "inv",
+    "rwlock",
+    "view"
+  ],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 339,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/rwlock__acquire_read__L620/verus_log/root.smt2",
+  "smt2_bytes": 57538,
+  "ctx_ms": 16,
+  "search_ms": 13,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_acquire_read_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 421
+}

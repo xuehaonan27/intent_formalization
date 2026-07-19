@@ -1,0 +1,32 @@
+{
+  "module": "raw_ptr",
+  "function": "ptr_ref",
+  "source_line": 620,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__ptr_ref__L620",
+  "status": "ok",
+  "requires": [
+    "perm.ptr() == ptr",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "v == perm.value()"
+  ],
+  "det_function": "det_ptr_ref",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 8,
+  "verus_returncode": 0,
+  "verus_ms": 654,
+  "smt2": "vstd-survey/experiments/public-free-2026-07-14/artifacts/raw_ptr__ptr_ref__L620/verus_log/root.smt2",
+  "smt2_bytes": 122276,
+  "ctx_ms": 19,
+  "search_ms": 15,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 746
+}

@@ -1,0 +1,28 @@
+{
+  "module": "array",
+  "function": "array_as_slice",
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+  "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_as_slice",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "out == spec_array_as_slice(ar)",
+    "ar@ == out@"
+  ],
+  "det_function": "det_array_as_slice",
+  "suppressed_closed_reveals": [],
+  "n_schemas": 7,
+  "n_params": 16,
+  "verus_returncode": 0,
+  "verus_ms": 636,
+  "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_as_slice/verus_log/root.smt2",
+  "smt2_bytes": 127909,
+  "ctx_ms": 23,
+  "search_ms": 81,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 757
+}

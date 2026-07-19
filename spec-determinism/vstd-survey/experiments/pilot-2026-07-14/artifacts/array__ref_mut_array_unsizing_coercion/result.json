@@ -1,0 +1,14 @@
+{
+  "module": "array",
+  "function": "ref_mut_array_unsizing_coercion",
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+  "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__ref_mut_array_unsizing_coercion",
+  "status": "unsupported_mut_ref_return",
+  "requires": [],
+  "ensures": [
+    "out.view() == old(r).view()",
+    "final(out).view() == final(r).view()"
+  ],
+  "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+  "wall_ms": 11
+}

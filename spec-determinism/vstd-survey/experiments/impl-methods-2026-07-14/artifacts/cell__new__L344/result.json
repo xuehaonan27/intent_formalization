@@ -1,0 +1,35 @@
+{
+  "module": "cell",
+  "function": "new",
+  "source_line": 344,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/cell.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/cell__new__L344",
+  "status": "ok",
+  "requires": [
+    "f(val)"
+  ],
+  "ensures": [
+    "forall|v| f(v) <==> cell.inv(v)"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "inv"
+  ],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 338,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/cell__new__L344/verus_log/root.smt2",
+  "smt2_bytes": 58713,
+  "ctx_ms": 17,
+  "search_ms": 13,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_new_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 397
+}

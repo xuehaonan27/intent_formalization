@@ -1,0 +1,29 @@
+{
+  "module": "hash_set",
+  "function": "with_capacity",
+  "source_line": 206,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/hash_set.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_set__with_capacity__L206",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result@ == Set::<Seq<char>>::empty()"
+  ],
+  "det_function": "det_with_capacity",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 3,
+  "n_params": 6,
+  "verus_returncode": 0,
+  "verus_ms": 623,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_set__with_capacity__L206/verus_log/root.smt2",
+  "smt2_bytes": 81425,
+  "ctx_ms": 22,
+  "search_ms": 12,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 672
+}

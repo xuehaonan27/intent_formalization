@@ -1,0 +1,92 @@
+{
+  "function": "ptr_ref2",
+  "det_check_template": "proof fn det_ptr_ref2<'a, T>(ptr: *const T, perm: &PointsTo<T>, r1: SharedReference<\n    'a,\n    T,\n>, r2: SharedReference<\n    'a,\n    T,\n>)\n    requires (perm.ptr() == ptr), (perm.is_init()),\n    ensures\n        ({\n            &&& (r1.value() == perm.value())\n            &&& (r1.ptr().addr() == ptr.addr())\n            &&& (r1.ptr()@.metadata == ptr@.metadata)\n            &&& (r2.value() == perm.value())\n            &&& (r2.ptr().addr() == ptr.addr())\n            &&& (r2.ptr()@.metadata == ptr@.metadata)\n        }) ==> det_ptr_ref2_equal::<T>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "*const T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "SharedReference<\n    'a,\n    T,\n>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "'a"
+          },
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "SharedReference<\n    'a,\n    T,\n>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "'a"
+          },
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_ptr_ref2_equal<'a, T>(r1: SharedReference<\n    'a,\n    T,\n>, r2: SharedReference<\n    'a,\n    T,\n>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_ptr_ref2_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_ptr_ref2",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<'a, T>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

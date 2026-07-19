@@ -1,0 +1,57 @@
+{
+  "function": "get",
+  "det_check_template": "proof fn det_get<T: Copy>(self_: &InvCell<T>, r1: T, r2: T)\n    ensures\n        ({\n            &&& (self_.inv(r1))\n            &&& (self_.inv(r2))\n        }) ==> det_get_equal::<T>(r1, r2),\n{\n    reveal(InvCellPred::inv);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "InvCell<T>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_equal<T: Copy>(r1: T, r2: T) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_get_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T: Copy>",
+  "where_decl": "",
+  "self_type": "InvCell<T>",
+  "opened_closed_specs": [
+    "inv"
+  ]
+}

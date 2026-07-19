@@ -1,0 +1,29 @@
+{
+  "module": "hash_map",
+  "function": "insert",
+  "source_line": 264,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/hash_map.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_map__insert__L264",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "final(self)@ == old(self)@.insert(k@, v)"
+  ],
+  "det_function": "det_insert",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 4,
+  "n_params": 4,
+  "verus_returncode": 0,
+  "verus_ms": 642,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/hash_map__insert__L264/verus_log/root.smt2",
+  "smt2_bytes": 101266,
+  "ctx_ms": 23,
+  "search_ms": 15,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 696
+}

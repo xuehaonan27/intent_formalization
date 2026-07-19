@@ -1,0 +1,33 @@
+{
+  "module": "thread",
+  "function": "join",
+  "source_line": 27,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/thread.rs",
+  "artifact_dir": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/thread__join__L27",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "match r_result {\n                Result::Ok(r) => self.predicate(r),\n                Result::Err(_) => true,\n            }"
+  ],
+  "det_function": "det_join",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 1,
+  "verus_ms": 334,
+  "smt2": "vstd-survey/experiments/impl-methods-2026-07-14/artifacts/thread__join__L27/verus_log/root.smt2",
+  "smt2_bytes": 65626,
+  "ctx_ms": 17,
+  "search_ms": 21,
+  "r0_z3": "unknown",
+  "n_rounds": 4,
+  "assumes": [
+    "r1 is Ok",
+    "r2 is Ok",
+    "!det_join_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 384
+}

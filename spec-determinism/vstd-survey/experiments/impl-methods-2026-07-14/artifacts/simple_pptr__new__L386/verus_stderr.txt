@@ -1,0 +1,17 @@
+note: verifying root module (selected functions)
+
+error: postcondition not satisfied
+  --> vstd-survey/experiments/impl-methods-2026-07-14/artifacts/simple_pptr__new__L386/harness.rs:16:9
+   |
+16 | /         ({
+17 | |             &&& (r1.1@.pptr() == r1.0)
+18 | |             &&& (r1.1@.mem_contents() == MemContents::Init(v))
+19 | |             &&& (r2.1@.pptr() == r2.0)
+20 | |             &&& (r2.1@.mem_contents() == MemContents::Init(v))
+21 | |         }) ==> det_new_equal::<V>(r1, r2),
+   | |_________________________________________^ failed this postcondition
+...
+31 |       if g_neq_tuple { assume(!det_new_equal::<V>(r1, r2)); }
+   |       ------------------------------------------------------- at the end of the function body
+
+error: aborting due to 1 previous error

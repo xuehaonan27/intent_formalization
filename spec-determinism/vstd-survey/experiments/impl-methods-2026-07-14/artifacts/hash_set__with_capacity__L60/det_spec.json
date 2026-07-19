@@ -1,0 +1,57 @@
+{
+  "function": "with_capacity",
+  "det_check_template": "proof fn det_with_capacity<Key>(capacity: usize, r1: HashSetWithView<Key>, r2: HashSetWithView<Key>)\n    where Key: View + Eq + Hash\n    requires (obeys_key_model::<Key>()), (forall|k1: Key, k2: Key| k1@ == k2@ ==> k1 == k2),\n    ensures\n        ({\n            &&& (r1@ == Set::<<Key as View>::V>::empty())\n            &&& (r2@ == Set::<<Key as View>::V>::empty())\n        }) ==> det_with_capacity_equal::<Key>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "capacity",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "HashSetWithView<Key>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "HashSetWithView<Key>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_with_capacity_equal<Key>(r1: HashSetWithView<Key>, r2: HashSetWithView<Key>) -> bool\n    where Key: View + Eq + Hash {\n    (((r1).view() =~= (r2).view()))\n}",
+  "equal_fn_name": "det_with_capacity_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_with_capacity",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Key>",
+  "where_decl": "where Key: View + Eq + Hash",
+  "self_type": "HashSetWithView<Key>",
+  "opened_closed_specs": []
+}

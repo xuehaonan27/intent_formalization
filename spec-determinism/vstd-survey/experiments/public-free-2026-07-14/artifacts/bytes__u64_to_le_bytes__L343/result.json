@@ -1,0 +1,32 @@
+{
+  "module": "bytes",
+  "function": "u64_to_le_bytes",
+  "source_line": 343,
+  "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+  "artifact_dir": "vstd-survey/experiments/public-free-2026-07-14/artifacts/bytes__u64_to_le_bytes__L343",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "s@ == spec_u64_to_le_bytes(x)",
+    "s@.len() == 8"
+  ],
+  "det_function": "det_u64_to_le_bytes",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "spec_u64_to_le_bytes"
+  ],
+  "n_schemas": 39,
+  "n_params": 96,
+  "verus_returncode": 0,
+  "verus_ms": 660,
+  "smt2": "vstd-survey/experiments/public-free-2026-07-14/artifacts/bytes__u64_to_le_bytes__L343/verus_log/root.smt2",
+  "smt2_bytes": 154206,
+  "ctx_ms": 20,
+  "search_ms": 195,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 898
+}

@@ -1,0 +1,366 @@
+{
+  "metadata": {
+    "vstd_root": "/home/chentianyu/nanvix/toolchain/verus/vstd",
+    "verus_root": "/home/chentianyu/nanvix/toolchain/verus",
+    "verus_version": "0.2026.05.17.e479cce",
+    "verus_commit": "e479cce36490b8fa4b0fd7755aa742aec354372c",
+    "targets": [
+      "array:array_index_get",
+      "array:array_as_slice",
+      "array:array_fill_for_copy_types",
+      "array:ref_mut_array_unsizing_coercion",
+      "bytes:u16_from_le_bytes",
+      "bytes:u16_to_le_bytes",
+      "bytes:u32_from_le_bytes",
+      "bytes:u32_to_le_bytes",
+      "bytes:u64_from_le_bytes",
+      "bytes:u64_to_le_bytes",
+      "bytes:u128_from_le_bytes",
+      "bytes:u128_to_le_bytes"
+    ]
+  },
+  "results": [
+    {
+      "module": "array",
+      "function": "array_index_get",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_index_get",
+      "status": "ok",
+      "requires": [
+        "0 <= i < N"
+      ],
+      "ensures": [
+        "*out == ar@.index(i as int)"
+      ],
+      "det_function": "det_array_index_get",
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 11,
+      "verus_returncode": 0,
+      "verus_ms": 614,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_index_get/verus_log/root.smt2",
+      "smt2_bytes": 127027,
+      "ctx_ms": 23,
+      "search_ms": 23,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 678
+    },
+    {
+      "module": "array",
+      "function": "array_as_slice",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_as_slice",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "out == spec_array_as_slice(ar)",
+        "ar@ == out@"
+      ],
+      "det_function": "det_array_as_slice",
+      "suppressed_closed_reveals": [],
+      "n_schemas": 7,
+      "n_params": 16,
+      "verus_returncode": 0,
+      "verus_ms": 636,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_as_slice/verus_log/root.smt2",
+      "smt2_bytes": 127909,
+      "ctx_ms": 23,
+      "search_ms": 81,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 757
+    },
+    {
+      "module": "array",
+      "function": "array_fill_for_copy_types",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_fill_for_copy_types",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "res == spec_array_fill_for_copy_type::<T, N>(t)"
+      ],
+      "det_function": "det_array_fill_for_copy_types",
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 11,
+      "verus_returncode": 0,
+      "verus_ms": 612,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__array_fill_for_copy_types/verus_log/root.smt2",
+      "smt2_bytes": 137712,
+      "ctx_ms": 22,
+      "search_ms": 20,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 668
+    },
+    {
+      "module": "array",
+      "function": "ref_mut_array_unsizing_coercion",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/array.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/array__ref_mut_array_unsizing_coercion",
+      "status": "unsupported_mut_ref_return",
+      "requires": [],
+      "ensures": [
+        "out.view() == old(r).view()",
+        "final(out).view() == final(r).view()"
+      ],
+      "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+      "wall_ms": 11
+    },
+    {
+      "module": "bytes",
+      "function": "u16_from_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u16_from_le_bytes",
+      "status": "ok",
+      "requires": [
+        "s@.len() == 2"
+      ],
+      "ensures": [
+        "x == spec_u16_from_le_bytes(s@)"
+      ],
+      "det_function": "det_u16_from_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u16_from_le_bytes"
+      ],
+      "n_schemas": 23,
+      "n_params": 56,
+      "verus_returncode": 0,
+      "verus_ms": 615,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u16_from_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 128293,
+      "ctx_ms": 21,
+      "search_ms": 217,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 876
+    },
+    {
+      "module": "bytes",
+      "function": "u16_to_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u16_to_le_bytes",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "s@ == spec_u16_to_le_bytes(x)",
+        "s@.len() == 2"
+      ],
+      "det_function": "det_u16_to_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u16_to_le_bytes"
+      ],
+      "n_schemas": 39,
+      "n_params": 96,
+      "verus_returncode": 0,
+      "verus_ms": 661,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u16_to_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 154193,
+      "ctx_ms": 27,
+      "search_ms": 235,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 946
+    },
+    {
+      "module": "bytes",
+      "function": "u32_from_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u32_from_le_bytes",
+      "status": "ok",
+      "requires": [
+        "s@.len() == 4"
+      ],
+      "ensures": [
+        "x == spec_u32_from_le_bytes(s@)"
+      ],
+      "det_function": "det_u32_from_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u32_from_le_bytes"
+      ],
+      "n_schemas": 23,
+      "n_params": 56,
+      "verus_returncode": 0,
+      "verus_ms": 608,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u32_from_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 128293,
+      "ctx_ms": 25,
+      "search_ms": 238,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 896
+    },
+    {
+      "module": "bytes",
+      "function": "u32_to_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u32_to_le_bytes",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "s@ == spec_u32_to_le_bytes(x)",
+        "s@.len() == 4"
+      ],
+      "det_function": "det_u32_to_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u32_to_le_bytes"
+      ],
+      "n_schemas": 39,
+      "n_params": 96,
+      "verus_returncode": 0,
+      "verus_ms": 673,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u32_to_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 154193,
+      "ctx_ms": 20,
+      "search_ms": 201,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 918
+    },
+    {
+      "module": "bytes",
+      "function": "u64_from_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u64_from_le_bytes",
+      "status": "ok",
+      "requires": [
+        "s@.len() == 8"
+      ],
+      "ensures": [
+        "x == spec_u64_from_le_bytes(s@)"
+      ],
+      "det_function": "det_u64_from_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u64_from_le_bytes"
+      ],
+      "n_schemas": 23,
+      "n_params": 56,
+      "verus_returncode": 0,
+      "verus_ms": 616,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u64_from_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 128293,
+      "ctx_ms": 21,
+      "search_ms": 248,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 912
+    },
+    {
+      "module": "bytes",
+      "function": "u64_to_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u64_to_le_bytes",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "s@ == spec_u64_to_le_bytes(x)",
+        "s@.len() == 8"
+      ],
+      "det_function": "det_u64_to_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u64_to_le_bytes"
+      ],
+      "n_schemas": 39,
+      "n_params": 96,
+      "verus_returncode": 0,
+      "verus_ms": 657,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u64_to_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 154193,
+      "ctx_ms": 20,
+      "search_ms": 194,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 897
+    },
+    {
+      "module": "bytes",
+      "function": "u128_from_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u128_from_le_bytes",
+      "status": "ok",
+      "requires": [
+        "s@.len() == 16"
+      ],
+      "ensures": [
+        "x == spec_u128_from_le_bytes(s@)"
+      ],
+      "det_function": "det_u128_from_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u128_from_le_bytes"
+      ],
+      "n_schemas": 19,
+      "n_params": 46,
+      "verus_returncode": 0,
+      "verus_ms": 617,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u128_from_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 123332,
+      "ctx_ms": 22,
+      "search_ms": 227,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 894
+    },
+    {
+      "module": "bytes",
+      "function": "u128_to_le_bytes",
+      "source": "/home/chentianyu/nanvix/toolchain/verus/vstd/bytes.rs",
+      "artifact_dir": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u128_to_le_bytes",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "s@ == spec_u128_to_le_bytes(x)",
+        "s@.len() == 16"
+      ],
+      "det_function": "det_u128_to_le_bytes",
+      "suppressed_closed_reveals": [
+        "spec_u128_to_le_bytes"
+      ],
+      "n_schemas": 37,
+      "n_params": 91,
+      "verus_returncode": 0,
+      "verus_ms": 653,
+      "smt2": "vstd-survey/experiments/pilot-2026-07-14/artifacts/bytes__u128_to_le_bytes/verus_log/root.smt2",
+      "smt2_bytes": 149604,
+      "ctx_ms": 22,
+      "search_ms": 214,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 923
+    }
+  ]
+}
