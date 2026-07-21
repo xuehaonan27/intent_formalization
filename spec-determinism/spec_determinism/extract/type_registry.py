@@ -878,6 +878,8 @@ def _process_inner(
 
 def build_registry(source: str, source_file: str = "<memory>") -> TypeRegistry:
     """Parse *source* and produce a :class:`TypeRegistry` for its type defs."""
+    from spec_determinism.extract.aliases import normalize_verus_aliases
+    source = normalize_verus_aliases(source)
     tree = _parser.parse(source.encode())
     if tree.root_node.has_error:
         logger.warning("parse errors in %s — registry may be incomplete", source_file)

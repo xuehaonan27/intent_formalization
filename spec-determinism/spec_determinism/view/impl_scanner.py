@@ -373,6 +373,8 @@ def _walk_mod(mod_node: ts.Node, mod_path: list[str], source_file: str,
 
 
 def scan_source(source: str, source_file: str = "<memory>") -> ImplScan:
+    from spec_determinism.extract.aliases import normalize_verus_aliases
+    source = normalize_verus_aliases(source)
     tree = _parser.parse(source.encode())
     out = ImplScan(source_file=source_file)
     _walk_impls(tree.root_node, mod_path=[], source_file=source_file, out=out)

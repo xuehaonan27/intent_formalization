@@ -21,6 +21,8 @@ from typing import Iterable, Optional
 import tree_sitter as ts
 import tree_sitter_verus as tsv
 
+from spec_determinism.extract.aliases import normalize_verus_aliases
+
 
 FUNCTION_NODE_TYPES = {"function_item", "function_signature_item"}
 
@@ -382,6 +384,9 @@ def scan_file(
     path: Path,
 ) -> tuple[ModuleStats, list[ExecItem]]:
     source = path.read_text(errors="replace")
+    # Normalize `verus_!`-style macro aliases so functions inside alias
+    # blocks are visible (line numbers preserved).
+    source = normalize_verus_aliases(source)
     source_bytes = source.encode()
     masked = mask_comments(source)
     tree = parser.parse(source_bytes)

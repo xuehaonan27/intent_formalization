@@ -241,6 +241,12 @@ It writes JSON/CSV and updates the generated section of
 
 ### Known inventory gap: `verus_!`
 
+**RESOLVED 2026-07-21 (P0).** `spec_determinism.extract.aliases
+normalize_verus_aliases` is now applied at every parse entry point
+(scanner, `extract_spec`, `type_registry`, `impl_scanner`); alias modules
+are fully visible in the regenerated inventories (see §15.3 for numbers).
+The historical description below is kept for context.
+
 The parser recognizes normal `verus! { ... }` blocks but does not parse
 functions inside aliases such as:
 
@@ -695,7 +701,8 @@ python -m py_compile vstd-survey/scan_vstd.py vstd-survey/run_determinism.py
 
 ### Coverage
 
-1. `verus_!` alias blocks are not scanned.
+1. ~~`verus_!` alias blocks are not scanned.~~ Resolved 2026-07-21 (see §5
+   and §15.3).
 2. macro-expanded functions/types/views are not enumerated.
 3. `assume_specification` is inventoried lexically but not determinism-tested
    by this runner.
@@ -729,6 +736,10 @@ python -m py_compile vstd-survey/scan_vstd.py vstd-survey/run_determinism.py
 Priority order for the next owner:
 
 ### P0 — fix target coverage
+
+**DONE 2026-07-21 (see §15.3).** Alias normalization landed and both
+inventories were regenerated; the May experiment target set grew from 111 to
+137 public-post definitions. Original text:
 
 Teach the scanner/extractor to parse `verus_!` aliases or normalize them to
 `verus!` before parsing. Then regenerate both current and matching-snapshot
@@ -943,3 +954,42 @@ unobtainable — in `secure-foundations/tree-sitter-verus` the 0.21.x line is
 still upstream `tree-sitter-rust` (zero Verus keywords in `grammar.js`); the
 Verus grammar only exists in the 0.23.x line. 0.23.2 is therefore the pinned
 grammar, and with the two fixes above the documented verdicts reproduce.
+
+### 15.3 P0 done (2026-07-21): alias normalization + regenerated inventories
+
+Implementation: new `spec_determinism/extract/aliases.py`
+(`normalize_verus_aliases` — line-preserving, idempotent rewrite of
+`<alias>!` to `verus!` for every `use verus as <alias>;` binding), wired
+into `scan_vstd.py`, `extract_spec` (source + type_sources),
+`type_registry.build_registry` and `impl_scanner.scan_source`. Self-tests
+(extractor, gen_det, aliases) pass; `extract_spec` on the previously
+invisible `cell/invcell.rs` (`InvCell::new`) validates end-to-end.
+
+Current-upstream inventory (`~/verus@cf3b5c3`, regenerated into
+`vstd-survey/generated/`, README updated):
+
+- exec declarations 286 → **330**; exec bodies 220 → 247;
+- public exec definitions with postconditions 111 → **135**;
+- contract sites 515 → **553** (exec post 185 → 223, assume-post 330 flat);
+- spec sites 3,367 → **3,405**;
+- parse-recovery modules 54 → 58: 5 fixed by grammar 0.23.2, 9 alias-content
+  modules newly partially visible with recovery (`cell::pcell`, `imap`,
+  `map`, `tokens`, `std_specs::{cmp, iter, maybe_uninit, slice, vec}`) —
+  their function-level numbers are lower bounds;
+- `std_specs::cmp` jumped 14 → 25 contract sites once its alias block became
+  visible.
+
+Matching May inventory (regenerated into
+`vstd-survey/experiments/inventory-may-2026-07-21/`, keeping the historical
+`public-free-2026-07-14/inventory/` untouched):
+
+- experiment target set (public definitions with postconditions):
+  111 → **137** (37 free + 100 impl);
+- newly covered targets (26): `cell::invcell` 4, `cell::pcell` 7,
+  `cell::pcell_maybe_uninit` 10, `std_specs::core` 1, `std_specs::iter` 2,
+  `std_specs::vec` 2;
+- May parse-recovery modules 47 → 50 (same alias-exposure effect);
+- the documented 111-target results (87/20/4/0) remain valid: the old set is
+  a subset of the new one. The 26 new targets have NOT been run yet — that
+  is the natural next experiment (C-class review must be repeated for
+  `cell::invcell::InvCell`, see §13 P4).

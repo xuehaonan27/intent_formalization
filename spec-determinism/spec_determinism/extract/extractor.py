@@ -25,6 +25,7 @@ from .attrs import (
     parse_item_attrs,
     propagate_attrs_to_type_defs,
 )
+from .aliases import normalize_verus_aliases
 
 logger = logging.getLogger(__name__)
 
@@ -1256,6 +1257,13 @@ def extract_spec(
     Raises:
         Unsupported: when parser cannot handle the pattern
     """
+    # Normalize `verus_!`-style macro aliases so functions inside alias
+    # blocks are visible to the parser (line numbers preserved). Parse and
+    # slice from the normalized text consistently.
+    source = normalize_verus_aliases(source)
+    if type_sources is not None:
+        type_sources = [normalize_verus_aliases(s) for s in type_sources]
+
     full_tree = _parser.parse(source.encode())
 
     # Find target function — first try tree-sitter, then re-parse a chunk

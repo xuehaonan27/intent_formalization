@@ -1,5 +1,5 @@
 module,file,group,importance,lines,parser_error,macro_rules_sites,function_sites_ast,exec_function_sites,exec_body_sites,exec_signature_sites,exec_body_post_sites,exec_body_requires_only_sites,exec_body_no_contract_sites,public_exec_body_sites,public_exec_body_post_sites,public_exec_body_requires_only_sites,public_exec_body_no_contract_sites,public_exec_body_no_post_sites,exec_contract_sites,exec_post_sites,trait_exec_contract_sites,public_exec_no_post_sites,assume_spec_sites,assume_spec_with_post_sites,assume_spec_without_post_sites,model_spec_fn_sites,proof_fn_sites,axiom_fn_sites,requires_clause_sites,ensures_clause_sites,returns_clause_sites,default_ensures_sites,external_trait_spec_sites,external_type_spec_sites,external_body_sites,view_impl_sites,deep_view_impl_sites,broadcast_group_sites,total_contract_sites,total_spec_sites
-arithmetic::div_mod,arithmetic/div_mod.rs,Mathematical foundations,medium,1664,True,0,79,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,76,0,69,76,0,0,0,0,0,0,0,4,0,79
+arithmetic::div_mod,arithmetic/div_mod.rs,Mathematical foundations,medium,1638,True,0,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,76,0,69,76,0,0,0,0,0,0,0,4,0,77
 arithmetic::internals::div_internals,arithmetic/internals/div_internals.rs,Mathematical foundations,medium,348,False,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,6,0,6,6,0,0,0,0,0,0,0,0,0,11
 arithmetic::internals::div_internals_nonlinear,arithmetic/internals/div_internals_nonlinear.rs,Mathematical foundations,medium,47,False,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,2,3,0,0,0,0,0,0,0,0,0,3
 arithmetic::internals::general_internals,arithmetic/internals/general_internals.rs,Mathematical foundations,medium,116,False,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,0,3,3,0,0,0,0,0,0,0,0,0,4
@@ -15,7 +15,7 @@ arithmetic::overflow,arithmetic/overflow.rs,Mathematical foundations,medium,307,
 arithmetic::power,arithmetic/power.rs,Mathematical foundations,medium,558,True,0,21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,20,0,12,20,0,0,0,0,0,0,0,1,0,21
 arithmetic::power2,arithmetic/power2.rs,Mathematical foundations,medium,343,False,0,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,11,0,5,11,0,0,0,0,0,0,0,0,0,14
 array,array.rs,Runtime collections and data,high,216,True,0,23,6,5,1,5,0,0,4,4,0,0,0,5,5,0,1,2,0,2,9,2,6,3,15,0,0,0,0,6,1,1,1,5,22
-atomic,atomic.rs,Concurrency and prophecy,high,660,False,8,3,3,3,0,3,0,0,3,3,0,0,0,3,3,0,0,0,0,0,11,0,0,23,24,0,0,0,0,28,0,0,0,3,14
+atomic,atomic.rs,Concurrency and prophecy,high,666,False,8,3,3,3,0,3,0,0,3,3,0,0,0,3,3,0,0,0,0,0,11,0,0,23,24,0,0,0,0,28,0,0,0,3,14
 atomic_ghost,atomic_ghost.rs,Concurrency and prophecy,specialized,644,False,11,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,6,4,0,0,0,0,0,0,0,0,0,7
 bits,bits.rs,Mathematical foundations,medium,484,False,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,10,0,10,10,0,0,0,0,0,0,0,0,0,11
 bytes,bytes.rs,Runtime collections and data,high,538,False,0,22,8,8,0,8,0,0,8,8,0,0,0,8,8,0,0,0,0,0,9,5,0,4,13,0,0,0,0,8,0,0,0,8,22
@@ -39,88 +39,79 @@ function,function.rs,Mathematical foundations,critical,164,True,0,7,0,0,0,0,0,0,
 future,future.rs,Concurrency and prophecy,specialized,45,True,0,5,1,1,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,4,0,0,0,1,0,0,1,0,1,0,0,0,1,5
 hash_map,hash_map.rs,Runtime collections and data,high,338,True,0,28,22,22,0,22,0,0,22,22,0,0,0,22,22,0,0,0,0,0,4,0,2,2,24,0,0,0,0,22,2,0,1,22,28
 hash_set,hash_set.rs,Runtime collections and data,high,315,True,0,26,20,20,0,20,0,0,20,20,0,0,0,20,20,0,0,0,0,0,4,0,2,2,22,0,0,0,0,20,2,0,1,20,26
-imap,imap.rs,Mathematical foundations,medium,495,True,4,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,9,11,11,21,0,0,0,0,0,0,0,1,0,30
-imap_lib,imap_lib.rs,Mathematical foundations,medium,831,True,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,26,0,12,26,0,0,0,0,0,0,0,3,0,50
-invariant,invariant.rs,Concurrency and prophecy,high,651,False,9,7,5,5,0,0,0,5,5,0,0,5,5,0,0,0,5,0,0,0,4,1,2,1,2,0,0,0,0,2,0,0,0,0,7
-iset,iset.rs,Mathematical foundations,medium,1081,True,2,72,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,30,40,2,27,42,0,0,0,0,0,0,0,2,0,72
-iset_lib,iset_lib.rs,Mathematical foundations,medium,1541,True,2,82,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22,59,1,44,61,0,0,0,0,0,0,0,2,0,82
+invariant,invariant.rs,Concurrency and prophecy,high,603,False,9,7,5,5,0,0,0,5,5,0,0,5,5,0,0,0,5,0,0,0,4,1,2,1,2,0,0,0,0,2,0,0,0,0,7
 laws_cmp,laws_cmp.rs,Mathematical foundations,medium,286,False,3,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,7,0,6,7,0,0,0,0,0,0,0,1,0,12
 laws_eq,laws_eq.rs,Mathematical foundations,medium,413,False,3,16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,22,0,18,22,0,0,0,0,0,0,0,4,0,28
 layout,layout.rs,Runtime collections and data,high,397,True,0,26,2,2,0,2,0,0,2,2,0,0,0,2,2,0,0,4,4,0,10,5,9,0,20,0,0,0,0,2,0,0,2,6,30
 logatom,logatom.rs,Concurrency and prophecy,specialized,140,True,0,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,4,0,6,5,0,0,0,0,0,0,0,0,0,17
-map,map.rs,Mathematical foundations,critical,491,True,4,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,8,14,11,23,0,0,0,0,1,0,0,1,0,33
-map_lib,map_lib.rs,Mathematical foundations,critical,837,True,0,51,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,27,0,11,27,0,0,0,0,0,0,0,3,0,51
+map,map.rs,Mathematical foundations,critical,497,True,4,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,9,11,11,21,0,0,0,0,0,0,0,1,0,30
+map_lib,map_lib.rs,Mathematical foundations,critical,826,True,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,26,0,12,26,0,0,0,0,0,0,0,3,0,50
 math,math.rs,Mathematical foundations,medium,76,False,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,8
 modes,modes.rs,Infrastructure,support,32,True,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,3,0,0,0,0,0,0,0,0,0,3
-multiset,multiset.rs,Mathematical foundations,critical,727,True,2,53,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,21,15,17,6,33,0,0,0,0,1,0,0,2,0,53
+multiset,multiset.rs,Mathematical foundations,critical,610,True,2,51,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,21,13,17,5,31,0,0,0,0,1,0,0,2,0,51
 multiset_lib,multiset_lib.rs,Mathematical foundations,critical,68,False,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,2,3,0,0,0,0,0,0,0,0,0,5
 pervasive,pervasive.rs,Infrastructure,support,476,True,4,33,11,9,2,3,3,3,5,0,3,2,5,6,3,0,7,0,0,0,17,4,1,12,8,0,0,0,0,10,0,0,0,3,25
 predicate,predicate.rs,Mathematical foundations,medium,18,False,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2
-prelude,prelude.rs,Infrastructure,support,88,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+prelude,prelude.rs,Infrastructure,support,89,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 proph,proph.rs,Concurrency and prophecy,specialized,295,True,0,13,2,2,0,1,0,1,2,1,0,1,1,1,1,0,1,0,0,0,3,5,3,0,7,0,0,0,0,4,0,0,0,1,12
 raw_ptr,raw_ptr.rs,Memory and ownership,critical,1055,True,1,71,20,20,0,19,1,0,15,14,1,0,1,20,19,0,1,6,6,0,39,1,13,12,39,0,0,0,0,26,3,0,1,25,78
-relations,relations.rs,Mathematical foundations,medium,113,False,0,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,1,0,1,1,0,0,0,0,0,0,0,0,0,18
+relations,relations.rs,Mathematical foundations,medium,163,False,0,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22,2,0,2,2,0,0,0,0,0,0,0,0,0,24
+resource::agree,resource/agree.rs,Resources and protocols,specialized,61,False,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,4,0,1,1,0,0,0,0,0,0,0,0,0,7
 resource::algebra,resource/algebra.rs,Resources and protocols,specialized,352,False,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,18,0,14,18,0,0,0,0,0,0,0,0,0,23
-resource::combinators::agree,resource/combinators/agree.rs,Resources and protocols,specialized,61,False,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,4,0,1,1,0,0,0,0,0,0,0,0,0,7
-resource::combinators::auth,resource/combinators/auth.rs,Resources and protocols,specialized,93,False,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,6,0,1,1,0,0,0,0,0,0,0,0,0,9
-resource::combinators::exclusive,resource/combinators/exclusive.rs,Resources and protocols,specialized,33,False,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,5
-resource::combinators::frac,resource/combinators/frac.rs,Resources and protocols,specialized,335,True,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,14,0,6,10,0,0,0,0,0,0,0,0,0,23
-resource::combinators,resource/combinators/mod.rs,Resources and protocols,specialized,7,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-resource::combinators::option,resource/combinators/option.rs,Resources and protocols,specialized,111,False,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,8,0,2,3,0,0,0,0,0,0,0,0,0,11
-resource::combinators::product,resource/combinators/product.rs,Resources and protocols,specialized,54,False,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,5,0,0,0,0,0,0,0,0,0,0,0,0,8
-resource::combinators::sum,resource/combinators/sum.rs,Resources and protocols,specialized,55,False,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,5
-resource::impls::frac_opt,resource/impls/frac_opt.rs,Resources and protocols,specialized,349,True,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,15,0,6,11,0,0,0,0,0,0,0,0,0,25
-resource::impls::ghost_var,resource/impls/ghost_var.rs,Resources and protocols,specialized,122,False,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,3,0,2,3,0,0,0,0,0,0,0,0,0,9
-resource::impls::imap,resource/impls/imap.rs,Resources and protocols,specialized,1710,True,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,65,0,41,57,0,0,0,0,0,0,0,0,0,100
-resource::impls::iset,resource/impls/iset.rs,Resources and protocols,specialized,886,False,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,47,0,32,44,0,0,0,0,0,0,0,0,0,59
-resource::impls::map,resource/impls/map.rs,Resources and protocols,specialized,1694,True,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,65,0,41,57,0,0,0,0,0,0,0,0,0,100
-resource::impls,resource/impls/mod.rs,Resources and protocols,specialized,7,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-resource::impls::seq,resource/impls/seq.rs,Resources and protocols,specialized,409,False,0,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,13,0,10,11,0,0,0,0,0,0,0,0,0,28
-resource::impls::set,resource/impls/set.rs,Resources and protocols,specialized,882,False,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,47,0,32,44,0,0,0,0,0,0,0,0,0,59
+resource::auth,resource/auth.rs,Resources and protocols,specialized,93,False,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,6,0,1,1,0,0,0,0,0,0,0,0,0,9
+resource::exclusive,resource/exclusive.rs,Resources and protocols,specialized,33,False,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,5
+resource::frac,resource/frac.rs,Resources and protocols,specialized,337,True,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,14,0,6,10,0,0,0,0,0,0,0,0,0,23
+resource::frac_opt,resource/frac_opt.rs,Resources and protocols,specialized,344,True,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,15,0,6,11,0,0,0,0,0,0,0,0,0,25
+resource::ghost_var,resource/ghost_var.rs,Resources and protocols,specialized,122,False,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,3,0,2,3,0,0,0,0,0,0,0,0,0,9
 resource::lib,resource/lib.rs,Resources and protocols,specialized,517,False,0,16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,15,0,13,15,0,0,0,0,0,0,0,0,0,16
-resource,resource/mod.rs,Resources and protocols,specialized,34,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+resource::map,resource/map.rs,Resources and protocols,specialized,1673,False,0,99,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,64,0,40,56,0,0,0,0,0,0,0,0,0,99
+resource,resource/mod.rs,Resources and protocols,specialized,28,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+resource::option,resource/option.rs,Resources and protocols,specialized,111,False,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,8,0,2,3,0,0,0,0,0,0,0,0,0,11
 resource::pcm,resource/pcm.rs,Resources and protocols,specialized,309,True,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,8,9,12,17,0,0,0,0,1,0,0,0,0,20
+resource::product,resource/product.rs,Resources and protocols,specialized,54,False,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,5,0,0,0,0,0,0,0,0,0,0,0,0,8
 resource::relations,resource/relations.rs,Resources and protocols,specialized,99,False,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,3,0,3,3,0,0,0,0,0,0,0,0,0,10
-resource::storage_protocol,resource/storage_protocol.rs,Resources and protocols,specialized,379,True,0,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,11,9,14,20,0,0,0,0,1,0,0,0,0,33
+resource::seq,resource/seq.rs,Resources and protocols,specialized,409,False,0,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,13,0,10,11,0,0,0,0,0,0,0,0,0,28
+resource::set,resource/set.rs,Resources and protocols,specialized,884,False,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,47,0,32,44,0,0,0,0,0,0,0,0,0,59
+resource::storage_protocol,resource/storage_protocol.rs,Resources and protocols,specialized,343,True,0,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,9,9,14,18,0,0,0,0,1,0,0,0,0,31
+resource::sum,resource/sum.rs,Resources and protocols,specialized,55,False,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,5
 rwlock,rwlock.rs,Concurrency and prophecy,high,711,False,0,18,7,7,0,5,1,1,7,5,1,1,2,6,5,0,2,0,0,0,11,1,0,3,6,0,0,0,0,0,0,0,0,5,17
-seq,seq.rs,Mathematical foundations,critical,1154,True,2,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,21,46,1,35,47,0,0,0,0,4,0,0,2,0,68
-seq_lib,seq_lib.rs,Mathematical foundations,critical,3761,True,2,193,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,52,141,0,72,142,0,0,0,0,0,0,0,6,0,193
-set,set.rs,Mathematical foundations,critical,641,True,2,53,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,24,2,10,26,0,0,0,0,1,0,0,1,0,53
-set_lib,set_lib.rs,Mathematical foundations,critical,1433,True,4,87,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,30,64,0,29,63,0,0,0,0,0,0,0,2,0,94
+seq,seq.rs,Mathematical foundations,critical,560,True,2,47,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,15,18,25,33,0,0,0,0,5,0,0,2,0,47
+seq_lib,seq_lib.rs,Mathematical foundations,critical,3717,True,2,191,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,51,140,0,73,141,0,0,0,0,0,0,0,6,0,191
+set,set.rs,Mathematical foundations,critical,1049,True,2,69,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,39,2,26,41,0,0,0,0,0,0,0,2,0,69
+set_lib,set_lib.rs,Mathematical foundations,critical,1577,False,4,85,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,65,0,43,64,0,0,0,0,0,0,0,2,0,89
 shared,shared.rs,Concurrency and prophecy,specialized,78,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,0,0,3,0,0,0,0,0,0,0,0,0,4
-simple_pptr,simple_pptr.rs,Memory and ownership,high,600,True,0,28,15,15,0,14,1,0,14,13,1,0,1,15,14,0,1,0,0,0,9,4,0,12,18,0,0,0,0,0,0,0,0,14,27
-slice,slice.rs,Runtime collections and data,high,190,True,0,22,6,4,2,4,0,0,3,3,0,0,0,5,4,1,2,3,3,0,10,0,6,4,11,2,0,1,0,6,1,1,1,7,23
-state_machine_internal,state_machine_internal.rs,Infrastructure,support,572,False,0,48,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,9,38,0,38,38,0,0,0,0,0,0,0,0,0,47
+simple_pptr,simple_pptr.rs,Memory and ownership,high,589,True,0,28,15,15,0,14,1,0,14,13,1,0,1,15,14,0,1,0,0,0,9,4,0,12,18,0,0,0,0,0,0,0,0,14,27
+slice,slice.rs,Runtime collections and data,high,189,True,0,22,6,4,2,4,0,0,3,3,0,0,0,5,4,1,2,3,3,0,10,0,6,4,11,2,0,1,0,6,1,1,1,7,23
+state_machine_internal,state_machine_internal.rs,Infrastructure,support,421,False,0,35,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,8,26,0,26,26,0,0,0,0,0,0,0,0,0,34
 std_specs::alloc,std_specs/alloc.rs,Rust standard-library specs,high,41,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,2,0,0,0,1,2,0,0,0,1,1,0,0,0,1,1
-std_specs::atomic,std_specs/atomic.rs,Rust standard-library specs,high,105,False,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,14,0,0,0,0,0,0,0,1,2,1,0,0,0,0,0
+std_specs::atomic,std_specs/atomic.rs,Rust standard-library specs,high,105,False,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,14,0,0,0,0,0,0,0,0,2,1,0,0,0,0,0
 std_specs::bits,std_specs/bits.rs,Rust standard-library specs,high,726,False,0,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,16,0,16,16,0,0,32,0,0,0,0,0,0,0,1,16,48
 std_specs::borrow,std_specs/borrow.rs,Rust standard-library specs,medium,103,False,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,1,1,0,3,3,0,0,6
-std_specs::btree,std_specs/btree.rs,Rust standard-library specs,high,977,True,0,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,24,0,49,6,20,4,50,0,0,0,6,6,2,2,1,24,99
+std_specs::btree,std_specs/btree.rs,Rust standard-library specs,high,984,True,0,76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,24,0,49,6,21,4,51,0,0,0,6,6,2,2,1,24,100
 std_specs::clone,std_specs/clone.rs,Rust standard-library specs,high,73,False,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,6,5,1,0,0,0,0,4,2,0,2,0,0,0,0,0,5,5
 std_specs::cmp,std_specs/cmp.rs,Rust standard-library specs,critical,527,True,3,44,11,0,11,0,0,0,0,0,0,0,0,11,11,11,0,24,14,10,39,0,0,1,25,0,8,4,1,1,0,0,0,25,64
-std_specs::control_flow,std_specs/control_flow.rs,Rust standard-library specs,medium,74,True,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,1,1,0,0,5,0,0,0,2,1,0,0,1,4,6
+std_specs::control_flow,std_specs/control_flow.rs,Rust standard-library specs,medium,70,True,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,1,1,0,0,5,0,0,0,2,1,0,0,1,4,6
 std_specs::convert,std_specs/convert.rs,Rust standard-library specs,high,182,False,2,16,4,0,4,0,0,0,0,0,0,0,0,4,4,4,0,5,3,2,16,0,0,0,7,0,0,4,1,1,0,0,0,7,23
-std_specs::core,std_specs/core.rs,Rust standard-library specs,medium,224,False,0,7,4,1,3,1,0,0,1,1,0,0,0,2,1,1,3,4,4,0,3,0,0,2,5,0,0,20,6,3,0,0,0,5,8
+std_specs::core,std_specs/core.rs,Rust standard-library specs,medium,234,False,0,8,4,1,3,1,0,0,1,1,0,0,0,2,1,1,3,5,5,0,4,0,0,2,6,0,0,20,6,3,0,0,0,6,10
 std_specs::default,std_specs/default.rs,Rust standard-library specs,high,83,False,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,6,6,0,0,0,0,0,6,0,0,1,0,0,0,0,0,6,6
-std_specs::hash,std_specs/hash.rs,Rust standard-library specs,critical,1553,True,0,107,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,45,45,0,64,41,2,4,85,4,0,2,11,14,1,0,1,45,152
-std_specs::iter,std_specs/iter.rs,Rust standard-library specs,critical,540,True,0,9,3,0,3,0,0,0,0,0,0,0,0,3,3,0,0,1,1,0,39,0,2,3,8,0,5,5,1,1,0,0,1,4,45
+std_specs::hash,std_specs/hash.rs,Rust standard-library specs,critical,1547,True,0,108,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,45,45,0,64,42,2,4,86,4,0,2,11,14,1,0,1,45,153
+std_specs::iter,std_specs/iter.rs,Rust standard-library specs,critical,374,True,0,36,5,2,3,2,0,0,2,2,0,0,0,5,5,3,0,0,0,0,30,0,1,3,5,0,1,4,1,1,0,0,1,5,36
 std_specs::manually_drop,std_specs/manually_drop.rs,Rust standard-library specs,medium,65,True,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,3,0,1,0,3,2,0,0,1,1,1,0,1,4,8
 std_specs::maybe_uninit,std_specs/maybe_uninit.rs,Rust standard-library specs,high,59,True,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,4,0,0,3,4,1,0,0,1,1,0,0,0,5,9
-std_specs,std_specs/mod.rs,Rust standard-library specs,medium,44,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-std_specs::nonzero,std_specs/nonzero.rs,Rust standard-library specs,medium,177,True,1,19,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,17,0,3,2,5,2,0,1,1,1,1,0,1,4,24
-std_specs::num,std_specs/num.rs,Rust standard-library specs,critical,474,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,50,34,16,13,0,0,0,4,30,0,0,0,0,0,0,0,34,47
+std_specs,std_specs/mod.rs,Rust standard-library specs,medium,41,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+std_specs::num,std_specs/num.rs,Rust standard-library specs,critical,493,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,50,34,16,13,0,0,0,4,30,0,0,0,0,0,0,0,34,47
 std_specs::ops,std_specs/ops.rs,Rust standard-library specs,critical,514,True,11,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,10,2,17,0,0,2,12,0,0,2,0,0,0,0,0,10,27
-std_specs::option,std_specs/option.rs,Rust standard-library specs,critical,412,True,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,23,20,3,22,7,1,10,24,0,0,0,0,0,0,0,0,20,50
-std_specs::range,std_specs/range.rs,Rust standard-library specs,critical,658,True,1,57,2,0,2,0,0,0,0,0,0,0,0,0,0,0,2,18,18,0,61,1,1,0,20,0,0,1,7,1,1,0,1,18,81
-std_specs::result,std_specs/result.rs,Rust standard-library specs,critical,284,False,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,0,19,8,0,9,14,0,0,0,0,0,0,0,0,10,37
-std_specs::slice,std_specs/slice.rs,Rust standard-library specs,critical,265,True,0,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,13,2,17,1,0,5,14,1,0,0,1,1,0,0,1,13,31
+std_specs::option,std_specs/option.rs,Rust standard-library specs,critical,407,True,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,23,20,3,22,7,1,10,24,0,0,0,0,0,0,0,0,20,50
+std_specs::range,std_specs/range.rs,Rust standard-library specs,critical,250,True,1,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,21,1,0,0,5,0,0,0,2,1,1,0,1,4,26
+std_specs::result,std_specs/result.rs,Rust standard-library specs,critical,279,False,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,0,19,8,0,9,14,0,0,0,0,0,0,0,0,10,37
+std_specs::slice,std_specs/slice.rs,Rust standard-library specs,critical,215,True,0,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,11,2,16,1,0,3,12,1,0,0,1,1,0,0,1,11,28
 std_specs::smart_ptrs,std_specs/smart_ptrs.rs,Rust standard-library specs,high,78,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,0,0,0,0,0,10,0,0,0,0,0,0,0,0,10,10
-std_specs::vec,std_specs/vec.rs,Rust standard-library specs,critical,535,True,0,32,2,2,0,2,0,0,2,2,0,0,0,2,2,0,0,30,29,1,20,8,2,11,41,0,0,0,3,5,0,0,1,31,61
+std_specs::vec,std_specs/vec.rs,Rust standard-library specs,critical,529,True,0,31,2,2,0,2,0,0,2,2,0,0,0,2,2,0,0,30,29,1,19,8,2,11,41,0,0,0,3,5,0,0,1,31,60
 std_specs::vecdeque,std_specs/vecdeque.rs,Rust standard-library specs,high,342,True,0,19,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,19,19,0,16,3,0,3,22,0,0,0,2,2,1,1,1,19,38
-string,string.rs,Runtime collections and data,high,489,True,0,43,20,10,10,10,0,0,0,0,0,0,0,10,10,0,10,16,16,0,17,4,2,7,29,3,0,0,2,9,2,2,2,26,49
+string,string.rs,Runtime collections and data,high,545,True,0,45,20,10,10,10,0,0,0,0,0,0,0,10,10,0,10,17,17,0,18,4,3,8,31,3,0,0,2,9,2,2,2,27,52
 thread,thread.rs,Concurrency and prophecy,specialized,273,True,0,15,5,5,0,3,0,2,3,3,0,0,0,3,3,0,0,0,0,0,4,0,6,3,8,0,0,0,0,8,0,0,0,3,13
-tokens,tokens.rs,Resources and protocols,specialized,851,True,0,85,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,43,0,24,37,0,0,0,0,0,0,0,0,0,85
+tokens,tokens.rs,Resources and protocols,specialized,631,True,0,65,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,33,0,18,27,0,0,0,0,0,0,0,0,0,65
 utf8,utf8.rs,Runtime collections and data,high,1129,False,0,79,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,46,33,0,29,33,0,0,0,0,0,0,0,1,0,79
 view,view.rs,Mathematical foundations,critical,344,True,2,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,0,0,0,0,0,0,0,0,0,13,13,0,0,24
-vstd,vstd.rs,Infrastructure,support,161,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0
+vstd,vstd.rs,Infrastructure,support,147,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0
 wrapping,wrapping.rs,Runtime collections and data,medium,118,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,0,0,0,0,0,0,0,0,0,0,0,0,0,13

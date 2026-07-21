@@ -5,9 +5,9 @@ array,array.rs,76,array_index_get,free,definition,public,post,ensures,external_b
 array,array.rs,135,array_as_slice,free,definition,public,post,ensures,external_body+hidden+when_used_as_spec
 array,array.rs,164,array_fill_for_copy_types,free,definition,public,post,ensures,external_body+hidden+when_used_as_spec
 array,array.rs,195,ref_mut_array_unsizing_coercion,free,definition,public,post,ensures,external_body+hidden
-atomic,atomic.rs,604,fetch_and,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
-atomic,atomic.rs,624,fetch_xor,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
-atomic,atomic.rs,644,fetch_or,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+atomic,atomic.rs,610,fetch_and,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+atomic,atomic.rs,630,fetch_xor,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
+atomic,atomic.rs,650,fetch_or,impl<T> PAtomicPtr<T>,definition,public,post,ensures,external_body
 bytes,bytes.rs,79,u16_from_le_bytes,free,definition,public,post,ensures,external_body
 bytes,bytes.rs,91,u16_to_le_bytes,free,definition,public,post,ensures,external_body
 bytes,bytes.rs,174,u32_from_le_bytes,free,definition,public,post,ensures,external_body
@@ -207,11 +207,11 @@ hash_set,hash_set.rs,261,remove,impl StringHashSet,definition,public,post,ensure
 hash_set,hash_set.rs,272,contains,impl StringHashSet,definition,public,post,ensures,external_body
 hash_set,hash_set.rs,283,get,impl StringHashSet,definition,public,post,ensures,external_body
 hash_set,hash_set.rs,297,clear,impl StringHashSet,definition,public,post,ensures,external_body
-invariant,invariant.rs,320,create_open_invariant_credit,free,definition,public,no-contract,,external_body
-invariant,invariant.rs,337,spend_open_invariant_credit,free,definition,public,no-contract,,hidden
-invariant,invariant.rs,372,open_atomic_invariant_begin,free,definition,public,no-contract,,external+hidden
-invariant,invariant.rs,382,open_local_invariant_begin,free,definition,public,no-contract,,external+hidden
-invariant,invariant.rs,392,open_invariant_end,free,definition,public,no-contract,,external+hidden
+invariant,invariant.rs,276,create_open_invariant_credit,free,definition,public,no-contract,,external_body
+invariant,invariant.rs,293,spend_open_invariant_credit,free,definition,public,no-contract,,hidden
+invariant,invariant.rs,324,open_atomic_invariant_begin,free,definition,public,no-contract,,external+hidden
+invariant,invariant.rs,334,open_local_invariant_begin,free,definition,public,no-contract,,external+hidden
+invariant,invariant.rs,344,open_invariant_end,free,definition,public,no-contract,,external+hidden
 layout,layout.rs,118,layout_for_type_is_valid,free,definition,public,post,ensures,external_body
 layout,layout.rs,141,layout_for_val_is_valid,free,definition,public,post,ensures,external_body
 pervasive,pervasive.rs,124,exec_nonstatic_call,free,definition,private,post,ensures,external_body+hidden
@@ -259,23 +259,23 @@ simple_pptr,simple_pptr.rs,203,from_addr,impl<V> PPtr<V>,definition,public,post,
 simple_pptr,simple_pptr.rs,212,from_usize,impl<V> PPtr<V>,definition,public,post,ensures,hidden
 simple_pptr,simple_pptr.rs,332,clone,impl<V> Clone for PPtr<V>,definition,private,post,ensures,
 simple_pptr,simple_pptr.rs,347,empty,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,397,new,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,413,free,impl<V> PPtr<V>,definition,public,requires-only,,
-simple_pptr,simple_pptr.rs,442,into_inner,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,462,put,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,487,take,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,508,replace,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,530,borrow,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,548,borrow_mut,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,568,write,impl<V> PPtr<V>,definition,public,post,ensures,
-simple_pptr,simple_pptr.rs,585,read,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,386,new,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,402,free,impl<V> PPtr<V>,definition,public,requires-only,,
+simple_pptr,simple_pptr.rs,431,into_inner,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,451,put,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,476,take,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,497,replace,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,519,borrow,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,537,borrow_mut,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,557,write,impl<V> PPtr<V>,definition,public,post,ensures,
+simple_pptr,simple_pptr.rs,574,read,impl<V> PPtr<V>,definition,public,post,ensures,
 slice,slice.rs,45,set,trait SliceAdditionalExecFns,signature,public,no-contract,,
 slice,slice.rs,50,set,impl<T> SliceAdditionalExecFns<T> for [T],definition,private,post,ensures,external_body
 slice,slice.rs,62,slice_index_get,free,definition,public,post,ensures,external_body
 slice,slice.rs,100,slice_to_vec,free,definition,public,post,ensures,external_body
 slice,slice.rs,108,slice_subrange,free,definition,public,post,ensures,external_body
-slice,slice.rs,127,index,trait ExSliceIndex,signature,public,requires-only,,
-state_machine_internal,state_machine_internal.rs,22,clone,impl<T> Clone for SyncSendIfSyncSend<T>,definition,private,no-contract,,external_body
+slice,slice.rs,126,index,trait ExSliceIndex,signature,public,requires-only,,
+state_machine_internal,state_machine_internal.rs,19,clone,impl<T> Clone for SyncSendIfSyncSend<T>,definition,private,no-contract,,external_body
 std_specs::clone,std_specs/clone.rs,10,clone,trait ExClone,signature,public,no-contract,,
 std_specs::cmp,std_specs/cmp.rs,19,eq,trait ExPartialEq,signature,public,post,ensures,
 std_specs::cmp,std_specs/cmp.rs,23,ne,trait ExPartialEq,signature,public,post,ensures+default_ensures,
@@ -295,13 +295,13 @@ std_specs::convert,std_specs/convert.rs,85,try_into,trait ExTryInto,signature,pu
 std_specs::core,std_specs/core.rs,36,deref,trait ExDeref,signature,public,no-contract,,
 std_specs::core,std_specs/core.rs,43,deref_mut,trait ExDerefMut,signature,public,no-contract,,
 std_specs::core,std_specs/core.rs,55,index,trait ExIndex,signature,public,requires-only,,
-std_specs::core,std_specs/core.rs,205,index_set,free,definition,public,post,ensures,external_body
+std_specs::core,std_specs/core.rs,215,index_set,free,definition,public,post,ensures,external_body
 std_specs::default,std_specs/default.rs,10,default,trait ExDefault,signature,public,no-contract,,
-std_specs::iter,std_specs/iter.rs,37,next,free,signature,private,post,ensures+returns,
-std_specs::iter,std_specs/iter.rs,81,rev,free,signature,private,post,default_ensures,
-std_specs::iter,std_specs/iter.rs,88,collect,free,signature,private,post,default_ensures,
-std_specs::range,std_specs/range.rs,396,start_bound,trait ExRangeBounds,signature,public,no-contract,,
-std_specs::range,std_specs/range.rs,398,end_bound,trait ExRangeBounds,signature,public,no-contract,,
+std_specs::iter,std_specs/iter.rs,43,next,trait ExIterator,signature,public,post,ensures+returns,
+std_specs::iter,std_specs/iter.rs,87,rev,trait ExIterator,signature,public,post,default_ensures,
+std_specs::iter,std_specs/iter.rs,111,next_back,trait ExDoubleEndedIterator,signature,public,post,ensures+returns,
+std_specs::iter,std_specs/iter.rs,264,new,"impl <'a, I: Iterator> VerusForLoopWrapper<'a, I>",definition,public,post,ensures,
+std_specs::iter,std_specs/iter.rs,287,next,"impl <'a, I: Iterator> VerusForLoopWrapper<'a, I>",definition,public,post,ensures,
 std_specs::vec,std_specs/vec.rs,53,vec_index,free,definition,public,post,ensures,external_body
 std_specs::vec,std_specs/vec.rs,67,vec_index_mut,free,definition,public,post,ensures,external_body+hidden
 string,string.rs,168,unicode_len,trait StrSliceExecFns,signature,public,no-contract,,
@@ -316,14 +316,14 @@ string,string.rs,208,substring_ascii,impl StrSliceExecFns for str,definition,pri
 string,string.rs,221,substring_char,impl StrSliceExecFns for str,definition,private,post,ensures,external_body
 string,string.rs,253,get_ascii,impl StrSliceExecFns for str,definition,private,post,ensures,
 string,string.rs,267,as_bytes_vec,impl StrSliceExecFns for str,definition,private,post,ensures,
-string,string.rs,370,is_ascii,trait StringExecFnsIsAscii,signature,public,no-contract,,
-string,string.rs,377,is_ascii,impl StringExecFnsIsAscii for String,definition,private,post,ensures,when_used_as_spec
-string,string.rs,388,from_str,trait StringExecFns,signature,public,no-contract,,
-string,string.rs,390,append,trait StringExecFns,signature,public,no-contract,,
-string,string.rs,392,concat,trait StringExecFns,signature,public,no-contract,,
-string,string.rs,398,from_str,impl StringExecFns for String,definition,private,post,ensures,external_body
-string,string.rs,406,append,impl StringExecFns for String,definition,private,post,ensures,external_body
-string,string.rs,414,concat,impl StringExecFns for String,definition,private,post,ensures,external_body
+string,string.rs,371,is_ascii,trait StringExecFnsIsAscii,signature,public,no-contract,,
+string,string.rs,378,is_ascii,impl StringExecFnsIsAscii for String,definition,private,post,ensures,when_used_as_spec
+string,string.rs,389,from_str,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,391,append,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,393,concat,trait StringExecFns,signature,public,no-contract,,
+string,string.rs,399,from_str,impl StringExecFns for String,definition,private,post,ensures,external_body
+string,string.rs,407,append,impl StringExecFns for String,definition,private,post,ensures,external_body
+string,string.rs,415,concat,impl StringExecFns for String,definition,private,post,ensures,external_body
 thread,thread.rs,27,join,impl<Ret> JoinHandle<Ret>,definition,public,post,ensures,external_body
 thread,thread.rs,107,spawn,free,definition,public,post,ensures,external_body
 thread,thread.rs,183,clone,impl Clone for IsThread,definition,private,no-contract,,
