@@ -358,6 +358,11 @@ class DetCheckSpec:
     # Structural-equality spec fn injected alongside the det check.
     equal_fn_def: str = ""            # Verus source of `spec fn {equal_fn_name}(...) -> bool`
     equal_fn_name: str = ""           # e.g. "set_equal"
+    # Turbofish suffix (e.g. "::<F, Ret>") required when calling the equal
+    # fn and some generics cannot be inferred from the arguments. Emitted
+    # by gen_det next to ``equal_fn_name``; consumed by the guarded-template
+    # renderer for the ``g_neq_tuple`` assume line.
+    equal_fn_turbofish: str = ""
     equal_arg_pairs: list[dict] = field(default_factory=list)  # [{"lhs":"r1","rhs":"r2"}, ...]
     check_fn_name: str = ""           # actual `proof fn <name>` emitted; default `det_{function}`
     equal_policy: dict = field(default_factory=dict)  # EqualPolicy.to_dict() — coarsening rules used
@@ -388,6 +393,7 @@ class DetCheckSpec:
             "verus_config": self.verus_config,
             "equal_fn_def": self.equal_fn_def,
             "equal_fn_name": self.equal_fn_name,
+            "equal_fn_turbofish": self.equal_fn_turbofish,
             "equal_arg_pairs": list(self.equal_arg_pairs),
             "check_fn_name": self.check_fn_name,
             "equal_policy": dict(self.equal_policy),
@@ -409,6 +415,7 @@ class DetCheckSpec:
             verus_config=d.get("verus_config", {}),
             equal_fn_def=d.get("equal_fn_def", ""),
             equal_fn_name=d.get("equal_fn_name", ""),
+            equal_fn_turbofish=d.get("equal_fn_turbofish", ""),
             equal_arg_pairs=list(d.get("equal_arg_pairs", [])),
             check_fn_name=d.get("check_fn_name", ""),
             equal_policy=dict(d.get("equal_policy") or {}),

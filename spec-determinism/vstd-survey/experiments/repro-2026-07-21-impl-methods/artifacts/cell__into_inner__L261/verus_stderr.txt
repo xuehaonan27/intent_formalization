@@ -1,0 +1,29 @@
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__into_inner__L261/harness.rs:15:21
+   |
+15 |     requires (self_.id() == perm@.pcell), (perm.is_init()),
+   |                     ^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__into_inner__L261/harness.rs:24:43
+   |
+24 |     if g__perm__addr___eq { assume((perm).addr() as int == k__perm__addr___eq); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__into_inner__L261/harness.rs:25:44
+   |
+25 |     if g__perm__addr___rng { assume((perm).addr() as int >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi...
+   |                                            ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__into_inner__L261/harness.rs:25:94
+   |
+25 | ...nt >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error: aborting due to 3 previous errors; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0599`.

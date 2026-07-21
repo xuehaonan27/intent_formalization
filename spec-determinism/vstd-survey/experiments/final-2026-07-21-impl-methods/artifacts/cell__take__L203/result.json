@@ -1,0 +1,34 @@
+{
+  "module": "cell",
+  "function": "take",
+  "source_line": 203,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-impl-methods/artifacts/cell__take__L203",
+  "status": "ok",
+  "requires": [
+    "self.id() == old(perm)@.pcell",
+    "old(perm).is_init()"
+  ],
+  "ensures": [
+    "final(perm).id() == old(perm)@.pcell",
+    "final(perm).mem_contents() == MemContents::Uninit",
+    "v == old(perm).value()"
+  ],
+  "det_function": "det_take",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 578,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-impl-methods/artifacts/cell__take__L203/verus_log/root.smt2",
+  "smt2_bytes": 82533,
+  "ctx_ms": 19,
+  "search_ms": 61,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 688
+}

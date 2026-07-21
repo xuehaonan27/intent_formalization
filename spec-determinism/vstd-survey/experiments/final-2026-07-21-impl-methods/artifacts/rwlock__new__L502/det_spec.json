@@ -1,0 +1,66 @@
+{
+  "function": "new",
+  "det_check_template": "proof fn det_new<V, Pred: RwLockPredicate<V>>(val: V, pred: Pred, r1: RwLock<V, Pred>, r2: RwLock<V, Pred>)\n    requires (pred.inv(val)),\n    ensures\n        ({\n            &&& (r1.pred() == pred)\n            &&& (r2.pred() == pred)\n        }) ==> det_new_equal::<V, Pred>(r1, r2),\n{\n    reveal(pred);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "val",
+      "type": {
+        "kind": "unknown",
+        "name": "V"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pred",
+      "type": {
+        "kind": "unknown",
+        "name": "Pred"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "RwLock<V, Pred>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "RwLock<V, Pred>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_new_equal<V, Pred: RwLockPredicate<V>>(r1: RwLock<V, Pred>, r2: RwLock<V, Pred>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_new_equal",
+  "equal_fn_turbofish": "::<V, Pred>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_new",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V, Pred: RwLockPredicate<V>>",
+  "where_decl": "",
+  "self_type": "RwLock<V, Pred>",
+  "opened_closed_specs": [
+    "pred"
+  ]
+}

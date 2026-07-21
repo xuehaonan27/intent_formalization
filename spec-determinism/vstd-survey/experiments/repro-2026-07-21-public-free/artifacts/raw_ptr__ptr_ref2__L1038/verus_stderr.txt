@@ -1,0 +1,21 @@
+error[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/harness.rs:41:43
+   |
+41 |     if g__perm__addr___eq { assume((perm).addr() as int == k__perm__addr___eq); }
+   |                                           ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/harness.rs:42:44
+   |
+42 |     if g__perm__addr___rng { assume((perm).addr() as int >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi...
+   |                                            ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/harness.rs:42:94
+   |
+42 | ... >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi); }
+   |                                         ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`
+
+error: aborting due to 3 previous errors
+
+For more information about this error, try `rustc --explain E0599`.

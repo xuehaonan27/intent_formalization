@@ -1,0 +1,57 @@
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:28:51
+   |
+28 |     if g__pre_perm__addr___eq { assume((pre_perm).addr() as int == k__pre_perm__addr___eq); }
+   |                                                   ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:29:52
+   |
+29 |     if g__pre_perm__addr___rng { assume((pre_perm).addr() as int >= k__pre_perm__addr___rng_lo && (pre_perm).addr() as int <= k__pre...
+   |                                                    ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:29:110
+   |
+29 | ...pre_perm__addr___rng_lo && (pre_perm).addr() as int <= k__pre_perm__addr___rng_hi); }
+   |                                          ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:32:55
+   |
+32 |     if g__post1_perm__addr___eq { assume((post1_perm).addr() as int == k__post1_perm__addr___eq); }
+   |                                                       ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:33:56
+   |
+33 |     if g__post1_perm__addr___rng { assume((post1_perm).addr() as int >= k__post1_perm__addr___rng_lo && (post1_perm).addr() as int <...
+   |                                                        ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:33:118
+   |
+33 | ...1_perm__addr___rng_lo && (post1_perm).addr() as int <= k__post1_perm__addr___rng_hi); }
+   |                                          ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:36:55
+   |
+36 |     if g__post2_perm__addr___eq { assume((post2_perm).addr() as int == k__post2_perm__addr___eq); }
+   |                                                       ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:37:56
+   |
+37 |     if g__post2_perm__addr___rng { assume((post2_perm).addr() as int >= k__post2_perm__addr___rng_lo && (post2_perm).addr() as int <...
+   |                                                        ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error[E0599]: no method named `addr` found for struct `vstd::raw_ptr::PointsTo<T>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/harness.rs:37:118
+   |
+37 | ...2_perm__addr___rng_lo && (post2_perm).addr() as int <= k__post2_perm__addr___rng_hi); }
+   |                                          ^^^^ method not found in `vstd::raw_ptr::PointsTo<T>`
+
+error: aborting due to 9 previous errors
+
+For more information about this error, try `rustc --explain E0599`.

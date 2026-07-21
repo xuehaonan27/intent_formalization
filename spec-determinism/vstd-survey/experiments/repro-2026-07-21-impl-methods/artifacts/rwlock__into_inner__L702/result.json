@@ -1,0 +1,33 @@
+{
+  "module": "rwlock",
+  "function": "into_inner",
+  "source_line": 702,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/rwlock.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/rwlock__into_inner__L702",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "self.inv(v)"
+  ],
+  "det_function": "det_into_inner",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "inv"
+  ],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 683,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/rwlock__into_inner__L702/verus_log/root.smt2",
+  "smt2_bytes": 55071,
+  "ctx_ms": 27,
+  "search_ms": 25,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_into_inner_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 813
+}

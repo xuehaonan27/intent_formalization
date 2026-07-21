@@ -1,0 +1,122 @@
+{
+  "function": "remove",
+  "det_check_template": "proof fn det_remove<Key, Value>(pre_self_: HashMapWithView<Key, Value>, k: &Key, post1_self_: HashMapWithView<Key, Value>, r1: Option<Value>, post2_self_: HashMapWithView<Key, Value>, r2: Option<Value>)\n    where Key: View + Eq + Hash\n    ensures\n        ({\n            &&& (match r1 {\n                Some(v) => pre_self_@.contains_key(k@) && v == pre_self_@[k@] && post1_self_@\n                    == pre_self_@.remove(k@),\n                None => !pre_self_@.contains_key(k@) && post1_self_@ == pre_self_@,\n            })\n            &&& (match r2 {\n                Some(v) => pre_self_@.contains_key(k@) && v == pre_self_@[k@] && post2_self_@\n                    == pre_self_@.remove(k@),\n                None => !pre_self_@.contains_key(k@) && post2_self_@ == pre_self_@,\n            })\n        }) ==> det_remove_equal::<Key, Value>(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "Key"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Value>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Value"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Value"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<Value>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Value"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Value"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_remove_equal<Key, Value>(r1: Option<Value>, r2: Option<Value>, post1_self_: HashMapWithView<Key, Value>, post2_self_: HashMapWithView<Key, Value>) -> bool\n    where Key: View + Eq + Hash {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n    && (((post1_self_).view() =~= (post2_self_).view()))\n}",
+  "equal_fn_name": "det_remove_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_remove",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Key, Value>",
+  "where_decl": "where Key: View + Eq + Hash",
+  "self_type": "HashMapWithView<Key, Value>",
+  "opened_closed_specs": []
+}

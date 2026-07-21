@@ -1,0 +1,74 @@
+{
+  "function": "array_as_slice",
+  "det_check_template": "proof fn det_array_as_slice<T, const N: usize>(ar: &[T; N], r1: &[T], r2: &[T])\n    ensures\n        ({\n            &&& (r1 == spec_array_as_slice(ar))\n            &&& (ar@ == r1@)\n            &&& (r2 == spec_array_as_slice(ar))\n            &&& (ar@ == r2@)\n        }) ==> det_array_as_slice_equal::<T>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "ar",
+      "type": {
+        "kind": "Seq",
+        "name": "[T; N]",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Seq",
+        "name": "&[T]",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Seq",
+        "name": "&[T]",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_array_as_slice_equal<T>(r1: &[T], r2: &[T]) -> bool {\n    (r1 =~= r2)\n}",
+  "equal_fn_name": "det_array_as_slice_equal",
+  "equal_fn_turbofish": "::<T>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_array_as_slice",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T, const N: usize>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

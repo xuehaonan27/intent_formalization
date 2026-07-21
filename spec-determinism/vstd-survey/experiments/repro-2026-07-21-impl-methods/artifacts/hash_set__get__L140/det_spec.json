@@ -1,0 +1,100 @@
+{
+  "function": "get",
+  "det_check_template": "proof fn det_get<Key, 'a>(self_: &HashSetWithView<Key>, k: &Key, r1: Option<&'a Key>, r2: Option<&'a Key>)\n    where Key: View + Eq + Hash\n    ensures\n        ({\n            &&& (match r1 {\n                Some(v) => self_@.contains(k@) && v == &k,\n                None => !self_@.contains(k@),\n            })\n            &&& (match r2 {\n                Some(v) => self_@.contains(k@) && v == &k,\n                None => !self_@.contains(k@),\n            })\n        }) ==> det_get_equal::<Key>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashSetWithView<Key>",
+        "is_ext_equal": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "Key"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<&'a Key>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Key"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Key"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<&'a Key>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Key"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Key"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_equal<Key, 'a>(r1: Option<&'a Key>, r2: Option<&'a Key>) -> bool\n    where Key: View + Eq + Hash {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> ((r1->Some_0)@ == (r2->Some_0)@)))\n}",
+  "equal_fn_name": "det_get_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Key, 'a>",
+  "where_decl": "where Key: View + Eq + Hash",
+  "self_type": "HashSetWithView<Key>",
+  "opened_closed_specs": []
+}

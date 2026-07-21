@@ -1,0 +1,20 @@
+{
+  "module": "simple_pptr",
+  "function": "borrow_mut",
+  "source_line": 537,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/simple_pptr.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/simple_pptr__borrow_mut__L537",
+  "status": "unsupported_mut_ref_return",
+  "requires": [
+    "perm.pptr() == self",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "final(perm).pptr() == self",
+    "final(perm).is_init()",
+    "*v == old(perm).value()",
+    "final(perm).value() == *final(v)"
+  ],
+  "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+  "wall_ms": 38
+}

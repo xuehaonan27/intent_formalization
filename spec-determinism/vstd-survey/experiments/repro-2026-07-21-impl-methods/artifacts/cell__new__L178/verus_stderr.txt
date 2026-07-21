@@ -1,0 +1,53 @@
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:17:49
+   |
+17 |             &&& (r1.1@@ == pcell_points! [ r1.0.id() => MemContents::Init(v) ])
+   |                                                 ^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:18:49
+   |
+18 |             &&& (r2.1@@ == pcell_points! [ r2.0.id() => MemContents::Init(v) ])
+   |                                                 ^^
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:23:49
+   |
+23 |     if g___r1_1____addr___eq { assume(((r1.1)@).addr() as int == k___r1_1____addr___eq); }
+   |                                                 ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:24:50
+   |
+24 |     if g___r1_1____addr___rng { assume(((r1.1)@).addr() as int >= k___r1_1____addr___rng_lo && ((r1.1)@).addr() as int <= k___r1_1__...
+   |                                                  ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:24:106
+   |
+24 | ...k___r1_1____addr___rng_lo && ((r1.1)@).addr() as int <= k___r1_1____addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:27:49
+   |
+27 |     if g___r2_1____addr___eq { assume(((r2.1)@).addr() as int == k___r2_1____addr___eq); }
+   |                                                 ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:28:50
+   |
+28 |     if g___r2_1____addr___rng { assume(((r2.1)@).addr() as int >= k___r2_1____addr___rng_lo && ((r2.1)@).addr() as int <= k___r2_1__...
+   |                                                  ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__new__L178/harness.rs:28:106
+   |
+28 | ...k___r2_1____addr___rng_lo && ((r2.1)@).addr() as int <= k___r2_1____addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error: aborting due to 6 previous errors; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0599`.

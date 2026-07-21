@@ -1,0 +1,86 @@
+{
+  "function": "remove",
+  "det_check_template": "proof fn det_remove<Value>(pre_self_: StringHashMap<Value>, k: &str, post1_self_: StringHashMap<Value>, r1: (), post2_self_: StringHashMap<Value>, r2: ())\n    ensures\n        ({\n            &&& (post1_self_@ == pre_self_@.remove(k@))\n            &&& (post2_self_@ == pre_self_@.remove(k@))\n        }) ==> det_remove_equal::<Value>(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StringHashMap<Value>",
+        "is_ext_equal": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "str",
+        "name": "str"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StringHashMap<Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "StringHashMap<Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_remove_equal<Value>(r1: (), r2: (), post1_self_: StringHashMap<Value>, post2_self_: StringHashMap<Value>) -> bool {\n    (r1 == r2)\n    && (((post1_self_).view() =~= (post2_self_).view()))\n}",
+  "equal_fn_name": "det_remove_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_remove",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Value>",
+  "where_decl": "",
+  "self_type": "StringHashMap<Value>",
+  "opened_closed_specs": []
+}

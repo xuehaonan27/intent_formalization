@@ -111,6 +111,15 @@ _BOOL_TRUE_GUARD = "__bool_true__"
 # preserve container_depth — they don't add a container layer.
 _MAX_NESTED_CONTAINER_DEPTH = 0
 
+# Snapshot-compat knob for the ``POINTS_TO`` branch of ``_emit``: the addr
+# projection expression appended to the permission variable. Current vstd
+# exposes ``PointsTo::addr()`` directly (default ``"addr()"``); the May 2026
+# snapshot does not — there the addr lives one hop away at
+# ``PointsTo::ptr().addr()`` (pass ``"ptr().addr()"``). Set via
+# ``enumerate_schemas(..., points_to_addr=...)``; process-local, restored
+# after each enumeration. Do not mutate elsewhere.
+_POINTS_TO_ADDR_EXPR = "addr()"
+
 
 def _sanitize(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_]", "_", name)
@@ -452,7 +461,7 @@ def _emit(
             _emit(f"({var}).value()", ty.type_args[0],
                   value_chain, out, seen_tags, projections_by_type,
                   container_depth=container_depth)
-        _emit(f"({var}).addr()",
+        _emit(f"({var}).{_POINTS_TO_ADDR_EXPR}",
               TypeInfo(kind=TypeKind.USIZE, name="usize"),
               parent_chain, out, seen_tags, projections_by_type,
               container_depth=container_depth)
@@ -473,8 +482,17 @@ def _emit(
     return
 
 
-def enumerate_schemas(det_spec: DetCheckSpec) -> list[SchemaBinding]:
-    """Walk the symbol table and emit all schemas (recursive)."""
+def enumerate_schemas(
+    det_spec: DetCheckSpec,
+    *,
+    points_to_addr: str = "addr()",
+) -> list[SchemaBinding]:
+    """Walk the symbol table and emit all schemas (recursive).
+
+    ``points_to_addr`` selects the addr projection emitted for POINTS_TO
+    permission types (see ``_POINTS_TO_ADDR_EXPR``): ``"addr()"`` for current
+    vstd, ``"ptr().addr()"`` for the May 2026 snapshot.
+    """
     schemas: list[SchemaBinding] = []
     seen_tags: set[str] = set()
     seen_vars: set[str] = set()
@@ -487,11 +505,18 @@ def enumerate_schemas(det_spec: DetCheckSpec) -> list[SchemaBinding]:
         for name, tp in det_spec.type_projections.items()
         if tp.projections
     }
-    for sym in det_spec.symbols:
-        if sym.name in seen_vars:
-            continue
-        seen_vars.add(sym.name)
-        _emit(sym.name, sym.type, [], schemas, seen_tags, projections_by_type)
+    global _POINTS_TO_ADDR_EXPR
+    prev_addr_expr = _POINTS_TO_ADDR_EXPR
+    _POINTS_TO_ADDR_EXPR = points_to_addr
+    try:
+        for sym in det_spec.symbols:
+            if sym.name in seen_vars:
+                continue
+            seen_vars.add(sym.name)
+            _emit(sym.name, sym.type, [], schemas, seen_tags,
+                  projections_by_type)
+    finally:
+        _POINTS_TO_ADDR_EXPR = prev_addr_expr
 
     schemas.append(SchemaBinding(
         id="neq_tuple",
@@ -601,7 +626,14 @@ def render_guarded_template(
     eq_args: list[str] = []
     for pair in det_spec.equal_arg_pairs:
         eq_args.extend([pair["lhs"], pair["rhs"]])
-    equal_call = f"{det_spec.equal_fn_name}({', '.join(eq_args)})"
+    # ``getattr`` keeps compatibility with det_spec JSON written before the
+    # ``equal_fn_turbofish`` field existed. The turbofish is required when a
+    # generic (e.g. a closure type F) does not appear in the equal-fn's
+    # argument types — without it Verus reports E0283 at the neq assume.
+    equal_call = (
+        f"{det_spec.equal_fn_name}{getattr(det_spec, 'equal_fn_turbofish', '')}"
+        f"({', '.join(eq_args)})"
+    )
 
     body = _render_body(schemas, equal_call)
     if proof_prelude is not None and proof_prelude.strip():

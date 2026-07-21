@@ -1,0 +1,23 @@
+{
+  "module": "cell",
+  "function": "put",
+  "source_line": 188,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188",
+  "status": "verus_error",
+  "requires": [
+    "old(perm)@ == pcell_points![ self.id() => MemContents::Uninit ]"
+  ],
+  "ensures": [
+    "final(perm)@ == pcell_points![ self.id() => MemContents::Init(v) ]"
+  ],
+  "det_function": "det_put",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 1,
+  "verus_ms": 597,
+  "stderr_tail": "xperiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:26:110\n   |\n26 | ..._pre_perm__addr___rng_lo && (pre_perm).addr() as int <= k__pre_perm__addr___rng_hi); }\n   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:29:55\n   |\n29 |     if g__post1_perm__addr___eq { assume((post1_perm).addr() as int == k__post1_perm__addr___eq); }\n   |                                                       ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:30:56\n   |\n30 |     if g__post1_perm__addr___rng { assume((post1_perm).addr() as int >= k__post1_perm__addr___rng_lo && (post1_perm).addr() as int <...\n   |                                                        ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:30:118\n   |\n30 | ...t1_perm__addr___rng_lo && (post1_perm).addr() as int <= k__post1_perm__addr___rng_hi); }\n   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:33:55\n   |\n33 |     if g__post2_perm__addr___eq { assume((post2_perm).addr() as int == k__post2_perm__addr___eq); }\n   |                                                       ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:34:56\n   |\n34 |     if g__post2_perm__addr___rng { assume((post2_perm).addr() as int >= k__post2_perm__addr___rng_lo && (post2_perm).addr() as int <...\n   |                                                        ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__put__L188/harness.rs:34:118\n   |\n34 | ...t2_perm__addr___rng_lo && (post2_perm).addr() as int <= k__post2_perm__addr___rng_hi); }\n   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror: aborting due to 9 previous errors; 3 warnings emitted\n\nFor more information about this error, try `rustc --explain E0599`.\n",
+  "wall_ms": 652
+}

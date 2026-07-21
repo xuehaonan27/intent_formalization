@@ -1,0 +1,101 @@
+{
+  "function": "get",
+  "det_check_template": "proof fn det_get<Key, Value, 'a>(self_: &HashMapWithView<Key, Value>, k: &Key, r1: Option<&'a Value>, r2: Option<&'a Value>)\n    where Key: View + Eq + Hash\n    ensures\n        ({\n            &&& (match r1 {\n                Some(v) => self_@.contains_key(k@) && *v == self_@[k@],\n                None => !self_@.contains_key(k@),\n            })\n            &&& (match r2 {\n                Some(v) => self_@.contains_key(k@) && *v == self_@[k@],\n                None => !self_@.contains_key(k@),\n            })\n        }) ==> det_get_equal::<Value>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "k",
+      "type": {
+        "kind": "unknown",
+        "name": "Key"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<&'a Value>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Value"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Value"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<&'a Value>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "Value"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Value"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_get_equal<Value, 'a>(r1: Option<&'a Value>, r2: Option<&'a Value>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n}",
+  "equal_fn_name": "det_get_equal",
+  "equal_fn_turbofish": "::<Value>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_get",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Key, Value, 'a>",
+  "where_decl": "where Key: View + Eq + Hash",
+  "self_type": "HashMapWithView<Key, Value>",
+  "opened_closed_specs": []
+}

@@ -1,0 +1,29 @@
+{
+  "module": "raw_ptr",
+  "function": "cast_ptr_to_usize",
+  "source_line": 560,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__cast_ptr_to_usize__L560",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result == spec_cast_ptr_to_usize(ptr)"
+  ],
+  "det_function": "det_cast_ptr_to_usize",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 0,
+  "verus_ms": 652,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__cast_ptr_to_usize__L560/verus_log/root.smt2",
+  "smt2_bytes": 97501,
+  "ctx_ms": 28,
+  "search_ms": 26,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 760
+}

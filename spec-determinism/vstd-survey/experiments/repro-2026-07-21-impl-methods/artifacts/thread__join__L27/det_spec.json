@@ -1,0 +1,108 @@
+{
+  "function": "join",
+  "det_check_template": "proof fn det_join<Ret>(self_: JoinHandle<Ret>, r1: Result<Ret, ()>, r2: Result<Ret, ()>)\n    ensures\n        ({\n            &&& (match r1 {\n                Result::Ok(r) => self_.predicate(r),\n                Result::Err(_) => true,\n            })\n            &&& (match r2 {\n                Result::Ok(r) => self_.predicate(r),\n                Result::Err(_) => true,\n            })\n        }) ==> det_join_equal::<Ret>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "JoinHandle<Ret>",
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Result",
+        "name": "Result<Ret, ()>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "Ret"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "()",
+              "name": "()"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Ret"
+          },
+          {
+            "kind": "()",
+            "name": "()"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Result",
+        "name": "Result<Ret, ()>",
+        "variants": [
+          {
+            "name": "Ok",
+            "inner": {
+              "kind": "unknown",
+              "name": "Ret"
+            }
+          },
+          {
+            "name": "Err",
+            "inner": {
+              "kind": "()",
+              "name": "()"
+            }
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Ret"
+          },
+          {
+            "kind": "()",
+            "name": "()"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_join_equal<Ret>(r1: Result<Ret, ()>, r2: Result<Ret, ()>) -> bool {\n    (((r1 is Ok) == (r2 is Ok)) && ((r1 is Ok) ==> (r1->Ok_0 == r2->Ok_0)))\n}",
+  "equal_fn_name": "det_join_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_join",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Ret>",
+  "where_decl": "",
+  "self_type": "JoinHandle<Ret>",
+  "opened_closed_specs": []
+}

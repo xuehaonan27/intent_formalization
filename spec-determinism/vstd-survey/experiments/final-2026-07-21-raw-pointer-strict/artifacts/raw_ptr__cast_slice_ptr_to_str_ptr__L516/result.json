@@ -1,0 +1,29 @@
+{
+  "module": "raw_ptr",
+  "function": "cast_slice_ptr_to_str_ptr",
+  "source_line": 516,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_str_ptr__L516",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result == spec_cast_slice_ptr_to_str_ptr::<T>(ptr)"
+  ],
+  "det_function": "det_cast_slice_ptr_to_str_ptr",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 608,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_str_ptr__L516/verus_log/root.smt2",
+  "smt2_bytes": 103471,
+  "ctx_ms": 20,
+  "search_ms": 15,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 706
+}

@@ -1,0 +1,120 @@
+{
+  "function": "empty",
+  "det_check_template": "proof fn det_empty<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), r2: (PCell<V>, Tracked<PointsTo<V>>))\n    ensures\n        ({\n            &&& (r1.1@@ == pcell_points![ r1.0.id() => MemContents::Uninit ])\n            &&& (r2.1@@ == pcell_points![ r2.0.id() => MemContents::Uninit ])\n        }) ==> det_empty_equal::<V>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "r1",
+      "type": {
+        "kind": "struct",
+        "name": "(PCell<V>, Tracked<PointsTo<V>>)",
+        "fields": [
+          {
+            "name": "0",
+            "type": {
+              "kind": "unknown",
+              "name": "PCell<V>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "V"
+                }
+              ],
+              "is_opaque": true
+            }
+          },
+          {
+            "name": "1",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<PointsTo<V>>",
+              "type_args": [
+                {
+                  "kind": "PointsTo",
+                  "name": "PointsTo<V>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "V"
+                    }
+                  ],
+                  "is_opaque": true
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "struct",
+        "name": "(PCell<V>, Tracked<PointsTo<V>>)",
+        "fields": [
+          {
+            "name": "0",
+            "type": {
+              "kind": "unknown",
+              "name": "PCell<V>",
+              "type_args": [
+                {
+                  "kind": "unknown",
+                  "name": "V"
+                }
+              ],
+              "is_opaque": true
+            }
+          },
+          {
+            "name": "1",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<PointsTo<V>>",
+              "type_args": [
+                {
+                  "kind": "PointsTo",
+                  "name": "PointsTo<V>",
+                  "type_args": [
+                    {
+                      "kind": "unknown",
+                      "name": "V"
+                    }
+                  ],
+                  "is_opaque": true
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_empty_equal<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), r2: (PCell<V>, Tracked<PointsTo<V>>)) -> bool {\n    ((r1.0 == r2.0) && ((((r1.1)@).is_init() == ((r2.1)@).is_init()) && (((r1.1)@).ptr().addr() == ((r2.1)@).ptr().addr()) && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))))\n}",
+  "equal_fn_name": "det_empty_equal",
+  "equal_fn_turbofish": "::<V>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_empty",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V>",
+  "where_decl": "",
+  "self_type": "PCell<V>",
+  "opened_closed_specs": []
+}

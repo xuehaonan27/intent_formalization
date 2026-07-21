@@ -1,0 +1,29 @@
+{
+  "module": "hash_set",
+  "function": "new",
+  "source_line": 195,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/hash_set.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/hash_set__new__L195",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result@ == Set::<Seq<char>>::empty()"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 692,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/hash_set__new__L195/verus_log/root.smt2",
+  "smt2_bytes": 79124,
+  "ctx_ms": 18,
+  "search_ms": 13,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 756
+}

@@ -1,0 +1,47 @@
+{
+  "function": "layout_for_type_is_valid",
+  "det_check_template": "proof fn det_layout_for_type_is_valid<V>(r1: (), r2: ())\n    ensures\n        ({\n            &&& (valid_layout(size_of::<V>() as usize, align_of::<V>() as usize))\n            &&& (size_of::<V>() as usize as nat == size_of::<V>())\n            &&& (align_of::<V>() as usize as nat == align_of::<V>())\n            &&& (align_of::<V>() != 0)\n            &&& (size_of::<V>() % align_of::<V>() == 0)\n            &&& (valid_layout(size_of::<V>() as usize, align_of::<V>() as usize))\n            &&& (size_of::<V>() as usize as nat == size_of::<V>())\n            &&& (align_of::<V>() as usize as nat == align_of::<V>())\n            &&& (align_of::<V>() != 0)\n            &&& (size_of::<V>() % align_of::<V>() == 0)\n        }) ==> det_layout_for_type_is_valid_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_layout_for_type_is_valid_equal(r1: (), r2: ()) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_layout_for_type_is_valid_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_layout_for_type_is_valid",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

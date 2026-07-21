@@ -1,0 +1,23 @@
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-fixup-impl/artifacts/cell__put__L188/harness.rs:16:49
+   |
+16 |     requires (pre_perm@ == pcell_points![ self_.id() => MemContents::Uninit ]),
+   |                                                 ^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-fixup-impl/artifacts/cell__put__L188/harness.rs:19:54
+   |
+19 |             &&& (post1_perm@ == pcell_points![ self_.id() => MemContents::Init(v) ])
+   |                                                      ^^
+
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-fixup-impl/artifacts/cell__put__L188/harness.rs:20:54
+   |
+20 |             &&& (post2_perm@ == pcell_points![ self_.id() => MemContents::Init(v) ])
+   |                                                      ^^
+
+note: verifying root module (selected functions)
+
+warning: 3 warnings emitted

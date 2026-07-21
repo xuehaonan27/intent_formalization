@@ -1,0 +1,57 @@
+{
+  "function": "from_addr",
+  "det_check_template": "proof fn det_from_addr<V>(u: usize, r1: PPtr<V>, r2: PPtr<V>)\n    ensures\n        ({\n            &&& (u == r1.addr())\n            &&& (u == r2.addr())\n        }) ==> det_from_addr_equal::<V>(r1, r2),\n{\n    reveal(PointsTo::addr);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "u",
+      "type": {
+        "kind": "usize",
+        "name": "usize"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "PPtr<V>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "PPtr<V>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_from_addr_equal<V>(r1: PPtr<V>, r2: PPtr<V>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_from_addr_equal",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_from_addr",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V>",
+  "where_decl": "",
+  "self_type": "PPtr<V>",
+  "opened_closed_specs": [
+    "addr"
+  ]
+}

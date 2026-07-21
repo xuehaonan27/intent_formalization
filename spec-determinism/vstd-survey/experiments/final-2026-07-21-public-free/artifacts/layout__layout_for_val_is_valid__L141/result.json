@@ -1,0 +1,33 @@
+{
+  "module": "layout",
+  "function": "layout_for_val_is_valid",
+  "source_line": 141,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/layout.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/layout__layout_for_val_is_valid__L141",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "valid_layout(spec_size_of_val::<V>(val@) as usize, spec_align_of_val::<V>(val@) as usize)",
+    "spec_size_of_val::<V>(val@) as usize as nat == spec_size_of_val::<V>(val@)",
+    "spec_align_of_val::<V>(val@) as usize as nat == spec_align_of_val::<V>(val@)",
+    "spec_align_of_val::<V>(val@) != 0",
+    "spec_size_of_val::<V>(val@) % spec_align_of_val::<V>(val@) == 0"
+  ],
+  "det_function": "det_layout_for_val_is_valid",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 587,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/layout__layout_for_val_is_valid__L141/verus_log/root.smt2",
+  "smt2_bytes": 55651,
+  "ctx_ms": 17,
+  "search_ms": 11,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 651
+}

@@ -1,0 +1,32 @@
+{
+  "module": "raw_ptr",
+  "function": "ptr_mut_write",
+  "source_line": 579,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579",
+  "status": "ok",
+  "requires": [
+    "old(perm).ptr() == ptr"
+  ],
+  "ensures": [
+    "final(perm).ptr() == ptr",
+    "final(perm).opt_value() == MemContents::Init(v)"
+  ],
+  "det_function": "det_ptr_mut_write",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 653,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/verus_log/root.smt2",
+  "smt2_bytes": 138766,
+  "ctx_ms": 21,
+  "search_ms": 222,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 1023
+}

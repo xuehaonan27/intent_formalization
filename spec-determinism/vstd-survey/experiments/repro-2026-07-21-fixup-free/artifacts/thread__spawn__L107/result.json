@@ -1,0 +1,33 @@
+{
+  "module": "thread",
+  "function": "spawn",
+  "source_line": 107,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/thread.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/thread__spawn__L107",
+  "status": "ok",
+  "requires": [
+    "f.requires(())"
+  ],
+  "ensures": [
+    "forall|ret: Ret| #[trigger] handle.predicate(ret) ==> f.ensures((), ret)"
+  ],
+  "det_function": "det_spawn",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 357,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/thread__spawn__L107/verus_log/root.smt2",
+  "smt2_bytes": 63135,
+  "ctx_ms": 19,
+  "search_ms": 17,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_spawn_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 412
+}

@@ -54,6 +54,13 @@ EXTRA_IMPORTS = {
     "hash_set": ["std::hash::Hash", "vstd::std_specs::hash::*"],
 }
 
+# May-2026 vstd snapshot compat (version gate, see HANDOFF §6): the schema
+# layer emits ``PointsTo::addr()`` — the current-vstd API. May's
+# ``cell::PointsTo`` and ``raw_ptr::PointsTo`` have no ``addr``; the address
+# lives at ``.ptr().addr()`` there. simple_pptr is NOT listed: its May
+# ``PointsTo`` already exposes ``addr()`` (simple_pptr.rs:226).
+_MAY_PTR_ADDR_MODULES = frozenset({"cell", "raw_ptr"})
+
 
 def module_file(vstd_root: Path, module: str) -> Path:
     relative = Path(*module.split("::"))
@@ -219,7 +226,12 @@ def run_target(
             equal_policy=equal_policy,
             view_registry=view_registry,
         )
-        schemas = enumerate_schemas(det_spec)
+        schemas = enumerate_schemas(
+            det_spec,
+            points_to_addr=(
+                "ptr().addr()" if module in _MAY_PTR_ADDR_MODULES else "addr()"
+            ),
+        )
         harness = build_harness(module, det_spec, schemas)
 
         (artifact_dir / "det_spec.json").write_text(det_spec.to_json())

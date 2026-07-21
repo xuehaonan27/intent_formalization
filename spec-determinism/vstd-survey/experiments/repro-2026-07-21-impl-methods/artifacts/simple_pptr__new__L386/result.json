@@ -1,0 +1,39 @@
+{
+  "module": "simple_pptr",
+  "function": "new",
+  "source_line": 386,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/simple_pptr.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/simple_pptr__new__L386",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "pt.1@.pptr() == pt.0",
+    "pt.1@.mem_contents() == MemContents::Init(v)"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "addr",
+    "mem_contents"
+  ],
+  "n_schemas": 9,
+  "n_params": 15,
+  "verus_returncode": 1,
+  "verus_ms": 957,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/simple_pptr__new__L386/verus_log/root.smt2",
+  "smt2_bytes": 93750,
+  "ctx_ms": 73,
+  "search_ms": 347,
+  "r0_z3": "unknown",
+  "n_rounds": 19,
+  "assumes": [
+    "((r1.1)@).is_init() == true",
+    "((r1.1)@).addr() == 0",
+    "((r2.1)@).is_init() == true",
+    "((r2.1)@).addr() == 1",
+    "!det_new_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 1489
+}

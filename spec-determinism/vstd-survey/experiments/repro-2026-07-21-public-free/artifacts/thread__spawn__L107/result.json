@@ -1,0 +1,23 @@
+{
+  "module": "thread",
+  "function": "spawn",
+  "source_line": 107,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/thread.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/thread__spawn__L107",
+  "status": "verus_error",
+  "requires": [
+    "f.requires(())"
+  ],
+  "ensures": [
+    "forall|ret: Ret| #[trigger] handle.predicate(ret) ==> f.ensures((), ret)"
+  ],
+  "det_function": "det_spawn",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 940,
+  "stderr_tail": "error[E0283]: type annotations needed\n  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/thread__spawn__L107/harness.rs:26:30\n   |\n26 |     if g_neq_tuple { assume(!det_spawn_equal(r1, r2)); }\n   |                              ^^^^^^^^^^^^^^^ cannot infer type of the type parameter `F` declared on the function `det_spawn_equal`\n   |\n   = note: cannot satisfy `_: FnOnce()`\nnote: required by a bound in `det_spawn_equal`\n  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/thread__spawn__L107/harness.rs:11:14\n   |\n10 | spec fn det_spawn_equal<F, Ret>(r1: JoinHandle<Ret>, r2: JoinHandle<Ret>) -> bool\n   |         --------------- required by a bound in this function\n11 |     where F: FnOnce() -> Ret, F: Send + 'static, Ret: Send + 'static {\n   |              ^^^^^^^^^^^^^^^ required by this bound in `det_spawn_equal`\nhelp: consider specifying the generic arguments\n   |\n26 |     if g_neq_tuple { assume(!det_spawn_equal::<F, Ret>(r1, r2)); }\n   |                                             ++++++++++\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0283`.\n",
+  "wall_ms": 1018
+}

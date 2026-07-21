@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "vstd_root": "/home/xuehaonan/nanvix/toolchain/verus/vstd",
+    "verus_root": "/home/xuehaonan/nanvix/toolchain/verus",
+    "verus_version": "0.2026.05.17.e479cce",
+    "verus_commit": "e479cce36490b8fa4b0fd7755aa742aec354372c",
+    "targets": [
+      "raw_ptr:ptr_mut_read@602",
+      "raw_ptr:ptr_mut_write@579",
+      "raw_ptr:ptr_ref2@1038",
+      "raw_ptr:ptr_ref@620",
+      "thread:spawn@107"
+    ],
+    "compare_raw_pointers": false,
+    "view_registry": true
+  },
+  "results": [
+    {
+      "module": "raw_ptr",
+      "function": "ptr_mut_read",
+      "source_line": 602,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+      "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_mut_read__L602",
+      "status": "ok",
+      "requires": [
+        "old(perm).ptr() == ptr",
+        "old(perm).is_init()"
+      ],
+      "ensures": [
+        "final(perm).ptr() == ptr",
+        "final(perm).is_uninit()",
+        "v == old(perm).value()"
+      ],
+      "det_function": "det_ptr_mut_read",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 0,
+      "verus_ms": 632,
+      "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_mut_read__L602/verus_log/root.smt2",
+      "smt2_bytes": 142422,
+      "ctx_ms": 25,
+      "search_ms": 181,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 911
+    },
+    {
+      "module": "raw_ptr",
+      "function": "ptr_mut_write",
+      "source_line": 579,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+      "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_mut_write__L579",
+      "status": "ok",
+      "requires": [
+        "old(perm).ptr() == ptr"
+      ],
+      "ensures": [
+        "final(perm).ptr() == ptr",
+        "final(perm).opt_value() == MemContents::Init(v)"
+      ],
+      "det_function": "det_ptr_mut_write",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 0,
+      "verus_ms": 699,
+      "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_mut_write__L579/verus_log/root.smt2",
+      "smt2_bytes": 138765,
+      "ctx_ms": 23,
+      "search_ms": 179,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 981
+    },
+    {
+      "module": "raw_ptr",
+      "function": "ptr_ref2",
+      "source_line": 1038,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+      "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_ref2__L1038",
+      "status": "ok",
+      "requires": [
+        "perm.ptr() == ptr",
+        "perm.is_init()"
+      ],
+      "ensures": [
+        "v.value() == perm.value()",
+        "v.ptr().addr() == ptr.addr()",
+        "v.ptr()@.metadata == ptr@.metadata"
+      ],
+      "det_function": "det_ptr_ref2",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 1,
+      "verus_ms": 423,
+      "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_ref2__L1038/verus_log/root.smt2",
+      "smt2_bytes": 137670,
+      "ctx_ms": 20,
+      "search_ms": 30,
+      "r0_z3": "unknown",
+      "n_rounds": 6,
+      "assumes": [
+        "(perm).is_init() == true",
+        "!det_ptr_ref2_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 575
+    },
+    {
+      "module": "raw_ptr",
+      "function": "ptr_ref",
+      "source_line": 620,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+      "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_ref__L620",
+      "status": "ok",
+      "requires": [
+        "perm.ptr() == ptr",
+        "perm.is_init()"
+      ],
+      "ensures": [
+        "v == perm.value()"
+      ],
+      "det_function": "det_ptr_ref",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 0,
+      "verus_ms": 603,
+      "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/raw_ptr__ptr_ref__L620/verus_log/root.smt2",
+      "smt2_bytes": 122281,
+      "ctx_ms": 20,
+      "search_ms": 18,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 723
+    },
+    {
+      "module": "thread",
+      "function": "spawn",
+      "source_line": 107,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/thread.rs",
+      "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/thread__spawn__L107",
+      "status": "ok",
+      "requires": [
+        "f.requires(())"
+      ],
+      "ensures": [
+        "forall|ret: Ret| #[trigger] handle.predicate(ret) ==> f.ensures((), ret)"
+      ],
+      "det_function": "det_spawn",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 357,
+      "smt2": "vstd-survey/experiments/repro-2026-07-21-fixup-free/artifacts/thread__spawn__L107/verus_log/root.smt2",
+      "smt2_bytes": 63135,
+      "ctx_ms": 19,
+      "search_ms": 17,
+      "r0_z3": "unknown",
+      "n_rounds": 2,
+      "assumes": [
+        "!det_spawn_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 412
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "module": "hash_set",
+  "function": "remove",
+  "source_line": 118,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/hash_set.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/hash_set__remove__L118",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "final(self)@ == old(self)@.remove(k@) && result == old(self)@.contains(k@)"
+  ],
+  "det_function": "det_remove",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 0,
+  "verus_ms": 1362,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/hash_set__remove__L118/verus_log/root.smt2",
+  "smt2_bytes": 85980,
+  "ctx_ms": 29,
+  "search_ms": 41,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 1512
+}

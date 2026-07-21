@@ -1,0 +1,70 @@
+{
+  "function": "spawn",
+  "det_check_template": "proof fn det_spawn<F, Ret>(f: F, r1: JoinHandle<Ret>, r2: JoinHandle<Ret>)\n    where F: FnOnce() -> Ret,\n    F: Send + 'static,\n    Ret: Send + 'static,\n    requires (f.requires(())),\n    ensures\n        ({\n            &&& (forall|ret: Ret| #[trigger] r1.predicate(ret) ==> f.ensures((), ret))\n            &&& (forall|ret: Ret| #[trigger] r2.predicate(ret) ==> f.ensures((), ret))\n        }) ==> det_spawn_equal::<F, Ret>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "f",
+      "type": {
+        "kind": "unknown",
+        "name": "F"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "JoinHandle<Ret>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Ret"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "JoinHandle<Ret>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "Ret"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_spawn_equal<F, Ret>(r1: JoinHandle<Ret>, r2: JoinHandle<Ret>) -> bool\n    where F: FnOnce() -> Ret, F: Send + 'static, Ret: Send + 'static {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_spawn_equal",
+  "equal_fn_turbofish": "::<F, Ret>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_spawn",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<F, Ret>",
+  "where_decl": "where F: FnOnce() -> Ret,\n    F: Send + 'static,\n    Ret: Send + 'static,",
+  "self_type": null,
+  "opened_closed_specs": []
+}

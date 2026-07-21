@@ -178,3 +178,5 @@ swanlog/
 generated_predictions.jsonl
 predictions_score.json
 independent_evaluation/generation_scripts/openai/
+# Verus runner build artifact (compiled harness binary, recreated per run)
+spec-determinism/harness

@@ -1,0 +1,22 @@
+error[E0283]: type annotations needed
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/thread__spawn__L107/harness.rs:26:30
+   |
+26 |     if g_neq_tuple { assume(!det_spawn_equal(r1, r2)); }
+   |                              ^^^^^^^^^^^^^^^ cannot infer type of the type parameter `F` declared on the function `det_spawn_equal`
+   |
+   = note: cannot satisfy `_: FnOnce()`
+note: required by a bound in `det_spawn_equal`
+  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/thread__spawn__L107/harness.rs:11:14
+   |
+10 | spec fn det_spawn_equal<F, Ret>(r1: JoinHandle<Ret>, r2: JoinHandle<Ret>) -> bool
+   |         --------------- required by a bound in this function
+11 |     where F: FnOnce() -> Ret, F: Send + 'static, Ret: Send + 'static {
+   |              ^^^^^^^^^^^^^^^ required by this bound in `det_spawn_equal`
+help: consider specifying the generic arguments
+   |
+26 |     if g_neq_tuple { assume(!det_spawn_equal::<F, Ret>(r1, r2)); }
+   |                                             ++++++++++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0283`.

@@ -1,0 +1,21 @@
+{
+  "module": "cell",
+  "function": "empty",
+  "source_line": 168,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168",
+  "status": "verus_error",
+  "requires": [],
+  "ensures": [
+    "pt.1@@ == pcell_points![ pt.0.id() => MemContents::Uninit ]"
+  ],
+  "det_function": "det_empty",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 9,
+  "n_params": 15,
+  "verus_returncode": 1,
+  "verus_ms": 1075,
+  "stderr_tail": "cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:18:48\n   |\n18 |             &&& (r2.1@@ == pcell_points![ r2.0.id() => MemContents::Uninit ])\n   |                                                ^^\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:23:49\n   |\n23 |     if g___r1_1____addr___eq { assume(((r1.1)@).addr() as int == k___r1_1____addr___eq); }\n   |                                                 ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:24:50\n   |\n24 |     if g___r1_1____addr___rng { assume(((r1.1)@).addr() as int >= k___r1_1____addr___rng_lo && ((r1.1)@).addr() as int <= k___r1_1__...\n   |                                                  ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:24:106\n   |\n24 | ...k___r1_1____addr___rng_lo && ((r1.1)@).addr() as int <= k___r1_1____addr___rng_hi); }\n   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:27:49\n   |\n27 |     if g___r2_1____addr___eq { assume(((r2.1)@).addr() as int == k___r2_1____addr___eq); }\n   |                                                 ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:28:50\n   |\n28 |     if g___r2_1____addr___rng { assume(((r2.1)@).addr() as int >= k___r2_1____addr___rng_lo && ((r2.1)@).addr() as int <= k___r2_1__...\n   |                                                  ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__empty__L168/harness.rs:28:106\n   |\n28 | ...k___r2_1____addr___rng_lo && ((r2.1)@).addr() as int <= k___r2_1____addr___rng_hi); }\n   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`\n\nerror: aborting due to 6 previous errors; 2 warnings emitted\n\nFor more information about this error, try `rustc --explain E0599`.\n",
+  "wall_ms": 1131
+}

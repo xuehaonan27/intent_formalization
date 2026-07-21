@@ -1,0 +1,18 @@
+note: verifying root module (selected functions)
+
+error: postcondition not satisfied
+  --> vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__allocate__L908/harness.rs:34:9
+   |
+34 | /         ({
+35 | |             &&& (r1.1@.is_range(r1.0.addr() as int, size as int))
+36 | |             &&& (r1.0.addr() + size <= usize::MAX + 1)
+37 | |             &&& (r1.2@@ == (DeallocData {
+...  |
+54 | |             &&& (r2.0@.provenance == r2.1@.provenance())
+55 | |         }) ==> det_allocate_equal(r1, r2),
+   | |_________________________________________^ failed this postcondition
+...
+61 |       if g_neq_tuple { assume(!det_allocate_equal(r1, r2)); }
+   |       ------------------------------------------------------- at the end of the function body
+
+error: aborting due to 1 previous error

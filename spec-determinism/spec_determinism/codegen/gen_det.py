@@ -695,8 +695,9 @@ def _build_template(
     equal_call_generics, _ = _prune_generics(
         equal_fn_generics, spec.where_decl, equal_param_decls_for_prune
     )
+    equal_turbofish = _generic_call_turbofish(equal_call_generics)
     conclusion = (
-        f"{equal_fn_name}{_generic_call_turbofish(equal_call_generics)}"
+        f"{equal_fn_name}{equal_turbofish}"
         f"({', '.join(call_args_flat)})"
     )
     equal_fn_def = _build_equal_fn(
@@ -735,7 +736,7 @@ def _build_template(
     if spec.self_type:
         code = _substitute_self_type(code, spec.self_type)
 
-    return code, equal_fn_def, equal_fn_name, equal_call_args
+    return code, equal_fn_def, equal_fn_name, equal_turbofish, equal_call_args
 
 
 # ---------------------------------------------------------------------------
@@ -821,7 +822,7 @@ def build_det_check_spec(
         opened_names = sorted(qual_map.keys())
         reveal_specs = [qual_map[n] for n in opened_names]
 
-    template, equal_fn_def, equal_fn_name, equal_call_args = _build_template(
+    template, equal_fn_def, equal_fn_name, equal_turbofish, equal_call_args = _build_template(
         spec, check_name, equal_policy, view_registry=view_registry,
         reveal_specs=reveal_specs,
     )
@@ -835,6 +836,7 @@ def build_det_check_spec(
         verus_config=verus_config or {},
         equal_fn_def=equal_fn_def,
         equal_fn_name=equal_fn_name,
+        equal_fn_turbofish=equal_turbofish,
         check_fn_name=check_fn_name,
         equal_policy=equal_policy.to_dict(),
         # callsite form: includes `@` for view-wrapped compound outputs.

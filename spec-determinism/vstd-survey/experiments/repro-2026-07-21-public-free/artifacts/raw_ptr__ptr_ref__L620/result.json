@@ -1,0 +1,24 @@
+{
+  "module": "raw_ptr",
+  "function": "ptr_ref",
+  "source_line": 620,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620",
+  "status": "verus_error",
+  "requires": [
+    "perm.ptr() == ptr",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "v == perm.value()"
+  ],
+  "det_function": "det_ptr_ref",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 8,
+  "verus_returncode": 1,
+  "verus_ms": 924,
+  "stderr_tail": "error[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620/harness.rs:25:43\n   |\n25 |     if g__perm__addr___eq { assume((perm).addr() as int == k__perm__addr___eq); }\n   |                                           ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`\n\nerror[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620/harness.rs:26:44\n   |\n26 |     if g__perm__addr___rng { assume((perm).addr() as int >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi...\n   |                                            ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`\n\nerror[E0599]: no method named `addr` found for reference `&vstd::raw_ptr::PointsTo<T>` in the current scope\n  --> vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620/harness.rs:26:94\n   |\n26 | ... >= k__perm__addr___rng_lo && (perm).addr() as int <= k__perm__addr___rng_hi); }\n   |                                         ^^^^ method not found in `&vstd::raw_ptr::PointsTo<T>`\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0599`.\n",
+  "wall_ms": 1090
+}

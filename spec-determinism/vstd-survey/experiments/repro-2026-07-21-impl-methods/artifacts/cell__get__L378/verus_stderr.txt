@@ -1,0 +1,29 @@
+warning: use of deprecated method `vstd::cell::InvCell::<T>::inv`: use `vstd::cell::invcell::InvCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__get__L378/harness.rs:17:24
+   |
+17 |             &&& (self_.inv(r1))
+   |                        ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `vstd::cell::InvCell::<T>::inv`: use `vstd::cell::invcell::InvCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__get__L378/harness.rs:18:24
+   |
+18 |             &&& (self_.inv(r2))
+   |                        ^^^
+
+note: verifying root module (selected functions)
+
+error: postcondition not satisfied
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__get__L378/harness.rs:16:9
+   |
+16 | /         ({
+17 | |             &&& (self_.inv(r1))
+18 | |             &&& (self_.inv(r2))
+19 | |         }) ==> det_get_equal::<T>(r1, r2),
+   | |_________________________________________^ failed this postcondition
+20 |   {
+21 |       if g_neq_tuple { assume(!det_get_equal(r1, r2)); }
+   |       -------------------------------------------------- at the end of the function body
+
+error: aborting due to 1 previous error; 2 warnings emitted

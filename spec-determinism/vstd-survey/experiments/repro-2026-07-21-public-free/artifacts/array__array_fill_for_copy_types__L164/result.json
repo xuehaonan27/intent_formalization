@@ -1,0 +1,29 @@
+{
+  "module": "array",
+  "function": "array_fill_for_copy_types",
+  "source_line": 164,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/array.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/array__array_fill_for_copy_types__L164",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "res == spec_array_fill_for_copy_type::<T, N>(t)"
+  ],
+  "det_function": "det_array_fill_for_copy_types",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 0,
+  "verus_ms": 1497,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/array__array_fill_for_copy_types__L164/verus_log/root.smt2",
+  "smt2_bytes": 137731,
+  "ctx_ms": 46,
+  "search_ms": 47,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 1607
+}

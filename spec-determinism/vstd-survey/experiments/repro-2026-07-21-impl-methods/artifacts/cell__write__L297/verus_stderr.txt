@@ -1,0 +1,65 @@
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:16:21
+   |
+16 |     requires (self_.id() == pre_perm@.pcell), (pre_perm.is_init()),
+   |                     ^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:27:51
+   |
+27 |     if g__pre_perm__addr___eq { assume((pre_perm).addr() as int == k__pre_perm__addr___eq); }
+   |                                                   ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:28:52
+   |
+28 |     if g__pre_perm__addr___rng { assume((pre_perm).addr() as int >= k__pre_perm__addr___rng_lo && (pre_perm).addr() as int <= k__pre...
+   |                                                    ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:28:110
+   |
+28 | ..._pre_perm__addr___rng_lo && (pre_perm).addr() as int <= k__pre_perm__addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:31:55
+   |
+31 |     if g__post1_perm__addr___eq { assume((post1_perm).addr() as int == k__post1_perm__addr___eq); }
+   |                                                       ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:32:56
+   |
+32 |     if g__post1_perm__addr___rng { assume((post1_perm).addr() as int >= k__post1_perm__addr___rng_lo && (post1_perm).addr() as int <...
+   |                                                        ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:32:118
+   |
+32 | ...t1_perm__addr___rng_lo && (post1_perm).addr() as int <= k__post1_perm__addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:35:55
+   |
+35 |     if g__post2_perm__addr___eq { assume((post2_perm).addr() as int == k__post2_perm__addr___eq); }
+   |                                                       ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:36:56
+   |
+36 |     if g__post2_perm__addr___rng { assume((post2_perm).addr() as int >= k__post2_perm__addr___rng_lo && (post2_perm).addr() as int <...
+   |                                                        ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error[E0599]: no method named `addr` found for struct `vstd::cell::PointsTo<V>` in the current scope
+  --> vstd-survey/experiments/repro-2026-07-21-impl-methods/artifacts/cell__write__L297/harness.rs:36:118
+   |
+36 | ...t2_perm__addr___rng_lo && (post2_perm).addr() as int <= k__post2_perm__addr___rng_hi); }
+   |                                           ^^^^ method not found in `vstd::cell::PointsTo<V>`
+
+error: aborting due to 9 previous errors; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0599`.

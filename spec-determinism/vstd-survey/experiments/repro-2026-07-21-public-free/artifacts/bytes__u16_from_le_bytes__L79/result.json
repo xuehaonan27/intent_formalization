@@ -1,0 +1,33 @@
+{
+  "module": "bytes",
+  "function": "u16_from_le_bytes",
+  "source_line": 79,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/bytes.rs",
+  "artifact_dir": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/bytes__u16_from_le_bytes__L79",
+  "status": "ok",
+  "requires": [
+    "s@.len() == 2"
+  ],
+  "ensures": [
+    "x == spec_u16_from_le_bytes(s@)"
+  ],
+  "det_function": "det_u16_from_le_bytes",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "spec_u16_from_le_bytes"
+  ],
+  "n_schemas": 23,
+  "n_params": 56,
+  "verus_returncode": 0,
+  "verus_ms": 1423,
+  "smt2": "vstd-survey/experiments/repro-2026-07-21-public-free/artifacts/bytes__u16_from_le_bytes__L79/verus_log/root.smt2",
+  "smt2_bytes": 128311,
+  "ctx_ms": 40,
+  "search_ms": 715,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 2223
+}

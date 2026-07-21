@@ -1,0 +1,29 @@
+{
+  "module": "raw_ptr",
+  "function": "expose_provenance",
+  "source_line": 731,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__expose_provenance__L731",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "provenance@@ == m@.provenance"
+  ],
+  "det_function": "det_expose_provenance",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 624,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/raw_ptr__expose_provenance__L731/verus_log/root.smt2",
+  "smt2_bytes": 96913,
+  "ctx_ms": 29,
+  "search_ms": 24,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 749
+}

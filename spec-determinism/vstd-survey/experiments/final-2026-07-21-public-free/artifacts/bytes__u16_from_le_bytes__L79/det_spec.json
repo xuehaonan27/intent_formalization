@@ -1,0 +1,64 @@
+{
+  "function": "u16_from_le_bytes",
+  "det_check_template": "proof fn det_u16_from_le_bytes(s: &[u8], r1: u16, r2: u16)\n    requires (s@.len() == 2),\n    ensures\n        ({\n            &&& (r1 == spec_u16_from_le_bytes(s@))\n            &&& (r2 == spec_u16_from_le_bytes(s@))\n        }) ==> det_u16_from_le_bytes_equal(r1, r2),\n{\n    reveal(spec_u16_from_le_bytes);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "s",
+      "type": {
+        "kind": "Seq",
+        "name": "[u8]",
+        "type_args": [
+          {
+            "kind": "u8",
+            "name": "u8"
+          }
+        ]
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "u16",
+        "name": "u16"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "u16",
+        "name": "u16"
+      },
+      "phase": "output_simple"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_u16_from_le_bytes_equal(r1: u16, r2: u16) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_u16_from_le_bytes_equal",
+  "equal_fn_turbofish": "",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_u16_from_le_bytes",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": [
+    "spec_u16_from_le_bytes"
+  ]
+}

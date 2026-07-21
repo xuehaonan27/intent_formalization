@@ -1,0 +1,11 @@
+warning: use of deprecated method `vstd::cell::PCell::<V>::id`: use `vstd::cell::pcell::PCell` or `vstd::cell::pcell_maybe_uninit::PCell` instead
+  --> vstd-survey/experiments/final-2026-07-21-impl-methods/artifacts/cell__replace__L223/harness.rs:16:21
+   |
+16 |     requires (self_.id() == pre_perm@.pcell), (pre_perm.is_init()),
+   |                     ^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+note: verifying root module (selected functions)
+
+warning: 1 warning emitted

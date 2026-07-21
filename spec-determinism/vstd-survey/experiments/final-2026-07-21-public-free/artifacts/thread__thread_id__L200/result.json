@@ -1,0 +1,31 @@
+{
+  "module": "thread",
+  "function": "thread_id",
+  "source_line": 200,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/thread.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/thread__thread_id__L200",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "res.1@@ == res.0"
+  ],
+  "det_function": "det_thread_id",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 375,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-public-free/artifacts/thread__thread_id__L200/verus_log/root.smt2",
+  "smt2_bytes": 59888,
+  "ctx_ms": 17,
+  "search_ms": 16,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_thread_id_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 429
+}

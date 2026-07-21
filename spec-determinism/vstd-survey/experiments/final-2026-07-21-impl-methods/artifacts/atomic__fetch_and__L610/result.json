@@ -1,0 +1,38 @@
+{
+  "module": "atomic",
+  "function": "fetch_and",
+  "source_line": 610,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/atomic.rs",
+  "artifact_dir": "vstd-survey/experiments/final-2026-07-21-impl-methods/artifacts/atomic__fetch_and__L610",
+  "status": "ok",
+  "requires": [
+    "equal(self.id(), old(perm).view().patomic)"
+  ],
+  "ensures": [
+    "equal(old(perm).view().value, ret)",
+    "final(perm).view().patomic == old(perm).view().patomic",
+    "final(perm).view().value@.addr == (old(perm).view().value@.addr & n)",
+    "final(perm).view().value@.provenance == old(perm).view().value@.provenance",
+    "final(perm).view().value@.metadata == old(perm).view().value@.metadata"
+  ],
+  "det_function": "det_fetch_and",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 3,
+  "n_params": 6,
+  "verus_returncode": 1,
+  "verus_ms": 427,
+  "smt2": "vstd-survey/experiments/final-2026-07-21-impl-methods/artifacts/atomic__fetch_and__L610/verus_log/root.smt2",
+  "smt2_bytes": 116953,
+  "ctx_ms": 28,
+  "search_ms": 41,
+  "r0_z3": "unknown",
+  "n_rounds": 8,
+  "assumes": [
+    "n == 0",
+    "!det_fetch_and_equal(r1, r2, post1_perm, post2_perm)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 578
+}
