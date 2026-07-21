@@ -48,13 +48,13 @@ The deprecated `vstd::cell::InvCell` was tested; the replacement
 ### Main repository
 
 ```text
-/home/chentianyu/intent_formalization
+/home/xuehaonan/intent_formalization
 ```
 
 Project directory:
 
 ```text
-/home/chentianyu/intent_formalization/spec-determinism
+/home/xuehaonan/intent_formalization/spec-determinism
 ```
 
 The worktree was already heavily modified before this vstd work. Do not assume
@@ -62,16 +62,13 @@ that the entire diff of `gen_det.py` or `extractor.py` belongs to this effort.
 The vstd-specific additions are described in this document and covered by
 targeted self-tests.
 
-At handoff time, the entire `spec-determinism/vstd-survey/` directory is still
-untracked (`?? vstd-survey/`). A reset, clean checkout, or environment loss
-would remove the handoff, scripts, summaries, and artifacts. Before destructive
-git operations, preserve the directory and decide what to commit. A reasonable
-split is:
-
-- commit `HANDOFF.md`, `README.md`, the two Python scripts, generated CSV/JSON
-  summaries, and selected review documents;
-- do not blindly commit all raw `verus_log/` artifacts until a large-artifact
-  storage policy is chosen.
+At the original handoff, the entire `spec-determinism/vstd-survey/` directory was
+still untracked (`?? vstd-survey/`). It has since been committed on the current
+machine (`86127792 Add vstd determinism survey and experiments`), and the
+documented paths have been migrated from `/home/chentianyu` to
+`/home/xuehaonan`. The remaining storage concern is the large raw `verus_log/`
+artifacts: do not blindly commit regenerated run logs until a large-artifact
+storage policy is chosen.
 
 ### Current upstream Verus source
 
@@ -98,7 +95,7 @@ This source is used by the latest inventory report.
 The determinism experiments use:
 
 ```text
-/home/chentianyu/nanvix/toolchain/verus
+/home/xuehaonan/nanvix/toolchain/verus
 ```
 
 Version:
@@ -112,14 +109,14 @@ toolchain 1.95.0-x86_64-unknown-linux-gnu
 Matching vstd source:
 
 ```text
-/home/chentianyu/nanvix/toolchain/verus/vstd
+/home/xuehaonan/nanvix/toolchain/verus/vstd
 ```
 
 The experiments deliberately use this older source because source and compiled
 vstd metadata must match. `~/verus` is newer and currently has no matching
 built Verus/vstd bundle.
 
-Do not use `/home/chentianyu/intent_formalization/verus` for these experiments:
+Do not use `/home/xuehaonan/intent_formalization/verus` for these experiments:
 that bundle is missing required proc-macro shared libraries and cannot import
 its bundled `libvstd.rlib` successfully.
 
@@ -163,6 +160,7 @@ Core conceptual references:
 
 ```text
 vstd-survey/
+├── TUTORIAL.md                        # newcomer tutorial: what this research does and why
 ├── HANDOFF.md                         # this document
 ├── README.md                          # inventory/big-picture report
 ├── scan_vstd.py                       # source-level inventory scanner
@@ -183,6 +181,8 @@ vstd-survey/
 
 Primary reading order:
 
+0. [TUTORIAL.md](TUTORIAL.md) if you are new to the research (concepts,
+   method, results, open problems — in Chinese);
 1. this handoff;
 2. [README.md](README.md) for the module inventory and broad vstd structure;
 3. [experiment review](experiments/REVIEW-2026-07-14.md);
@@ -610,14 +610,14 @@ summaries and selected failing/interesting harnesses are much smaller.
 Run from:
 
 ```bash
-cd /home/chentianyu/intent_formalization/spec-determinism
+cd /home/xuehaonan/intent_formalization/spec-determinism
 ```
 
 ### Current-upstream inventory
 
 ```bash
 python vstd-survey/scan_vstd.py \
-  --vstd-root /home/chentianyu/verus/source/vstd \
+  --vstd-root /home/xuehaonan/verus/source/vstd \
   --commit cf3b5c3fb937b9effa9478d4735b49743d8646eb \
   --snapshot-date 2026-07-13 \
   --source verus-lang/verus:source/vstd \
@@ -630,7 +630,7 @@ Remember that this regenerates the partial, alias-blind inventory.
 
 ```bash
 python vstd-survey/scan_vstd.py \
-  --vstd-root /home/chentianyu/nanvix/toolchain/verus/vstd \
+  --vstd-root /home/xuehaonan/nanvix/toolchain/verus/vstd \
   --commit e479cce36490b8fa4b0fd7755aa742aec354372c \
   --snapshot-date 2026-05-17 \
   --source local-matching-vstd \
@@ -642,8 +642,8 @@ python vstd-survey/scan_vstd.py \
 
 ```bash
 python vstd-survey/run_determinism.py \
-  --vstd-root /home/chentianyu/nanvix/toolchain/verus/vstd \
-  --verus-root /home/chentianyu/nanvix/toolchain/verus \
+  --vstd-root /home/xuehaonan/nanvix/toolchain/verus/vstd \
+  --verus-root /home/xuehaonan/nanvix/toolchain/verus \
   --out /tmp/vstd-one \
   --target hash_map:insert@106 \
   --timeout 240 \
@@ -654,8 +654,8 @@ python vstd-survey/run_determinism.py \
 
 ```bash
 python vstd-survey/run_determinism.py \
-  --vstd-root /home/chentianyu/nanvix/toolchain/verus/vstd \
-  --verus-root /home/chentianyu/nanvix/toolchain/verus \
+  --vstd-root /home/xuehaonan/nanvix/toolchain/verus/vstd \
+  --verus-root /home/xuehaonan/nanvix/toolchain/verus \
   --out vstd-survey/experiments/public-free-2026-07-14 \
   --targets-csv vstd-survey/experiments/public-free-2026-07-14/inventory/exec_functions.csv \
   --public-free-post \
@@ -667,8 +667,8 @@ python vstd-survey/run_determinism.py \
 
 ```bash
 python vstd-survey/run_determinism.py \
-  --vstd-root /home/chentianyu/nanvix/toolchain/verus/vstd \
-  --verus-root /home/chentianyu/nanvix/toolchain/verus \
+  --vstd-root /home/xuehaonan/nanvix/toolchain/verus/vstd \
+  --verus-root /home/xuehaonan/nanvix/toolchain/verus \
   --out vstd-survey/experiments/impl-methods-2026-07-14 \
   --targets-csv vstd-survey/experiments/public-free-2026-07-14/inventory/exec_functions.csv \
   --public-impl-post \
@@ -748,6 +748,9 @@ std_specs/vec.rs
 
 ### P1 — build current upstream Verus/vstd
 
+**DONE 2026-07-21 (see §15.1).** Remaining work in this item is only to
+validate the runner end-to-end on the July snapshot. Original text:
+
 Build a matching toolchain for `~/verus@cf3b5c3` and stop mixing the July
 inventory with the May experiment snapshot.
 
@@ -823,3 +826,120 @@ Before publishing numbers:
 3. separate automatic R0 results from manual semantic audit;
 4. do not call `unknown` incomplete or complete;
 5. do not claim the 111-target set is the full vstd.
+
+## 15. Environment status and immediate next steps (2026-07-21)
+
+Machine transfer: the project moved from `/home/chentianyu` to
+`/home/xuehaonan`. All live documentation and scripts reference the new paths;
+historical run artifacts (`result.json`, caches, logs) intentionally keep the
+old paths as provenance.
+
+Provisioned on this machine:
+
+- `~/verus` clone at `cf3b5c3fb937b9effa9478d4735b49743d8646eb` (inventory
+  source);
+- `~/nanvix/toolchain/verus`: official release `0.2026.05.17.e479cce`
+  (matching May snapshot; includes the proc-macro shared libraries that the
+  repo-local `verus/` bundle lacks);
+- rustup toolchain `1.95.0-x86_64-unknown-linux-gnu` (required by the release
+  `verus` shim);
+- conda env `specdet` (Python 3.11) with this package installed via
+  `pip install -e .`;
+- `tree-sitter-verus` **0.23.2**, installed from
+  `git+https://github.com/secure-foundations/tree-sitter-verus.git`. The
+  inventory numbers in this document and README were generated with 0.21.0,
+  which is no longer resolvable from any package index. Self-tests, the
+  direct Verus/vstd check, and both smoke targets pass on 0.23.2, but
+  regenerating inventories will likely change parse-error counts (expected:
+  fewer).
+
+Grammar drift measured 2026-07-21 (dry-run scan of `~/verus/source/vstd@cf3b5c3`
+with 0.23.2, `--no-report`, output discarded): parse-recovery modules
+54 → **49** (`atomic`, `invariant`, `state_machine_internal`,
+`std_specs::result`, `vstd` fixed; no regressions); exec bodies 220 → 222
+(`pervasive` +1, `state_machine_internal` +1); contract sites 515, spec sites
+3,367 and the 111 public-post target set are unchanged.
+
+Using the provisioned environment:
+
+- run every Python command in §11 and §14 with `/opt/conda/envs/specdet/bin/python`
+  (or `conda activate specdet` first) — the system `python3` lacks the
+  dependencies;
+- the July toolchain builds from source with
+  `cd ~/verus/source && ../tools/activate && vargo build --release`; its
+  verifier binary is `~/verus/source/target-verus/release/verus`.
+
+Verified after provisioning (takeover checklist §14):
+
+- `python -m spec_determinism.extract.extractor test` — pass;
+- `python -m spec_determinism.codegen.gen_det test` — pass;
+- direct `verus` on a vstd-importing file — `2 verified, 0 errors`;
+- `bytes:u16_from_le_bytes@79` — `ok r0=unsat class=complete`;
+- `hash_map:insert@106` — `ok r0=unsat class=complete`.
+
+Immediate next-step options (2026-07-21, in priority order):
+
+1. **P0 coverage fix with the new grammar.** Teach the scanner/extractor to
+   parse `verus_!` aliases (or normalize them to `verus!` before parsing),
+   then regenerate both inventories (current-upstream `cf3b5c3` and the
+   matching May snapshot) with tree-sitter-verus 0.23.2. Expect parse-recovery
+   counts to drop; update the README numbers and re-derive the experiment
+   target set.
+2. **Full-machine reproduction.** **DONE 2026-07-21** — see §15.2.
+3. **P1 July toolchain build.** **DONE 2026-07-21** — see §15.1.
+
+### 15.1 July toolchain (P1) — built
+
+`~/verus` (cf3b5c3) was built from source:
+`cd ~/verus/source && ../tools/activate && vargo build --release`
+(rustup toolchain 1.96.0 per `~/verus/rust-toolchain.toml`, Z3 4.12.5 via
+`source/tools/get-z3.sh`). Result:
+
+- verifier: `~/verus/source/target-verus/release/verus`
+- version: `0.2026.07.13.cf3b5c3`, toolchain 1.96.0;
+- build log: `vstd` itself verified (`2010 verified, 0 errors`);
+  `../examples/vectors.rs` `9 verified, 0 errors`; a vstd-importing probe
+  `2 verified, 0 errors`.
+
+To run experiments on the July snapshot, point the runner at
+`--verus-root ~/verus/source/target-verus/release` and
+`--vstd-root ~/verus/source/vstd` (not yet validated end-to-end).
+
+### 15.2 Full-machine reproduction and snapshot-compat fixes
+
+Full 111+6 rerun against the May snapshot (outputs in
+`experiments/repro-2026-07-21-*`):
+
+- 104/117 targets reproduced the documented verdicts exactly.
+- 13 targets failed with `verus_error` (8× deprecated `cell`, 4× `raw_ptr`,
+  1× `thread::spawn`). Root causes were **snapshot/code drift**, not the
+  grammar version:
+  - **RC1 (12 targets):** the schema layer's `POINTS_TO` branch emits
+    `(pt).addr()` — the July-vstd API. The May snapshot has no `addr` on
+    `cell::PointsTo`/`raw_ptr::PointsTo`; the address lives at
+    `.ptr().addr()`. (May `simple_pptr::PointsTo` *does* have `addr()`,
+    which is why its 13 targets were unaffected.) Fix:
+    `enumerate_schemas(..., points_to_addr=)` version gate
+    (`schemas.py::_POINTS_TO_ADDR_EXPR`); the runner passes
+    `"ptr().addr()"` for modules `{cell, raw_ptr}`
+    (`_MAY_PTR_ADDR_MODULES`), restoring the old behaviour including the
+    existing `.id()`/`.pptr()` rewrites.
+  - **RC2 (1 target):** the `g_neq_tuple` assume line rendered the equal-fn
+    call without its turbofish, so `thread::spawn` — whose `F` generic
+    never appears in the equal-fn argument types — failed with E0283.
+    Fix: `DetCheckSpec.equal_fn_turbofish`, populated by `gen_det` next to
+    `equal_fn_name`, consumed by `render_guarded_template`.
+- After the fixes all 13 targets compile and reproduce the documented
+  verdicts (`experiments/repro-2026-07-21-fixup-*`, 13/13 match).
+- Final clean full rerun under the fixed code:
+  `experiments/final-2026-07-21-*` — **0/117 per-target diffs** against the
+  documented baseline (public-free 21 complete + 6 trivial-equality +
+  5 unknown + 2 unsupported; impl-methods 60 complete + 15 unknown +
+  2 unsupported; strict-pointer 6 complete). The effective 87/20/4/0 split
+  transfers to this machine unchanged.
+
+Grammar availability note: the old `tree-sitter-verus 0.21.0` is
+unobtainable — in `secure-foundations/tree-sitter-verus` the 0.21.x line is
+still upstream `tree-sitter-rust` (zero Verus keywords in `grammar.js`); the
+Verus grammar only exists in the 0.23.x line. 0.23.2 is therefore the pinned
+grammar, and with the two fixes above the documented verdicts reproduce.

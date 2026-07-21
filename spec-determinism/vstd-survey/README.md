@@ -3,7 +3,8 @@
 本目录给出 Verus `vstd` 的 module 级规范全景，并保留可重复运行的扫描器与结构化数据。
 
 接手本工作的首要入口是 [`HANDOFF.md`](HANDOFF.md)。其中包含方法、代码改动、
-实验结果、已知覆盖缺口、复现命令和下一步优先级。
+实验结果、已知覆盖缺口、复现命令和下一步优先级。如果你刚接触这个 research，
+建议先读 [`TUTORIAL.md`](TUTORIAL.md)——从问题动机到当前结论的教学式讲解。
 
 当前快照：
 
@@ -220,6 +221,7 @@ contract site 最多的稳定 module：
 
 ## 目录内容
 
+- `TUTORIAL.md`：教学文档——这个 research 在解决什么问题、方法、结果与下一步（新人先读这里）；
 - `README.md`：唯一的阅读文档，包含总体说明和全部 125 个 module 的逐项表格；
 - `generated/inventory.json`：完整结构化 inventory；
 - `generated/modules.csv`：每个 module 一行；
