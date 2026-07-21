@@ -1,4 +1,4 @@
-#!/home/chentianyu/miniconda3/bin/python3
+#!/usr/bin/env python3
 """
 Step 1: Extract executable functions from all baseline-valid VeruSage files.
 

@@ -1,4 +1,4 @@
-#!/home/chentianyu/miniconda3/bin/python3
+#!/usr/bin/env python3
 """
 Step 3: Formalize natural-language negative properties into Verus proof functions.
 

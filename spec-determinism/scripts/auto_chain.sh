@@ -5,13 +5,13 @@
 # because it polls by name, not by PID.
 set -u
 
-LOG_DIR=/home/chentianyu/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/auto_chain_logs
+LOG_DIR=/home/xuehaonan/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/auto_chain_logs
 mkdir -p "$LOG_DIR"
 GLOBAL_LOG="$LOG_DIR/_chain.log"
 
 log() { echo "[$(date -Is)] $*" | tee -a "$GLOBAL_LOG"; }
 
-cd /home/chentianyu/intent_formalization/spec-determinism
+cd /home/xuehaonan/intent_formalization/spec-determinism
 
 log "auto-chain start: waiting for any 'spec_determinism.view.llm prefill' to finish"
 while pgrep -f "spec_determinism.view.llm prefill" > /dev/null 2>&1; do

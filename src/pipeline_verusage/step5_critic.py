@@ -1,4 +1,4 @@
-#!/home/chentianyu/miniconda3/bin/python3
+#!/usr/bin/env python3
 """
 Step 4: Critic — filter verified φ into true/false positives.
 

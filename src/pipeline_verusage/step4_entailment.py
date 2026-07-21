@@ -1,4 +1,4 @@
-#!/home/chentianyu/miniconda3/bin/python3
+#!/usr/bin/env python3
 """
 Step 3: Run Verus entailment check on each candidate φ.
 

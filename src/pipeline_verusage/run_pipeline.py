@@ -1,4 +1,4 @@
-#!/home/chentianyu/miniconda3/bin/python3
+#!/usr/bin/env python3
 """
 Pipeline runner — run all tasks with task-level parallelism.
 

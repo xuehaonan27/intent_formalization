@@ -88,7 +88,7 @@ from spec_determinism.classify import (
 )
 
 SRC = Path(
-    "/home/chentianyu/intent_formalization/verusage/source-projects/"
+    "/home/xuehaonan/intent_formalization/verusage/source-projects/"
     "atmosphere/verified/allocator/"
     "allocator__page_allocator_spec_impl__impl2__remove_mapping_4k_helper2.rs"
 )

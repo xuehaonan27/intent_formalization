@@ -16,7 +16,7 @@ import json, sys, shutil, subprocess, tempfile, time, random, itertools
 from pathlib import Path
 from collections import defaultdict
 
-ROOT = Path("/home/chentianyu/intent_formalization")
+ROOT = Path("/home/xuehaonan/intent_formalization")
 sys.path.insert(0, str(ROOT / "spec-determinism"))
 
 from spec_determinism.extract.types import DetCheckSpec

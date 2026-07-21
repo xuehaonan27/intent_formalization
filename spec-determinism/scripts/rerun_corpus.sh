@@ -5,14 +5,14 @@
 # baseline (results-verusage/) without clobbering it.
 set -u
 
-cd /home/chentianyu/intent_formalization/spec-determinism
+cd /home/xuehaonan/intent_formalization/spec-determinism
 
-ROOTS=/home/chentianyu/intent_formalization/verusage/source-projects
+ROOTS=/home/xuehaonan/intent_formalization/verusage/source-projects
 BASELINE=results-verusage
 OUT=results-verusage-viewreg
 VIEW_CACHE=$BASELINE/view_registry
 
-LOG_DIR=/home/chentianyu/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/corpus_rerun_logs
+LOG_DIR=/home/xuehaonan/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/corpus_rerun_logs
 mkdir -p "$LOG_DIR"
 
 mkdir -p "$OUT"

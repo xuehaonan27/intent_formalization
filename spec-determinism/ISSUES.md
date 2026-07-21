@@ -321,7 +321,7 @@ target referenced them. Quarantining is preventive cleanup.
 
 **Mass-quarantine command (executed):**
 ```sh
-cd /home/chentianyu/intent_formalization/spec-determinism
+cd /home/xuehaonan/intent_formalization/spec-determinism
 for q in \
   "ironkv/HashMap" \
   "ironkv/ReceiveResult" \

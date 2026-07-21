@@ -4,9 +4,9 @@
 # globally rate-limited.
 set -u
 
-cd /home/chentianyu/intent_formalization/spec-determinism
+cd /home/xuehaonan/intent_formalization/spec-determinism
 
-LOG_DIR=/home/chentianyu/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/prefill_logs
+LOG_DIR=/home/xuehaonan/.copilot/session-state/7214e2c5-243b-424d-a1db-cc2f2b274210/files/prefill_logs
 mkdir -p "$LOG_DIR"
 
 ROOT=../verusage/source-projects
