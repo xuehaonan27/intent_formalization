@@ -1,0 +1,34 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "borrow",
+  "source_line": 175,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__borrow__L175",
+  "status": "ok",
+  "requires": [
+    "self.id() == perm.id()",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "*v == perm.value()"
+  ],
+  "det_function": "det_borrow",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "mem_contents"
+  ],
+  "n_schemas": 5,
+  "n_params": 8,
+  "verus_returncode": 0,
+  "verus_ms": 591,
+  "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__borrow__L175/verus_log/root.smt2",
+  "smt2_bytes": 68237,
+  "ctx_ms": 22,
+  "search_ms": 16,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 654
+}

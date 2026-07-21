@@ -1,0 +1,66 @@
+{
+  "function": "new",
+  "det_check_template": "proof fn det_new<T, Pred: Predicate<T>>(val: T, pred: Pred, r1: InvCell<T, Pred>, r2: InvCell<T, Pred>)\n    requires (pred.predicate(val)),\n    ensures\n        ({\n            &&& (r1.predicate() == pred)\n            &&& (r2.predicate() == pred)\n        }) ==> det_new_equal::<T, Pred>(r1, r2),\n{\n    reveal(InvCell::predicate);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "val",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pred",
+      "type": {
+        "kind": "unknown",
+        "name": "Pred"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "InvCell<T, Pred>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "InvCell<T, Pred>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_new_equal<T, Pred: Predicate<T>>(r1: InvCell<T, Pred>, r2: InvCell<T, Pred>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_new_equal",
+  "equal_fn_turbofish": "::<T, Pred>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_new",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T, Pred: Predicate<T>>",
+  "where_decl": "",
+  "self_type": "InvCell<T, Pred>",
+  "opened_closed_specs": [
+    "predicate"
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "function": "index_set",
+  "det_check_template": "proof fn det_index_set<T, Idx, E>(pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_container: T, r2: ())\n    where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n        Idx,\n    >\n    requires (pre_container.spec_index_set_requires(index)),\n    ensures\n        ({\n            &&& (pre_container.spec_index_set_ensures(post1_container, index, val))\n            &&& (pre_container.spec_index_set_ensures(post2_container, index, val))\n        }) ==> det_index_set_equal::<T, Idx, E>(r1, r2, post1_container, post2_container),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_container",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "index",
+      "type": {
+        "kind": "unknown",
+        "name": "Idx"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "val",
+      "type": {
+        "kind": "unknown",
+        "name": "E"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_container",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_container",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_index_set_equal<T, Idx, E>(r1: (), r2: (), post1_container: T, post2_container: T) -> bool\n    where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n        Idx,\n    > {\n    (r1 == r2)\n    && (post1_container == post2_container)\n}",
+  "equal_fn_name": "det_index_set_equal",
+  "equal_fn_turbofish": "::<T, Idx, E>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_container",
+      "rhs": "post2_container"
+    }
+  ],
+  "check_fn_name": "det_index_set",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T, Idx, E>",
+  "where_decl": "where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n        Idx,\n    >,",
+  "self_type": null,
+  "opened_closed_specs": []
+}

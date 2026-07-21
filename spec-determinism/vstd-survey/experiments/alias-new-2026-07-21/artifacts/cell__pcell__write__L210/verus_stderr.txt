@@ -1,0 +1,17 @@
+error: unexpected closing delimiter: `}`
+  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__write__L210/harness.rs:14:1
+   |
+ 7 | verus! {
+   |        - the nearest open delimiter
+...
+11 |     where T: Sized {
+   |                    - the nearest open delimiter
+12 |     (r1 == r2)
+13 |     && ((true) == (true)) && ((post1_perm).id() == (post2_perm).id()) && (true) ==> ((post1_perm).value() == (post2_perm).value())))
+   |                                                                                                                                   -- missing open `(` for this delimiter
+   |                                                                                                                                   |
+   |                                                                                                                                   missing open `(` for this delimiter
+14 | }
+   | ^ unexpected closing delimiter
+
+error: aborting due to 1 previous error

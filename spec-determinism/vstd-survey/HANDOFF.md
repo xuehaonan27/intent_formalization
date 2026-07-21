@@ -173,10 +173,15 @@ vstd-survey/
 └── experiments/
     ├── REVIEW-2026-07-14.md           # combined experiment review
     ├── UNKNOWN-AUDIT-2026-07-15.md    # semantic audit of original 27 unknowns
+    ├── ALIAS-NEW-REVIEW-2026-07-21.md # review of the 26 alias-module targets (P0 follow-up)
     ├── pilot-2026-07-14/              # initial array/bytes pilot
     ├── public-free-2026-07-14/        # 34 public free definitions
     ├── raw-pointer-strict-2026-07-14/ # strict equality rerun for 6 pointer APIs
-    └── impl-methods-2026-07-14/       # 77 line-qualified impl methods
+    ├── impl-methods-2026-07-14/       # 77 line-qualified impl methods
+    ├── inventory-may-2026-07-21/      # regenerated May inventory (target set 137)
+    ├── repro-2026-07-21-*/fixup-*     # machine reproduction evidence (see §15.2)
+    ├── final-2026-07-21-*/            # clean 111+6 baseline on this machine
+    └── alias-new(-fixup)-2026-07-21/  # the 26 newly visible alias-module targets
 ```
 
 Primary reading order:
@@ -800,6 +805,13 @@ choose one:
 
 The same review must be repeated for the non-deprecated
 `cell::invcell::InvCell`, which has the same `inv(result)` contract shape.
+
+**Review repeated 2026-07-21** (see
+[ALIAS-NEW-REVIEW-2026-07-21.md](experiments/ALIAS-NEW-REVIEW-2026-07-21.md)):
+`cell::invcell::InvCell::{replace, get, into_inner}` are all genuinely
+underconstrained (C-class, same `inv(result)` shape); `new` is A-class under
+invariant-predicate quotient equality, same as the deprecated version. The
+three options above therefore apply unchanged.
 
 ### P5 — add structured audit annotations
 

@@ -1,0 +1,117 @@
+{
+  "function": "next",
+  "det_check_template": "proof fn det_next<'a, I: Iterator>(pre_self_: VerusForLoopWrapper<'a, I>, post1_self_: VerusForLoopWrapper<'a, I>, r1: Option<I::Item>, post2_self_: VerusForLoopWrapper<'a, I>, r2: Option<I::Item>)\n    requires (pre_self_.wf()),\n    ensures\n        ({\n            &&& (post1_self_.seq() == pre_self_.seq())\n            &&& (post1_self_.index() == pre_self_.index() + if r1 is Some { 1int } else { 0 })\n            &&& (post1_self_.snapshot == pre_self_.snapshot)\n            &&& (post1_self_.init == pre_self_.init)\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() ==> post1_self_.wf())\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() && r1 is None ==>\n                post1_self_.snapshot@.will_return_none() && post1_self_.index() == post1_self_.seq().len())\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() ==> (r1 matches Some(r_1) ==>\n                r_1 == pre_self_.seq()[pre_self_.index()]))\n            &&& (r1 matches Some(i_1) ==> post1_self_.history@ == pre_self_.history@.push(i_1))\n            &&& (r1 is None ==> post1_self_.history@ == pre_self_.history@)\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() == pre_self_.iter.obeys_prophetic_iter_laws())\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() ==> post1_self_.iter.will_return_none() == pre_self_.iter.will_return_none())\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() ==> (pre_self_.iter.decrease() is Some <==> post1_self_.iter.decrease() is Some))\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() ==>\n            ({\n                if pre_self_.iter.remaining().len() > 0 {\n                    &&& post1_self_.iter.remaining() == pre_self_.iter.remaining().drop_first()\n                    &&& r1 == Some(pre_self_.iter.remaining()[0])\n                } else {\n                    post1_self_.iter.remaining() == pre_self_.iter.remaining() && r1 == None && post1_self_.iter.will_return_none()\n                }\n            }))\n            &&& (post1_self_.iter.obeys_prophetic_iter_laws() && pre_self_.iter.remaining().len() > 0 && post1_self_.iter.decrease() is Some ==>\n                decreases_to!(pre_self_.iter.decrease()->0 => post1_self_.iter.decrease()->0))\n            &&& (post2_self_.seq() == pre_self_.seq())\n            &&& (post2_self_.index() == pre_self_.index() + if r2 is Some { 1int } else { 0 })\n            &&& (post2_self_.snapshot == pre_self_.snapshot)\n            &&& (post2_self_.init == pre_self_.init)\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() ==> post2_self_.wf())\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() && r2 is None ==>\n                post2_self_.snapshot@.will_return_none() && post2_self_.index() == post2_self_.seq().len())\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() ==> (r2 matches Some(r_2) ==>\n                r_2 == pre_self_.seq()[pre_self_.index()]))\n            &&& (r2 matches Some(i_2) ==> post2_self_.history@ == pre_self_.history@.push(i_2))\n            &&& (r2 is None ==> post2_self_.history@ == pre_self_.history@)\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() == pre_self_.iter.obeys_prophetic_iter_laws())\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() ==> post2_self_.iter.will_return_none() == pre_self_.iter.will_return_none())\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() ==> (pre_self_.iter.decrease() is Some <==> post2_self_.iter.decrease() is Some))\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() ==>\n            ({\n                if pre_self_.iter.remaining().len() > 0 {\n                    &&& post2_self_.iter.remaining() == pre_self_.iter.remaining().drop_first()\n                    &&& r2 == Some(pre_self_.iter.remaining()[0])\n                } else {\n                    post2_self_.iter.remaining() == pre_self_.iter.remaining() && r2 == None && post2_self_.iter.will_return_none()\n                }\n            }))\n            &&& (post2_self_.iter.obeys_prophetic_iter_laws() && pre_self_.iter.remaining().len() > 0 && post2_self_.iter.decrease() is Some ==>\n                decreases_to!(pre_self_.iter.decrease()->0 => post2_self_.iter.decrease()->0))\n        }) ==> det_next_equal::<I>(r1, r2, post1_self_, post2_self_),\n{\n    reveal(Rev::decrease);\n    reveal(Rev::remaining);\n    reveal(VerusForLoopWrapper::wf_inner);\n    reveal(Rev::will_return_none);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "VerusForLoopWrapper<'a, I>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "Option",
+        "name": "Option<I::Item>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "I::Item"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "I::Item"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "Option",
+        "name": "Option<I::Item>",
+        "variants": [
+          {
+            "name": "Some",
+            "inner": {
+              "kind": "unknown",
+              "name": "I::Item"
+            }
+          },
+          {
+            "name": "None"
+          }
+        ],
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "I::Item"
+          }
+        ]
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "VerusForLoopWrapper<'a, I>"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "VerusForLoopWrapper<'a, I>"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_next_equal<'a, I: Iterator>(r1: Option<I::Item>, r2: Option<I::Item>, post1_self_: VerusForLoopWrapper<'a, I>, post2_self_: VerusForLoopWrapper<'a, I>) -> bool {\n    (((r1 is Some) == (r2 is Some)) && ((r1 is Some) ==> (r1->Some_0 == r2->Some_0)))\n    && (post1_self_ == post2_self_)\n}",
+  "equal_fn_name": "det_next_equal",
+  "equal_fn_turbofish": "::<I>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_next",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<'a, I: Iterator>",
+  "where_decl": "",
+  "self_type": "VerusForLoopWrapper<'a, I>",
+  "opened_closed_specs": [
+    "decrease",
+    "remaining",
+    "wf_inner",
+    "will_return_none"
+  ]
+}

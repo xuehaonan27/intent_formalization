@@ -1,0 +1,53 @@
+{
+  "module": "std_specs::iter",
+  "function": "next",
+  "source_line": 287,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/iter.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__next__L287",
+  "status": "ok",
+  "requires": [
+    "old(self).wf()"
+  ],
+  "ensures": [
+    "final(self).seq() == old(self).seq()",
+    "final(self).index() == old(self).index() + if ret is Some { 1int } else { 0 }",
+    "final(self).snapshot == old(self).snapshot",
+    "final(self).init == old(self).init",
+    "final(self).iter.obeys_prophetic_iter_laws() ==> final(self).wf()",
+    "final(self).iter.obeys_prophetic_iter_laws() && ret is None ==>\n                final(self).snapshot@.will_return_none() && final(self).index() == final(self).seq().len()",
+    "final(self).iter.obeys_prophetic_iter_laws() ==> (ret matches Some(r) ==>\n                r == old(self).seq()[old(self).index()])",
+    "ret matches Some(i) ==> final(self).history@ == old(self).history@.push(i)",
+    "ret is None ==> final(self).history@ == old(self).history@",
+    "final(self).iter.obeys_prophetic_iter_laws() == old(self).iter.obeys_prophetic_iter_laws()",
+    "final(self).iter.obeys_prophetic_iter_laws() ==> final(self).iter.will_return_none() == old(self).iter.will_return_none()",
+    "final(self).iter.obeys_prophetic_iter_laws() ==> (old(self).iter.decrease() is Some <==> final(self).iter.decrease() is Some)",
+    "final(self).iter.obeys_prophetic_iter_laws() ==>\n            ({\n                if old(self).iter.remaining().len() > 0 {\n                    &&& final(self).iter.remaining() == old(self).iter.remaining().drop_first()\n                    &&& ret == Some(old(self).iter.remaining()[0])\n                } else {\n                    final(self).iter.remaining() == old(self).iter.remaining() && ret == None && final(self).iter.will_return_none()\n                }\n            })",
+    "final(self).iter.obeys_prophetic_iter_laws() && old(self).iter.remaining().len() > 0 && final(self).iter.decrease() is Some ==>\n                decreases_to!(old(self).iter.decrease()->0 => final(self).iter.decrease()->0)"
+  ],
+  "det_function": "det_next",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "decrease",
+    "remaining",
+    "wf_inner",
+    "will_return_none"
+  ],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 1,
+  "verus_ms": 497,
+  "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__next__L287/verus_log/root.smt2",
+  "smt2_bytes": 257286,
+  "ctx_ms": 28,
+  "search_ms": 151,
+  "r0_z3": "unknown",
+  "n_rounds": 4,
+  "assumes": [
+    "r1 is Some",
+    "r2 is Some",
+    "!det_next_equal(r1, r2, post1_self_, post2_self_)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 740
+}

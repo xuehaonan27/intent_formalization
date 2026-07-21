@@ -1,0 +1,25 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "empty",
+  "source_line": 107,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107",
+  "status": "verus_error",
+  "requires": [],
+  "ensures": [
+    "pt.1@.id() == pt.0.id()",
+    "pt.1@.mem_contents() == MemContents::Uninit"
+  ],
+  "det_function": "det_empty",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "id",
+    "mem_contents"
+  ],
+  "n_schemas": 9,
+  "n_params": 15,
+  "verus_returncode": 1,
+  "verus_ms": 61,
+  "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:18:42\n   |\n18 |             &&& (r1.1@.mem_contents() == MemContents::Uninit)\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:20:42\n   |\n20 |             &&& (r2.1@.mem_contents() == MemContents::Uninit)\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+  "wall_ms": 76
+}

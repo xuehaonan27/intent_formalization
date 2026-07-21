@@ -1,0 +1,15 @@
+note: verifying root module (selected functions)
+
+error: postcondition not satisfied
+  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__get__L139/harness.rs:19:9
+   |
+19 | /         ({
+20 | |             &&& (self_.inv(r1))
+21 | |             &&& (self_.inv(r2))
+22 | |         }) ==> det_get_equal::<T>(r1, r2),
+   | |_________________________________________^ failed this postcondition
+23 |   {
+24 |       if g_neq_tuple { assume(!det_get_equal::<T>(r1, r2)); }
+   |       ------------------------------------------------------- at the end of the function body
+
+error: aborting due to 1 previous error

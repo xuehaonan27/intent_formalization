@@ -1,0 +1,16 @@
+error: unexpected closing delimiter: `}`
+  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow__L145/harness.rs:25:1
+   |
+22 |     if g__perm__is_init___is_true { assume(true) == true); }
+   |                                   -                     - missing open `(` for this delimiter
+   |                                   |
+   |                                   the nearest open delimiter
+23 |     if g__perm__is_init___is_false { assume(true) == false); }
+   |                                    -                      - missing open `(` for this delimiter
+   |                                    |
+   |                                    the nearest open delimiter
+24 |     if g_neq_tuple { assume(!det_borrow_equal::<T>(r1, r2)); }
+25 | }
+   | ^ unexpected closing delimiter
+
+error: aborting due to 1 previous error

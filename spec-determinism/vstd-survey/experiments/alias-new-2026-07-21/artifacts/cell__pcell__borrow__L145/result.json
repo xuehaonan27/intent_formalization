@@ -1,0 +1,23 @@
+{
+  "module": "cell::pcell",
+  "function": "borrow",
+  "source_line": 145,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow__L145",
+  "status": "verus_error",
+  "requires": [
+    "self.id() == perm.id()"
+  ],
+  "ensures": [
+    "v == perm.value()"
+  ],
+  "det_function": "det_borrow",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 8,
+  "verus_returncode": 1,
+  "verus_ms": 23,
+  "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow__L145/harness.rs:25:1\n   |\n22 |     if g__perm__is_init___is_true { assume(true) == true); }\n   |                                   -                     - missing open `(` for this delimiter\n   |                                   |\n   |                                   the nearest open delimiter\n23 |     if g__perm__is_init___is_false { assume(true) == false); }\n   |                                    -                      - missing open `(` for this delimiter\n   |                                    |\n   |                                    the nearest open delimiter\n24 |     if g_neq_tuple { assume(!det_borrow_equal::<T>(r1, r2)); }\n25 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+  "wall_ms": 38
+}

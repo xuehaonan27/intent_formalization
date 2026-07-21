@@ -1,0 +1,29 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "take",
+  "source_line": 141,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141",
+  "status": "verus_error",
+  "requires": [
+    "self.id() == old(perm).id()",
+    "old(perm).is_init()"
+  ],
+  "ensures": [
+    "final(perm).id() == old(perm).id()",
+    "final(perm).mem_contents() == MemContents::Uninit",
+    "out_v == old(perm).value()"
+  ],
+  "det_function": "det_take",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "id",
+    "mem_contents"
+  ],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 1,
+  "verus_ms": 75,
+  "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Uninit)\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141/harness.rs:23:47\n   |\n23 |             &&& (post2_perm.mem_contents() == MemContents::Uninit)\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+  "wall_ms": 93
+}

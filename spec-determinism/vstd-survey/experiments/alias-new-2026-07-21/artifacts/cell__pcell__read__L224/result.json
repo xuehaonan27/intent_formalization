@@ -1,0 +1,13 @@
+{
+  "module": "cell::pcell",
+  "function": "read",
+  "source_line": 224,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__read__L224",
+  "status": "no_ensures",
+  "requires": [
+    "self.id() == perm.id()"
+  ],
+  "ensures": [],
+  "wall_ms": 9
+}

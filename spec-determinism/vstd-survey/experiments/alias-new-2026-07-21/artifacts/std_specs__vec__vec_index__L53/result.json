@@ -1,0 +1,23 @@
+{
+  "module": "std_specs::vec",
+  "function": "vec_index",
+  "source_line": 53,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/vec.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__vec__vec_index__L53",
+  "status": "verus_error",
+  "requires": [
+    "i < vec.view().len()"
+  ],
+  "ensures": [
+    "*element == vec.view().index(i as int)"
+  ],
+  "det_function": "det_vec_index",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 1,
+  "verus_ms": 66,
+  "stderr_tail": "error[E0405]: cannot find trait `Allocator` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__vec__vec_index__L53/harness.rs:14:30\n   |\n14 | proof fn det_vec_index<T, A: Allocator>(g_vec_leneq: bool, k_vec_leneq: nat, g_vec_lenrng: bool, k_vec_lenrng_lo: nat, k_vec_lenrng_...\n   |                              ^^^^^^^^^ not found in this scope\n   |\nhelp: consider importing one of these traits\n   |\n 3 + use std::alloc::Allocator;\n   |\n 3 + use alloc::alloc::Allocator;\n   |\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0405`.\n",
+  "wall_ms": 133
+}

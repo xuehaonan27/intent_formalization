@@ -1,0 +1,40 @@
+{
+  "module": "std_specs::iter",
+  "function": "new",
+  "source_line": 264,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/iter.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__new__L264",
+  "status": "ok",
+  "requires": [
+    "init@ matches Some(i) ==> iter.initial_value_relation(i)"
+  ],
+  "ensures": [
+    "s.index == 0",
+    "s.snapshot == iter",
+    "s.init == init",
+    "s.iter == iter",
+    "s.history@ == Seq::<I::Item>::empty()",
+    "s.wf()"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "remaining",
+    "wf_inner",
+    "will_return_none"
+  ],
+  "n_schemas": 3,
+  "n_params": 3,
+  "verus_returncode": 0,
+  "verus_ms": 563,
+  "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__new__L264/verus_log/root.smt2",
+  "smt2_bytes": 100428,
+  "ctx_ms": 18,
+  "search_ms": 14,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 647
+}

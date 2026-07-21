@@ -1,0 +1,759 @@
+{
+  "metadata": {
+    "vstd_root": "/home/xuehaonan/nanvix/toolchain/verus/vstd",
+    "verus_root": "/home/xuehaonan/nanvix/toolchain/verus",
+    "verus_version": "0.2026.05.17.e479cce",
+    "verus_commit": "e479cce36490b8fa4b0fd7755aa742aec354372c",
+    "targets": [
+      "cell::invcell:new@105",
+      "cell::invcell:replace@123",
+      "cell::invcell:get@139",
+      "cell::invcell:into_inner@155",
+      "cell::pcell:new@132",
+      "cell::pcell:borrow@145",
+      "cell::pcell:borrow_mut@159",
+      "cell::pcell:into_inner@175",
+      "cell::pcell:replace@193",
+      "cell::pcell:write@210",
+      "cell::pcell:read@224",
+      "cell::pcell_maybe_uninit:empty@107",
+      "cell::pcell_maybe_uninit:new@117",
+      "cell::pcell_maybe_uninit:put@127",
+      "cell::pcell_maybe_uninit:take@141",
+      "cell::pcell_maybe_uninit:replace@158",
+      "cell::pcell_maybe_uninit:borrow@175",
+      "cell::pcell_maybe_uninit:borrow_mut@190",
+      "cell::pcell_maybe_uninit:into_inner@207",
+      "cell::pcell_maybe_uninit:write@221",
+      "cell::pcell_maybe_uninit:read@234",
+      "std_specs::core:index_set@215",
+      "std_specs::iter:new@264",
+      "std_specs::iter:next@287",
+      "std_specs::vec:vec_index@53",
+      "std_specs::vec:vec_index_mut@67"
+    ],
+    "compare_raw_pointers": false,
+    "view_registry": true
+  },
+  "results": [
+    {
+      "module": "cell::invcell",
+      "function": "new",
+      "source_line": 105,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/invcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__new__L105",
+      "status": "ok",
+      "requires": [
+        "pred.predicate(val)"
+      ],
+      "ensures": [
+        "cell.predicate() == pred"
+      ],
+      "det_function": "det_new",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "predicate"
+      ],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 373,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__new__L105/verus_log/root.smt2",
+      "smt2_bytes": 55386,
+      "ctx_ms": 21,
+      "search_ms": 16,
+      "r0_z3": "unknown",
+      "n_rounds": 2,
+      "assumes": [
+        "!det_new_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 423
+    },
+    {
+      "module": "cell::invcell",
+      "function": "replace",
+      "source_line": 123,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/invcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__replace__L123",
+      "status": "ok",
+      "requires": [
+        "self.inv(val)"
+      ],
+      "ensures": [
+        "self.inv(old_val)"
+      ],
+      "det_function": "det_replace",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "inv",
+        "predicate"
+      ],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 349,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__replace__L123/verus_log/root.smt2",
+      "smt2_bytes": 56215,
+      "ctx_ms": 19,
+      "search_ms": 14,
+      "r0_z3": "unknown",
+      "n_rounds": 2,
+      "assumes": [
+        "!det_replace_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 396
+    },
+    {
+      "module": "cell::invcell",
+      "function": "get",
+      "source_line": 139,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/invcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__get__L139",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "self.inv(val)"
+      ],
+      "det_function": "det_get",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "inv",
+        "predicate"
+      ],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 352,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__get__L139/verus_log/root.smt2",
+      "smt2_bytes": 59830,
+      "ctx_ms": 17,
+      "search_ms": 15,
+      "r0_z3": "unknown",
+      "n_rounds": 2,
+      "assumes": [
+        "!det_get_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 395
+    },
+    {
+      "module": "cell::invcell",
+      "function": "into_inner",
+      "source_line": 155,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/invcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__into_inner__L155",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "self.inv(val)"
+      ],
+      "det_function": "det_into_inner",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "inv",
+        "predicate"
+      ],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 350,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__invcell__into_inner__L155/verus_log/root.smt2",
+      "smt2_bytes": 55261,
+      "ctx_ms": 17,
+      "search_ms": 14,
+      "r0_z3": "unknown",
+      "n_rounds": 2,
+      "assumes": [
+        "!det_into_inner_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 393
+    },
+    {
+      "module": "cell::pcell",
+      "function": "new",
+      "source_line": 132,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__new__L132",
+      "status": "ok",
+      "requires": [],
+      "ensures": [
+        "pt.1@.id() == pt.0.id() && pt.1@.value() == v"
+      ],
+      "det_function": "det_new",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 9,
+      "n_params": 15,
+      "verus_returncode": 1,
+      "verus_ms": 362,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__new__L132/verus_log/root.smt2",
+      "smt2_bytes": 67094,
+      "ctx_ms": 17,
+      "search_ms": 18,
+      "r0_z3": "unknown",
+      "n_rounds": 10,
+      "assumes": [
+        "((r1.1)@).is_init() == true",
+        "((r2.1)@).is_init() == true",
+        "!det_new_equal(r1, r2)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 417
+    },
+    {
+      "module": "cell::pcell",
+      "function": "borrow",
+      "source_line": 145,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow__L145",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == perm.id()"
+      ],
+      "ensures": [
+        "v == perm.value()"
+      ],
+      "det_function": "det_borrow",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 1,
+      "verus_ms": 23,
+      "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow__L145/harness.rs:25:1\n   |\n22 |     if g__perm__is_init___is_true { assume(true) == true); }\n   |                                   -                     - missing open `(` for this delimiter\n   |                                   |\n   |                                   the nearest open delimiter\n23 |     if g__perm__is_init___is_false { assume(true) == false); }\n   |                                    -                      - missing open `(` for this delimiter\n   |                                    |\n   |                                    the nearest open delimiter\n24 |     if g_neq_tuple { assume(!det_borrow_equal::<T>(r1, r2)); }\n25 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+      "wall_ms": 38
+    },
+    {
+      "module": "cell::pcell",
+      "function": "borrow_mut",
+      "source_line": 159,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__borrow_mut__L159",
+      "status": "unsupported_mut_ref_return",
+      "requires": [
+        "self.id() == perm.id()"
+      ],
+      "ensures": [
+        "&*v == old(perm).value()",
+        "&*final(v) == final(perm).value()",
+        "final(perm).id() == self.id()"
+      ],
+      "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+      "wall_ms": 11
+    },
+    {
+      "module": "cell::pcell",
+      "function": "into_inner",
+      "source_line": 175,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__into_inner__L175",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == perm.id()"
+      ],
+      "ensures": [
+        "v == *perm.value()"
+      ],
+      "det_function": "det_into_inner",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 1,
+      "verus_ms": 22,
+      "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__into_inner__L175/harness.rs:27:1\n   |\n24 |     if g__perm__is_init___is_true { assume(true) == true); }\n   |                                   -                     - missing open `(` for this delimiter\n   |                                   |\n   |                                   the nearest open delimiter\n25 |     if g__perm__is_init___is_false { assume(true) == false); }\n   |                                    -                      - missing open `(` for this delimiter\n   |                                    |\n   |                                    the nearest open delimiter\n26 |     if g_neq_tuple { assume(!det_into_inner_equal::<T>(r1, r2)); }\n27 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+      "wall_ms": 34
+    },
+    {
+      "module": "cell::pcell",
+      "function": "replace",
+      "source_line": 193,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__replace__L193",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == old(perm).id()"
+      ],
+      "ensures": [
+        "final(perm).id() == old(perm).id()",
+        "*final(perm).value() == in_v",
+        "out_v == *old(perm).value()"
+      ],
+      "det_function": "det_replace",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 21,
+      "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__replace__L193/harness.rs:14:1\n   |\n 7 | verus! {\n   |        - the nearest open delimiter\n...\n11 |     where T: Sized {\n   |                    - the nearest open delimiter\n12 |     (r1 == r2)\n13 |     && ((true) == (true)) && ((post1_perm).id() == (post2_perm).id()) && (true) ==> ((post1_perm).value() == (post2_perm).value())))\n   |                                                                                                                                   -- missing open `(` for this delimiter\n   |                                                                                                                                   |\n   |                                                                                                                                   missing open `(` for this delimiter\n14 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+      "wall_ms": 42
+    },
+    {
+      "module": "cell::pcell",
+      "function": "write",
+      "source_line": 210,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__write__L210",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == old(perm).id()"
+      ],
+      "ensures": [
+        "final(perm).id() == old(perm).id()",
+        "*final(perm).value() == in_v"
+      ],
+      "det_function": "det_write",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 21,
+      "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__write__L210/harness.rs:14:1\n   |\n 7 | verus! {\n   |        - the nearest open delimiter\n...\n11 |     where T: Sized {\n   |                    - the nearest open delimiter\n12 |     (r1 == r2)\n13 |     && ((true) == (true)) && ((post1_perm).id() == (post2_perm).id()) && (true) ==> ((post1_perm).value() == (post2_perm).value())))\n   |                                                                                                                                   -- missing open `(` for this delimiter\n   |                                                                                                                                   |\n   |                                                                                                                                   missing open `(` for this delimiter\n14 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+      "wall_ms": 35
+    },
+    {
+      "module": "cell::pcell",
+      "function": "read",
+      "source_line": 224,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__read__L224",
+      "status": "no_ensures",
+      "requires": [
+        "self.id() == perm.id()"
+      ],
+      "ensures": [],
+      "wall_ms": 9
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "empty",
+      "source_line": 107,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107",
+      "status": "verus_error",
+      "requires": [],
+      "ensures": [
+        "pt.1@.id() == pt.0.id()",
+        "pt.1@.mem_contents() == MemContents::Uninit"
+      ],
+      "det_function": "det_empty",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 9,
+      "n_params": 15,
+      "verus_returncode": 1,
+      "verus_ms": 61,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:18:42\n   |\n18 |             &&& (r1.1@.mem_contents() == MemContents::Uninit)\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:20:42\n   |\n20 |             &&& (r2.1@.mem_contents() == MemContents::Uninit)\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 76
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "new",
+      "source_line": 117,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__new__L117",
+      "status": "verus_error",
+      "requires": [],
+      "ensures": [
+        "pt.1@.id() == pt.0.id()",
+        "pt.1@.mem_contents() == MemContents::Init(v)"
+      ],
+      "det_function": "det_new",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 9,
+      "n_params": 15,
+      "verus_returncode": 1,
+      "verus_ms": 61,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__new__L117/harness.rs:18:42\n   |\n18 |             &&& (r1.1@.mem_contents() == MemContents::Init(v))\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__new__L117/harness.rs:20:42\n   |\n20 |             &&& (r2.1@.mem_contents() == MemContents::Init(v))\n   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 83
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "put",
+      "source_line": 127,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127",
+      "status": "verus_error",
+      "requires": [
+        "old(perm).id() == self.id()",
+        "old(perm).mem_contents() == MemContents::Uninit"
+      ],
+      "ensures": [
+        "final(perm).id() == self.id()",
+        "final(perm).mem_contents() == MemContents::Init(in_v)"
+      ],
+      "det_function": "det_put",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 62,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:16:73\n   |\n16 |     requires (pre_perm.id() == self_.id()), (pre_perm.mem_contents() == MemContents::Uninit),\n   |                                                                         ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:22:47\n   |\n22 |             &&& (post2_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 90
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "take",
+      "source_line": 141,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == old(perm).id()",
+        "old(perm).is_init()"
+      ],
+      "ensures": [
+        "final(perm).id() == old(perm).id()",
+        "final(perm).mem_contents() == MemContents::Uninit",
+        "out_v == old(perm).value()"
+      ],
+      "det_function": "det_take",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 75,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Uninit)\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__take__L141/harness.rs:23:47\n   |\n23 |             &&& (post2_perm.mem_contents() == MemContents::Uninit)\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 93
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "replace",
+      "source_line": 158,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__replace__L158",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == old(perm).id()",
+        "old(perm).is_init()"
+      ],
+      "ensures": [
+        "final(perm).id() == old(perm).id()",
+        "final(perm).mem_contents() == MemContents::Init(in_v)",
+        "out_v == old(perm).value()"
+      ],
+      "det_function": "det_replace",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 73,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__replace__L158/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__replace__L158/harness.rs:23:47\n   |\n23 |             &&& (post2_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 93
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "borrow",
+      "source_line": 175,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__borrow__L175",
+      "status": "ok",
+      "requires": [
+        "self.id() == perm.id()",
+        "perm.is_init()"
+      ],
+      "ensures": [
+        "*v == perm.value()"
+      ],
+      "det_function": "det_borrow",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "mem_contents"
+      ],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 0,
+      "verus_ms": 591,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__borrow__L175/verus_log/root.smt2",
+      "smt2_bytes": 68237,
+      "ctx_ms": 22,
+      "search_ms": 16,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 654
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "borrow_mut",
+      "source_line": 190,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__borrow_mut__L190",
+      "status": "unsupported_mut_ref_return",
+      "requires": [
+        "self.id() == perm.id()",
+        "perm.is_init()"
+      ],
+      "ensures": [
+        "*v == old(perm).value()",
+        "final(perm).is_init()",
+        "final(perm).value() == *final(v)"
+      ],
+      "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+      "wall_ms": 23
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "into_inner",
+      "source_line": 207,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__into_inner__L207",
+      "status": "ok",
+      "requires": [
+        "self.id() == perm.id()",
+        "perm.is_init()"
+      ],
+      "ensures": [
+        "v == perm.value()"
+      ],
+      "det_function": "det_into_inner",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "mem_contents"
+      ],
+      "n_schemas": 5,
+      "n_params": 8,
+      "verus_returncode": 0,
+      "verus_ms": 634,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__into_inner__L207/verus_log/root.smt2",
+      "smt2_bytes": 68345,
+      "ctx_ms": 18,
+      "search_ms": 12,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 685
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "write",
+      "source_line": 221,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__write__L221",
+      "status": "verus_error",
+      "requires": [
+        "self.id() == old(perm).id()"
+      ],
+      "ensures": [
+        "final(perm).id() == old(perm).id()",
+        "final(perm).mem_contents() == MemContents::Init(in_v)"
+      ],
+      "det_function": "det_write",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "id",
+        "mem_contents"
+      ],
+      "n_schemas": 13,
+      "n_params": 22,
+      "verus_returncode": 1,
+      "verus_ms": 58,
+      "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__write__L221/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__write__L221/harness.rs:22:47\n   |\n22 |             &&& (post2_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 2 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+      "wall_ms": 81
+    },
+    {
+      "module": "cell::pcell_maybe_uninit",
+      "function": "read",
+      "source_line": 234,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__read__L234",
+      "status": "no_ensures",
+      "requires": [
+        "self.id() == perm.id()",
+        "perm.is_init()"
+      ],
+      "ensures": [],
+      "wall_ms": 12
+    },
+    {
+      "module": "std_specs::core",
+      "function": "index_set",
+      "source_line": 215,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/core.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__core__index_set__L215",
+      "status": "verus_error",
+      "requires": [
+        "old(container).spec_index_set_requires(index)"
+      ],
+      "ensures": [
+        "old(container).spec_index_set_ensures(final(container), index, val)"
+      ],
+      "det_function": "det_index_set",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 1,
+      "n_params": 1,
+      "verus_returncode": 1,
+      "verus_ms": 378,
+      "stderr_tail": "tainer: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n25 |             &&& (pre_container.spec_index_set_ensures(post1_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:201:12\nhelp: consider borrowing here\n   |\n25 |             &&& (pre_container.spec_index_set_ensures(&post1_container, index, val))\n   |                                                       +\n\nerror[E0308]: mismatched types\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__core__index_set__L215/harness.rs:26:55\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n26 |             &&& (pre_container.spec_index_set_ensures(post2_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:201:12\nhelp: consider borrowing here\n   |\n26 |             &&& (pre_container.spec_index_set_ensures(&post2_container, index, val))\n   |                                                       +\n\nerror[E0277]: the size for values of type `T` cannot be known at compilation time\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__core__index_set__L215/harness.rs:27:57\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - this type parameter needs to be `Sized`\n...\n27 |         }) ==> det_index_set_equal::<T, Idx, E>(r1, r2, post1_container, post2_container),\n   |                                                         ^^^^^^^^^^^^^^^ doesn't have a size known at compile-time\n   |\n   = note: all function arguments must have a statically known size\n   = help: unsized fn params are gated as an unstable feature\nhelp: consider removing the `?Sized` bound to make the type parameter `Sized`\n   |\n19 -     where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n19 +     where T: core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n   |\n\nerror: aborting due to 10 previous errors\n\nSome errors have detailed explanations: E0277, E0308.\nFor more information about an error, try `rustc --explain E0277`.\n",
+      "wall_ms": 395
+    },
+    {
+      "module": "std_specs::iter",
+      "function": "new",
+      "source_line": 264,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/iter.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__new__L264",
+      "status": "ok",
+      "requires": [
+        "init@ matches Some(i) ==> iter.initial_value_relation(i)"
+      ],
+      "ensures": [
+        "s.index == 0",
+        "s.snapshot == iter",
+        "s.init == init",
+        "s.iter == iter",
+        "s.history@ == Seq::<I::Item>::empty()",
+        "s.wf()"
+      ],
+      "det_function": "det_new",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "remaining",
+        "wf_inner",
+        "will_return_none"
+      ],
+      "n_schemas": 3,
+      "n_params": 3,
+      "verus_returncode": 0,
+      "verus_ms": 563,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__new__L264/verus_log/root.smt2",
+      "smt2_bytes": 100428,
+      "ctx_ms": 18,
+      "search_ms": 14,
+      "r0_z3": "unsat",
+      "n_rounds": 1,
+      "assumes": [],
+      "permitted": false,
+      "classification": "complete",
+      "wall_ms": 647
+    },
+    {
+      "module": "std_specs::iter",
+      "function": "next",
+      "source_line": 287,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/iter.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__next__L287",
+      "status": "ok",
+      "requires": [
+        "old(self).wf()"
+      ],
+      "ensures": [
+        "final(self).seq() == old(self).seq()",
+        "final(self).index() == old(self).index() + if ret is Some { 1int } else { 0 }",
+        "final(self).snapshot == old(self).snapshot",
+        "final(self).init == old(self).init",
+        "final(self).iter.obeys_prophetic_iter_laws() ==> final(self).wf()",
+        "final(self).iter.obeys_prophetic_iter_laws() && ret is None ==>\n                final(self).snapshot@.will_return_none() && final(self).index() == final(self).seq().len()",
+        "final(self).iter.obeys_prophetic_iter_laws() ==> (ret matches Some(r) ==>\n                r == old(self).seq()[old(self).index()])",
+        "ret matches Some(i) ==> final(self).history@ == old(self).history@.push(i)",
+        "ret is None ==> final(self).history@ == old(self).history@",
+        "final(self).iter.obeys_prophetic_iter_laws() == old(self).iter.obeys_prophetic_iter_laws()",
+        "final(self).iter.obeys_prophetic_iter_laws() ==> final(self).iter.will_return_none() == old(self).iter.will_return_none()",
+        "final(self).iter.obeys_prophetic_iter_laws() ==> (old(self).iter.decrease() is Some <==> final(self).iter.decrease() is Some)",
+        "final(self).iter.obeys_prophetic_iter_laws() ==>\n            ({\n                if old(self).iter.remaining().len() > 0 {\n                    &&& final(self).iter.remaining() == old(self).iter.remaining().drop_first()\n                    &&& ret == Some(old(self).iter.remaining()[0])\n                } else {\n                    final(self).iter.remaining() == old(self).iter.remaining() && ret == None && final(self).iter.will_return_none()\n                }\n            })",
+        "final(self).iter.obeys_prophetic_iter_laws() && old(self).iter.remaining().len() > 0 && final(self).iter.decrease() is Some ==>\n                decreases_to!(old(self).iter.decrease()->0 => final(self).iter.decrease()->0)"
+      ],
+      "det_function": "det_next",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [
+        "decrease",
+        "remaining",
+        "wf_inner",
+        "will_return_none"
+      ],
+      "n_schemas": 5,
+      "n_params": 5,
+      "verus_returncode": 1,
+      "verus_ms": 497,
+      "smt2": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__iter__next__L287/verus_log/root.smt2",
+      "smt2_bytes": 257286,
+      "ctx_ms": 28,
+      "search_ms": 151,
+      "r0_z3": "unknown",
+      "n_rounds": 4,
+      "assumes": [
+        "r1 is Some",
+        "r2 is Some",
+        "!det_next_equal(r1, r2, post1_self_, post2_self_)"
+      ],
+      "permitted": false,
+      "classification": "ok_inconclusive",
+      "wall_ms": 740
+    },
+    {
+      "module": "std_specs::vec",
+      "function": "vec_index",
+      "source_line": 53,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/vec.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__vec__vec_index__L53",
+      "status": "verus_error",
+      "requires": [
+        "i < vec.view().len()"
+      ],
+      "ensures": [
+        "*element == vec.view().index(i as int)"
+      ],
+      "det_function": "det_vec_index",
+      "equal_fn_trivial": false,
+      "suppressed_closed_reveals": [],
+      "n_schemas": 5,
+      "n_params": 11,
+      "verus_returncode": 1,
+      "verus_ms": 66,
+      "stderr_tail": "error[E0405]: cannot find trait `Allocator` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__vec__vec_index__L53/harness.rs:14:30\n   |\n14 | proof fn det_vec_index<T, A: Allocator>(g_vec_leneq: bool, k_vec_leneq: nat, g_vec_lenrng: bool, k_vec_lenrng_lo: nat, k_vec_lenrng_...\n   |                              ^^^^^^^^^ not found in this scope\n   |\nhelp: consider importing one of these traits\n   |\n 3 + use std::alloc::Allocator;\n   |\n 3 + use alloc::alloc::Allocator;\n   |\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0405`.\n",
+      "wall_ms": 133
+    },
+    {
+      "module": "std_specs::vec",
+      "function": "vec_index_mut",
+      "source_line": 67,
+      "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/std_specs/vec.rs",
+      "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/std_specs__vec__vec_index_mut__L67",
+      "status": "unsupported_mut_ref_return",
+      "requires": [
+        "i < vec.view().len()"
+      ],
+      "ensures": [
+        "*element == old(vec)@.index(i as int)",
+        "final(vec)@ == old(vec)@.update(i as int, *final(element))",
+        "*final(element) == final(vec).view().index(i as int)"
+      ],
+      "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+      "wall_ms": 70
+    }
+  ]
+}

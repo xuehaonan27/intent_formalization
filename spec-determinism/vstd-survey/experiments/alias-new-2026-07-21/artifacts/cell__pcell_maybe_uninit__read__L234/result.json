@@ -1,0 +1,14 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "read",
+  "source_line": 234,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__read__L234",
+  "status": "no_ensures",
+  "requires": [
+    "self.id() == perm.id()",
+    "perm.is_init()"
+  ],
+  "ensures": [],
+  "wall_ms": 12
+}

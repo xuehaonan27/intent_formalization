@@ -1,0 +1,28 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "put",
+  "source_line": 127,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127",
+  "status": "verus_error",
+  "requires": [
+    "old(perm).id() == self.id()",
+    "old(perm).mem_contents() == MemContents::Uninit"
+  ],
+  "ensures": [
+    "final(perm).id() == self.id()",
+    "final(perm).mem_contents() == MemContents::Init(in_v)"
+  ],
+  "det_function": "det_put",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "id",
+    "mem_contents"
+  ],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 1,
+  "verus_ms": 62,
+  "stderr_tail": "error[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:16:73\n   |\n16 |     requires (pre_perm.id() == self_.id()), (pre_perm.mem_contents() == MemContents::Uninit),\n   |                                                                         ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:20:47\n   |\n20 |             &&& (post1_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror[E0433]: cannot find type `MemContents` in this scope\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__put__L127/harness.rs:22:47\n   |\n22 |             &&& (post2_perm.mem_contents() == MemContents::Init(in_v))\n   |                                               ^^^^^^^^^^^ use of undeclared type `MemContents`\n   |\nhelp: consider importing this enum\n   |\n 3 + use vstd::simple_pptr::MemContents;\n   |\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\n",
+  "wall_ms": 90
+}

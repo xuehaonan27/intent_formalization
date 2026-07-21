@@ -1,0 +1,72 @@
+{
+  "function": "into_inner",
+  "det_check_template": "proof fn det_into_inner<T: ?Sized>(self_: PCell<T>, perm: PointsTo<T>, r1: T, r2: T)\n    where T: Sized\n    requires (self_.id() == perm.id()),\n    ensures\n        ({\n            &&& (r1 == *perm.value())\n            &&& (r2 == *perm.value())\n        }) ==> det_into_inner_equal::<T>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "PCell<T>",
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_into_inner_equal<T: ?Sized>(r1: T, r2: T) -> bool\n    where T: Sized {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_into_inner_equal",
+  "equal_fn_turbofish": "::<T>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_into_inner",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T: ?Sized>",
+  "where_decl": "where T: Sized",
+  "self_type": "PCell<T>",
+  "opened_closed_specs": []
+}

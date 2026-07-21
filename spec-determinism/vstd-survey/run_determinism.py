@@ -52,6 +52,14 @@ EXTRA_IMPORTS = {
     "raw_ptr": ["vstd::layout::*"],
     "hash_map": ["std::hash::Hash", "vstd::std_specs::hash::*"],
     "hash_set": ["std::hash::Hash", "vstd::std_specs::hash::*"],
+    "cell::invcell": ["vstd::predicate::*"],
+    "cell::pcell_maybe_uninit": ["vstd::cell::MemContents"],
+    "std_specs::vec": ["alloc::alloc::Allocator"],
+}
+
+# Unstable library features required by some modules' signatures.
+MODULE_FEATURES = {
+    "std_specs::vec": ["allocator_api"],
 }
 
 # May-2026 vstd snapshot compat (version gate, see HANDOFF §6): the schema
@@ -59,7 +67,13 @@ EXTRA_IMPORTS = {
 # ``cell::PointsTo`` and ``raw_ptr::PointsTo`` have no ``addr``; the address
 # lives at ``.ptr().addr()`` there. simple_pptr is NOT listed: its May
 # ``PointsTo`` already exposes ``addr()`` (simple_pptr.rs:226).
-_MAY_PTR_ADDR_MODULES = frozenset({"cell", "raw_ptr"})
+# The new-style cell modules (invcell/pcell/pcell_maybe_uninit) are listed
+# too: their ``PointsTo`` only exposes ``id()`` — no ``addr`` either — so
+# the same ``.ptr().addr()`` -> ``.id()`` downgrade applies (and the
+# resulting unusable scalar guards are dropped, same as deprecated ``cell``).
+_MAY_PTR_ADDR_MODULES = frozenset(
+    {"cell", "cell::invcell", "cell::pcell", "cell::pcell_maybe_uninit", "raw_ptr"}
+)
 
 
 def module_file(vstd_root: Path, module: str) -> Path:
@@ -110,7 +124,7 @@ def build_harness(module: str, det_spec, schemas) -> str:
         )
     if module == "simple_pptr":
         body = body.replace(".ptr().addr()", ".pptr().addr()")
-    elif module == "cell":
+    elif module in {"cell", "cell::invcell", "cell::pcell", "cell::pcell_maybe_uninit"}:
         body = body.replace(".ptr().addr()", ".id()")
         body = "\n".join(
             line
@@ -121,12 +135,31 @@ def build_harness(module: str, det_spec, schemas) -> str:
             )
         )
         body += "\n"
+    if module == "cell::pcell":
+        # May `cell::pcell::PointsTo` is always initialized: it has
+        # `id()`/`value()` but no `is_init()`. The POINTS_TO equal-fn and
+        # schema projections assume the maybe-uninit shape, so constant-fold
+        # every `.is_init()` call to `true` for this module. The pattern only
+        # matches balanced single-level receivers (`(x).is_init()` and
+        # `((x)@).is_init()`) so it cannot eat a parenthesis.
+        body = re.sub(
+            r"\((?:\([A-Za-z_][\w.]*\)@|[A-Za-z_][\w.]*)\)\.is_init\(\)",
+            "(true)",
+            body,
+        )
     imports = "".join(
         f"use {path};\n"
         for path in EXTRA_IMPORTS.get(module, [])
     )
+    # Unstable library features required by some modules' signatures
+    # (std_specs::vec's `A: Allocator` needs allocator_api).
+    features = "".join(
+        f"#![feature({feature})]\n"
+        for feature in MODULE_FEATURES.get(module, [])
+    )
     return (
         "#![allow(unused_imports)]\n"
+        f"{features}"
         "extern crate alloc;\n"
         "use vstd::prelude::*;\n"
         f"use vstd::{module}::*;\n\n"

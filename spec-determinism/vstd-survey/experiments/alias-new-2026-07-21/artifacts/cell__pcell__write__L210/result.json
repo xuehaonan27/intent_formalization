@@ -1,0 +1,24 @@
+{
+  "module": "cell::pcell",
+  "function": "write",
+  "source_line": 210,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__write__L210",
+  "status": "verus_error",
+  "requires": [
+    "self.id() == old(perm).id()"
+  ],
+  "ensures": [
+    "final(perm).id() == old(perm).id()",
+    "*final(perm).value() == in_v"
+  ],
+  "det_function": "det_write",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 1,
+  "verus_ms": 21,
+  "stderr_tail": "error: unexpected closing delimiter: `}`\n  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell__write__L210/harness.rs:14:1\n   |\n 7 | verus! {\n   |        - the nearest open delimiter\n...\n11 |     where T: Sized {\n   |                    - the nearest open delimiter\n12 |     (r1 == r2)\n13 |     && ((true) == (true)) && ((post1_perm).id() == (post2_perm).id()) && (true) ==> ((post1_perm).value() == (post2_perm).value())))\n   |                                                                                                                                   -- missing open `(` for this delimiter\n   |                                                                                                                                   |\n   |                                                                                                                                   missing open `(` for this delimiter\n14 | }\n   | ^ unexpected closing delimiter\n\nerror: aborting due to 1 previous error\n\n",
+  "wall_ms": 35
+}

@@ -1,0 +1,32 @@
+{
+  "module": "cell::pcell",
+  "function": "write",
+  "source_line": 210,
+  "source": "/home/xuehaonan/nanvix/toolchain/verus/vstd/cell/pcell.rs",
+  "artifact_dir": "vstd-survey/experiments/alias-new-fixup-2026-07-21/artifacts/cell__pcell__write__L210",
+  "status": "ok",
+  "requires": [
+    "self.id() == old(perm).id()"
+  ],
+  "ensures": [
+    "final(perm).id() == old(perm).id()",
+    "*final(perm).value() == in_v"
+  ],
+  "det_function": "det_write",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 642,
+  "smt2": "vstd-survey/experiments/alias-new-fixup-2026-07-21/artifacts/cell__pcell__write__L210/verus_log/root.smt2",
+  "smt2_bytes": 64001,
+  "ctx_ms": 18,
+  "search_ms": 13,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 688
+}

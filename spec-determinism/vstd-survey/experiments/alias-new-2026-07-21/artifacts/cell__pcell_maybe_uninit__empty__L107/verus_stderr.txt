@@ -1,0 +1,25 @@
+error[E0433]: cannot find type `MemContents` in this scope
+  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:18:42
+   |
+18 |             &&& (r1.1@.mem_contents() == MemContents::Uninit)
+   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`
+   |
+help: consider importing this enum
+   |
+ 3 + use vstd::simple_pptr::MemContents;
+   |
+
+error[E0433]: cannot find type `MemContents` in this scope
+  --> vstd-survey/experiments/alias-new-2026-07-21/artifacts/cell__pcell_maybe_uninit__empty__L107/harness.rs:20:42
+   |
+20 |             &&& (r2.1@.mem_contents() == MemContents::Uninit)
+   |                                          ^^^^^^^^^^^ use of undeclared type `MemContents`
+   |
+help: consider importing this enum
+   |
+ 3 + use vstd::simple_pptr::MemContents;
+   |
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0433`.
