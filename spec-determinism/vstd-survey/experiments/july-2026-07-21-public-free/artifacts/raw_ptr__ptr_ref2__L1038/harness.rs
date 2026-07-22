@@ -6,17 +6,12 @@ use vstd::raw_ptr::*;
 use vstd::layout::*;
 
 verus! {
-// Generated equal-fn for determinism check.
-// Policy: errs_equivalent=True, opaque_ok=False
-spec fn det_ptr_ref2_equal<'a, T>(r1: SharedReference<
-    'a,
-    T,
->, r2: SharedReference<
-    'a,
-    T,
->) -> bool {
-    (r1 == r2)
+spec fn det_ptr_ref2_equal<'a, T>(r1: SharedReference<'a, T>, r2: SharedReference<'a, T>) -> bool {
+    (r1.value() == r2.value())
+    && (r1.ptr()@.addr == r2.ptr()@.addr)
+    && (r1.ptr()@.metadata == r2.ptr()@.metadata)
 }
+
 
 proof fn det_ptr_ref2<'a, T>(g__perm__is_init___is_true: bool, g__perm__is_init___is_false: bool, g__perm__ptr___addr___eq: bool, k__perm__ptr___addr___eq: int, g__perm__ptr___addr___rng: bool, k__perm__ptr___addr___rng_lo: int, k__perm__ptr___addr___rng_hi: int, g_neq_tuple: bool, ptr: *const T, perm: &PointsTo<T>, r1: SharedReference<
     'a,

@@ -20,19 +20,16 @@
   "suppressed_closed_reveals": [],
   "n_schemas": 3,
   "n_params": 6,
-  "verus_returncode": 1,
-  "verus_ms": 450,
+  "verus_returncode": 0,
+  "verus_ms": 619,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/atomic__fetch_and__L604/verus_log/root.smt2",
-  "smt2_bytes": 117447,
-  "ctx_ms": 30,
-  "search_ms": 35,
-  "r0_z3": "unknown",
-  "n_rounds": 8,
-  "assumes": [
-    "n == 0",
-    "!det_fetch_and_equal(r1, r2, post1_perm, post2_perm)"
-  ],
+  "smt2_bytes": 114834,
+  "ctx_ms": 25,
+  "search_ms": 18,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
   "permitted": false,
-  "classification": "ok_inconclusive",
-  "wall_ms": 589
+  "classification": "complete",
+  "wall_ms": 737
 }

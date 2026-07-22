@@ -19,15 +19,15 @@
   "n_schemas": 13,
   "n_params": 22,
   "verus_returncode": 0,
-  "verus_ms": 553,
+  "verus_ms": 609,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__write__L297/verus_log/root.smt2",
   "smt2_bytes": 87261,
-  "ctx_ms": 22,
-  "search_ms": 46,
+  "ctx_ms": 21,
+  "search_ms": 45,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 649
+  "wall_ms": 714
 }

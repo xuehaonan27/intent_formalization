@@ -15,11 +15,11 @@
   "n_schemas": 9,
   "n_params": 15,
   "verus_returncode": 1,
-  "verus_ms": 424,
+  "verus_ms": 395,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__new__L178/verus_log/root.smt2",
   "smt2_bytes": 85326,
-  "ctx_ms": 22,
-  "search_ms": 30,
+  "ctx_ms": 20,
+  "search_ms": 25,
   "r0_z3": "unknown",
   "n_rounds": 10,
   "assumes": [
@@ -29,5 +29,5 @@
   ],
   "permitted": false,
   "classification": "ok_inconclusive",
-  "wall_ms": 501
+  "wall_ms": 466
 }

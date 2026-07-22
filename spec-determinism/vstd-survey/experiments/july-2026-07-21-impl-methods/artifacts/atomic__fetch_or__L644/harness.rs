@@ -5,12 +5,11 @@ use vstd::atomic::*;
 
 
 verus! {
-// Generated equal-fn for determinism check.
-// Policy: errs_equivalent=True, opaque_ok=False
 spec fn det_fetch_or_equal<T>(r1: *mut T, r2: *mut T, post1_perm: PermissionPtr<T>, post2_perm: PermissionPtr<T>) -> bool {
     (true /* raw pointer: opaque by default */)
-    && (post1_perm == post2_perm)
+    && (post1_perm.view() == post2_perm.view())
 }
+
 
 proof fn det_fetch_or<T>(g_n_eq: bool, k_n_eq: int, g_n_rng: bool, k_n_rng_lo: int, k_n_rng_hi: int, g_neq_tuple: bool, self_: &PAtomicPtr<T>, pre_perm: PermissionPtr<T>, n: usize, post1_perm: PermissionPtr<T>, r1: *mut T, post2_perm: PermissionPtr<T>, r2: *mut T)
     requires (equal(self_.id(), pre_perm.view().patomic)),

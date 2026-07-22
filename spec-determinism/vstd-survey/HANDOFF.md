@@ -43,6 +43,18 @@ blocks. This omits, among other things, the non-deprecated
 The deprecated `vstd::cell::InvCell` was tested; the replacement
 `vstd::cell::invcell::InvCell` was not.
 
+**Status updates (2026-07-21, see §15 for details):**
+
+- The `verus_!` gap is fixed (P0): the scanner/extractor now normalize macro
+  aliases; the visible target set grew to 137 (May) / 135 (July), and the 26
+  newly visible targets have been run.
+- All 7 remaining A-cases above are now automated and verify (P2); the
+  unknown breakdown is 0 A / 9 B / 4 C for the original set (plus invcell:
+  1 A-analog→complete, 3 C; B +3; `iter::next` unaudited; `iter::{new,next}`
+  were removed upstream in July).
+- The July snapshot (cf3b5c3) is fully validated end-to-end (P1); prefer it
+  for new work.
+
 ## 2. Repository and environment
 
 ### Main repository
@@ -175,6 +187,7 @@ vstd-survey/
     ├── UNKNOWN-AUDIT-2026-07-15.md    # semantic audit of original 27 unknowns
     ├── ALIAS-NEW-REVIEW-2026-07-21.md # review of the 26 alias-module targets (P0 follow-up)
     ├── JULY-RERUN-REVIEW-2026-07-21.md # July (cf3b5c3) full-rerun review (see §15.4)
+    ├── P2-REVIEW-2026-07-21.md        # A-case automation review (see §13 P2)
     ├── pilot-2026-07-14/              # initial array/bytes pilot
     ├── public-free-2026-07-14/        # 34 public free definitions
     ├── raw-pointer-strict-2026-07-14/ # strict equality rerun for 6 pointer APIs
@@ -774,6 +787,13 @@ Build a matching toolchain for `~/verus@cf3b5c3` and stop mixing the July
 inventory with the May experiment snapshot.
 
 ### P2 — automate the audited A-cases
+
+**DONE 2026-07-21** — all five items are automated in `run_determinism.py`
+via `EQUAL_FN_OVERRIDES` / `PROOF_HINTS`, and all 8 affected targets verify
+(`r0=unsat`) on BOTH snapshots. See
+[experiments/P2-REVIEW-2026-07-21.md](experiments/P2-REVIEW-2026-07-21.md)
+for the per-target repairs and three Verus mode/antecedent subtleties that
+matter for future proof hints. Original items:
 
 1. synthesize views for macro-generated atomic permission types;
 2. add a projection policy for `SharedReference`;

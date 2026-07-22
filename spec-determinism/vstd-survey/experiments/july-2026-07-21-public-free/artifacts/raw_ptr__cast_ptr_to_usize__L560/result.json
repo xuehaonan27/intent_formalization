@@ -15,15 +15,15 @@
   "n_schemas": 5,
   "n_params": 11,
   "verus_returncode": 0,
-  "verus_ms": 575,
+  "verus_ms": 598,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_ptr_to_usize__L560/verus_log/root.smt2",
   "smt2_bytes": 97996,
-  "ctx_ms": 18,
-  "search_ms": 17,
+  "ctx_ms": 21,
+  "search_ms": 18,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 669
+  "wall_ms": 694
 }

@@ -19,19 +19,16 @@
   "suppressed_closed_reveals": [],
   "n_schemas": 5,
   "n_params": 8,
-  "verus_returncode": 1,
-  "verus_ms": 474,
+  "verus_returncode": 0,
+  "verus_ms": 647,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/verus_log/root.smt2",
-  "smt2_bytes": 138166,
-  "ctx_ms": 22,
-  "search_ms": 32,
-  "r0_z3": "unknown",
-  "n_rounds": 6,
-  "assumes": [
-    "(perm).is_init() == true",
-    "!det_ptr_ref2_equal(r1, r2)"
-  ],
+  "smt2_bytes": 129597,
+  "ctx_ms": 29,
+  "search_ms": 22,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
   "permitted": false,
-  "classification": "ok_inconclusive",
-  "wall_ms": 640
+  "classification": "complete",
+  "wall_ms": 850
 }

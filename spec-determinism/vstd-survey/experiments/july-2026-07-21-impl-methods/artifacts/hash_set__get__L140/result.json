@@ -15,15 +15,15 @@
   "n_schemas": 5,
   "n_params": 5,
   "verus_returncode": 0,
-  "verus_ms": 580,
+  "verus_ms": 567,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_set__get__L140/verus_log/root.smt2",
   "smt2_bytes": 97490,
-  "ctx_ms": 20,
-  "search_ms": 34,
+  "ctx_ms": 19,
+  "search_ms": 37,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 653
+  "wall_ms": 641
 }

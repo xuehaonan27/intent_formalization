@@ -74,6 +74,112 @@ _MAY_PTR_ADDR_MODULES = frozenset(
     {"cell", "cell::invcell", "cell::pcell", "cell::pcell_maybe_uninit", "raw_ptr"}
 )
 
+# ---------------------------------------------------------------------------
+# Audited A-case automation (HANDOFF §13 P2): per-target equal-fn overrides
+# and proof hints, implementing exactly the repairs that
+# experiments/UNKNOWN-AUDIT-2026-07-15.md validated manually.
+#
+# EQUAL_FN_OVERRIDES keys are (module, function, source_line); the wildcard
+# line "*" matches any source line (for functions unique in their module
+# whose line drifts between snapshots). PROOF_HINTS renders a proof block at
+# the end of the det proof body (render_guarded_template proof_prelude).
+# ---------------------------------------------------------------------------
+
+EQUAL_FN_OVERRIDES = {
+    # macro-generated PermissionPtr is invisible to source-level type/view
+    # discovery, so the default equality compared raw identity. The ensures
+    # pin every observable view() field (patomic id, addr, provenance,
+    # metadata), so view equality verifies.
+    ("atomic", "fetch_and", "*"): (
+        "spec fn det_fetch_and_equal<T>(r1: *mut T, r2: *mut T, "
+        "post1_perm: PermissionPtr<T>, post2_perm: PermissionPtr<T>) -> bool {\n"
+        "    (true /* raw pointer: opaque by default */)\n"
+        "    && (post1_perm.view() == post2_perm.view())\n"
+        "}\n"
+    ),
+    ("atomic", "fetch_xor", "*"): (
+        "spec fn det_fetch_xor_equal<T>(r1: *mut T, r2: *mut T, "
+        "post1_perm: PermissionPtr<T>, post2_perm: PermissionPtr<T>) -> bool {\n"
+        "    (true /* raw pointer: opaque by default */)\n"
+        "    && (post1_perm.view() == post2_perm.view())\n"
+        "}\n"
+    ),
+    ("atomic", "fetch_or", "*"): (
+        "spec fn det_fetch_or_equal<T>(r1: *mut T, r2: *mut T, "
+        "post1_perm: PermissionPtr<T>, post2_perm: PermissionPtr<T>) -> bool {\n"
+        "    (true /* raw pointer: opaque by default */)\n"
+        "    && (post1_perm.view() == post2_perm.view())\n"
+        "}\n"
+    ),
+    # SharedReference intentionally gets a fresh provenance/tag; the public
+    # contract fixes value(), address and metadata — compare exactly those.
+    ("raw_ptr", "ptr_ref2", "*"): (
+        "spec fn det_ptr_ref2_equal<'a, T>(r1: SharedReference<'a, T>, "
+        "r2: SharedReference<'a, T>) -> bool {\n"
+        "    (r1.value() == r2.value())\n"
+        "    && (r1.ptr()@.addr == r2.ptr()@.addr)\n"
+        "    && (r1.ptr()@.metadata == r2.ptr()@.metadata)\n"
+        "}\n"
+    ),
+    # ReadHandle identity is opaque; the observable content is the value
+    # snapshot. lemma_readers_match (see PROOF_HINTS) proves the views of
+    # two simultaneous read handles on the same lock agree.
+    ("rwlock", "acquire_read", "*"): (
+        "spec fn det_acquire_read_equal<V, Pred: RwLockPredicate<V>>("
+        "r1: ReadHandle<'_, V, Pred>, r2: ReadHandle<'_, V, Pred>) -> bool {\n"
+        "    (r1.view() == r2.view())\n"
+        "}\n"
+    ),
+    # Deprecated InvCell::new: both results expose the same
+    # `inv(v) <==> f(v)` predicate; raw cell identity is irrelevant.
+    ("cell", "new", 344): (
+        "spec fn det_new_equal<T>(r1: InvCell<T>, r2: InvCell<T>) -> bool {\n"
+        "    forall|v: T| r1.inv(v) == r2.inv(v)\n"
+        "}\n"
+    ),
+    # cell::invcell::InvCell::new: ensures pin predicate() == pred and
+    # `inv` is an open spec fn delegating to predicate(), so extensional
+    # predicate equality follows.
+    ("cell::invcell", "new", "*"): (
+        "spec fn det_new_equal<T, Pred: Predicate<T>>(r1: InvCell<T, Pred>, "
+        "r2: InvCell<T, Pred>) -> bool {\n"
+        "    forall|v: T| r1.inv(v) == r2.inv(v)\n"
+        "}\n"
+    ),
+}
+
+PROOF_HINTS = {
+    # IsThread::agrees is the trusted same-thread equality axiom: two tokens
+    # on the current thread have equal views, and the ensures already pin
+    # token-view == ThreadId. r1/r2 must be `tracked` params of the det fn
+    # (proof-fn params default to spec mode, which cannot call
+    # Tracked::borrow). (Bare statements — the det fn is already a proof fn,
+    # so no `proof { }` wrapper.)
+    ("thread", "thread_id", "*"): {
+        "tracked_params": ("r1", "r2"),
+        "hint": (
+            "let tracked __det_t1 = r1.1.borrow();\n"
+            "    let tracked __det_t2 = r2.1.borrow();\n"
+            "    __det_t1.agrees(*__det_t2);\n"
+        ),
+    },
+    # vstd documents lemma_readers_match to prove simultaneous read handles
+    # on the same lock observe the same value. The lemma takes tracked
+    # references, so r1/r2 must be tracked params. Its precondition
+    # (same rwlock) lives in the det fn's ensures-antecedent, which is not
+    # in scope mid-body — assume the spec facts explicitly (the standard
+    # "assume both runs satisfy the spec, show outputs agree" shape; the
+    # det fn's contract is unchanged).
+    ("rwlock", "acquire_read", "*"): {
+        "tracked_params": ("r1", "r2"),
+        "hint": (
+            "assume(r1.rwlock() == *self_);\n"
+            "    assume(r2.rwlock() == *self_);\n"
+            "    ReadHandle::lemma_readers_match(&r1, &r2);\n"
+        ),
+    },
+}
+
 
 def module_file(vstd_root: Path, module: str) -> Path:
     relative = Path(*module.split("::"))
@@ -108,11 +214,43 @@ def parse_target(target: str) -> tuple[str, str, int | None]:
     return module, function, source_line
 
 
-def build_harness(module: str, det_spec, schemas, *, snapshot: str = "may2026") -> str:
-    body = det_spec.equal_fn_def + "\n\n" + render_guarded_template(
+def build_harness(
+    module: str,
+    det_spec,
+    schemas,
+    *,
+    snapshot: str = "may2026",
+    function: str | None = None,
+    source_line: int | None = None,
+) -> str:
+    # Audited A-case overrides (see EQUAL_FN_OVERRIDES / PROOF_HINTS above).
+    override = EQUAL_FN_OVERRIDES.get(
+        (module, function, source_line)
+    ) or EQUAL_FN_OVERRIDES.get((module, function, "*"))
+    equal_fn_def = override if override is not None else det_spec.equal_fn_def
+    proof_hint = PROOF_HINTS.get(
+        (module, function, source_line)
+    ) or PROOF_HINTS.get((module, function, "*"))
+    body = equal_fn_def + "\n\n" + render_guarded_template(
         det_spec,
         schemas,
+        proof_prelude=(proof_hint or {}).get("hint"),
     )
+    tracked_params = (proof_hint or {}).get("tracked_params") or ()
+    if tracked_params:
+        # Make the listed result params `tracked` in the det PROOF fn only
+        # (never in the spec equal-fn, which cannot take tracked params).
+        idx = body.find("proof fn det_")
+        if idx >= 0:
+            head, tail = body[:idx], body[idx:]
+            for pname in tracked_params:
+                tail = re.sub(
+                    rf"\b{re.escape(pname)}: ",
+                    f"tracked {pname}: ",
+                    tail,
+                    count=1,
+                )
+            body = head + tail
     for spec_name in det_spec.opened_closed_specs:
         body = re.sub(
             rf"^[ \t]*reveal\((?:[A-Za-z_][A-Za-z0-9_]*::)*"
@@ -274,7 +412,12 @@ def run_target(
             ),
         )
         harness = build_harness(
-            module, det_spec, schemas, snapshot=vstd_snapshot
+            module,
+            det_spec,
+            schemas,
+            snapshot=vstd_snapshot,
+            function=function,
+            source_line=source_line,
         )
 
         (artifact_dir / "det_spec.json").write_text(det_spec.to_json())

@@ -1,18 +1,1 @@
 note: verifying root module (selected functions)
-
-error: postcondition not satisfied
-  --> vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/harness.rs:30:9
-   |
-30 | /         ({
-31 | |             &&& (r1.value() == perm.value())
-32 | |             &&& (r1.ptr().addr() == ptr.addr())
-33 | |             &&& (r1.ptr()@.metadata == ptr@.metadata)
-...  |
-36 | |             &&& (r2.ptr()@.metadata == ptr@.metadata)
-37 | |         }) ==> det_ptr_ref2_equal::<T>(r1, r2),
-   | |______________________________________________^ failed this postcondition
-...
-43 |       if g_neq_tuple { assume(!det_ptr_ref2_equal::<T>(r1, r2)); }
-   |       ------------------------------------------------------------ at the end of the function body
-
-error: aborting due to 1 previous error

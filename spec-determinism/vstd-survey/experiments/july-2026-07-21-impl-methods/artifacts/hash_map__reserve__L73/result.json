@@ -18,12 +18,12 @@
   "verus_ms": 582,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__reserve__L73/verus_log/root.smt2",
   "smt2_bytes": 93189,
-  "ctx_ms": 21,
-  "search_ms": 17,
+  "ctx_ms": 22,
+  "search_ms": 16,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 637
+  "wall_ms": 645
 }

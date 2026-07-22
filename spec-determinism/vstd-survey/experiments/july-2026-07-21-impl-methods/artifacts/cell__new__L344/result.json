@@ -18,18 +18,16 @@
   ],
   "n_schemas": 1,
   "n_params": 1,
-  "verus_returncode": 1,
-  "verus_ms": 400,
+  "verus_returncode": 0,
+  "verus_ms": 541,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__new__L344/verus_log/root.smt2",
-  "smt2_bytes": 59219,
-  "ctx_ms": 20,
-  "search_ms": 16,
-  "r0_z3": "unknown",
-  "n_rounds": 2,
-  "assumes": [
-    "!det_new_equal(r1, r2)"
-  ],
+  "smt2_bytes": 56741,
+  "ctx_ms": 19,
+  "search_ms": 11,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
   "permitted": false,
-  "classification": "ok_inconclusive",
-  "wall_ms": 477
+  "classification": "complete",
+  "wall_ms": 612
 }
