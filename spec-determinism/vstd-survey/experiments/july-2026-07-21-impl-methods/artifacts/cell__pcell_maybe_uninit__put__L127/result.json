@@ -1,0 +1,36 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "put",
+  "source_line": 127,
+  "source": "/home/xuehaonan/verus/source/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell_maybe_uninit__put__L127",
+  "status": "ok",
+  "requires": [
+    "old(perm).id() == self.id()",
+    "old(perm).mem_contents() == MemContents::Uninit"
+  ],
+  "ensures": [
+    "final(perm).id() == self.id()",
+    "final(perm).mem_contents() == MemContents::Init(in_v)"
+  ],
+  "det_function": "det_put",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "id",
+    "mem_contents"
+  ],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 576,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell_maybe_uninit__put__L127/verus_log/root.smt2",
+  "smt2_bytes": 77907,
+  "ctx_ms": 21,
+  "search_ms": 32,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 649
+}

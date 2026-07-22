@@ -1,0 +1,29 @@
+{
+  "module": "hash_set",
+  "function": "contains",
+  "source_line": 129,
+  "source": "/home/xuehaonan/verus/source/vstd/hash_set.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_set__contains__L129",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result == self@.contains(k@)"
+  ],
+  "det_function": "det_contains",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 0,
+  "verus_ms": 568,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_set__contains__L129/verus_log/root.smt2",
+  "smt2_bytes": 82783,
+  "ctx_ms": 19,
+  "search_ms": 18,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 629
+}

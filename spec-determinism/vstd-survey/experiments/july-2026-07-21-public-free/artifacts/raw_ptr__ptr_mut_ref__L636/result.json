@@ -1,0 +1,20 @@
+{
+  "module": "raw_ptr",
+  "function": "ptr_mut_ref",
+  "source_line": 636,
+  "source": "/home/xuehaonan/verus/source/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_ref__L636",
+  "status": "unsupported_mut_ref_return",
+  "requires": [
+    "old(perm).ptr() == ptr",
+    "old(perm).is_init()"
+  ],
+  "ensures": [
+    "final(perm).ptr() == ptr",
+    "final(perm).is_init()",
+    "old(perm).value() == *v",
+    "final(perm).value() == *final(v)"
+  ],
+  "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+  "wall_ms": 74
+}

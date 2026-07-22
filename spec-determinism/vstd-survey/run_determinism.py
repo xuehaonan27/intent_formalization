@@ -53,7 +53,6 @@ EXTRA_IMPORTS = {
     "hash_map": ["std::hash::Hash", "vstd::std_specs::hash::*"],
     "hash_set": ["std::hash::Hash", "vstd::std_specs::hash::*"],
     "cell::invcell": ["vstd::predicate::*"],
-    "cell::pcell_maybe_uninit": ["vstd::cell::MemContents"],
     "std_specs::vec": ["alloc::alloc::Allocator"],
 }
 
@@ -109,7 +108,7 @@ def parse_target(target: str) -> tuple[str, str, int | None]:
     return module, function, source_line
 
 
-def build_harness(module: str, det_spec, schemas) -> str:
+def build_harness(module: str, det_spec, schemas, *, snapshot: str = "may2026") -> str:
     body = det_spec.equal_fn_def + "\n\n" + render_guarded_template(
         det_spec,
         schemas,
@@ -151,6 +150,14 @@ def build_harness(module: str, det_spec, schemas) -> str:
         f"use {path};\n"
         for path in EXTRA_IMPORTS.get(module, [])
     )
+    if module == "cell::pcell_maybe_uninit":
+        # MemContents moved from vstd::cell (May 2026 snapshot) to
+        # vstd::raw_ptr (cf3b5c3, July 2026).
+        imports += (
+            "use vstd::cell::MemContents;\n"
+            if snapshot == "may2026"
+            else "use vstd::raw_ptr::MemContents;\n"
+        )
     # Unstable library features required by some modules' signatures
     # (std_specs::vec's `A: Allocator` needs allocator_api).
     features = "".join(
@@ -202,6 +209,7 @@ def run_target(
     rlimit: float,
     compare_raw_pointers: bool,
     view_registry: ViewRegistry | None,
+    vstd_snapshot: str = "may2026",
 ) -> dict:
     artifact_dir = out_dir / "artifacts" / safe_name(
         module,
@@ -265,7 +273,9 @@ def run_target(
                 "ptr().addr()" if module in _MAY_PTR_ADDR_MODULES else "addr()"
             ),
         )
-        harness = build_harness(module, det_spec, schemas)
+        harness = build_harness(
+            module, det_spec, schemas, snapshot=vstd_snapshot
+        )
 
         (artifact_dir / "det_spec.json").write_text(det_spec.to_json())
         (artifact_dir / "harness.rs").write_text(harness)
@@ -466,6 +476,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rlimit", type=float, default=60)
     parser.add_argument("--compare-raw-pointers", action="store_true")
     parser.add_argument("--no-view-registry", action="store_true")
+    parser.add_argument(
+        "--vstd-snapshot",
+        choices=["may2026", "jul2026"],
+        default="may2026",
+        help=(
+            "vstd snapshot profile for compat handling; may2026 keeps the "
+            "documented behaviour, jul2026 selects the cf3b5c3 source-built "
+            "toolchain profile (e.g. MemContents moved to vstd::raw_ptr)"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -502,12 +522,25 @@ def main() -> int:
 
     args.out.mkdir(parents=True, exist_ok=True)
     version_path = args.verus_root / "version.json"
-    version_data = json.loads(version_path.read_text())["verus"]
+    if version_path.is_file():
+        version_data = json.loads(version_path.read_text())["verus"]
+        verus_version = version_data["version"]
+        verus_commit = version_data["commit"]
+    else:
+        # Source-built layout (target-verus/release) ships only version.txt.
+        version_txt = args.verus_root / "version.txt"
+        verus_version = (
+            version_txt.read_text().splitlines()[0].strip()
+            if version_txt.is_file()
+            else "unknown"
+        )
+        verus_commit = "unknown"
     metadata = {
         "vstd_root": str(args.vstd_root.resolve()),
         "verus_root": str(args.verus_root.resolve()),
-        "verus_version": version_data["version"],
-        "verus_commit": version_data["commit"],
+        "verus_version": verus_version,
+        "verus_commit": verus_commit,
+        "vstd_snapshot": args.vstd_snapshot,
         "targets": targets,
         "compare_raw_pointers": args.compare_raw_pointers,
         "view_registry": not args.no_view_registry,
@@ -535,6 +568,7 @@ def main() -> int:
             rlimit=args.rlimit,
             compare_raw_pointers=args.compare_raw_pointers,
             view_registry=view_registry,
+            vstd_snapshot=args.vstd_snapshot,
         )
         results.append(result)
         print(

@@ -1,0 +1,72 @@
+{
+  "function": "borrow",
+  "det_check_template": "proof fn det_borrow<V>(self_: &PCell<V>, perm: &PointsTo<V>, r1: &V, r2: &V)\n    requires (self_.id() == perm@.pcell), (perm.is_init()),\n    ensures\n        ({\n            &&& (*r1 == perm.value())\n            &&& (*r2 == perm.value())\n        }) ==> det_borrow_equal::<V>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "PCell<V>",
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<V>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "V"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "&V"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "&V"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_borrow_equal<V>(r1: &V, r2: &V) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_borrow_equal",
+  "equal_fn_turbofish": "::<V>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_borrow",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V, 'a>",
+  "where_decl": "",
+  "self_type": "PCell<V>",
+  "opened_closed_specs": []
+}

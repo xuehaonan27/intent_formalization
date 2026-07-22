@@ -1,0 +1,56 @@
+{
+  "function": "float_cast",
+  "det_check_template": "proof fn det_float_cast<From: Copy + IeeeFloatCast<To>, To>(from: From, r1: To, r2: To)\n    ensures\n        ({\n            &&& (float_cast_spec(from, r1))\n            &&& (float_cast_spec(from, r2))\n        }) ==> det_float_cast_equal::<To>(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "from",
+      "type": {
+        "kind": "unknown",
+        "name": "From"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "To"
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "To"
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_float_cast_equal<To>(r1: To, r2: To) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_float_cast_equal",
+  "equal_fn_turbofish": "::<To>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_float_cast",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<From: Copy + IeeeFloatCast<To>, To>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

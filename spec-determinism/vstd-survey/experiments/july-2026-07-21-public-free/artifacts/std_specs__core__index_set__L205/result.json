@@ -1,0 +1,23 @@
+{
+  "module": "std_specs::core",
+  "function": "index_set",
+  "source_line": 205,
+  "source": "/home/xuehaonan/verus/source/vstd/std_specs/core.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__core__index_set__L205",
+  "status": "verus_error",
+  "requires": [
+    "old(container).spec_index_set_requires(index)"
+  ],
+  "ensures": [
+    "old(container).spec_index_set_ensures(final(container), index, val)"
+  ],
+  "det_function": "det_index_set",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 411,
+  "stderr_tail": "ex: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n25 |             &&& (pre_container.spec_index_set_ensures(post1_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:191:12\nhelp: consider borrowing here\n   |\n25 |             &&& (pre_container.spec_index_set_ensures(&post1_container, index, val))\n   |                                                       +\n\nerror[E0308]: mismatched types\n  --> vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__core__index_set__L205/harness.rs:26:55\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n26 |             &&& (pre_container.spec_index_set_ensures(post2_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:191:12\nhelp: consider borrowing here\n   |\n26 |             &&& (pre_container.spec_index_set_ensures(&post2_container, index, val))\n   |                                                       +\n\nerror[E0277]: the size for values of type `T` cannot be known at compilation time\n  --> vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__core__index_set__L205/harness.rs:27:57\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - this type parameter needs to be `Sized`\n...\n27 |         }) ==> det_index_set_equal::<T, Idx, E>(r1, r2, post1_container, post2_container),\n   |                                                         ^^^^^^^^^^^^^^^ doesn't have a size known at compile-time\n   |\n   = note: all function arguments must have a statically known size\n   = help: unsized fn params are gated as an unstable feature\nhelp: consider removing the `?Sized` bound to make the type parameter `Sized`\n   |\n19 -     where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n19 +     where T: core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n   |\n\nerror: aborting due to 10 previous errors\n\nSome errors have detailed explanations: E0277, E0308.\nFor more information about an error, try `rustc --explain E0277`.\n",
+  "wall_ms": 428
+}

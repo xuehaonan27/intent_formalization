@@ -1,0 +1,19 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "borrow_mut",
+  "source_line": 190,
+  "source": "/home/xuehaonan/verus/source/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell_maybe_uninit__borrow_mut__L190",
+  "status": "unsupported_mut_ref_return",
+  "requires": [
+    "self.id() == perm.id()",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "*v == old(perm).value()",
+    "final(perm).is_init()",
+    "final(perm).value() == *final(v)"
+  ],
+  "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+  "wall_ms": 15
+}

@@ -1,0 +1,113 @@
+{
+  "function": "ptr_mut_write",
+  "det_check_template": "proof fn det_ptr_mut_write<T>(ptr: *mut T, pre_perm: PointsTo<T>, v: T, post1_perm: PointsTo<T>, r1: (), post2_perm: PointsTo<T>, r2: ())\n    requires (pre_perm.ptr() == ptr),\n    ensures\n        ({\n            &&& (post1_perm.ptr() == ptr)\n            &&& (post1_perm.opt_value() == MemContents::Init(v))\n            &&& (post2_perm.ptr() == ptr)\n            &&& (post2_perm.opt_value() == MemContents::Init(v))\n        }) ==> det_ptr_mut_write_equal::<T>(r1, r2, post1_perm, post2_perm),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "ptr",
+      "type": {
+        "kind": "unknown",
+        "name": "*mut T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "pre_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "v",
+      "type": {
+        "kind": "unknown",
+        "name": "T"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_perm",
+      "type": {
+        "kind": "PointsTo",
+        "name": "PointsTo<T>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "T"
+          }
+        ],
+        "is_opaque": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_ptr_mut_write_equal<T>(r1: (), r2: (), post1_perm: PointsTo<T>, post2_perm: PointsTo<T>) -> bool {\n    (r1 == r2)\n    && (((post1_perm).is_init() == (post2_perm).is_init()) && ((post1_perm).ptr().addr() == (post2_perm).ptr().addr()) && ((post1_perm).is_init() ==> ((post1_perm).value() == (post2_perm).value())))\n}",
+  "equal_fn_name": "det_ptr_mut_write_equal",
+  "equal_fn_turbofish": "::<T>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_perm",
+      "rhs": "post2_perm"
+    }
+  ],
+  "check_fn_name": "det_ptr_mut_write",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<T>",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

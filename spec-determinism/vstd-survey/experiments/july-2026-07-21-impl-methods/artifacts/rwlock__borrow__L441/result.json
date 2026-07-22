@@ -1,0 +1,31 @@
+{
+  "module": "rwlock",
+  "function": "borrow",
+  "source_line": 441,
+  "source": "/home/xuehaonan/verus/source/vstd/rwlock.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/rwlock__borrow__L441",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "val == self.view()"
+  ],
+  "det_function": "det_borrow",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "view"
+  ],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 539,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/rwlock__borrow__L441/verus_log/root.smt2",
+  "smt2_bytes": 52494,
+  "ctx_ms": 17,
+  "search_ms": 11,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 617
+}

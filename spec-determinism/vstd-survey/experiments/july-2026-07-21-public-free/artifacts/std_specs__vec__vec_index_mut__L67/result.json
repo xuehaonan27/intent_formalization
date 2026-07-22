@@ -1,0 +1,18 @@
+{
+  "module": "std_specs::vec",
+  "function": "vec_index_mut",
+  "source_line": 67,
+  "source": "/home/xuehaonan/verus/source/vstd/std_specs/vec.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__vec__vec_index_mut__L67",
+  "status": "unsupported_mut_ref_return",
+  "requires": [
+    "i < vec.view().len()"
+  ],
+  "ensures": [
+    "*element == old(vec)@.index(i as int)",
+    "final(vec)@ == old(vec)@.update(i as int, *final(element))",
+    "*final(element) == final(vec).view().index(i as int)"
+  ],
+  "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+  "wall_ms": 62
+}

@@ -174,6 +174,7 @@ vstd-survey/
     ├── REVIEW-2026-07-14.md           # combined experiment review
     ├── UNKNOWN-AUDIT-2026-07-15.md    # semantic audit of original 27 unknowns
     ├── ALIAS-NEW-REVIEW-2026-07-21.md # review of the 26 alias-module targets (P0 follow-up)
+    ├── JULY-RERUN-REVIEW-2026-07-21.md # July (cf3b5c3) full-rerun review (see §15.4)
     ├── pilot-2026-07-14/              # initial array/bytes pilot
     ├── public-free-2026-07-14/        # 34 public free definitions
     ├── raw-pointer-strict-2026-07-14/ # strict equality rerun for 6 pointer APIs
@@ -181,7 +182,8 @@ vstd-survey/
     ├── inventory-may-2026-07-21/      # regenerated May inventory (target set 137)
     ├── repro-2026-07-21-*/fixup-*     # machine reproduction evidence (see §15.2)
     ├── final-2026-07-21-*/            # clean 111+6 baseline on this machine
-    └── alias-new(-fixup)-2026-07-21/  # the 26 newly visible alias-module targets
+    ├── alias-new(-fixup)-2026-07-21/  # the 26 newly visible alias-module targets
+    └── july-2026-07-21-*/             # full rerun on the July (cf3b5c3) snapshot
 ```
 
 Primary reading order:
@@ -764,8 +766,9 @@ std_specs/vec.rs
 
 ### P1 — build current upstream Verus/vstd
 
-**DONE 2026-07-21 (see §15.1).** Remaining work in this item is only to
-validate the runner end-to-end on the July snapshot. Original text:
+**DONE 2026-07-21 (see §15.1 and §15.4).** The runner was validated
+end-to-end on the July snapshot: all 135 July targets ran with zero verdict
+drift against the May baseline. Original text:
 
 Build a matching toolchain for `~/verus@cf3b5c3` and stop mixing the July
 inventory with the May experiment snapshot.
@@ -925,8 +928,9 @@ Immediate next-step options (2026-07-21, in priority order):
   `2 verified, 0 errors`.
 
 To run experiments on the July snapshot, point the runner at
-`--verus-root ~/verus/source/target-verus/release` and
-`--vstd-root ~/verus/source/vstd` (not yet validated end-to-end).
+`--verus-root ~/verus/source/target-verus/release`,
+`--vstd-root ~/verus/source/vstd` and `--vstd-snapshot jul2026`
+(**validated end-to-end 2026-07-21** — see §15.4).
 
 ### 15.2 Full-machine reproduction and snapshot-compat fixes
 
@@ -1002,6 +1006,26 @@ Matching May inventory (regenerated into
   `std_specs::vec` 2;
 - May parse-recovery modules 47 → 50 (same alias-exposure effect);
 - the documented 111-target results (87/20/4/0) remain valid: the old set is
-  a subset of the new one. The 26 new targets have NOT been run yet — that
-  is the natural next experiment (C-class review must be repeated for
-  `cell::invcell::InvCell`, see §13 P4).
+  a subset of the new one. The 26 new targets have since been run — see
+  [ALIAS-NEW-REVIEW-2026-07-21.md](experiments/ALIAS-NEW-REVIEW-2026-07-21.md)
+  (12 complete / 8 unknown / 3 unsupported / 2 no_ensures / 1 pipeline gap;
+  the §13 P4 C-class review for `cell::invcell::InvCell` is done).
+
+### 15.4 July-snapshot full rerun (2026-07-21)
+
+The July toolchain (§15.1) was validated end-to-end with a full rerun of all
+135 July public-post targets (37 free + 98 impl + 6 strict), using
+`--vstd-snapshot jul2026` (new runner profile; the only substantive compat
+delta is `MemContents` moving from `vstd::cell` to `vstd::raw_ptr`; the
+`PointsTo` API shape is identical across the two snapshots, so the existing
+version gates and the `pcell is_init` fold apply unchanged).
+
+Result ([experiments/JULY-RERUN-REVIEW-2026-07-21.md](experiments/JULY-RERUN-REVIEW-2026-07-21.md)):
+**zero verdict drift** — 122 same-line shared targets with 0 diffs; 13
+line-drifted functions (`atomic`, `simple_pptr`, `index_set`) all verdict-
+identical; 2 functions (`std_specs::iter::{new,next}`) removed upstream.
+July tally: 98 complete / 27 unknown / 7 unsupported / 2 no_ensures /
+1 pipeline gap (= May tally minus the two removed `iter` targets). C-class
+underconstraints, B-class intentional nondeterminism and the strict-pointer
+behaviour all reproduce on current upstream. The project no longer mixes
+May/July artifacts; new work should default to the July snapshot.

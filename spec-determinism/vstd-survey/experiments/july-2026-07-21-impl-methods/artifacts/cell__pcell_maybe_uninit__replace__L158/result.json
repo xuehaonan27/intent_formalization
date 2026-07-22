@@ -1,0 +1,37 @@
+{
+  "module": "cell::pcell_maybe_uninit",
+  "function": "replace",
+  "source_line": 158,
+  "source": "/home/xuehaonan/verus/source/vstd/cell/pcell_maybe_uninit.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell_maybe_uninit__replace__L158",
+  "status": "ok",
+  "requires": [
+    "self.id() == old(perm).id()",
+    "old(perm).is_init()"
+  ],
+  "ensures": [
+    "final(perm).id() == old(perm).id()",
+    "final(perm).mem_contents() == MemContents::Init(in_v)",
+    "out_v == old(perm).value()"
+  ],
+  "det_function": "det_replace",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "id",
+    "mem_contents"
+  ],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 576,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell_maybe_uninit__replace__L158/verus_log/root.smt2",
+  "smt2_bytes": 78962,
+  "ctx_ms": 21,
+  "search_ms": 53,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 675
+}

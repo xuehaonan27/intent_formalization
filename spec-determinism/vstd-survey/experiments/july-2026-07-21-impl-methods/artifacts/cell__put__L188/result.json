@@ -1,0 +1,31 @@
+{
+  "module": "cell",
+  "function": "put",
+  "source_line": 188,
+  "source": "/home/xuehaonan/verus/source/vstd/cell.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__put__L188",
+  "status": "ok",
+  "requires": [
+    "old(perm)@ == pcell_points![ self.id() => MemContents::Uninit ]"
+  ],
+  "ensures": [
+    "final(perm)@ == pcell_points![ self.id() => MemContents::Init(v) ]"
+  ],
+  "det_function": "det_put",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 13,
+  "n_params": 22,
+  "verus_returncode": 0,
+  "verus_ms": 552,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__put__L188/verus_log/root.smt2",
+  "smt2_bytes": 81922,
+  "ctx_ms": 21,
+  "search_ms": 86,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 692
+}

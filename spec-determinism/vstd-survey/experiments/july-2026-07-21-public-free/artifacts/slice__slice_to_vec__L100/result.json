@@ -1,0 +1,29 @@
+{
+  "module": "slice",
+  "function": "slice_to_vec",
+  "source_line": 100,
+  "source": "/home/xuehaonan/verus/source/vstd/slice.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/slice__slice_to_vec__L100",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "out@ == slice@"
+  ],
+  "det_function": "det_slice_to_vec",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 7,
+  "n_params": 16,
+  "verus_returncode": 0,
+  "verus_ms": 609,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/slice__slice_to_vec__L100/verus_log/root.smt2",
+  "smt2_bytes": 114092,
+  "ctx_ms": 21,
+  "search_ms": 74,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 723
+}

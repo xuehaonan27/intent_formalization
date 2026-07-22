@@ -1,0 +1,124 @@
+{
+  "function": "thread_id",
+  "det_check_template": "proof fn det_thread_id(r1: (ThreadId, Tracked<IsThread>), r2: (ThreadId, Tracked<IsThread>))\n    ensures\n        ({\n            &&& (r1.1@@ == r1.0)\n            &&& (r2.1@@ == r2.0)\n        }) ==> det_thread_id_equal(r1, r2),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "r1",
+      "type": {
+        "kind": "struct",
+        "name": "(ThreadId, Tracked<IsThread>)",
+        "fields": [
+          {
+            "name": "0",
+            "type": {
+              "kind": "struct",
+              "name": "ThreadId",
+              "fields": [
+                {
+                  "name": "thread_id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "std::thread::ThreadId"
+                  }
+                }
+              ],
+              "is_opaque": true
+            }
+          },
+          {
+            "name": "1",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<IsThread>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "IsThread",
+                  "spec_view": {
+                    "kind": "unknown",
+                    "name": "ThreadId",
+                    "is_opaque": true
+                  },
+                  "is_opaque": true
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "struct",
+        "name": "(ThreadId, Tracked<IsThread>)",
+        "fields": [
+          {
+            "name": "0",
+            "type": {
+              "kind": "struct",
+              "name": "ThreadId",
+              "fields": [
+                {
+                  "name": "thread_id",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "std::thread::ThreadId"
+                  }
+                }
+              ],
+              "is_opaque": true
+            }
+          },
+          {
+            "name": "1",
+            "type": {
+              "kind": "Tracked",
+              "name": "Tracked<IsThread>",
+              "type_args": [
+                {
+                  "kind": "struct",
+                  "name": "IsThread",
+                  "spec_view": {
+                    "kind": "unknown",
+                    "name": "ThreadId",
+                    "is_opaque": true
+                  },
+                  "is_opaque": true
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_thread_id_equal(r1: (ThreadId, Tracked<IsThread>), r2: (ThreadId, Tracked<IsThread>)) -> bool {\n    ((r1.0 == r2.0) && ((r1.1)@@ == (r2.1)@@))\n}",
+  "equal_fn_name": "det_thread_id_equal",
+  "equal_fn_turbofish": "",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_thread_id",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "",
+  "where_decl": "",
+  "self_type": null,
+  "opened_closed_specs": []
+}

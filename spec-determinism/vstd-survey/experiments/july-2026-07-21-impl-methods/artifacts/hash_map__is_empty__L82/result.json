@@ -1,0 +1,29 @@
+{
+  "module": "hash_map",
+  "function": "is_empty",
+  "source_line": 82,
+  "source": "/home/xuehaonan/verus/source/vstd/hash_map.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__is_empty__L82",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result == self@.is_empty()"
+  ],
+  "det_function": "det_is_empty",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 5,
+  "verus_returncode": 0,
+  "verus_ms": 580,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__is_empty__L82/verus_log/root.smt2",
+  "smt2_bytes": 98490,
+  "ctx_ms": 20,
+  "search_ms": 20,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 644
+}

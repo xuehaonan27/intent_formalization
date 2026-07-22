@@ -1,0 +1,35 @@
+{
+  "module": "cell::invcell",
+  "function": "new",
+  "source_line": 105,
+  "source": "/home/xuehaonan/verus/source/vstd/cell/invcell.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__invcell__new__L105",
+  "status": "ok",
+  "requires": [
+    "pred.predicate(val)"
+  ],
+  "ensures": [
+    "cell.predicate() == pred"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [
+    "predicate"
+  ],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 397,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__invcell__new__L105/verus_log/root.smt2",
+  "smt2_bytes": 55898,
+  "ctx_ms": 17,
+  "search_ms": 15,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_new_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 440
+}

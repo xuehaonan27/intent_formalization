@@ -1,0 +1,79 @@
+{
+  "function": "clear",
+  "det_check_template": "proof fn det_clear<Key, Value>(pre_self_: HashMapWithView<Key, Value>, post1_self_: HashMapWithView<Key, Value>, r1: (), post2_self_: HashMapWithView<Key, Value>, r2: ())\n    where Key: View + Eq + Hash\n    ensures\n        ({\n            &&& (post1_self_@ == Map::<<Key as View>::V, Value>::empty())\n            &&& (post2_self_@ == Map::<<Key as View>::V, Value>::empty())\n        }) ==> det_clear_equal::<Key, Value>(r1, r2, post1_self_, post2_self_),\n{\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "pre_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "()",
+        "name": "()"
+      },
+      "phase": "output_simple"
+    },
+    {
+      "name": "post1_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "post2_self_",
+      "type": {
+        "kind": "unknown",
+        "name": "HashMapWithView<Key, Value>",
+        "is_ext_equal": true
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_clear_equal<Key, Value>(r1: (), r2: (), post1_self_: HashMapWithView<Key, Value>, post2_self_: HashMapWithView<Key, Value>) -> bool\n    where Key: View + Eq + Hash {\n    (r1 == r2)\n    && (((post1_self_).view() =~= (post2_self_).view()))\n}",
+  "equal_fn_name": "det_clear_equal",
+  "equal_fn_turbofish": "::<Key, Value>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    },
+    {
+      "lhs": "post1_self_",
+      "rhs": "post2_self_"
+    }
+  ],
+  "check_fn_name": "det_clear",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<Key, Value>",
+  "where_decl": "where Key: View + Eq + Hash",
+  "self_type": "HashMapWithView<Key, Value>",
+  "opened_closed_specs": []
+}

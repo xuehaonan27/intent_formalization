@@ -1,0 +1,32 @@
+{
+  "module": "hash_map",
+  "function": "new",
+  "source_line": 43,
+  "source": "/home/xuehaonan/verus/source/vstd/hash_map.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__new__L43",
+  "status": "ok",
+  "requires": [
+    "obeys_key_model::<Key>()",
+    "forall|k1: Key, k2: Key| k1@ == k2@ ==> k1 == k2"
+  ],
+  "ensures": [
+    "result@ == Map::<<Key as View>::V, Value>::empty()"
+  ],
+  "det_function": "det_new",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 623,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__new__L43/verus_log/root.smt2",
+  "smt2_bytes": 101364,
+  "ctx_ms": 21,
+  "search_ms": 14,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 676
+}

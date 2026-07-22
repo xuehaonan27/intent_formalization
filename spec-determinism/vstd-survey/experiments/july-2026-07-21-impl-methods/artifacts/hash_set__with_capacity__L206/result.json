@@ -1,0 +1,29 @@
+{
+  "module": "hash_set",
+  "function": "with_capacity",
+  "source_line": 206,
+  "source": "/home/xuehaonan/verus/source/vstd/hash_set.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_set__with_capacity__L206",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "result@ == Set::<Seq<char>>::empty()"
+  ],
+  "det_function": "det_with_capacity",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 3,
+  "n_params": 6,
+  "verus_returncode": 0,
+  "verus_ms": 585,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_set__with_capacity__L206/verus_log/root.smt2",
+  "smt2_bytes": 85700,
+  "ctx_ms": 25,
+  "search_ms": 15,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 649
+}

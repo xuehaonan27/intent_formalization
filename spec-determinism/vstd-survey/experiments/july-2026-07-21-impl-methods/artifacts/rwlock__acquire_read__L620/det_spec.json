@@ -1,0 +1,88 @@
+{
+  "function": "acquire_read",
+  "det_check_template": "proof fn det_acquire_read<V, Pred: RwLockPredicate<V>>(self_: &RwLock<V, Pred>, r1: ReadHandle<'_, V, Pred>, r2: ReadHandle<'_, V, Pred>)\n    ensures\n        ({\n            &&& (r1.rwlock() == *self_)\n            &&& (self_.inv(r1.view()))\n            &&& (r2.rwlock() == *self_)\n            &&& (self_.inv(r2.view()))\n        }) ==> det_acquire_read_equal::<V, Pred>(r1, r2),\n{\n    reveal(inv);\n    reveal(rwlock);\n    reveal(view);\n{ASSUMES}}",
+  "symbols": [
+    {
+      "name": "self_",
+      "type": {
+        "kind": "unknown",
+        "name": "RwLock<V, Pred>"
+      },
+      "phase": "input"
+    },
+    {
+      "name": "r1",
+      "type": {
+        "kind": "unknown",
+        "name": "ReadHandle<'_, V, Pred>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "'_"
+          },
+          {
+            "kind": "unknown",
+            "name": "V"
+          },
+          {
+            "kind": "unknown",
+            "name": "Pred"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    },
+    {
+      "name": "r2",
+      "type": {
+        "kind": "unknown",
+        "name": "ReadHandle<'_, V, Pred>",
+        "type_args": [
+          {
+            "kind": "unknown",
+            "name": "'_"
+          },
+          {
+            "kind": "unknown",
+            "name": "V"
+          },
+          {
+            "kind": "unknown",
+            "name": "Pred"
+          }
+        ]
+      },
+      "phase": "output_compound"
+    }
+  ],
+  "verus_config": {},
+  "equal_fn_def": "// Generated equal-fn for determinism check.\n// Policy: errs_equivalent=True, opaque_ok=False\nspec fn det_acquire_read_equal<V, Pred: RwLockPredicate<V>>(r1: ReadHandle<'_, V, Pred>, r2: ReadHandle<'_, V, Pred>) -> bool {\n    (r1 == r2)\n}",
+  "equal_fn_name": "det_acquire_read_equal",
+  "equal_fn_turbofish": "::<V, Pred>",
+  "equal_arg_pairs": [
+    {
+      "lhs": "r1",
+      "rhs": "r2"
+    }
+  ],
+  "check_fn_name": "det_acquire_read",
+  "equal_policy": {
+    "errs_equivalent": true,
+    "opaque_ok": false,
+    "compare_raw_pointers": false,
+    "ignore_fields": [],
+    "opaque_types": [],
+    "custom_body": null,
+    "rationale": null,
+    "source": "default"
+  },
+  "type_projections": {},
+  "generics_decl": "<V, Pred: RwLockPredicate<V>>",
+  "where_decl": "",
+  "self_type": "RwLock<V, Pred>",
+  "opened_closed_specs": [
+    "inv",
+    "rwlock",
+    "view"
+  ]
+}

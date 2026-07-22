@@ -1,0 +1,33 @@
+{
+  "module": "layout",
+  "function": "layout_for_type_is_valid",
+  "source_line": 118,
+  "source": "/home/xuehaonan/verus/source/vstd/layout.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/layout__layout_for_type_is_valid__L118",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "valid_layout(size_of::<V>() as usize, align_of::<V>() as usize)",
+    "size_of::<V>() as usize as nat == size_of::<V>()",
+    "align_of::<V>() as usize as nat == align_of::<V>()",
+    "align_of::<V>() != 0",
+    "size_of::<V>() % align_of::<V>() == 0"
+  ],
+  "det_function": "det_layout_for_type_is_valid",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 0,
+  "verus_ms": 643,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/layout__layout_for_type_is_valid__L118/verus_log/root.smt2",
+  "smt2_bytes": 113597,
+  "ctx_ms": 21,
+  "search_ms": 21,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 723
+}

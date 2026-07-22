@@ -1,0 +1,31 @@
+{
+  "module": "float",
+  "function": "float_cast",
+  "source_line": 127,
+  "source": "/home/xuehaonan/verus/source/vstd/float.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/float__float_cast__L127",
+  "status": "ok",
+  "requires": [],
+  "ensures": [
+    "float_cast_spec(from, to)"
+  ],
+  "det_function": "det_float_cast",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 1,
+  "n_params": 1,
+  "verus_returncode": 1,
+  "verus_ms": 417,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/float__float_cast__L127/verus_log/root.smt2",
+  "smt2_bytes": 58065,
+  "ctx_ms": 19,
+  "search_ms": 28,
+  "r0_z3": "unknown",
+  "n_rounds": 2,
+  "assumes": [
+    "!det_float_cast_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 474
+}

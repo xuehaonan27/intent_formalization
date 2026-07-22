@@ -1,0 +1,37 @@
+{
+  "module": "raw_ptr",
+  "function": "ptr_ref2",
+  "source_line": 1038,
+  "source": "/home/xuehaonan/verus/source/vstd/raw_ptr.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038",
+  "status": "ok",
+  "requires": [
+    "perm.ptr() == ptr",
+    "perm.is_init()"
+  ],
+  "ensures": [
+    "v.value() == perm.value()",
+    "v.ptr().addr() == ptr.addr()",
+    "v.ptr()@.metadata == ptr@.metadata"
+  ],
+  "det_function": "det_ptr_ref2",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 8,
+  "verus_returncode": 1,
+  "verus_ms": 474,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/verus_log/root.smt2",
+  "smt2_bytes": 138166,
+  "ctx_ms": 22,
+  "search_ms": 32,
+  "r0_z3": "unknown",
+  "n_rounds": 6,
+  "assumes": [
+    "(perm).is_init() == true",
+    "!det_ptr_ref2_equal(r1, r2)"
+  ],
+  "permitted": false,
+  "classification": "ok_inconclusive",
+  "wall_ms": 640
+}

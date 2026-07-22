@@ -1,0 +1,31 @@
+{
+  "module": "std_specs::vec",
+  "function": "vec_index",
+  "source_line": 53,
+  "source": "/home/xuehaonan/verus/source/vstd/std_specs/vec.rs",
+  "artifact_dir": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__vec__vec_index__L53",
+  "status": "ok",
+  "requires": [
+    "i < vec.view().len()"
+  ],
+  "ensures": [
+    "*element == vec.view().index(i as int)"
+  ],
+  "det_function": "det_vec_index",
+  "equal_fn_trivial": false,
+  "suppressed_closed_reveals": [],
+  "n_schemas": 5,
+  "n_params": 11,
+  "verus_returncode": 0,
+  "verus_ms": 575,
+  "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__vec__vec_index__L53/verus_log/root.smt2",
+  "smt2_bytes": 81809,
+  "ctx_ms": 18,
+  "search_ms": 19,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": false,
+  "classification": "complete",
+  "wall_ms": 684
+}
