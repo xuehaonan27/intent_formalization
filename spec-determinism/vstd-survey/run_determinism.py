@@ -321,27 +321,31 @@ def _lookup_rule(mapping: dict, module: str, function: str, source_line):
 #   unsupported / unknown
 # ---------------------------------------------------------------------------
 
-# C-class: genuine semantic underconstraint, established by MANUAL audit —
-# the contract constrains the result only through a non-functional invariant
-# predicate (`inv(result)`), so two distinct values can satisfy it. There is
-# no machine sat witness; the label is audit-established.
+# C-class: genuine semantic underconstraint, MACHINE-ESTABLISHED by the
+# concrete witnesses in experiments/p4-exact-value-2026-07-21/ — the
+# contract constrains the result only through a non-functional invariant
+# predicate (`inv(result)`), so two distinct values provably satisfy it.
 _AUDIT_C_NOTE_CELL = (
-    "audit-established genuine underconstraint: `self.inv(ret)` is a "
-    "non-functional possible-value predicate (no machine sat witness)"
+    "machine-established genuine underconstraint: `self.inv(ret)` is a "
+    "non-functional possible-value predicate; concrete witness verified in "
+    "experiments/p4-exact-value-2026-07-21 (deprecated: "
+    "witness_cell_deprecated.rs, invcell: witness_invcell.rs)"
 )
 
 AUDIT_C = {
     ("cell", "replace", 359): {"note": _AUDIT_C_NOTE_CELL},
     ("cell", "get", 378): {"note": _AUDIT_C_NOTE_CELL},
     ("rwlock", "acquire_write", 530): {
-        "note": "audit-established genuine underconstraint: returned value "
-                "constrained only by the arbitrary lock invariant (no "
-                "machine sat witness)",
+        "note": "machine-established genuine underconstraint: returned value "
+                "constrained only by the arbitrary lock invariant; concrete "
+                "witness verified in "
+                "experiments/p4-exact-value-2026-07-21/witness_rwlock.rs",
     },
     ("rwlock", "into_inner", 702): {
-        "note": "audit-established genuine underconstraint: returned value "
-                "constrained only by the arbitrary lock invariant (no "
-                "machine sat witness)",
+        "note": "machine-established genuine underconstraint: returned value "
+                "constrained only by the arbitrary lock invariant; concrete "
+                "witness verified in "
+                "experiments/p4-exact-value-2026-07-21/witness_rwlock.rs",
     },
     ("cell::invcell", "replace", "*"): {"note": _AUDIT_C_NOTE_CELL},
     ("cell::invcell", "get", "*"): {"note": _AUDIT_C_NOTE_CELL},

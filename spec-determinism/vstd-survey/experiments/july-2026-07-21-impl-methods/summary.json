@@ -285,7 +285,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate; concrete witness verified in experiments/p4-exact-value-2026-07-21 (deprecated: witness_cell_deprecated.rs, invcell: witness_invcell.rs)",
       "audit_label": "incomplete",
       "wall_ms": 434
     },
@@ -321,7 +321,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate; concrete witness verified in experiments/p4-exact-value-2026-07-21 (deprecated: witness_cell_deprecated.rs, invcell: witness_invcell.rs)",
       "audit_label": "incomplete",
       "wall_ms": 474
     },
@@ -357,7 +357,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate; concrete witness verified in experiments/p4-exact-value-2026-07-21 (deprecated: witness_cell_deprecated.rs, invcell: witness_invcell.rs)",
       "audit_label": "incomplete",
       "wall_ms": 443
     },
@@ -1275,7 +1275,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate; concrete witness verified in experiments/p4-exact-value-2026-07-21 (deprecated: witness_cell_deprecated.rs, invcell: witness_invcell.rs)",
       "audit_label": "incomplete",
       "wall_ms": 439
     },
@@ -1310,7 +1310,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate; concrete witness verified in experiments/p4-exact-value-2026-07-21 (deprecated: witness_cell_deprecated.rs, invcell: witness_invcell.rs)",
       "audit_label": "incomplete",
       "wall_ms": 459
     },
@@ -2716,7 +2716,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: returned value constrained only by the arbitrary lock invariant (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: returned value constrained only by the arbitrary lock invariant; concrete witness verified in experiments/p4-exact-value-2026-07-21/witness_rwlock.rs",
       "audit_label": "incomplete",
       "wall_ms": 506
     },
@@ -2786,7 +2786,7 @@
       ],
       "permitted": false,
       "classification": "incomplete",
-      "audit_note": "audit-established genuine underconstraint: returned value constrained only by the arbitrary lock invariant (no machine sat witness)",
+      "audit_note": "machine-established genuine underconstraint: returned value constrained only by the arbitrary lock invariant; concrete witness verified in experiments/p4-exact-value-2026-07-21/witness_rwlock.rs",
       "audit_label": "incomplete",
       "wall_ms": 467
     },

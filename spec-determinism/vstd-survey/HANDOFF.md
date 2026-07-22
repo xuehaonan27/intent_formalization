@@ -59,6 +59,10 @@ The deprecated `vstd::cell::InvCell` was tested; the replacement
   (`complete` / `complete_tool_gap` / `incomplete_permitted` / `incomplete`
   / `unsupported*` / `unknown`) plus `audit_note`; the extractor also lowers
   `returns` clauses to `ensures`, closing the 2 `no_ensures` gaps.
+- P4 is decided: the 7 C-cases are machine-witnessed genuine underconstraint
+  (kept as `incomplete`); the ghost exact-value accessor is the recommended
+  upstream direction (7/7 determinism restored in counterfactual det
+  checks). See experiments/p4-exact-value-2026-07-21/P4-REVIEW.md.
 - The July snapshot (cf3b5c3) is fully validated end-to-end (P1); prefer it
   for new work.
 
@@ -205,7 +209,8 @@ vstd-survey/
     ├── repro-2026-07-21-*/fixup-*     # machine reproduction evidence (see §15.2)
     ├── final-2026-07-21-*/            # clean 111+6 baseline on this machine
     ├── alias-new(-fixup)-2026-07-21/  # the 26 newly visible alias-module targets
-    └── july-2026-07-21-*/             # full rerun on the July (cf3b5c3) snapshot
+    ├── july-2026-07-21-*/             # full rerun on the July (cf3b5c3) snapshot
+    └── p4-exact-value-2026-07-21/     # C-class witnesses + exact-value counterfactuals (P4)
 ```
 
 Primary reading order:
@@ -833,6 +838,27 @@ Do not hide these by a global `equal == true`; record the quotient or permitted
 reason explicitly.
 
 ### P4 — decide what to do with genuine C-cases
+
+**DECIDED 2026-07-21** — full analysis and both evidence packages in
+[experiments/p4-exact-value-2026-07-21/P4-REVIEW.md](experiments/p4-exact-value-2026-07-21/P4-REVIEW.md):
+
+1. **accept and document possible-value abstraction — FORMALIZED.** The
+   underconstraint is now machine-established: three concrete witnesses
+   (`witness_{cell_deprecated,invcell,rwlock}.rs`) prove inside the actual
+   vstd model that two distinct values satisfy each contract family (the
+   first machine-checked sat counterexamples of the study). The 7 targets
+   keep `audit_label=incomplete` with notes pointing at the witnesses.
+2. **add a ghost exact-current-value accessor — RECOMMENDED upstream
+   direction, quantified.** Counterfactual det checks for the amended
+   contract `Q'(r) = Q(r) ∧ r == current` verify 7/7 (`exact_*.rs`):
+   determinism is restored the moment the exact value is pinned, and the
+   amended contract shape compiles against the real vstd types. Patch
+   sketches are in the review; proving the amended ensures against the
+   implementation is the remaining upstream work.
+3. **weaken/change the API — REJECTED** (would legalize the gap and break
+   the information-hiding design).
+
+Original text:
 
 For:
 
