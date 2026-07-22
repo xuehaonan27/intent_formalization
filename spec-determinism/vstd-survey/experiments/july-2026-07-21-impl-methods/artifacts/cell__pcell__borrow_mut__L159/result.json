@@ -14,5 +14,5 @@
     "final(perm).id() == self.id()"
   ],
   "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
-  "wall_ms": 17
+  "wall_ms": 11
 }

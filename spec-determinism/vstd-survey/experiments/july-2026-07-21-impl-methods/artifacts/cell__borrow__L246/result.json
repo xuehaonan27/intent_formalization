@@ -18,7 +18,7 @@
   "n_schemas": 5,
   "n_params": 8,
   "verus_returncode": 0,
-  "verus_ms": 555,
+  "verus_ms": 556,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__borrow__L246/verus_log/root.smt2",
   "smt2_bytes": 73258,
   "ctx_ms": 20,
@@ -28,5 +28,5 @@
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 618
+  "wall_ms": 620
 }

@@ -17,15 +17,15 @@
   "n_schemas": 5,
   "n_params": 11,
   "verus_returncode": 0,
-  "verus_ms": 583,
+  "verus_ms": 607,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__vec__vec_index__L53/verus_log/root.smt2",
   "smt2_bytes": 81809,
-  "ctx_ms": 19,
+  "ctx_ms": 18,
   "search_ms": 17,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 691
+  "wall_ms": 713
 }

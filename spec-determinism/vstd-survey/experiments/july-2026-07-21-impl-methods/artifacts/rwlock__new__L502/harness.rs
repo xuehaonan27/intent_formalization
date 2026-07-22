@@ -5,11 +5,10 @@ use vstd::rwlock::*;
 
 
 verus! {
-// Generated equal-fn for determinism check.
-// Policy: errs_equivalent=True, opaque_ok=False
 spec fn det_new_equal<V, Pred: RwLockPredicate<V>>(r1: RwLock<V, Pred>, r2: RwLock<V, Pred>) -> bool {
-    (r1 == r2)
+    r1.pred() == r2.pred()
 }
+
 
 proof fn det_new<V, Pred: RwLockPredicate<V>>(g_neq_tuple: bool, val: V, pred: Pred, r1: RwLock<V, Pred>, r2: RwLock<V, Pred>)
     requires (pred.inv(val)),

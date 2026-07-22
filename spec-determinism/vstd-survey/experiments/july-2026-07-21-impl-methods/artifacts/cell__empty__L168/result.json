@@ -14,18 +14,18 @@
   "suppressed_closed_reveals": [],
   "n_schemas": 9,
   "n_params": 15,
-  "verus_returncode": 1,
-  "verus_ms": 522,
+  "verus_returncode": 0,
+  "verus_ms": 583,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__empty__L168/verus_log/root.smt2",
-  "smt2_bytes": 85167,
-  "ctx_ms": 20,
-  "search_ms": 23,
-  "r0_z3": "unknown",
-  "n_rounds": 8,
-  "assumes": [
-    "!det_empty_equal(r1, r2)"
-  ],
-  "permitted": false,
-  "classification": "ok_inconclusive",
-  "wall_ms": 597
+  "smt2_bytes": 80616,
+  "ctx_ms": 21,
+  "search_ms": 18,
+  "r0_z3": "unsat",
+  "n_rounds": 1,
+  "assumes": [],
+  "permitted": true,
+  "classification": "complete",
+  "permitted_reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+  "quotient": "content quotient: fresh `CellId` ignored; compares `is_init()`/`value()`",
+  "wall_ms": 653
 }

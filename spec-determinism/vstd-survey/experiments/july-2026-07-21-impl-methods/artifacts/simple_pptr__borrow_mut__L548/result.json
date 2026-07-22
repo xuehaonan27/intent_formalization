@@ -16,5 +16,5 @@
     "final(perm).value() == *final(v)"
   ],
   "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
-  "wall_ms": 41
+  "wall_ms": 50
 }

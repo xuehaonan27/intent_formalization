@@ -21,15 +21,15 @@
   "n_schemas": 3,
   "n_params": 6,
   "verus_returncode": 0,
-  "verus_ms": 609,
+  "verus_ms": 709,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/atomic__fetch_xor__L624/verus_log/root.smt2",
   "smt2_bytes": 114834,
-  "ctx_ms": 22,
+  "ctx_ms": 23,
   "search_ms": 18,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 731
+  "wall_ms": 833
 }

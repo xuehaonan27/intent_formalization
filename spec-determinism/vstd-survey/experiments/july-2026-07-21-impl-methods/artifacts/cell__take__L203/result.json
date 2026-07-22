@@ -20,15 +20,15 @@
   "n_schemas": 13,
   "n_params": 22,
   "verus_returncode": 0,
-  "verus_ms": 600,
+  "verus_ms": 568,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__take__L203/verus_log/root.smt2",
   "smt2_bytes": 83028,
-  "ctx_ms": 20,
+  "ctx_ms": 21,
   "search_ms": 56,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 713
+  "wall_ms": 680
 }

@@ -15,16 +15,16 @@
   "n_schemas": 3,
   "n_params": 6,
   "verus_returncode": 0,
-  "verus_ms": 572,
+  "verus_ms": 579,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
   "smt2_bytes": 100514,
-  "ctx_ms": 20,
-  "search_ms": 16,
+  "ctx_ms": 19,
+  "search_ms": 15,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "raw_classification": "complete",
   "classification": "invalid_equal_fn_trivial",
-  "wall_ms": 680
+  "wall_ms": 687
 }

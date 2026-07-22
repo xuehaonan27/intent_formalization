@@ -146,6 +146,67 @@ EQUAL_FN_OVERRIDES = {
         "    forall|v: T| r1.inv(v) == r2.inv(v)\n"
         "}\n"
     ),
+    # --- P3: content/predicate quotients for fresh-identity constructors ---
+    # These constructors intentionally pick a fresh identity (CellId,
+    # allocator address, lock instance). Under the recorded quotient (see
+    # PERMITTED_RULES) that ignores identity and observes content/predicate,
+    # the result IS uniquely determined. Each override drops only the
+    # identity conjuncts of the default equality.
+    ("cell", "empty", 168): (
+        "spec fn det_empty_equal<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), "
+        "r2: (PCell<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("cell", "new", 178): (
+        "spec fn det_new_equal<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), "
+        "r2: (PCell<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("cell::pcell", "new", 132): (
+        "spec fn det_new_equal<T: ?Sized>(r1: (PCell<T>, Tracked<PointsTo<T>>), "
+        "r2: (PCell<T>, Tracked<PointsTo<T>>)) -> bool\n"
+        "    where T: Sized {\n"
+        "    ((r1.1)@).value() == ((r2.1)@).value()\n"
+        "}\n"
+    ),
+    ("cell::pcell_maybe_uninit", "empty", 107): (
+        "spec fn det_empty_equal<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), "
+        "r2: (PCell<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("cell::pcell_maybe_uninit", "new", 117): (
+        "spec fn det_new_equal<V>(r1: (PCell<V>, Tracked<PointsTo<V>>), "
+        "r2: (PCell<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("simple_pptr", "empty", 347): (
+        "spec fn det_empty_equal<V>(r1: (PPtr<V>, Tracked<PointsTo<V>>), "
+        "r2: (PPtr<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("simple_pptr", "new", "*"): (
+        "spec fn det_new_equal<V>(r1: (PPtr<V>, Tracked<PointsTo<V>>), "
+        "r2: (PPtr<V>, Tracked<PointsTo<V>>)) -> bool {\n"
+        "    (((r1.1)@).is_init() == ((r2.1)@).is_init())\n"
+        "    && (((r1.1)@).is_init() ==> (((r1.1)@).value() == ((r2.1)@).value()))\n"
+        "}\n"
+    ),
+    ("rwlock", "new", 502): (
+        "spec fn det_new_equal<V, Pred: RwLockPredicate<V>>(r1: RwLock<V, Pred>, "
+        "r2: RwLock<V, Pred>) -> bool {\n"
+        "    r1.pred() == r2.pred()\n"
+        "}\n"
+    ),
 }
 
 PROOF_HINTS = {
@@ -179,6 +240,76 @@ PROOF_HINTS = {
         ),
     },
 }
+
+# ---------------------------------------------------------------------------
+# P3 — permitted nondeterminism records (HANDOFF §13 P3).
+#
+# Every B-class target gets an explicit record instead of a blanket
+# `equal == true`. Two flavours:
+#   * quotient constructors: an EQUAL_FN_OVERRIDES entry above drops the
+#     identity conjuncts; `quotient` names the quotient, and the target is
+#     expected to verify (complete) under it;
+#   * relation cases: no quotient makes the result unique; classification
+#     becomes `incomplete_permitted` with the recorded reason.
+# ---------------------------------------------------------------------------
+
+_CELL_QUOTIENT = (
+    "content quotient: fresh `CellId` ignored; compares `is_init()`/`value()`"
+)
+
+PERMITTED_RULES = {
+    ("cell", "empty", 168): {
+        "quotient": _CELL_QUOTIENT,
+        "reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+    },
+    ("cell", "new", 178): {
+        "quotient": _CELL_QUOTIENT,
+        "reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+    },
+    ("cell::pcell", "new", 132): {
+        "quotient": "content quotient: fresh `CellId` ignored; compares `value()`",
+        "reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+    },
+    ("cell::pcell_maybe_uninit", "empty", 107): {
+        "quotient": _CELL_QUOTIENT,
+        "reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+    },
+    ("cell::pcell_maybe_uninit", "new", 117): {
+        "quotient": _CELL_QUOTIENT,
+        "reason": "intentional fresh-cell identity; deterministic under the recorded content quotient",
+    },
+    ("simple_pptr", "empty", 347): {
+        "quotient": "content quotient: fresh allocator address ignored; compares `is_init()`/`value()`",
+        "reason": "intentional fresh-address identity; deterministic under the recorded content quotient",
+    },
+    ("simple_pptr", "new", "*"): {
+        "quotient": "content quotient: fresh allocator address ignored; compares `is_init()`/`value()`",
+        "reason": "intentional fresh-address identity; deterministic under the recorded content quotient",
+    },
+    ("rwlock", "new", 502): {
+        "quotient": "predicate quotient: fresh lock/cell instance ignored; compares `pred()`",
+        "reason": "intentional fresh-instance identity; deterministic under the recorded predicate quotient",
+    },
+    ("float", "float_cast", 127): {
+        "reason": "intentional nondeterminism: Rust float-cast relation documented as possibly non-deterministic; modeled by an uninterpreted relation",
+    },
+    ("raw_ptr", "allocate", 908): {
+        "reason": "intentional nondeterminism: allocator may choose any address/provenance for identical size/alignment requests",
+    },
+    ("thread", "spawn", 107): {
+        "reason": "intentional nondeterminism: fresh thread-handle identity and one-way predicate constraint on the closure result",
+    },
+    ("thread", "join", 27): {
+        "reason": "intentional nondeterminism: successful value constrained only by the handle predicate; thread identity and runtime state intentionally hidden",
+    },
+}
+
+
+def _lookup_rule(mapping: dict, module: str, function: str, source_line):
+    """Exact (module, function, line) first, then the '*' line wildcard."""
+    return mapping.get((module, function, source_line)) or mapping.get(
+        (module, function, "*")
+    )
 
 
 def module_file(vstd_root: Path, module: str) -> Path:
@@ -500,6 +631,17 @@ def run_target(
             result["classification"] = "invalid_equal_fn_trivial"
         else:
             result["classification"] = raw_classification
+        # P3: attach the explicit permitted record (quotient or reason).
+        # Relation cases (no quotient) become `incomplete_permitted`;
+        # quotient constructors keep their verdict plus the quotient name.
+        rule = _lookup_rule(PERMITTED_RULES, module, function, source_line)
+        if rule is not None:
+            result["permitted"] = True
+            result["permitted_reason"] = rule["reason"]
+            if rule.get("quotient"):
+                result["quotient"] = rule["quotient"]
+            elif result["classification"] == "ok_inconclusive":
+                result["classification"] = "incomplete_permitted"
         return result
     except Exception as exc:
         result["status"] = "runner_crash"

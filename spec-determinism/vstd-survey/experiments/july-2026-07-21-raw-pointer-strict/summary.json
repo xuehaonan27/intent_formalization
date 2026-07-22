@@ -34,17 +34,17 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 663,
+      "verus_ms": 596,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_ptr_to_thin_ptr__L446/verus_log/root.smt2",
       "smt2_bytes": 97854,
       "ctx_ms": 24,
-      "search_ms": 14,
+      "search_ms": 17,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 768
+      "wall_ms": 700
     },
     {
       "module": "raw_ptr",
@@ -63,7 +63,7 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 611,
+      "verus_ms": 662,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_array_ptr_to_slice_ptr__L468/verus_log/root.smt2",
       "smt2_bytes": 119221,
       "ctx_ms": 22,
@@ -73,7 +73,7 @@
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 722
+      "wall_ms": 775
     },
     {
       "module": "raw_ptr",
@@ -92,17 +92,17 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 574,
+      "verus_ms": 584,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_slice_ptr__L492/verus_log/root.smt2",
       "smt2_bytes": 98422,
-      "ctx_ms": 19,
+      "ctx_ms": 18,
       "search_ms": 14,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 666
+      "wall_ms": 678
     },
     {
       "module": "raw_ptr",
@@ -121,17 +121,17 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 626,
+      "verus_ms": 597,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_str_ptr__L516/verus_log/root.smt2",
       "smt2_bytes": 103964,
-      "ctx_ms": 22,
+      "ctx_ms": 19,
       "search_ms": 15,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 725
+      "wall_ms": 693
     },
     {
       "module": "raw_ptr",
@@ -150,7 +150,7 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 590,
+      "verus_ms": 593,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_str_ptr_to_slice_ptr__L540/verus_log/root.smt2",
       "smt2_bytes": 104407,
       "ctx_ms": 19,
@@ -160,7 +160,7 @@
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 701
+      "wall_ms": 695
     },
     {
       "module": "raw_ptr",
@@ -179,17 +179,17 @@
       "n_schemas": 3,
       "n_params": 6,
       "verus_returncode": 0,
-      "verus_ms": 601,
+      "verus_ms": 621,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
       "smt2_bytes": 100679,
-      "ctx_ms": 19,
-      "search_ms": 15,
+      "ctx_ms": 20,
+      "search_ms": 16,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 709
+      "wall_ms": 740
     }
   ]
 }

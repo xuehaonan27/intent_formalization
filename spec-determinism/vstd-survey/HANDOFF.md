@@ -52,6 +52,9 @@ The deprecated `vstd::cell::InvCell` was tested; the replacement
   unknown breakdown is 0 A / 9 B / 4 C for the original set (plus invcell:
   1 A-analog→complete, 3 C; B +3; `iter::next` unaudited; `iter::{new,next}`
   were removed upstream in July).
+- All 12 B-cases are explicitly encoded (P3): 8 fresh-identity constructors
+  verify under recorded content/predicate quotients; 4 relation cases are
+  `incomplete_permitted` with recorded reasons.
 - The July snapshot (cf3b5c3) is fully validated end-to-end (P1); prefer it
   for new work.
 
@@ -188,6 +191,7 @@ vstd-survey/
     ├── ALIAS-NEW-REVIEW-2026-07-21.md # review of the 26 alias-module targets (P0 follow-up)
     ├── JULY-RERUN-REVIEW-2026-07-21.md # July (cf3b5c3) full-rerun review (see §15.4)
     ├── P2-REVIEW-2026-07-21.md        # A-case automation review (see §13 P2)
+    ├── P3-REVIEW-2026-07-21.md        # permitted-nondeterminism review (see §13 P3)
     ├── pilot-2026-07-14/              # initial array/bytes pilot
     ├── public-free-2026-07-14/        # 34 public free definitions
     ├── raw-pointer-strict-2026-07-14/ # strict equality rerun for 6 pointer APIs
@@ -802,6 +806,16 @@ matter for future proof hints. Original items:
 5. use invariant-predicate equality for `InvCell::new`.
 
 ### P3 — encode permitted nondeterminism
+
+**DONE 2026-07-21** — see
+[experiments/P3-REVIEW-2026-07-21.md](experiments/P3-REVIEW-2026-07-21.md).
+Eight fresh-identity constructors verify under explicitly recorded
+content/predicate quotients (`PERMITTED_RULES` + `EQUAL_FN_OVERRIDES`); the
+four relation cases (`float_cast`, `allocate`, `spawn`, `join`) are now
+classified `incomplete_permitted` with recorded reasons, and `result.json`
+carries `permitted` / `permitted_reason` / `quotient` (this also fixes the
+§12 note that the runner's permitted flag was always False). No global
+`equal == true` was used anywhere. Original items:
 
 Add vstd-specific permitted rules for:
 

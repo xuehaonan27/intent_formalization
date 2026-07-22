@@ -18,11 +18,11 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 1,
-  "verus_ms": 381,
+  "verus_ms": 392,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/rwlock__acquire_write__L530/verus_log/root.smt2",
   "smt2_bytes": 63140,
   "ctx_ms": 17,
-  "search_ms": 15,
+  "search_ms": 16,
   "r0_z3": "unknown",
   "n_rounds": 2,
   "assumes": [
@@ -30,5 +30,5 @@
   ],
   "permitted": false,
   "classification": "ok_inconclusive",
-  "wall_ms": 484
+  "wall_ms": 498
 }
