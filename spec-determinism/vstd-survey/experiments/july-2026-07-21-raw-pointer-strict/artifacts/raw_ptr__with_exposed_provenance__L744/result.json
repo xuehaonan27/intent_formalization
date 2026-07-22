@@ -15,15 +15,16 @@
   "n_schemas": 3,
   "n_params": 6,
   "verus_returncode": 0,
-  "verus_ms": 621,
+  "verus_ms": 598,
   "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
   "smt2_bytes": 100679,
   "ctx_ms": 20,
-  "search_ms": 16,
+  "search_ms": 22,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 740
+  "audit_label": "complete",
+  "wall_ms": 712
 }

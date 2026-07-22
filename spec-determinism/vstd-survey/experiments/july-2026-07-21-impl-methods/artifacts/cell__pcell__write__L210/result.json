@@ -21,12 +21,13 @@
   "verus_ms": 561,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__pcell__write__L210/verus_log/root.smt2",
   "smt2_bytes": 64499,
-  "ctx_ms": 20,
-  "search_ms": 12,
+  "ctx_ms": 19,
+  "search_ms": 13,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 608
+  "audit_label": "complete",
+  "wall_ms": 609
 }

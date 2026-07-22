@@ -18,7 +18,7 @@
   "n_schemas": 5,
   "n_params": 8,
   "verus_returncode": 0,
-  "verus_ms": 612,
+  "verus_ms": 637,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620/verus_log/root.smt2",
   "smt2_bytes": 122777,
   "ctx_ms": 20,
@@ -28,5 +28,6 @@
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 744
+  "audit_label": "complete",
+  "wall_ms": 766
 }

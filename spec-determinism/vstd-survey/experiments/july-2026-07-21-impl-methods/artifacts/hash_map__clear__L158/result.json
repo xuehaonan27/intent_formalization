@@ -15,7 +15,7 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 0,
-  "verus_ms": 585,
+  "verus_ms": 671,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/hash_map__clear__L158/verus_log/root.smt2",
   "smt2_bytes": 93058,
   "ctx_ms": 20,
@@ -25,5 +25,6 @@
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 638
+  "audit_label": "complete",
+  "wall_ms": 724
 }

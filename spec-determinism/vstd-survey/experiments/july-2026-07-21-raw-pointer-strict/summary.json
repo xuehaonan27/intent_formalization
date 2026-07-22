@@ -34,17 +34,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 596,
+      "verus_ms": 577,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_ptr_to_thin_ptr__L446/verus_log/root.smt2",
       "smt2_bytes": 97854,
-      "ctx_ms": 24,
-      "search_ms": 17,
+      "ctx_ms": 23,
+      "search_ms": 14,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 700
+      "audit_label": "complete",
+      "wall_ms": 677
     },
     {
       "module": "raw_ptr",
@@ -63,17 +64,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 662,
+      "verus_ms": 624,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_array_ptr_to_slice_ptr__L468/verus_log/root.smt2",
       "smt2_bytes": 119221,
-      "ctx_ms": 22,
-      "search_ms": 16,
+      "ctx_ms": 23,
+      "search_ms": 18,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 775
+      "audit_label": "complete",
+      "wall_ms": 736
     },
     {
       "module": "raw_ptr",
@@ -92,17 +94,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 584,
+      "verus_ms": 590,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_slice_ptr__L492/verus_log/root.smt2",
       "smt2_bytes": 98422,
-      "ctx_ms": 18,
+      "ctx_ms": 19,
       "search_ms": 14,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 678
+      "audit_label": "complete",
+      "wall_ms": 688
     },
     {
       "module": "raw_ptr",
@@ -121,17 +124,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 597,
+      "verus_ms": 606,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_slice_ptr_to_str_ptr__L516/verus_log/root.smt2",
       "smt2_bytes": 103964,
       "ctx_ms": 19,
-      "search_ms": 15,
+      "search_ms": 16,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 693
+      "audit_label": "complete",
+      "wall_ms": 703
     },
     {
       "module": "raw_ptr",
@@ -150,17 +154,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 593,
+      "verus_ms": 603,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__cast_str_ptr_to_slice_ptr__L540/verus_log/root.smt2",
       "smt2_bytes": 104407,
       "ctx_ms": 19,
-      "search_ms": 16,
+      "search_ms": 15,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 695
+      "audit_label": "complete",
+      "wall_ms": 707
     },
     {
       "module": "raw_ptr",
@@ -179,17 +184,18 @@
       "n_schemas": 3,
       "n_params": 6,
       "verus_returncode": 0,
-      "verus_ms": 621,
+      "verus_ms": 598,
       "smt2": "vstd-survey/experiments/july-2026-07-21-raw-pointer-strict/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
       "smt2_bytes": 100679,
       "ctx_ms": 20,
-      "search_ms": 16,
+      "search_ms": 22,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 740
+      "audit_label": "complete",
+      "wall_ms": 712
     }
   ]
 }

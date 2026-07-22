@@ -22,11 +22,11 @@
   "n_schemas": 5,
   "n_params": 11,
   "verus_returncode": 1,
-  "verus_ms": 493,
+  "verus_ms": 595,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__allocate__L908/verus_log/root.smt2",
   "smt2_bytes": 185023,
-  "ctx_ms": 27,
-  "search_ms": 86,
+  "ctx_ms": 26,
+  "search_ms": 101,
   "r0_z3": "unknown",
   "n_rounds": 15,
   "assumes": [
@@ -37,5 +37,6 @@
   "permitted": true,
   "classification": "incomplete_permitted",
   "permitted_reason": "intentional nondeterminism: allocator may choose any address/provenance for identical size/alignment requests",
-  "wall_ms": 738
+  "audit_label": "incomplete_permitted",
+  "wall_ms": 884
 }

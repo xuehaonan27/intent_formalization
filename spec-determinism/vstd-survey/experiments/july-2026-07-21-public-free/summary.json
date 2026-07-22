@@ -77,7 +77,8 @@
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 671
+      "audit_label": "complete",
+      "wall_ms": 685
     },
     {
       "module": "array",
@@ -97,17 +98,18 @@
       "n_schemas": 7,
       "n_params": 16,
       "verus_returncode": 0,
-      "verus_ms": 626,
+      "verus_ms": 647,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/array__array_as_slice__L135/verus_log/root.smt2",
       "smt2_bytes": 122776,
-      "ctx_ms": 27,
-      "search_ms": 96,
+      "ctx_ms": 24,
+      "search_ms": 94,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 770
+      "audit_label": "complete",
+      "wall_ms": 786
     },
     {
       "module": "array",
@@ -126,17 +128,18 @@
       "n_schemas": 5,
       "n_params": 11,
       "verus_returncode": 0,
-      "verus_ms": 646,
+      "verus_ms": 618,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/array__array_fill_for_copy_types__L164/verus_log/root.smt2",
       "smt2_bytes": 131731,
-      "ctx_ms": 21,
-      "search_ms": 23,
+      "ctx_ms": 22,
+      "search_ms": 22,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 707
+      "audit_label": "complete",
+      "wall_ms": 677
     },
     {
       "module": "array",
@@ -151,6 +154,7 @@
         "final(out).view() == final(r).view()"
       ],
       "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
+      "audit_label": "unsupported_mut_ref_return",
       "wall_ms": 11
     },
     {
@@ -174,17 +178,18 @@
       "n_schemas": 23,
       "n_params": 56,
       "verus_returncode": 0,
-      "verus_ms": 610,
+      "verus_ms": 779,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u16_from_le_bytes__L79/verus_log/root.smt2",
       "smt2_bytes": 128804,
-      "ctx_ms": 22,
-      "search_ms": 234,
+      "ctx_ms": 23,
+      "search_ms": 250,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 897
+      "audit_label": "complete",
+      "wall_ms": 1085
     },
     {
       "module": "bytes",
@@ -206,17 +211,18 @@
       "n_schemas": 39,
       "n_params": 96,
       "verus_returncode": 0,
-      "verus_ms": 652,
+      "verus_ms": 677,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u16_to_le_bytes__L91/verus_log/root.smt2",
       "smt2_bytes": 154706,
       "ctx_ms": 23,
-      "search_ms": 225,
+      "search_ms": 279,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 926
+      "audit_label": "complete",
+      "wall_ms": 1006
     },
     {
       "module": "bytes",
@@ -239,17 +245,18 @@
       "n_schemas": 23,
       "n_params": 56,
       "verus_returncode": 0,
-      "verus_ms": 632,
+      "verus_ms": 625,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u32_from_le_bytes__L174/verus_log/root.smt2",
       "smt2_bytes": 128805,
-      "ctx_ms": 22,
-      "search_ms": 233,
+      "ctx_ms": 31,
+      "search_ms": 285,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 913
+      "audit_label": "complete",
+      "wall_ms": 969
     },
     {
       "module": "bytes",
@@ -271,17 +278,18 @@
       "n_schemas": 39,
       "n_params": 96,
       "verus_returncode": 0,
-      "verus_ms": 660,
+      "verus_ms": 745,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u32_to_le_bytes__L186/verus_log/root.smt2",
       "smt2_bytes": 154707,
-      "ctx_ms": 24,
-      "search_ms": 226,
+      "ctx_ms": 29,
+      "search_ms": 337,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 944
+      "audit_label": "complete",
+      "wall_ms": 1152
     },
     {
       "module": "bytes",
@@ -304,17 +312,18 @@
       "n_schemas": 23,
       "n_params": 56,
       "verus_returncode": 0,
-      "verus_ms": 651,
+      "verus_ms": 731,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u64_from_le_bytes__L331/verus_log/root.smt2",
       "smt2_bytes": 128805,
-      "ctx_ms": 22,
-      "search_ms": 246,
+      "ctx_ms": 26,
+      "search_ms": 251,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 947
+      "audit_label": "complete",
+      "wall_ms": 1037
     },
     {
       "module": "bytes",
@@ -336,17 +345,18 @@
       "n_schemas": 39,
       "n_params": 96,
       "verus_returncode": 0,
-      "verus_ms": 735,
+      "verus_ms": 661,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u64_to_le_bytes__L343/verus_log/root.smt2",
       "smt2_bytes": 154707,
       "ctx_ms": 23,
-      "search_ms": 223,
+      "search_ms": 245,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 1019
+      "audit_label": "complete",
+      "wall_ms": 967
     },
     {
       "module": "bytes",
@@ -369,17 +379,18 @@
       "n_schemas": 19,
       "n_params": 46,
       "verus_returncode": 0,
-      "verus_ms": 611,
+      "verus_ms": 644,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u128_from_le_bytes__L518/verus_log/root.smt2",
       "smt2_bytes": 123844,
       "ctx_ms": 21,
-      "search_ms": 205,
+      "search_ms": 211,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 873
+      "audit_label": "complete",
+      "wall_ms": 918
     },
     {
       "module": "bytes",
@@ -401,17 +412,18 @@
       "n_schemas": 37,
       "n_params": 91,
       "verus_returncode": 0,
-      "verus_ms": 647,
+      "verus_ms": 684,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/bytes__u128_to_le_bytes__L530/verus_log/root.smt2",
       "smt2_bytes": 150118,
-      "ctx_ms": 23,
-      "search_ms": 206,
+      "ctx_ms": 24,
+      "search_ms": 246,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 919
+      "audit_label": "complete",
+      "wall_ms": 997
     },
     {
       "module": "float",
@@ -430,10 +442,10 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 1,
-      "verus_ms": 373,
+      "verus_ms": 456,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/float__float_cast__L127/verus_log/root.smt2",
       "smt2_bytes": 58065,
-      "ctx_ms": 22,
+      "ctx_ms": 17,
       "search_ms": 15,
       "r0_z3": "unknown",
       "n_rounds": 2,
@@ -443,7 +455,8 @@
       "permitted": true,
       "classification": "incomplete_permitted",
       "permitted_reason": "intentional nondeterminism: Rust float-cast relation documented as possibly non-deterministic; modeled by an uninterpreted relation",
-      "wall_ms": 418
+      "audit_label": "incomplete_permitted",
+      "wall_ms": 496
     },
     {
       "module": "layout",
@@ -466,17 +479,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 616,
+      "verus_ms": 623,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/layout__layout_for_type_is_valid__L118/verus_log/root.smt2",
       "smt2_bytes": 113597,
-      "ctx_ms": 21,
-      "search_ms": 18,
+      "ctx_ms": 23,
+      "search_ms": 20,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 678
+      "audit_label": "complete",
+      "wall_ms": 691
     },
     {
       "module": "layout",
@@ -499,17 +513,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 542,
+      "verus_ms": 650,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/layout__layout_for_val_is_valid__L141/verus_log/root.smt2",
       "smt2_bytes": 56144,
-      "ctx_ms": 16,
-      "search_ms": 11,
+      "ctx_ms": 21,
+      "search_ms": 17,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 607
+      "audit_label": "complete",
+      "wall_ms": 731
     },
     {
       "module": "raw_ptr",
@@ -528,10 +543,10 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 622,
+      "verus_ms": 629,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_ptr_to_thin_ptr__L446/verus_log/root.smt2",
       "smt2_bytes": 97840,
-      "ctx_ms": 18,
+      "ctx_ms": 21,
       "search_ms": 14,
       "r0_z3": "unsat",
       "n_rounds": 1,
@@ -539,7 +554,8 @@
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 717
+      "audit_label": "unknown",
+      "wall_ms": 741
     },
     {
       "module": "raw_ptr",
@@ -558,10 +574,10 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 609,
+      "verus_ms": 655,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_array_ptr_to_slice_ptr__L468/verus_log/root.smt2",
       "smt2_bytes": 119207,
-      "ctx_ms": 21,
+      "ctx_ms": 20,
       "search_ms": 16,
       "r0_z3": "unsat",
       "n_rounds": 1,
@@ -569,7 +585,8 @@
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 727
+      "audit_label": "unknown",
+      "wall_ms": 772
     },
     {
       "module": "raw_ptr",
@@ -588,7 +605,7 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 613,
+      "verus_ms": 591,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_slice_ptr_to_slice_ptr__L492/verus_log/root.smt2",
       "smt2_bytes": 98408,
       "ctx_ms": 19,
@@ -599,7 +616,8 @@
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 708
+      "audit_label": "unknown",
+      "wall_ms": 685
     },
     {
       "module": "raw_ptr",
@@ -618,18 +636,19 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 605,
+      "verus_ms": 599,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_slice_ptr_to_str_ptr__L516/verus_log/root.smt2",
       "smt2_bytes": 103950,
-      "ctx_ms": 24,
-      "search_ms": 19,
+      "ctx_ms": 19,
+      "search_ms": 15,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 710
+      "audit_label": "unknown",
+      "wall_ms": 695
     },
     {
       "module": "raw_ptr",
@@ -648,10 +667,10 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 597,
+      "verus_ms": 621,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_str_ptr_to_slice_ptr__L540/verus_log/root.smt2",
       "smt2_bytes": 104393,
-      "ctx_ms": 19,
+      "ctx_ms": 20,
       "search_ms": 15,
       "r0_z3": "unsat",
       "n_rounds": 1,
@@ -659,7 +678,8 @@
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 747
+      "audit_label": "unknown",
+      "wall_ms": 728
     },
     {
       "module": "raw_ptr",
@@ -678,17 +698,18 @@
       "n_schemas": 5,
       "n_params": 11,
       "verus_returncode": 0,
-      "verus_ms": 585,
+      "verus_ms": 669,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__cast_ptr_to_usize__L560/verus_log/root.smt2",
       "smt2_bytes": 97996,
       "ctx_ms": 19,
-      "search_ms": 17,
+      "search_ms": 19,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 679
+      "audit_label": "complete",
+      "wall_ms": 764
     },
     {
       "module": "raw_ptr",
@@ -710,17 +731,18 @@
       "n_schemas": 13,
       "n_params": 22,
       "verus_returncode": 0,
-      "verus_ms": 733,
+      "verus_ms": 656,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_write__L579/verus_log/root.smt2",
       "smt2_bytes": 139261,
       "ctx_ms": 21,
-      "search_ms": 168,
+      "search_ms": 183,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 998
+      "audit_label": "complete",
+      "wall_ms": 936
     },
     {
       "module": "raw_ptr",
@@ -744,17 +766,18 @@
       "n_schemas": 13,
       "n_params": 22,
       "verus_returncode": 0,
-      "verus_ms": 716,
+      "verus_ms": 633,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_mut_read__L602/verus_log/root.smt2",
       "smt2_bytes": 142916,
-      "ctx_ms": 32,
-      "search_ms": 221,
+      "ctx_ms": 21,
+      "search_ms": 193,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 1045
+      "audit_label": "complete",
+      "wall_ms": 927
     },
     {
       "module": "raw_ptr",
@@ -776,7 +799,7 @@
       "n_schemas": 5,
       "n_params": 8,
       "verus_returncode": 0,
-      "verus_ms": 612,
+      "verus_ms": 637,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref__L620/verus_log/root.smt2",
       "smt2_bytes": 122777,
       "ctx_ms": 20,
@@ -786,7 +809,8 @@
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 744
+      "audit_label": "complete",
+      "wall_ms": 766
     },
     {
       "module": "raw_ptr",
@@ -806,7 +830,8 @@
         "final(perm).value() == *final(v)"
       ],
       "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
-      "wall_ms": 75
+      "audit_label": "unsupported_mut_ref_return",
+      "wall_ms": 73
     },
     {
       "module": "raw_ptr",
@@ -825,17 +850,18 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 594,
+      "verus_ms": 571,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__expose_provenance__L731/verus_log/root.smt2",
       "smt2_bytes": 97408,
-      "ctx_ms": 19,
-      "search_ms": 14,
+      "ctx_ms": 21,
+      "search_ms": 18,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 703
+      "audit_label": "complete",
+      "wall_ms": 684
     },
     {
       "module": "raw_ptr",
@@ -854,18 +880,19 @@
       "n_schemas": 3,
       "n_params": 6,
       "verus_returncode": 0,
-      "verus_ms": 579,
+      "verus_ms": 651,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__with_exposed_provenance__L744/verus_log/root.smt2",
       "smt2_bytes": 100514,
-      "ctx_ms": 19,
-      "search_ms": 15,
+      "ctx_ms": 24,
+      "search_ms": 16,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "raw_classification": "complete",
       "classification": "invalid_equal_fn_trivial",
-      "wall_ms": 687
+      "audit_label": "unknown",
+      "wall_ms": 786
     },
     {
       "module": "raw_ptr",
@@ -891,11 +918,11 @@
       "n_schemas": 5,
       "n_params": 11,
       "verus_returncode": 1,
-      "verus_ms": 493,
+      "verus_ms": 595,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__allocate__L908/verus_log/root.smt2",
       "smt2_bytes": 185023,
-      "ctx_ms": 27,
-      "search_ms": 86,
+      "ctx_ms": 26,
+      "search_ms": 101,
       "r0_z3": "unknown",
       "n_rounds": 15,
       "assumes": [
@@ -906,7 +933,8 @@
       "permitted": true,
       "classification": "incomplete_permitted",
       "permitted_reason": "intentional nondeterminism: allocator may choose any address/provenance for identical size/alignment requests",
-      "wall_ms": 738
+      "audit_label": "incomplete_permitted",
+      "wall_ms": 884
     },
     {
       "module": "raw_ptr",
@@ -930,17 +958,18 @@
       "n_schemas": 5,
       "n_params": 8,
       "verus_returncode": 0,
-      "verus_ms": 610,
+      "verus_ms": 733,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/raw_ptr__ptr_ref2__L1038/verus_log/root.smt2",
       "smt2_bytes": 129597,
       "ctx_ms": 23,
-      "search_ms": 21,
+      "search_ms": 23,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 758
+      "audit_label": "complete_tool_gap",
+      "wall_ms": 909
     },
     {
       "module": "slice",
@@ -961,17 +990,18 @@
       "n_schemas": 5,
       "n_params": 11,
       "verus_returncode": 0,
-      "verus_ms": 595,
+      "verus_ms": 742,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/slice__slice_index_get__L62/verus_log/root.smt2",
       "smt2_bytes": 99072,
-      "ctx_ms": 23,
-      "search_ms": 24,
+      "ctx_ms": 29,
+      "search_ms": 32,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 659
+      "audit_label": "complete",
+      "wall_ms": 820
     },
     {
       "module": "slice",
@@ -990,17 +1020,18 @@
       "n_schemas": 7,
       "n_params": 16,
       "verus_returncode": 0,
-      "verus_ms": 720,
+      "verus_ms": 738,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/slice__slice_to_vec__L100/verus_log/root.smt2",
       "smt2_bytes": 114092,
-      "ctx_ms": 21,
-      "search_ms": 77,
+      "ctx_ms": 20,
+      "search_ms": 75,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 846
+      "audit_label": "complete",
+      "wall_ms": 853
     },
     {
       "module": "slice",
@@ -1021,17 +1052,18 @@
       "n_schemas": 11,
       "n_params": 26,
       "verus_returncode": 0,
-      "verus_ms": 612,
+      "verus_ms": 610,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/slice__slice_subrange__L108/verus_log/root.smt2",
       "smt2_bytes": 113406,
-      "ctx_ms": 22,
-      "search_ms": 149,
+      "ctx_ms": 21,
+      "search_ms": 143,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 798
+      "audit_label": "complete",
+      "wall_ms": 789
     },
     {
       "module": "std_specs::core",
@@ -1052,9 +1084,11 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 1,
-      "verus_ms": 426,
+      "verus_ms": 428,
       "stderr_tail": "ex: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n25 |             &&& (pre_container.spec_index_set_ensures(post1_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:191:12\nhelp: consider borrowing here\n   |\n25 |             &&& (pre_container.spec_index_set_ensures(&post1_container, index, val))\n   |                                                       +\n\nerror[E0308]: mismatched types\n  --> vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__core__index_set__L205/harness.rs:26:55\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - found this type parameter\n...\n26 |             &&& (pre_container.spec_index_set_ensures(post2_container, index, val))\n   |                                ---------------------- ^^^^^^^^^^^^^^^ expected `&T`, found type parameter `T`\n   |                                |\n   |                                arguments to this method are incorrect\n   |\n   = note:   expected reference `&_`\n           found type parameter `_`\nnote: method defined here\n  --> vstd/std_specs/core.rs:191:12\nhelp: consider borrowing here\n   |\n26 |             &&& (pre_container.spec_index_set_ensures(&post2_container, index, val))\n   |                                                       +\n\nerror[E0277]: the size for values of type `T` cannot be known at compilation time\n  --> vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__core__index_set__L205/harness.rs:27:57\n   |\n18 | proof fn det_index_set<T, Idx, E>(g_neq_tuple: bool, pre_container: T, index: Idx, val: E, post1_container: T, r1: (), post2_contain...\n   |                        - this type parameter needs to be `Sized`\n...\n27 |         }) ==> det_index_set_equal::<T, Idx, E>(r1, r2, post1_container, post2_container),\n   |                                                         ^^^^^^^^^^^^^^^ doesn't have a size known at compile-time\n   |\n   = note: all function arguments must have a statically known size\n   = help: unsized fn params are gated as an unstable feature\nhelp: consider removing the `?Sized` bound to make the type parameter `Sized`\n   |\n19 -     where T: ?Sized + core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n19 +     where T: core::ops::IndexMut<Idx> + core::ops::Index<Idx, Output = E> + IndexSetTrustedSpec<\n   |\n\nerror: aborting due to 10 previous errors\n\nSome errors have detailed explanations: E0277, E0308.\nFor more information about an error, try `rustc --explain E0277`.\n",
-      "wall_ms": 443
+      "audit_note": "`T: ?Sized` generic-bound gap in the synthesized det fn (pipeline limitation, not a spec verdict)",
+      "audit_label": "verus_error",
+      "wall_ms": 447
     },
     {
       "module": "std_specs::vec",
@@ -1075,17 +1109,18 @@
       "n_schemas": 5,
       "n_params": 11,
       "verus_returncode": 0,
-      "verus_ms": 607,
+      "verus_ms": 594,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/std_specs__vec__vec_index__L53/verus_log/root.smt2",
       "smt2_bytes": 81809,
-      "ctx_ms": 18,
-      "search_ms": 17,
+      "ctx_ms": 20,
+      "search_ms": 18,
       "r0_z3": "unsat",
       "n_rounds": 1,
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 713
+      "audit_label": "complete",
+      "wall_ms": 721
     },
     {
       "module": "std_specs::vec",
@@ -1103,7 +1138,8 @@
         "*final(element) == final(vec).view().index(i as int)"
       ],
       "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
-      "wall_ms": 58
+      "audit_label": "unsupported_mut_ref_return",
+      "wall_ms": 63
     },
     {
       "module": "thread",
@@ -1124,11 +1160,11 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 1,
-      "verus_ms": 391,
+      "verus_ms": 421,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/thread__spawn__L107/verus_log/root.smt2",
       "smt2_bytes": 63631,
-      "ctx_ms": 17,
-      "search_ms": 14,
+      "ctx_ms": 18,
+      "search_ms": 15,
       "r0_z3": "unknown",
       "n_rounds": 2,
       "assumes": [
@@ -1137,7 +1173,8 @@
       "permitted": true,
       "classification": "incomplete_permitted",
       "permitted_reason": "intentional nondeterminism: fresh thread-handle identity and one-way predicate constraint on the closure result",
-      "wall_ms": 440
+      "audit_label": "incomplete_permitted",
+      "wall_ms": 473
     },
     {
       "module": "thread",
@@ -1156,7 +1193,7 @@
       "n_schemas": 1,
       "n_params": 1,
       "verus_returncode": 0,
-      "verus_ms": 544,
+      "verus_ms": 533,
       "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/thread__thread_id__L200/verus_log/root.smt2",
       "smt2_bytes": 62008,
       "ctx_ms": 17,
@@ -1166,7 +1203,8 @@
       "assumes": [],
       "permitted": false,
       "classification": "complete",
-      "wall_ms": 593
+      "audit_label": "complete_tool_gap",
+      "wall_ms": 585
     }
   ]
 }

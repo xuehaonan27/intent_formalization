@@ -312,6 +312,84 @@ def _lookup_rule(mapping: dict, module: str, function: str, source_line):
     )
 
 
+# ---------------------------------------------------------------------------
+# P5 — structured audit annotations (HANDOFF §13 P5).
+#
+# The A/B/C labels from experiments/UNKNOWN-AUDIT-2026-07-15.md and
+# ALIAS-NEW-REVIEW-2026-07-21.md as machine-readable metadata. Buckets:
+#   complete / complete_tool_gap / incomplete_permitted / incomplete /
+#   unsupported / unknown
+# ---------------------------------------------------------------------------
+
+# C-class: genuine semantic underconstraint, established by MANUAL audit —
+# the contract constrains the result only through a non-functional invariant
+# predicate (`inv(result)`), so two distinct values can satisfy it. There is
+# no machine sat witness; the label is audit-established.
+_AUDIT_C_NOTE_CELL = (
+    "audit-established genuine underconstraint: `self.inv(ret)` is a "
+    "non-functional possible-value predicate (no machine sat witness)"
+)
+
+AUDIT_C = {
+    ("cell", "replace", 359): {"note": _AUDIT_C_NOTE_CELL},
+    ("cell", "get", 378): {"note": _AUDIT_C_NOTE_CELL},
+    ("rwlock", "acquire_write", 530): {
+        "note": "audit-established genuine underconstraint: returned value "
+                "constrained only by the arbitrary lock invariant (no "
+                "machine sat witness)",
+    },
+    ("rwlock", "into_inner", 702): {
+        "note": "audit-established genuine underconstraint: returned value "
+                "constrained only by the arbitrary lock invariant (no "
+                "machine sat witness)",
+    },
+    ("cell::invcell", "replace", "*"): {"note": _AUDIT_C_NOTE_CELL},
+    ("cell::invcell", "get", "*"): {"note": _AUDIT_C_NOTE_CELL},
+    ("cell::invcell", "into_inner", "*"): {"note": _AUDIT_C_NOTE_CELL},
+}
+
+# A-class: previously unknown because of a tooling/equality/proof gap, now
+# closed by the P2 overrides/hints. Reported as `complete_tool_gap` when the
+# target verifies.
+AUDIT_TOOL_GAP = {
+    ("atomic", "fetch_and", "*"): {"mechanism": "PermissionPtr::view() equality (equal-fn override)"},
+    ("atomic", "fetch_xor", "*"): {"mechanism": "PermissionPtr::view() equality (equal-fn override)"},
+    ("atomic", "fetch_or", "*"): {"mechanism": "PermissionPtr::view() equality (equal-fn override)"},
+    ("raw_ptr", "ptr_ref2", "*"): {"mechanism": "SharedReference projection equality (equal-fn override)"},
+    ("thread", "thread_id", "*"): {"mechanism": "IsThread::agrees proof hint"},
+    ("rwlock", "acquire_read", "*"): {"mechanism": "view equality + ReadHandle::lemma_readers_match proof hint"},
+    ("cell", "new", 344): {"mechanism": "invariant-predicate equality (equal-fn override)"},
+    ("cell::invcell", "new", "*"): {"mechanism": "invariant-predicate equality (equal-fn override)"},
+}
+
+# Free-form audit notes attached to any target (does not change the label).
+AUDIT_NOTES = {
+    ("std_specs::iter", "next", 287): (
+        "suspected A (prophecy axiom `obeys_prophetic_iter_laws` not "
+        "instantiated); the for-loop wrapper was removed upstream in cf3b5c3"
+    ),
+    ("std_specs::core", "index_set", "*"): (
+        "`T: ?Sized` generic-bound gap in the synthesized det fn "
+        "(pipeline limitation, not a spec verdict)"
+    ),
+}
+
+
+def _audit_label(result: dict, module: str, function: str, source_line) -> str:
+    """P5 bucket for aggregators (see HANDOFF §13 P5)."""
+    if result.get("status") != "ok":
+        # unsupported_mut_ref_return / verus_error / no_ensures / ...
+        return str(result.get("status"))
+    cls = result.get("classification")
+    if cls in ("incomplete_permitted", "incomplete"):
+        return cls
+    if cls == "complete":
+        if _lookup_rule(AUDIT_TOOL_GAP, module, function, source_line):
+            return "complete_tool_gap"
+        return "complete"
+    return "unknown"
+
+
 def module_file(vstd_root: Path, module: str) -> Path:
     relative = Path(*module.split("::"))
     direct = vstd_root / relative.with_suffix(".rs")
@@ -501,6 +579,23 @@ def run_target(
     }
     started = time.monotonic()
 
+    def _finalize(res: dict) -> dict:
+        # P5 audit annotation on every exit path (including early non-ok
+        # returns): attach notes, relabel audit-established C-cases, and
+        # derive the bucket label.
+        c_rule = _lookup_rule(AUDIT_C, module, function, source_line)
+        if c_rule is not None:
+            res.setdefault("audit_note", c_rule["note"])
+            if res.get("classification") == "ok_inconclusive":
+                res["classification"] = "incomplete"
+        note = _lookup_rule(AUDIT_NOTES, module, function, source_line)
+        if note is not None:
+            res["audit_note"] = note
+        res["audit_label"] = _audit_label(
+            res, module, function, source_line
+        )
+        return res
+
     try:
         spec = extract_spec(
             source,
@@ -512,14 +607,14 @@ def run_target(
         result["ensures"] = list(spec.ensures)
         if not spec.ensures:
             result["status"] = "no_ensures"
-            return result
+            return _finalize(result)
         if spec.return_type.name.strip().startswith("&mut "):
             result["status"] = "unsupported_mut_ref_return"
             result["error"] = (
                 "current gen_det emits direct mutable-reference result "
                 "projections instead of old(result)/final(result)"
             )
-            return result
+            return _finalize(result)
 
         equal_policy = EqualPolicy(
             compare_raw_pointers=compare_raw_pointers,
@@ -591,7 +686,7 @@ def run_target(
             if not expected_failure and "error:" in stderr:
                 result["status"] = "verus_error"
                 result["stderr_tail"] = stderr[-3000:]
-                return result
+                return _finalize(result)
 
         smt2_candidates = sorted(
             log_dir.rglob("*.smt2"),
@@ -599,7 +694,7 @@ def run_target(
         )
         if not smt2_candidates:
             result["status"] = "no_smt2"
-            return result
+            return _finalize(result)
         smt2 = smt2_candidates[-1]
         result["smt2"] = str(smt2)
         result["smt2_bytes"] = smt2.stat().st_size
@@ -642,7 +737,8 @@ def run_target(
                 result["quotient"] = rule["quotient"]
             elif result["classification"] == "ok_inconclusive":
                 result["classification"] = "incomplete_permitted"
-        return result
+        # P5 audit annotation happens in _finalize on every exit path.
+        return _finalize(result)
     except Exception as exc:
         result["status"] = "runner_crash"
         result["error"] = (
@@ -670,6 +766,11 @@ def write_summary(out_dir: Path, metadata: dict, results: list[dict]) -> None:
         for result in results
         if result.get("classification")
     )
+    audit_counts = Counter(
+        result.get("audit_label", "")
+        for result in results
+        if result.get("audit_label")
+    )
     lines = [
         "# vstd determinism pilot",
         "",
@@ -682,9 +783,10 @@ def write_summary(out_dir: Path, metadata: dict, results: list[dict]) -> None:
         f"- Targets: {len(results)}",
         f"- Status counts: `{dict(status_counts)}`",
         f"- Classification counts: `{dict(class_counts)}`",
+        f"- Audit label counts: `{dict(audit_counts)}`",
         "",
-        "| Module | Function | Line | Status | R0 Z3 | Classification | Schemas | Rounds | Wall ms |",
-        "|---|---|---:|---|---|---|---:|---:|---:|",
+        "| Module | Function | Line | Status | R0 Z3 | Classification | Audit | Schemas | Rounds | Wall ms |",
+        "|---|---|---:|---|---|---|---|---:|---:|---:|",
     ]
     for result in results:
         lines.append(
@@ -692,6 +794,7 @@ def write_summary(out_dir: Path, metadata: dict, results: list[dict]) -> None:
             f"{result.get('source_line') or ''} | "
             f"{result.get('status', '')} | {result.get('r0_z3', '')} | "
             f"{result.get('classification', '')} | "
+            f"{result.get('audit_label', '')} | "
             f"{result.get('n_schemas', '')} | "
             f"{result.get('n_rounds', '')} | "
             f"{result.get('wall_ms', '')} |"

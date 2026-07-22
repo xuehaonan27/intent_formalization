@@ -356,23 +356,26 @@ def _extract_return_type(fn_node: ts.Node) -> tuple[TypeInfo, Optional[str]]:
 # Requires/ensures clause extraction
 # ---------------------------------------------------------------------------
 
-def _extract_clauses(fn_qualifier: ts.Node) -> tuple[list[str], list[str]]:
-    """Extract requires and ensures clause texts from an fn_qualifier node."""
+def _extract_clauses(fn_qualifier: ts.Node) -> tuple[list[str], list[str], list[str]]:
+    """Extract requires, ensures and returns clause texts from an fn_qualifier node."""
     requires = []
     ensures = []
+    returns = []
     for child in fn_qualifier.children:
         if child.type == "requires_clause":
             requires.extend(_clause_expressions(child))
         elif child.type == "ensures_clause":
             ensures.extend(_clause_expressions(child))
-    return requires, ensures
+        elif child.type == "returns_clause":
+            returns.extend(_clause_expressions(child))
+    return requires, ensures, returns
 
 
 def _clause_expressions(clause_node: ts.Node) -> list[str]:
-    """Extract expression text from a requires_clause or ensures_clause node."""
+    """Extract expression text from a requires/ensures/returns clause node."""
     exprs = []
     for child in clause_node.children:
-        if child.type in ("requires", "ensures", ",", "line_comment", "block_comment"):
+        if child.type in ("requires", "ensures", "returns", ",", "line_comment", "block_comment"):
             continue
         exprs.append(_text(child))
     return exprs
@@ -1326,6 +1329,7 @@ def extract_spec(
     # Extract requires/ensures — try attribute first, then inline fn_qualifier
     requires_raw: list[str] = []
     ensures_raw: list[str] = []
+    returns_raw: list[str] = []
     result_binding = ret_binding  # from named return type
 
     spec_info = _find_verus_spec_for_fn(fn_node, tree)
@@ -1333,12 +1337,25 @@ def extract_spec(
         attr_binding, fq_node = spec_info
         if attr_binding:
             result_binding = attr_binding
-        requires_raw, ensures_raw = _extract_clauses(fq_node)
+        requires_raw, ensures_raw, returns_raw = _extract_clauses(fq_node)
     else:
         # Inline fn_qualifier on the function itself
         fq = _child_by_type(fn_node, "fn_qualifier")
         if fq:
-            requires_raw, ensures_raw = _extract_clauses(fq)
+            requires_raw, ensures_raw, returns_raw = _extract_clauses(fq)
+
+    # Lower a `returns expr` clause into a postcondition: on a named return
+    # `(out: T)`, `returns e` means `ensures out == e`.
+    if returns_raw:
+        if result_binding:
+            ensures_raw.extend(
+                f"{result_binding} == {expr}" for expr in returns_raw
+            )
+        else:
+            logger.warning(
+                "dropping %d `returns` clause(s) on %s: no named return binding",
+                len(returns_raw), fn_name,
+            )
 
     # Resolve self type from enclosing impl block (always use full_tree).
     # Two-tier strategy: prefer the AST-based `_find_impl_node` (also

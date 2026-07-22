@@ -15,11 +15,11 @@
   "n_schemas": 5,
   "n_params": 5,
   "verus_returncode": 1,
-  "verus_ms": 386,
+  "verus_ms": 407,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/thread__join__L27/verus_log/root.smt2",
   "smt2_bytes": 66130,
-  "ctx_ms": 17,
-  "search_ms": 24,
+  "ctx_ms": 18,
+  "search_ms": 29,
   "r0_z3": "unknown",
   "n_rounds": 4,
   "assumes": [
@@ -30,5 +30,6 @@
   "permitted": true,
   "classification": "incomplete_permitted",
   "permitted_reason": "intentional nondeterminism: successful value constrained only by the handle predicate; thread identity and runtime state intentionally hidden",
-  "wall_ms": 443
+  "audit_label": "incomplete_permitted",
+  "wall_ms": 470
 }

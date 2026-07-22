@@ -20,15 +20,16 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 0,
-  "verus_ms": 572,
+  "verus_ms": 579,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/rwlock__acquire_read__L620/verus_log/root.smt2",
   "smt2_bytes": 59030,
-  "ctx_ms": 18,
+  "ctx_ms": 21,
   "search_ms": 11,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
   "permitted": false,
   "classification": "complete",
-  "wall_ms": 683
+  "audit_label": "complete_tool_gap",
+  "wall_ms": 709
 }

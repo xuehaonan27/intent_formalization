@@ -14,5 +14,6 @@
     "*final(element) == final(vec).view().index(i as int)"
   ],
   "error": "current gen_det emits direct mutable-reference result projections instead of old(result)/final(result)",
-  "wall_ms": 58
+  "audit_label": "unsupported_mut_ref_return",
+  "wall_ms": 63
 }

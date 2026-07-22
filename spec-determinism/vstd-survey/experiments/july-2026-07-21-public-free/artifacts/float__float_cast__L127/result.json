@@ -15,10 +15,10 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 1,
-  "verus_ms": 373,
+  "verus_ms": 456,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/float__float_cast__L127/verus_log/root.smt2",
   "smt2_bytes": 58065,
-  "ctx_ms": 22,
+  "ctx_ms": 17,
   "search_ms": 15,
   "r0_z3": "unknown",
   "n_rounds": 2,
@@ -28,5 +28,6 @@
   "permitted": true,
   "classification": "incomplete_permitted",
   "permitted_reason": "intentional nondeterminism: Rust float-cast relation documented as possibly non-deterministic; modeled by an uninterpreted relation",
-  "wall_ms": 418
+  "audit_label": "incomplete_permitted",
+  "wall_ms": 496
 }

@@ -19,11 +19,11 @@
   "n_schemas": 9,
   "n_params": 15,
   "verus_returncode": 0,
-  "verus_ms": 593,
+  "verus_ms": 576,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/simple_pptr__new__L397/verus_log/root.smt2",
   "smt2_bytes": 84682,
   "ctx_ms": 19,
-  "search_ms": 127,
+  "search_ms": 134,
   "r0_z3": "unsat",
   "n_rounds": 1,
   "assumes": [],
@@ -31,5 +31,6 @@
   "classification": "complete",
   "permitted_reason": "intentional fresh-address identity; deterministic under the recorded content quotient",
   "quotient": "content quotient: fresh allocator address ignored; compares `is_init()`/`value()`",
-  "wall_ms": 788
+  "audit_label": "complete",
+  "wall_ms": 779
 }

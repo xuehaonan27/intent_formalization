@@ -55,6 +55,10 @@ The deprecated `vstd::cell::InvCell` was tested; the replacement
 - All 12 B-cases are explicitly encoded (P3): 8 fresh-identity constructors
   verify under recorded content/predicate quotients; 4 relation cases are
   `incomplete_permitted` with recorded reasons.
+- Audit labels are now machine-readable on every result (P5): six buckets
+  (`complete` / `complete_tool_gap` / `incomplete_permitted` / `incomplete`
+  / `unsupported*` / `unknown`) plus `audit_note`; the extractor also lowers
+  `returns` clauses to `ensures`, closing the 2 `no_ensures` gaps.
 - The July snapshot (cf3b5c3) is fully validated end-to-end (P1); prefer it
   for new work.
 
@@ -192,6 +196,7 @@ vstd-survey/
     ├── JULY-RERUN-REVIEW-2026-07-21.md # July (cf3b5c3) full-rerun review (see §15.4)
     ├── P2-REVIEW-2026-07-21.md        # A-case automation review (see §13 P2)
     ├── P3-REVIEW-2026-07-21.md        # permitted-nondeterminism review (see §13 P3)
+    ├── P5-REVIEW-2026-07-21.md        # structured audit labels + returns (see §13 P5)
     ├── pilot-2026-07-14/              # initial array/bytes pilot
     ├── public-free-2026-07-14/        # 34 public free definitions
     ├── raw-pointer-strict-2026-07-14/ # strict equality rerun for 6 pointer APIs
@@ -851,6 +856,15 @@ invariant-predicate quotient equality, same as the deprecated version. The
 three options above therefore apply unchanged.
 
 ### P5 — add structured audit annotations
+
+**DONE 2026-07-21** — see
+[experiments/P5-REVIEW-2026-07-21.md](experiments/P5-REVIEW-2026-07-21.md).
+`result.json` now carries `audit_label` (six buckets below) and
+`audit_note` on every exit path, `SUMMARY.md` has an Audit column and
+audit-label counts, and the audit-established nature of the C-class labels
+is explicit in the notes. Also landed in the same change: the extractor now
+lowers `returns expr` clauses to `ensures <binding> == <expr>` (the two
+`no_ensures` cell `read` targets verify on both snapshots). Original text:
 
 Move the A/B/C labels from Markdown into machine-readable result metadata so
 aggregators can report:

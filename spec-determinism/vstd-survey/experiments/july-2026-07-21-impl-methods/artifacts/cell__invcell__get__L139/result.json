@@ -18,10 +18,10 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 1,
-  "verus_ms": 377,
+  "verus_ms": 425,
   "smt2": "vstd-survey/experiments/july-2026-07-21-impl-methods/artifacts/cell__invcell__get__L139/verus_log/root.smt2",
   "smt2_bytes": 60340,
-  "ctx_ms": 19,
+  "ctx_ms": 23,
   "search_ms": 15,
   "r0_z3": "unknown",
   "n_rounds": 2,
@@ -29,6 +29,8 @@
     "!det_get_equal(r1, r2)"
   ],
   "permitted": false,
-  "classification": "ok_inconclusive",
-  "wall_ms": 422
+  "classification": "incomplete",
+  "audit_note": "audit-established genuine underconstraint: `self.inv(ret)` is a non-functional possible-value predicate (no machine sat witness)",
+  "audit_label": "incomplete",
+  "wall_ms": 474
 }

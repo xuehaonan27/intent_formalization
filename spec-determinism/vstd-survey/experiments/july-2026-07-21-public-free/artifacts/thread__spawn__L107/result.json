@@ -17,11 +17,11 @@
   "n_schemas": 1,
   "n_params": 1,
   "verus_returncode": 1,
-  "verus_ms": 391,
+  "verus_ms": 421,
   "smt2": "vstd-survey/experiments/july-2026-07-21-public-free/artifacts/thread__spawn__L107/verus_log/root.smt2",
   "smt2_bytes": 63631,
-  "ctx_ms": 17,
-  "search_ms": 14,
+  "ctx_ms": 18,
+  "search_ms": 15,
   "r0_z3": "unknown",
   "n_rounds": 2,
   "assumes": [
@@ -30,5 +30,6 @@
   "permitted": true,
   "classification": "incomplete_permitted",
   "permitted_reason": "intentional nondeterminism: fresh thread-handle identity and one-way predicate constraint on the closure result",
-  "wall_ms": 440
+  "audit_label": "incomplete_permitted",
+  "wall_ms": 473
 }
